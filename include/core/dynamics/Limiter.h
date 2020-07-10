@@ -20,8 +20,6 @@ namespace lsp
 {
     enum limiter_mode_t
     {
-        LM_COMPRESSOR,
-
         LM_HERM_THIN,
         LM_HERM_WIDE,
         LM_HERM_TAIL,
@@ -35,11 +33,7 @@ namespace lsp
         LM_LINE_THIN,
         LM_LINE_WIDE,
         LM_LINE_TAIL,
-        LM_LINE_DUCK,
-
-        LM_MIXED_HERM,
-        LM_MIXED_EXP,
-        LM_MIXED_LINE
+        LM_LINE_DUCK
     };
     
     class Limiter
@@ -62,19 +56,6 @@ namespace lsp
                 UP_ALL      = UP_SR | UP_LK | UP_MODE | UP_OTHER | UP_THRESH | UP_ALR
             };
 
-            typedef struct comp_t
-            {
-                float       fKS;            // Knee start
-                float       fKE;            // Knee end
-                float       fTauAttack;     // Attack time constant
-                float       fTauRelease;    // Release time constant
-                float       fEnvelope;      // Envelope
-                float       fAmp;           // Amplification coefficient
-                ssize_t     nCountdown;     // Countdown
-                float       fSample;        // Last triggered sample
-                float       vHermite[3];    // Knee hermite interpolation
-            } comp_t;
-
             typedef struct alr_t
             {
                 float       fKS;            // Knee start
@@ -88,14 +69,6 @@ namespace lsp
                 float       fEnvelope;      // Envelope
                 bool        bEnable;        // Enable ALR
             } alr_t;
-
-            #pragma pack(push, 1)
-            typedef struct peak_t
-            {
-                int32_t     nTime;
-                float       fValue;
-            } peak_t;
-            #pragma pack(pop)
 
             typedef struct sat_t
             {
@@ -130,17 +103,6 @@ namespace lsp
                 float       vRelease[2];    // Line interpolation of release
             } line_t;
 
-            typedef struct mixed_t
-            {
-                comp_t      sComp;
-                union
-                {
-                    sat_t       sSat;               // Hermite mode
-                    exp_t       sExp;               // Exponent mode
-                    line_t      sLine;              // Line mode
-                };
-            } mixed_t;
-
         protected:
             float       fThreshold;
             float       fLookahead;
@@ -159,21 +121,18 @@ namespace lsp
 
             // Pre-calculated parameters
             float      *vGainBuf;
-            float      *vTmpBuf;
+            float      *vTmpBuf;                // Temporary buffer to store the actual sidechain value
             uint8_t    *vData;
 
             Delay       sDelay;
             union
             {
-                comp_t      sComp;              // Compressor mode
                 sat_t       sSat;               // Hermite mode
                 exp_t       sExp;               // Exponent mode
                 line_t      sLine;              // Line mode
-                mixed_t     sMixed;             // Mixed mode
             };
 
         protected:
-            inline float    reduction(comp_t *comp);
             inline float    sat(ssize_t n);
             inline float    exp(ssize_t n);
             inline float    line(ssize_t n);
@@ -184,19 +143,13 @@ namespace lsp
             static void     reset_sat(sat_t *sat);
             static void     reset_exp(exp_t *exp);
             static void     reset_line(line_t *line);
-            static void     reset_comp(comp_t *comp);
 
             void            init_sat(sat_t *sat);
             void            init_exp(exp_t *exp);
             void            init_line(line_t *line);
-            void            init_comp(comp_t *comp);
 
-            void            process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_patch(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples);
             void            process_alr(float *gbuf, const float *sc, size_t samples);
 
-            static void     dump(IStateDumper *v, const char *name, const comp_t *comp);
             static void     dump(IStateDumper *v, const char *name, const sat_t *sat);
             static void     dump(IStateDumper *v, const char *name, const exp_t *exp);
             static void     dump(IStateDumper *v, const char *name, const line_t *line);

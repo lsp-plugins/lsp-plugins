@@ -29,6 +29,9 @@
 
 * Implemented Loudness Compensator plugin series (Mono and Stereo).
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
+* Significantly changed the Limiter plugin:
+  * Removed 'Classic' and 'Mixed' modes since these modes do not give effective results.
+  * Introduced Automated Level Regulation (ALR) feature enabled by default.
 * Updated metadata for dynamic processors to better match the UI.
 * VST plugins now provide possibility to save and load presets and do not crash Host.
 * Added support of lv2:StateChanged extension which properly works with Ardour 6.0.145 and higher.

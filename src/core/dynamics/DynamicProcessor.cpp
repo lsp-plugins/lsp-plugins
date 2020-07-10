@@ -446,11 +446,11 @@ namespace lsp
 
     void DynamicProcessor::dump(IStateDumper *v) const
     {
-        v->start_array("vDots", vDots, DYNAMIC_PROCESSOR_DOTS);
+        v->begin_array("vDots", vDots, DYNAMIC_PROCESSOR_DOTS);
         for (size_t i=0; i<DYNAMIC_PROCESSOR_DOTS; ++i)
         {
             const dyndot_t *dot = &vDots[i];
-            v->start_object(dot, sizeof(dyndot_t));
+            v->begin_object(dot, sizeof(dyndot_t));
             {
                 v->write("fInput", dot->fInput);
                 v->write("fOutput", dot->fOutput);
@@ -468,11 +468,11 @@ namespace lsp
         v->write("fInRatio", fInRatio);
         v->write("fOutRatio", fOutRatio);
 
-        v->start_array("vSplines", vSplines, DYNAMIC_PROCESSOR_DOTS);
+        v->begin_array("vSplines", vSplines, DYNAMIC_PROCESSOR_DOTS);
         for (size_t i=0; i<DYNAMIC_PROCESSOR_DOTS; ++i)
         {
             const spline_t *s = &vSplines[i];
-            v->start_object(s, sizeof(spline_t));
+            v->begin_object(s, sizeof(spline_t));
             {
                 v->write("fPreRatio", s->fPreRatio);
                 v->write("fPostRatio", s->fPostRatio);
@@ -486,11 +486,11 @@ namespace lsp
         }
         v->end_array();
 
-        v->start_array("vAttack", vAttack, DYNAMIC_PROCESSOR_RANGES);
+        v->begin_array("vAttack", vAttack, DYNAMIC_PROCESSOR_RANGES);
         for (size_t i=0; i<DYNAMIC_PROCESSOR_RANGES; ++i)
         {
             const reaction_t *r = &vAttack[i];
-            v->start_object(r, sizeof(reaction_t));
+            v->begin_object(r, sizeof(reaction_t));
             {
                 v->write("fLevel", r->fLevel);
                 v->write("fTau", r->fTau);
@@ -499,11 +499,11 @@ namespace lsp
         }
         v->end_array();
 
-        v->start_array("vRelease", vRelease, DYNAMIC_PROCESSOR_RANGES);
+        v->begin_array("vRelease", vRelease, DYNAMIC_PROCESSOR_RANGES);
         for (size_t i=0; i<DYNAMIC_PROCESSOR_RANGES; ++i)
         {
             const reaction_t *r = &vRelease[i];
-            v->start_object(r, sizeof(reaction_t));
+            v->begin_object(r, sizeof(reaction_t));
             {
                 v->write("fLevel", r->fLevel);
                 v->write("fTau", r->fTau);

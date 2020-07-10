@@ -716,11 +716,11 @@ namespace lsp
         v->write("bReference", bReference);
         v->write("bHClipOn", bHClipOn);
         v->write("fHClipLvl", fHClipLvl);
-        v->start_array("vChannels", vChannels, nChannels);
+        v->begin_array("vChannels", vChannels, nChannels);
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c = vChannels[i];
-            v->start_object(c, sizeof(channel_t));
+            v->begin_object(c, sizeof(channel_t));
             {
                 v->write("vIn", c->vIn);
                 v->write("vOut", c->vOut);

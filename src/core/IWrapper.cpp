@@ -117,7 +117,7 @@ namespace lsp
             return;
         }
 
-        lsp_info("Dumping plugin state to %s...", path.as_utf8());
+        lsp_info("Dumping plugin state to file:\n%s...", path.as_utf8());
 
         JsonDumper v;
         if ((res = v.open(&path)) != STATUS_OK)
@@ -126,7 +126,7 @@ namespace lsp
             return;
         }
 
-        v.start_raw_object();
+        v.begin_raw_object();
         {
             LSPString tmp;
 
@@ -144,7 +144,7 @@ namespace lsp
             v.write("vst_id", meta->vst_uid);
             v.write("ladspa_id", meta->ladspa_id);
             v.write("this", pPlugin);
-            v.start_raw_object("data");
+            v.begin_raw_object("data");
             {
                 pPlugin->dump(&v);
             }
@@ -154,7 +154,7 @@ namespace lsp
         v.end_raw_object();
         v.close();
 
-        lsp_info("State has been dumped to %s", path.as_utf8());
+        lsp_info("State has been dumped to file:\n%s", path.as_utf8());
     }
 
 } /* namespace lsp */

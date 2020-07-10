@@ -132,6 +132,7 @@ namespace lsp
 
             virtual void process(size_t samples);
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+            virtual void dump(IStateDumper *v) const;
     };
 
     class limiter_mono: public limiter_base, public limiter_mono_metadata

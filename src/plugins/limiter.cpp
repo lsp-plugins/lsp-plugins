@@ -370,18 +370,10 @@ namespace lsp
             case limiter_base_metadata::LOM_LINE_DUCK:
                 return LM_LINE_DUCK;
 
-            case limiter_base_metadata::LOM_MIXED_HERM:
-                return LM_MIXED_HERM;
-            case limiter_base_metadata::LOM_MIXED_EXP:
-                return LM_MIXED_EXP;
-            case limiter_base_metadata::LOM_MIXED_LINE:
-                return LM_MIXED_LINE;
-
-            case limiter_base_metadata::LOM_CLASSIC:
             default:
-                return LM_COMPRESSOR;
+                break;
         }
-        return LM_COMPRESSOR;
+        return LM_HERM_THIN;
     }
 
     size_t limiter_base::get_dithering(size_t mode)
@@ -764,6 +756,96 @@ namespace lsp
         }
 
         return true;
+    }
+
+    void limiter_base::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->write("bSidechain", bSidechain);
+        v->begin_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sOver", &c->sOver);
+                v->write_object("sScOver", &c->sScOver);
+                v->write_object("sLimit", &c->sLimit);
+
+                v->begin_array("sGraph", c->sGraph, G_TOTAL);
+                for (size_t j=0; j<G_TOTAL; ++j)
+                    v->write_object(&c->sGraph[j]);
+                v->end_array();
+
+                v->write_object("sBlink", &c->sBlink);
+
+                v->write("vIn", c->vIn);
+                v->write("vSc", c->vSc);
+                v->write("vOut", c->vOut);
+
+                v->write("vDataBuf", c->vDataBuf);
+                v->write("vScBuf", c->vScBuf);
+                v->write("vGainBuf", c->vGainBuf);
+                v->write("vOutBuf", c->vOutBuf);
+
+                v->writev("bVisible", c->bVisible, G_TOTAL);
+                v->write("bOutVisible", c->bOutVisible);
+                v->write("bGainVisible", c->bGainVisible);
+                v->write("bScVisible", c->bScVisible);
+
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pSc", c->pSc);
+                v->writev("pVisible", c->pVisible, G_TOTAL);
+
+                v->writev("pGraph", c->pGraph, G_TOTAL);
+                v->writev("pMeter", c->pMeter, G_TOTAL);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("vTime", vTime);
+        v->write("bPause", bPause);
+        v->write("bClear", bClear);
+        v->write("bExtSc", bExtSc);
+        v->write("bScListen", bScListen);
+        v->write("fInGain", fInGain);
+        v->write("fOutGain", fOutGain);
+        v->write("fPreamp", fPreamp);
+        v->write("fThresh", fThresh);
+        v->write("fKnee", fKnee);
+        v->write("bBoost", bBoost);
+        v->write("nOversampling", nOversampling);
+        v->write("fStereoLink", fStereoLink);
+        v->write("pIDisplay", pIDisplay);
+        v->write("bUISync", bUISync);
+
+        v->write_object("sDither", &sDither);
+
+        v->write("pBypass", pBypass);
+        v->write("pInGain", pInGain);
+        v->write("pOutGain", pOutGain);
+        v->write("pPreamp", pPreamp);
+        v->write("pAlrOn", pAlrOn);
+        v->write("pAlrAttack", pAlrAttack);
+        v->write("pAlrRelease", pAlrRelease);
+        v->write("pMode", pMode);
+        v->write("pThresh", pThresh);
+        v->write("pLookahead", pLookahead);
+        v->write("pAttack", pAttack);
+        v->write("pRelease", pRelease);
+        v->write("pPause", pPause);
+        v->write("pClear", pClear);
+        v->write("pExtSc", pExtSc);
+        v->write("pScListen", pScListen);
+        v->write("pKnee", pKnee);
+        v->write("pBoost", pBoost);
+        v->write("pOversampling", pOversampling);
+        v->write("pDithering", pDithering);
+        v->write("pStereoLink", pStereoLink);
+        v->write("pData", pData);
     }
 
     //-------------------------------------------------------------------------

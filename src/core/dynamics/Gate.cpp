@@ -253,11 +253,11 @@ namespace lsp
 
     void Gate::dump(IStateDumper *v) const
     {
-        v->start_array("sCurves", sCurves, 2);
+        v->begin_array("sCurves", sCurves, 2);
         for (size_t i=0; i<2; ++i)
         {
             const curve_t *c = &sCurves[i];
-            v->start_object(c, sizeof(curve_t));
+            v->begin_object(c, sizeof(curve_t));
             {
                 v->write("fThreshold", c->fThreshold);
                 v->write("fZone", c->fZone);

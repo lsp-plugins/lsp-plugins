@@ -317,10 +317,10 @@ namespace lsp
         size_t nc       = (ni >> 3) + ((ni >> 2) & 1) + ((ni >> 1) & 1) + (ni & 1);
         biquad_t *b     = vFilters;
 
-        v->start_array("vFilters", vFilters, nc);
+        v->begin_array("vFilters", vFilters, nc);
         while (ni >= 8)
         {
-            v->start_object(b, sizeof(biquad_t));
+            v->begin_object(b, sizeof(biquad_t));
             {
                 v->writev("b0", b->x8.b0, 8);
                 v->writev("b1", b->x8.b1, 8);
@@ -334,7 +334,7 @@ namespace lsp
         }
         if (ni & 4)
         {
-            v->start_object(b, sizeof(biquad_t));
+            v->begin_object(b, sizeof(biquad_t));
             {
                 v->writev("b0", b->x4.b0, 4);
                 v->writev("b1", b->x4.b1, 4);
@@ -348,7 +348,7 @@ namespace lsp
         }
         if (ni & 2)
         {
-            v->start_object(b, sizeof(biquad_t));
+            v->begin_object(b, sizeof(biquad_t));
             {
                 v->writev("b0", b->x2.b0, 2);
                 v->writev("b1", b->x2.b1, 2);
@@ -363,7 +363,7 @@ namespace lsp
         }
         if (ni & 1)
         {
-            v->start_object(b, sizeof(biquad_t));
+            v->begin_object(b, sizeof(biquad_t));
             {
                 v->write("b0", b->x1.b0);
                 v->write("b1", b->x1.b1);
@@ -380,11 +380,11 @@ namespace lsp
         }
         v->end_array();
 
-        v->start_array("vChains", vChains, nItems);
+        v->begin_array("vChains", vChains, nItems);
         for (size_t i=0; i<nItems; ++i)
         {
             biquad_x1_t *bq = &vChains[i];
-            v->start_object(bq, sizeof(biquad_x1_t));
+            v->begin_object(bq, sizeof(biquad_x1_t));
             {
                 v->write("b0", bq->b0);
                 v->write("b1", bq->b1);

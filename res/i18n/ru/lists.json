@@ -194,8 +194,6 @@
 	},
 	
 	"limiter": {
-	    "classic": "Классический",
-
         "exp_duck": "Эксп нырок",
         "exp_tail": "Эксп хвост",
         "exp_thin": "Эксп узк",
@@ -209,11 +207,7 @@
         "line_duck": "Лин нырок",
         "line_tail": "Лин хвост",
         "line_thin": "Лин узк",
-        "line_wide": "Лин широк",
-
-        "mixed_exp": "Смеш эксп",
-        "mixed_herm": "Смеш Эрмит",
-        "mixed_line": "Смеш лин"
+        "line_wide": "Лин широк"
 	},
 	
 	"mb_comp": {

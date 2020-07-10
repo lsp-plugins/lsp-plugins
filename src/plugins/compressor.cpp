@@ -978,12 +978,12 @@ namespace lsp
         v->write("nChannels", channels);
         v->write("bSidechain", bSidechain);
 
-        v->start_array("vChannels", vChannels, channels);
+        v->begin_array("vChannels", vChannels, channels);
         for (size_t i=0; i<channels; ++i)
         {
             const channel_t *c = &vChannels[i];
 
-            v->start_object(c, sizeof(channel_t));
+            v->begin_object(c, sizeof(channel_t));
             {
                 v->write_object("sBypass", &c->sBypass);
                 v->write_object("sSC", &c->sSC);
@@ -992,7 +992,7 @@ namespace lsp
                 v->write_object("sDelay", &c->sDelay);
                 v->write_object("sCompDelay", &c->sCompDelay);
 
-                v->start_array("sGraph", c->sGraph, G_TOTAL);
+                v->begin_array("sGraph", c->sGraph, G_TOTAL);
                 for (size_t j=0; j<G_TOTAL; ++j)
                     v->write_object(&c->sGraph[j]);
                 v->end_array();
@@ -1015,11 +1015,11 @@ namespace lsp
                 v->write("pIn", c->pIn);
                 v->write("pOut", c->pOut);
                 v->write("pSC", c->pSC);
-                v->start_array("pGraph", c->pGraph, G_TOTAL);
+                v->begin_array("pGraph", c->pGraph, G_TOTAL);
                 for (size_t j=0; j<G_TOTAL; ++j)
                     v->write(c->pGraph[j]);
                 v->end_array();
-                v->start_array("pMeter", c->pGraph, M_TOTAL);
+                v->begin_array("pMeter", c->pGraph, M_TOTAL);
                 for (size_t j=0; j<M_TOTAL; ++j)
                     v->write(c->pMeter[j]);
                 v->end_array();

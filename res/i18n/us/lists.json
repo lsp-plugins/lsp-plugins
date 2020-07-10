@@ -194,8 +194,6 @@
 	},
 	
 	"limiter": {
-	    "classic": "Classic",
-
         "exp_duck": "Exp Duck",
         "exp_tail": "Exp Tail",
         "exp_thin": "Exp Thin",
@@ -209,11 +207,7 @@
         "line_duck": "Line Duck",
         "line_tail": "Line Tail",
         "line_thin": "Line Thin",
-        "line_wide": "Line Wide",
-
-        "mixed_exp": "Mixed Exp",
-        "mixed_herm": "Mixed Herm",
-        "mixed_line": "Mixed Line"
+        "line_wide": "Line Wide"
 	},
 	
 	"mb_comp": {

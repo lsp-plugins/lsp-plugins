@@ -33,14 +33,14 @@ namespace lsp
         static const float  RELEASE_TIME_DFL        = 5.0f;
         static const float  RELEASE_TIME_STEP       = 0.0025f;
 
-        static const float  ALR_ATTACK_TIME_MIN     = 0.1f;
-        static const float  ALR_ATTACK_TIME_MAX     = 50.0f;
-        static const float  ALR_ATTACK_TIME_DFL     = 10.0f;
+        static const float  ALR_ATTACK_TIME_MIN     = 5.0f;
+        static const float  ALR_ATTACK_TIME_MAX     = 200.0f;
+        static const float  ALR_ATTACK_TIME_DFL     = 50.0f;
         static const float  ALR_ATTACK_TIME_STEP    = 0.0025f;
 
-        static const float  ALR_RELEASE_TIME_MIN    = 1.0f;
-        static const float  ALR_RELEASE_TIME_MAX    = 250.0f;
-        static const float  ALR_RELEASE_TIME_DFL    = 50.0f;
+        static const float  ALR_RELEASE_TIME_MIN    = 10.0f;
+        static const float  ALR_RELEASE_TIME_MAX    = 1000.0f;
+        static const float  ALR_RELEASE_TIME_DFL    = 100.0f;
         static const float  ALR_RELEASE_TIME_STEP   = 0.0025f;
 
         static const float  THRESHOLD_MIN           = GAIN_AMP_M_48_DB;
@@ -89,8 +89,6 @@ namespace lsp
 
         enum limiter_mode_t
         {
-            LOM_CLASSIC,
-
             LOM_HERM_THIN,
             LOM_HERM_WIDE,
             LOM_HERM_TAIL,
@@ -105,10 +103,6 @@ namespace lsp
             LOM_LINE_WIDE,
             LOM_LINE_TAIL,
             LOM_LINE_DUCK,
-
-            LOM_MIXED_HERM,
-            LOM_MIXED_EXP,
-            LOM_MIXED_LINE,
 
             LOM_DEFAULT     = LOM_HERM_THIN
         };

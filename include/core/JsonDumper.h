@@ -36,17 +36,17 @@ namespace lsp
             status_t    close();
 
         public:
-            void start_raw_object(const char *name);
-            void start_raw_object();
+            void begin_raw_object(const char *name);
+            void begin_raw_object();
             void end_raw_object();
 
 
-            virtual void start_object(const char *name, const void *ptr, size_t szof);
-            virtual void start_object(const void *ptr, size_t szof);
+            virtual void begin_object(const char *name, const void *ptr, size_t szof);
+            virtual void begin_object(const void *ptr, size_t szof);
             virtual void end_object();
 
-            virtual void start_array(const char *name, const void *ptr, size_t length);
-            virtual void start_array(const void *ptr, size_t length);
+            virtual void begin_array(const char *name, const void *ptr, size_t length);
+            virtual void begin_array(const void *ptr, size_t length);
             virtual void end_array();
 
             virtual void write(const void *value);
@@ -77,6 +77,7 @@ namespace lsp
             virtual void write(const char *name, float value);
             virtual void write(const char *name, double value);
 
+            virtual void writev(const void * const *value, size_t count);
             virtual void writev(const bool *value, size_t count);
             virtual void writev(const uint8_t *value, size_t count);
             virtual void writev(const int8_t *value, size_t count);
@@ -89,6 +90,7 @@ namespace lsp
             virtual void writev(const float *value, size_t count);
             virtual void writev(const double *value, size_t count);
 
+            virtual void writev(const char *name, const void * const *value, size_t count);
             virtual void writev(const char *name, const bool *value, size_t count);
             virtual void writev(const char *name, const uint8_t *value, size_t count);
             virtual void writev(const char *name, const int8_t *value, size_t count);

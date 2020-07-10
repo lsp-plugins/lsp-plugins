@@ -25,12 +25,12 @@ namespace lsp
             virtual ~IStateDumper();
 
         public:
-            virtual void start_object(const char *name, const void *ptr, size_t szof);
-            virtual void start_object(const void *ptr, size_t szof);
+            virtual void begin_object(const char *name, const void *ptr, size_t szof);
+            virtual void begin_object(const void *ptr, size_t szof);
             virtual void end_object();
 
-            virtual void start_array(const char *name, const void *ptr, size_t count);
-            virtual void start_array(const void *ptr, size_t count);
+            virtual void begin_array(const char *name, const void *ptr, size_t count);
+            virtual void begin_array(const void *ptr, size_t count);
             virtual void end_array();
 
             virtual void write(const void *value);
@@ -61,6 +61,7 @@ namespace lsp
             virtual void write(const char *name, float value);
             virtual void write(const char *name, double value);
 
+            virtual void writev(const void * const *value, size_t count);
             virtual void writev(const bool *value, size_t count);
             virtual void writev(const uint8_t *value, size_t count);
             virtual void writev(const int8_t *value, size_t count);
@@ -73,6 +74,7 @@ namespace lsp
             virtual void writev(const float *value, size_t count);
             virtual void writev(const double *value, size_t count);
 
+            virtual void writev(const char *name, const void * const *value, size_t count);
             virtual void writev(const char *name, const bool *value, size_t count);
             virtual void writev(const char *name, const uint8_t *value, size_t count);
             virtual void writev(const char *name, const int8_t *value, size_t count);
@@ -87,11 +89,23 @@ namespace lsp
 
         public:
             template <class T>
+                inline void writev(const T * const * value, size_t count)
+                {
+                    writev(reinterpret_cast<const void * const *>(value), count);
+                }
+
+            template <class T>
+                inline void writev(const char *name, const T * const * value, size_t count)
+                {
+                    writev(name, reinterpret_cast<const void * const *>(value), count);
+                }
+
+            template <class T>
                 inline void write_object(const T *value)
                 {
                     if (value != NULL)
                     {
-                        start_object(value, sizeof(T));
+                        begin_object(value, sizeof(T));
                         value->dump(this);
                         end_object();
                     }
@@ -104,7 +118,7 @@ namespace lsp
                 {
                     if (value != NULL)
                     {
-                        start_object(name, value, sizeof(T));
+                        begin_object(name, value, sizeof(T));
                         value->dump(this);
                         end_object();
                     }
