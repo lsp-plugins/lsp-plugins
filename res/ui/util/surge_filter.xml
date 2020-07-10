@@ -106,7 +106,8 @@
 			<text text="graph.units.db" coord="5;24 db" halign="1" valign="-1" />
 			
 			<!-- Markers -->
-			<marker id="thresh" color="g_magenta" basis="1" parallel="0" />
+			<marker id="thr_on" color="g_magenta" basis="1" parallel="0" />
+			<marker id="thr_off" color="g_blue" basis="1" parallel="0" />
 		</graph>
 		<vbox>
 			<meter 
@@ -145,11 +146,7 @@
 			<label text="labels.output" />
 			<button id="grv" color="bright_blue" led="true" size="16" />
 			<label text="labels.gain" />
-			<vsep/>
-			<label text="labels.mode:" />
 			
-			<combo id="mode" />
-
 			<align hpos="1" expand="true">
 				<label text="labels.graphs.time" />
 			</align>
@@ -159,26 +156,40 @@
 		<!-- Main controls -->
 		<cell cols="2">
 			<group text="labels.plug.surge_filter">
-				<grid rows="3" cols="6">
-					<label text="labels.input" />
-					<label text="labels.thresh_old" />
-					<label text="labels.attack" />
-					<label text="labels.release" />
+				<grid rows="4" cols="11" spacing="2">
+					<cell rows="2"><label text="labels.input" /></cell>
+					<cell rows="2"><label text="labels.attack" /></cell>
+					<cell rows="2"><label text="labels.release" /></cell>
+					<cell rows="4"><vsep /></cell>
 					<label text="labels.signal.fade_in" />
-					<label text="labels.output" />
+					<combo id="modein" />
+					<cell rows="4"><vsep /></cell>
+					<label text="labels.signal.fade_out" />
+					<combo id="modeout" />
+					<cell rows="4"><vsep /></cell>
+					<cell rows="2"><label text="labels.output" /></cell>
+					
+					<label text="labels.thresh_old" />
+					<label text="labels.time" />
+					<label text="labels.thresh_old" />
+					<label text="labels.time" />
 					
 					<knob id="input" />
-					<knob id="thresh" />
 					<knob id="attack" />
 					<knob id="release" />
-					<knob id="fade" />
+					<knob id="thr_on" scale_color="magenta" />
+					<knob id="fadein" />
+					<knob id="thr_off" scale_color="blue" />
+					<knob id="fadeout" />
 					<knob id="output" />
 					
 					<value id="input" />
-					<value id="thresh" />
 					<value id="attack" />
 					<value id="release" />
-					<value id="fade" />
+					<value id="thr_on" />
+					<value id="fadein" />
+					<value id="thr_off" />
+					<value id="fadeout" />
 					<value id="output" />
 				</grid>
 			</group>

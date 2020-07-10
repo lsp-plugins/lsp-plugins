@@ -13,6 +13,7 @@
 #include <core/util/Bypass.h>
 #include <core/util/Depopper.h>
 #include <core/util/MeterGraph.h>
+#include <core/util/Delay.h>
 
 #include <metadata/plugins.h>
 
@@ -27,6 +28,8 @@ namespace lsp
                 float              *vOut;           // Output buffer
                 float              *vBuffer;        // Buffer for processing
                 Bypass              sBypass;        // Bypass
+                Delay               sDelay;         // Delay for latency compensation
+                Delay               sDryDelay;      // Dry delay
                 MeterGraph          sIn;            // Input metering graph
                 MeterGraph          sOut;           // Output metering graph
                 bool                bInVisible;     // Input signal visibility flag
@@ -55,13 +58,16 @@ namespace lsp
             Blink               sActive;            // Activity indicator
             Depopper            sDepopper;          // Depopper module
 
-            IPort              *pMode;              // Mode
+            IPort              *pModeIn;            // Mode for fade in
+            IPort              *pModeOut;           // Mode for fade out
             IPort              *pGainIn;            // Input gain
             IPort              *pGainOut;           // Output gain
-            IPort              *pThresh;            // Threshold
+            IPort              *pThreshOn;          // Threshold
+            IPort              *pThreshOff;         // Threshold
             IPort              *pAttack;            // Attack time
             IPort              *pRelease;           // Release time
-            IPort              *pFade;              // Fade time
+            IPort              *pFadeIn;            // Fade in time
+            IPort              *pFadeOut;           // Fade out time
             IPort              *pActive;            // Active flag
             IPort              *pBypass;            // Bypass port
             IPort              *pMeshIn;            // Input mesh

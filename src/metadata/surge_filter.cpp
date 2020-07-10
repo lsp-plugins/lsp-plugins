@@ -24,12 +24,15 @@ namespace lsp
     };
 
     #define SURGE_FILTER_COMMON(channels)    \
-        COMBO("mode", "Volume control mode", 3, surge_modes),      \
+        COMBO("modein", "Fade in mode", 3, surge_modes),      \
+        COMBO("modeout", "Fade out mode", 3, surge_modes),      \
         AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
-        EXT_LOG_CONTROL("thresh", "Threshold", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
+        EXT_LOG_CONTROL("thr_on", "Threshold for switching on", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
+        EXT_LOG_CONTROL("thr_off", "Threshold for switching off", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
         LOG_CONTROL("attack", "Attack time", U_MSEC, surge_filter_base_metadata::ATTACK), \
         LOG_CONTROL("release", "Release time", U_MSEC, surge_filter_base_metadata::RELEASE), \
-        CONTROL("fade", "Fade time", U_MSEC, surge_filter_base_metadata::FADE), \
+        LOG_CONTROL("fadein", "Fade in time", U_MSEC, surge_filter_base_metadata::FADEIN), \
+        LOG_CONTROL("fadeout", "Fade out time", U_MSEC, surge_filter_base_metadata::FADEOUT), \
         BLINK("active", "Activity indicator"), \
         AMP_GAIN("output", "Output gain", 1.0f, GAIN_AMP_P_24_DB), \
         MESH("ig", "Input signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \

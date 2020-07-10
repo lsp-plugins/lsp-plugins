@@ -29,13 +29,16 @@ namespace lsp
         pData           = NULL;
         pIDisplay       = NULL;
 
-        pMode           = NULL;
+        pModeIn         = NULL;
+        pModeOut        = NULL;
         pGainIn         = NULL;
         pGainOut        = NULL;
-        pThresh         = NULL;
+        pThreshOn       = NULL;
+        pThreshOff      = NULL;
         pAttack         = NULL;
         pRelease        = NULL;
-        pFade           = NULL;
+        pFadeIn         = NULL;
+        pFadeOut        = NULL;
         pActive         = NULL;
         pBypass         = NULL;
         pMeshIn         = NULL;
@@ -110,17 +113,23 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pBypass         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pMode           = vPorts[port_id++];
+        pModeIn         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pModeOut        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pGainIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pThresh         = vPorts[port_id++];
+        pThreshOn       = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pThreshOff      = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pAttack         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pRelease        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pFade           = vPorts[port_id++];
+        pFadeIn         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFadeOut        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pActive         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -165,6 +174,8 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = &vChannels[i];
+                c->sDelay.destroy();
+                c->sDryDelay.destroy();
                 c->sIn.destroy();
                 c->sOut.destroy();
             }
@@ -191,8 +202,9 @@ namespace lsp
     void surge_filter_base::update_sample_rate(long sr)
     {
         size_t samples_per_dot  = seconds_to_samples(sr, MESH_TIME / MESH_POINTS);
+        size_t max_delay        = millis_to_samples(sr, FADEOUT_MAX);
 
-        sDepopper.set_sample_rate(sr);
+        sDepopper.init(sr, FADEOUT_MAX);
         sGain.init(MESH_POINTS, samples_per_dot);
         sActive.init(sr);
 
@@ -201,6 +213,8 @@ namespace lsp
             channel_t *c    = &vChannels[i];
 
             c->sBypass.init(sr);
+            c->sDelay.init(max_delay);
+            c->sDryDelay.init(max_delay);
             c->sIn.init(MESH_POINTS, samples_per_dot);
             c->sOut.init(MESH_POINTS, samples_per_dot);
         }
@@ -209,25 +223,36 @@ namespace lsp
     void surge_filter_base::update_settings()
     {
         bool bypass     = pBypass->getValue() >= 0.5f;
-        size_t mode     = pMode->getValue();
         fGainIn         = pGainIn->getValue();
         fGainOut        = pGainOut->getValue();
         bGainVisible    = pGainVisible->getValue() >= 0.5f;
 
-        sDepopper.set_mode(depopper_mode_t(mode));
-        sDepopper.set_threshold(pThresh->getValue());
+        // Change depopper state
+        sDepopper.set_fade_in_mode(depopper_mode_t(pModeIn->getValue()));
+        sDepopper.set_fade_in_threshold(pThreshOn->getValue());
+        sDepopper.set_fade_in_time(pFadeIn->getValue());
+        sDepopper.set_fade_out_mode(depopper_mode_t(pModeOut->getValue()));
+        sDepopper.set_fade_out_threshold(pThreshOff->getValue());
+        sDepopper.set_fade_out_time(pFadeOut->getValue());
         sDepopper.set_attack(pAttack->getValue());
         sDepopper.set_release(pRelease->getValue());
-        sDepopper.set_fade_time(pFade->getValue());
+        sDepopper.reconfigure();
+
+        size_t latency  = sDepopper.latency();
 
         for (size_t i=0; i<nChannels; ++i)
         {
             channel_t *c    = &vChannels[i];
 
             c->sBypass.set_bypass(bypass);
+            c->sDelay.set_delay(latency);
+            c->sDryDelay.set_delay(latency);
             c->bInVisible   = c->pInVisible->getValue();
             c->bOutVisible  = c->pOutVisible->getValue();
         }
+
+        // Report actual latency
+        set_latency(latency);
     }
 
     void surge_filter_base::process(size_t samples)
@@ -285,9 +310,11 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
 
-                // Apply output gain
+                // Apply delay to compensate latency and output gain
+                c->sDelay.process(c->vBuffer, c->vBuffer, to_process);
+                c->sDryDelay.process(c->vOut, c->vIn, to_process);
                 dsp::fmmul_k3(c->vBuffer, vBuffer, fGainOut, to_process);
-                c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
+                c->sBypass.process(c->vOut, c->vOut, c->vBuffer, to_process);
 
                 // Process output graph and meter
                 c->sOut.process(c->vBuffer, to_process);
@@ -541,13 +568,16 @@ namespace lsp
         v->write_object("sActive", &sActive);
         v->write_object("sDepopper", &sDepopper);
 
-        v->write("pMode", pMode);
+        v->write("pModeIn", pModeIn);
+        v->write("pModeOut", pModeOut);
         v->write("pGainIn", pGainIn);
         v->write("pGainOut", pGainOut);
-        v->write("pThresh", pThresh);
+        v->write("pThreshOn", pThreshOn);
+        v->write("pThreshOff", pThreshOff);
         v->write("pAttack", pAttack);
         v->write("pRelease", pRelease);
-        v->write("pFade", pFade);
+        v->write("pFadeIn", pFadeIn);
+        v->write("pFadeOut", pFadeOut);
         v->write("pActive", pActive);
         v->write("pBypass", pBypass);
         v->write("pMeshIn", pMeshIn);

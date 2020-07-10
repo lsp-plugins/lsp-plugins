@@ -27,10 +27,15 @@ namespace lsp
         static const float RELEASE_DFL      = 10.0f;
         static const float RELEASE_STEP     = 0.01f;
 
-        static const float FADE_MIN         = 1.0f;
-        static const float FADE_MAX         = 5000.0f;
-        static const float FADE_DFL         = 100.0f;
-        static const float FADE_STEP        = 0.1f;
+        static const float FADEIN_MIN       = 1.0f;
+        static const float FADEIN_MAX       = 1000.0f;
+        static const float FADEIN_DFL       = 100.0f;
+        static const float FADEIN_STEP      = 0.0025f;
+
+        static const float FADEOUT_MIN      = 1.0f;
+        static const float FADEOUT_MAX      = 500.0f;
+        static const float FADEOUT_DFL      = 100.0f;
+        static const float FADEOUT_STEP     = 0.0025f;
 
         static const size_t MESH_POINTS     = 640;
         static const float MESH_TIME        = 5.0f;

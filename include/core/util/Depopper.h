@@ -34,43 +34,74 @@ namespace lsp
         protected:
             enum state_t
             {
-                ST_CLOSED,  // Depopper is closed, listening for income signal raise
-                ST_OPENED,  // Depopper is opened, listening for signal fall-off
-                ST_FADING   // Depopper is currently fading in
+                ST_CLOSED,  // Fade is closed, listening for income signal raise
+                ST_FADE1,   // Fade is currently in progress, not reached fade out threshold
+                ST_FADE2,   // Fade is currently in progress, reached fade out threshold
+                ST_OPENED,  // Fade is opened, listening for signal fall-off
+                ST_WAIT     // Wait until signal falls below the threshold
             };
 
         protected:
+            typedef struct fade_t
+            {
+                depopper_mode_t enMode;         // Fade mode
+                float           fThresh;        // Threshold
+                float           fTime;          // Fade time
+                ssize_t         nSamples;       // Fade length in samples
+                float           fPoly[4];       // Fade polynom
+            } fade_t;
+
+        protected:
             size_t          nSampleRate;
-            float           fClosedGain;
-            float           fOpenedGain;
-            float           fFadeTime;
-            float           fThreshold;
+            state_t         nState;             // Fade state
+            float           fMaxLookahead;
+            size_t          nLookahead;
             float           fAttack;
             float           fRelease;
             float           fEnvelope;
-            size_t          nClipCounter;
-            state_t         nState;
             bool            bReconfigure;
-            depopper_mode_t enMode;
 
             // Computed parameters
             float           fTauAttack;
             float           fTauRelease;
-            size_t          nFade;
-            float           fPoly[4];
+            ssize_t         nCounter;           // Fade-in counter
+
+            fade_t          sFadeIn;
+            fade_t          sFadeOut;
+
+            float          *pGainBuf;           // Gain buffer
+            uint8_t        *pData;
 
         protected:
-            float           crossfade();
+            float           crossfade(fade_t *fade, float x);
+            void            calc_fade(fade_t *fade, bool in);
+            void            apply_fadeout(float *dst, ssize_t samples);
+
+            static void     dump_fade(IStateDumper *v, const char *name, const fade_t *fade);
+
 
         public:
             explicit        Depopper();
             virtual        ~Depopper();
 
-        public:
             /**
              * Initialize depopper
              */
             void            construct();
+
+            /**
+             * Destroy depopper
+             */
+            void            destroy();
+
+        public:
+            /**
+             * Initialize
+             * @param srate sample rate
+             * @param max_lookahead maximum lookahead in milliseconds
+             * @return true on success
+             */
+            bool            init(size_t srate, float max_lookahead);
 
             /**
              * Check whether the module needs reconfiguration
@@ -84,68 +115,54 @@ namespace lsp
             void            reconfigure();
 
             /**
-             * Get sample rate
-             * @return sample rate
+             * Get fade in time (in milliseconds)
+             * @return fade in time (in milliseconds)
              */
-            inline size_t   get_sample_rate() const         { return nSampleRate;       }
+            inline float    get_fade_in_time() const        { return sFadeIn.fTime;         }
 
             /**
-             * Set sample rate
-             * @param sr sample rate
-             * @return previous sample rate
-             */
-            size_t          set_sample_rate(size_t sr);
-
-            /**
-             * Get output gain when the depopper is closed
-             * @return output gain when the depopper is closed
-             */
-            inline float    get_closed_gain() const         { return fClosedGain;       }
-
-            /**
-             * Set output gain when the depopper is closed
-             * @param gain gain
-             * @return previous value
-             */
-            float           set_closed_gain(float gain);
-
-            /**
-             * Get output gain when the depopper is closed
-             * @return output gain when the depopper is closed
-             */
-            inline float    get_opened_gain() const         { return fOpenedGain;       }
-
-            /**
-             * Set output gain when the depopper is closed
-             * @param gain gain
-             * @return previous value
-             */
-            float           set_opened_gain(float gain);
-
-            /**
-             * Get fade time (in milliseconds)
-             * @return fade time (in milliseconds)
-             */
-            inline float    get_fade_time() const           { return fFadeTime;         }
-
-            /**
-             * Set fade time (in milliseconds)
-             * @param time fade time (in milliseconds)
+             * Set fade in time (in milliseconds)
+             * @param time fade in time (in milliseconds)
              * @return previously used fade time
              */
-            float           set_fade_time(float time);
+            float           set_fade_in_time(float time);
 
             /**
-             * Get threshold
-             * @return threshold
+             * Get fade out time (in milliseconds)
+             * @return fade out time (in milliseconds)
              */
-            inline float    get_threshold() const           { return fThreshold;        }
+            inline float    get_fade_out_time() const        { return sFadeOut.fTime;       }
 
             /**
-             * Set threshold
-             * @param thresh threshold
+             * Set fade out time (in milliseconds)
+             * @param time fade out time (in milliseconds)
+             * @return previously used fade time
              */
-            float           set_threshold(float thresh);
+            float           set_fade_out_time(float time);
+
+            /**
+             * Get fade in threshold
+             * @return fade in threshold
+             */
+            inline float    get_fade_in_threshold() const       { return sFadeIn.fThresh;        }
+
+            /**
+             * Set fade in threshold
+             * @param thresh fade in threshold
+             */
+            float           set_fade_in_threshold(float thresh);
+
+            /**
+             * Get fade out threshold
+             * @return fade out threshold
+             */
+            inline float    get_fade_out_threshold() const       { return sFadeOut.fThresh;        }
+
+            /**
+             * Set fade out threshold
+             * @param thresh fade out threshold
+             */
+            float           set_fade_out_threshold(float thresh);
 
             /**
              * Get attack time in milliseconds
@@ -161,17 +178,30 @@ namespace lsp
             float           set_attack(float attack);
 
             /**
-             * Get depopper mode
-             * @return depopper mode
+             * Get fade in mode
+             * @return fade in mode
              */
-            depopper_mode_t get_mode() const                { return enMode;            }
+            depopper_mode_t get_fade_in_mode() const        { return sFadeIn.enMode;    }
 
             /**
-             * Set depopper mode
-             * @param mode depopper mode
+             * Set fade in mode
+             * @param mode fade in mode
              * @return previous mode
              */
-            depopper_mode_t set_mode(depopper_mode_t mode);
+            depopper_mode_t set_fade_in_mode(depopper_mode_t mode);
+
+            /**
+             * Get fade out mode
+             * @return fade in mode
+             */
+            depopper_mode_t get_fade_out_mode() const       { return sFadeOut.enMode;    }
+
+            /**
+             * Set fade out mode
+             * @param mode fade out mode
+             * @return previous mode
+             */
+            depopper_mode_t set_fade_out_mode(depopper_mode_t mode);
 
             /**
              * Set release time in milliseconds
@@ -187,25 +217,7 @@ namespace lsp
             float           set_release(float release);
 
             /**
-             * Check that depopper is currently closed
-             * @return true if depopper is currently closed
-             */
-            inline bool     is_closed() const               { return nState == ST_CLOSED; }
-
-            /**
-             * Check that depopper is currently opened
-             * @return true if depopper is currently opened
-             */
-            inline bool     is_opened() const               { return nState == ST_OPENED; }
-
-            /**
-             * Check that depopper is currently fading
-             * @return true if depopper is currently fading
-             */
-            inline bool     is_fading() const               { return nState == ST_FADING; }
-
-            /**
-             * Process the signal
+             * Process the signal, the gain should be applied respecite to the returned latency
              * @param gain output gain of the depopper that should be applied to the signal
              * @param src source buffer to read the signal
              * @param count number of samples to process
@@ -217,6 +229,12 @@ namespace lsp
              * @param v state dumper
              */
             void            dump(IStateDumper *v) const;
+
+            /**
+             * Get latency
+             * @return latency
+             */
+            inline size_t   latency() const                 { return sFadeOut.nSamples; }
     };
 
 } /* namespace lsp */
