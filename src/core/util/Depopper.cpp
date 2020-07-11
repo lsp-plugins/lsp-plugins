@@ -463,84 +463,41 @@ namespace lsp
             src            += to_do;
             gain           += to_do;
         }
-
-//        // Process samples
-//        for (size_t i=0; i<count; ++i)
-//        {
-//            float s         = fabs(src[i]);
-//            float x         = s - fEnvelope;
-//            fEnvelope     += (x > 0.0f) ? fTauAttack * x : fTauRelease  * x;
-//
-//            // Produce output gain
-//            switch (sFadeOut.nState)
-//            {
-//                case ST_CLOSED:
-//                    // Can fade in?
-//                    if (sFadeIn.nState
-//                    if (fEnvelope >= sFadeIn.fThresh)
-//                    {
-//
-//                    }
-//
-//                    if (fEnvelope < fThresh)
-//                    {
-//                        dst[i]      = fClosedGain; // Closed
-//                        break;
-//                    }
-//
-//                    nClipCounter= 0;
-//                    nState      = ST_FADEIN;
-//                    dst[i]      = crossfade();
-//                    break;
-//
-//                case ST_FADEIN:
-//                    // Compute gain
-//                    dst[i]      = crossfade();
-//
-//                    // Fall-off below threshold ?
-//                    if (fEnvelope < fThresh)
-//                        nState      = ST_CLOSED;
-//                    break;
-//
-//                case ST_OPENED:
-//                    dst[i]      = 1.0f; // Normal gain
-//
-//                    // Fall-off before threshold ?
-//                    if (fEnvelope < fThresh)
-//                        nState      = ST_CLOSED;
-//
-//                    break;
-//                default:
-//                    dst[i]      = fOpenedGain;
-//                    break;
-//            }
-//        }
     }
 
     void Depopper::dump_fade(IStateDumper *v, const char *name, const fade_t *fade)
     {
+        v->start_object(name, fade, sizeof(fade_t));
+        {
+            v->write("enMode", fade->enMode);
+            v->write("fThresh", fade->fThresh);
+            v->write("fTime", fade->fTime);
+            v->write("nSamples", fade->nSamples);
+            v->writev("fPoly", fade->fPoly, 4);
+        }
+        v->end_object();
     }
 
     void Depopper::dump(IStateDumper *v) const
     {
-//        v->write("nSampleRate", nSampleRate);
-//        v->write("fClosedGain", fClosedGain);
-//        v->write("fOpenedGain", fOpenedGain);
-//        v->write("fFadeInTime", fFadeInTime);
-//        v->write("fFadeOutTime", fFadeOutTime);
-//        v->write("fThreshold", fThreshold);
-//        v->write("fAttack", fAttack);
-//        v->write("fRelease", fRelease);
-//        v->write("fEnvelope", fEnvelope);
-//        v->write("nClipCounter", nClipCounter);
-//        v->write("nState", nState);
-//        v->write("bReconfigure", bReconfigure);
-//        v->write("enMode", enMode);
-//
-//        v->write("fTauAttack", fTauAttack);
-//        v->write("fTauRelease", fTauRelease);
-//        v->write("nFade", nFade);
-//        v->writev("fPoly", fPoly, 4);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nState", nState);
+        v->write("fMaxLookahead", fMaxLookahead);
+        v->write("nLookahead", nLookahead);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fEnvelope", fEnvelope);
+        v->write("bReconfigure", bReconfigure);
+
+        v->write("fTauAttack", fTauAttack);
+        v->write("fTauRelease", fTauRelease);
+        v->write("nCounter", nCounter);
+
+        dump_fade(v, "sFadeIn", &sFadeIn);
+        dump_fade(v, "sFadeOut", &sFadeOut);
+
+        v->write("pGainBuf", pGainBuf);
+        v->write("pData", pData);
     }
 
 } /* namespace lsp */
