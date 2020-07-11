@@ -144,27 +144,29 @@
 		<hbox spacing="4">
 			<!-- ALR -->
 			<group text="groups.alr">
-				<grid rows="3" cols="2">
+				<grid rows="3" cols="3">
 					<label text="labels.attack" />
 					<label text="labels.release" />
+					<label text="labels.knee" />
 					
 					<knob id="alr_at" />
 					<knob id="alr_rt" />
+					<knob id="knee" />
 					
 					<value id="alr_at" />
 					<value id="alr_rt" />
+					<value id="knee" />
 				</grid>
 			</group>
 			
 			<!-- Limiter setup -->
 			<group text="groups.plug.limiter">
-				<grid rows="3" cols="7">
+				<grid rows="3" cols="6">
 					<label text="labels.sc.sc_preamp" />
 					<label text="labels.sc.lookahead" />
 					<label text="labels.threshold" />
 					<label text="labels.attack" />
 					<label text="labels.release" />
-					<label text="labels.knee" />
 					<label text="labels.stereo_link" />
 					
 					<knob id="scp" />
@@ -172,7 +174,6 @@
 					<knob id="th" scale_color="magenta" />
 					<knob id="at" />
 					<knob id="rt" />
-					<knob id="knee" />
 					<knob id="slink" scale_color="green" />
 					
 					<hbox fill="false">
@@ -194,7 +195,6 @@
 					</hbox>
 					<value id="at" />
 					<value id="rt" />
-					<value id="knee" />
 					<value id="slink" />
 				</grid>
 			</group>

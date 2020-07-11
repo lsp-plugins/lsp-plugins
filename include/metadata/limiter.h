@@ -33,14 +33,14 @@ namespace lsp
         static const float  RELEASE_TIME_DFL        = 5.0f;
         static const float  RELEASE_TIME_STEP       = 0.0025f;
 
-        static const float  ALR_ATTACK_TIME_MIN     = 5.0f;
+        static const float  ALR_ATTACK_TIME_MIN     = 0.1f;
         static const float  ALR_ATTACK_TIME_MAX     = 200.0f;
-        static const float  ALR_ATTACK_TIME_DFL     = 50.0f;
+        static const float  ALR_ATTACK_TIME_DFL     = 5.0f;
         static const float  ALR_ATTACK_TIME_STEP    = 0.0025f;
 
         static const float  ALR_RELEASE_TIME_MIN    = 10.0f;
         static const float  ALR_RELEASE_TIME_MAX    = 1000.0f;
-        static const float  ALR_RELEASE_TIME_DFL    = 100.0f;
+        static const float  ALR_RELEASE_TIME_DFL    = 50.0f;
         static const float  ALR_RELEASE_TIME_STEP   = 0.0025f;
 
         static const float  THRESHOLD_MIN           = GAIN_AMP_M_48_DB;
@@ -49,7 +49,7 @@ namespace lsp
         static const float  THRESHOLD_STEP          = 0.01f;
 
         static const float  KNEE_MIN                = GAIN_AMP_M_12_DB;
-        static const float  KNEE_MAX                = GAIN_AMP_0_DB;
+        static const float  KNEE_MAX                = GAIN_AMP_P_12_DB;
         static const float  KNEE_DFL                = GAIN_AMP_0_DB;
         static const float  KNEE_STEP               = 0.01f;
 

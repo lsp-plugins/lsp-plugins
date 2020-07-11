@@ -105,6 +105,7 @@ namespace lsp
 
         protected:
             float       fThreshold;
+            float       fReqThreshold;
             float       fLookahead;
             float       fMaxLookahead;
             float       fAttack;
@@ -116,7 +117,6 @@ namespace lsp
             size_t      nSampleRate;
             size_t      nUpdate;
             size_t      nMode;
-            size_t      nThresh;
             alr_t       sALR;
 
             // Pre-calculated parameters
@@ -222,7 +222,7 @@ namespace lsp
              *
              * @return threshold
              */
-            inline float        get_threshold() const               { return fThreshold;        }
+            inline float        get_threshold() const               { return fReqThreshold;     }
 
             /** Set limiter threshold
              *

@@ -11,7 +11,7 @@
 #include <core/dynamics/Limiter.h>
 
 #define BUF_GRANULARITY         8192
-#define GAIN_LOWERING           0.891250938134 /* 0.944060876286 */
+#define GAIN_LOWERING           0.9886 /*0.891250938134 */
 #define MIN_LIMITER_RELEASE     5.0f
 
 namespace lsp
@@ -28,7 +28,8 @@ namespace lsp
 
     void Limiter::construct()
     {
-        fThreshold      = 1.0f;
+        fThreshold      = GAIN_AMP_0_DB;
+        fReqThreshold   = GAIN_AMP_0_DB;
         fLookahead      = 0.0f;
         fMaxLookahead   = 0.0f;
         fAttack         = 0.0f;
@@ -40,7 +41,6 @@ namespace lsp
         nSampleRate     = 0;
         nUpdate         = UP_ALL;
         nMode           = LM_HERM_THIN;
-        nThresh         = 0;
 
         sALR.fAttack    = 10.0f;
         sALR.fRelease   = 50.0f;
@@ -116,11 +116,11 @@ namespace lsp
 
     float Limiter::set_threshold(float thresh)
     {
-        float old = fThreshold;
+        float old = fReqThreshold;
         if (old == thresh)
             return old;
 
-        fThreshold      = thresh;
+        fReqThreshold   = thresh;
         nUpdate        |= UP_THRESH | UP_ALR;
         return old;
     }
@@ -142,13 +142,11 @@ namespace lsp
     float Limiter::set_knee(float knee)
     {
         float old = fKnee;
-        if (knee > 1.0f)
-            knee = 1.0f;
         if (old == knee)
             return old;
 
         fKnee           = knee;
-        nUpdate        |= UP_OTHER;
+        nUpdate        |= UP_ALR;
         return old;
     }
 
@@ -360,20 +358,31 @@ namespace lsp
 
         // Update delay settings
         if (nUpdate & UP_SR)
+        {
             sDelay.clear();
-        if (nUpdate & UP_SR)
             dsp::fill_one(vGainBuf, nMaxLookahead*3 + BUF_GRANULARITY);
+        }
 
         nLookahead          = millis_to_samples(nSampleRate, fLookahead);
         sDelay.set_delay(nLookahead);
 
-        if (nUpdate & (UP_SR | UP_MODE | UP_THRESH))
-            nThresh             = nLookahead;
+        // Update threshold
+        if (nUpdate & UP_THRESH)
+        {
+            if (fReqThreshold < fThreshold)
+            {
+                // Need to lower gain sinc threshold has been lowered
+                float gnorm         = fReqThreshold / fThreshold;
+                dsp::mul_k2(vGainBuf, gnorm, nMaxLookahead);
+            }
+
+            fThreshold          = fReqThreshold;
+        }
 
         // Update automatic level regulation
         if (nUpdate & UP_ALR)
         {
-            float thresh        = fThreshold * GAIN_AMP_M_6_DB;
+            float thresh        = fThreshold * fKnee * GAIN_AMP_M_6_DB;
             sALR.fKS            = thresh * (M_SQRT2 - 1.0f);
             sALR.fKE            = thresh;
             sALR.fGain          = thresh * M_SQRT1_2;
@@ -615,7 +624,7 @@ namespace lsp
                 dsp::abs_mul3(vTmpBuf, gbuf, sc, to_do);    // Apply gain to sidechain
             }
 
-            float knee          = fKnee;
+            float knee          = 1.0f;
             size_t iterations   = 0;
 
             while (true)
@@ -724,6 +733,7 @@ namespace lsp
     void Limiter::dump(IStateDumper *v) const
     {
         v->write("fThreshold", fThreshold);
+        v->write("fReqThreshold", fReqThreshold);
         v->write("fLookahead", fLookahead);
         v->write("fMaxLookahead", fMaxLookahead);
         v->write("fAttack", fAttack);
@@ -735,7 +745,6 @@ namespace lsp
         v->write("nSampleRate", nSampleRate);
         v->write("nUpdate", nUpdate);
         v->write("nMode", nMode);
-        v->write("nThresh", nThresh);
         v->begin_object("sALR", &sALR, sizeof(alr_t));
         {
             v->write("fKS", sALR.fKS);
@@ -747,7 +756,7 @@ namespace lsp
             v->write("fAttack", sALR.fAttack);
             v->write("fRelease", sALR.fRelease);
             v->write("fEnvelope", sALR.fEnvelope);
-            v->write("bEnabled", sALR.bEnable);
+            v->write("bEnable", sALR.bEnable);
         }
         v->end_object();
 

@@ -30,9 +30,6 @@ namespace lsp
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
         fPreamp         = GAIN_AMP_0_DB;
-        fThresh         = GAIN_AMP_0_DB;
-        fKnee           = 0.0f;
-        bBoost          = false;
         nOversampling   = limiter_base_metadata::OVS_DEFAULT;
         fStereoLink     = 1.0f;
         pIDisplay       = NULL;
@@ -436,12 +433,16 @@ namespace lsp
         fStereoLink                 = (pStereoLink != NULL) ? pStereoLink->getValue()*0.01f : 1.0f;
         bExtSc                      = (pExtSc != NULL) ? pExtSc->getValue() >= 0.5f : false;
 
-        fThresh                     = 1.0f / thresh;
-        fInGain                     = pInGain->getValue();
+        bool boost                  = pBoost->getValue();
         fOutGain                    = pOutGain->getValue();
+        if (boost)
+            fOutGain                   /= thresh;
+
+        fInGain                     = pInGain->getValue();
+
         fPreamp                     = pPreamp->getValue();
         limiter_mode_t op_mode      = get_limiter_mode(pMode->getValue());
-        bBoost                      = pBoost->getValue();
+
 
         sDither.set_bits(dither);
 
@@ -570,15 +571,13 @@ namespace lsp
                 }
             }
 
-            float out_gain = (bBoost) ? fOutGain * fThresh : fOutGain;
-
             // Perform downsampling and post-processing of signal and sidechain
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = &vChannels[i];
 
                 // Update output signal: adjust gain
-                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
+                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, fOutGain, to_doxn);
 
                 // Do metering
                 c->sGraph[G_OUT].process(c->vDataBuf, to_doxn);
@@ -814,9 +813,6 @@ namespace lsp
         v->write("fInGain", fInGain);
         v->write("fOutGain", fOutGain);
         v->write("fPreamp", fPreamp);
-        v->write("fThresh", fThresh);
-        v->write("fKnee", fKnee);
-        v->write("bBoost", bBoost);
         v->write("nOversampling", nOversampling);
         v->write("fStereoLink", fStereoLink);
         v->write("pIDisplay", pIDisplay);

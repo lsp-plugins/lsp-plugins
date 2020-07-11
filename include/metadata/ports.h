@@ -41,6 +41,8 @@
     { id, label, U_BOOL, R_CONTROL, F_IN, 0, 0, dfl, 0, NULL, NULL }
 #define COMBO(id, label, dfl, list) \
     { id, label, U_ENUM, R_CONTROL, F_IN, 0, 0, dfl, 0, list, NULL }
+#define COMBO_START(id, label, dfl, list, min) \
+    { id, label, U_ENUM, R_CONTROL, F_IN | F_MIN, min, 0, dfl, 0, list, NULL }
 #define BLINK(id, label) \
     { id, label, U_BOOL, R_METER, F_OUT, 0, 0, 0, 0, NULL, NULL }
 #define KNOB(id, label, units, min, max, dfl, step) \

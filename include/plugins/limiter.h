@@ -77,9 +77,6 @@ namespace lsp
             float           fInGain;        // Input gain
             float           fOutGain;       // Output gain
             float           fPreamp;        // Sidechain pre-amplification
-            float           fThresh;        // Limiter threshold
-            float           fKnee;          // Limiter knee
-            bool            bBoost;         // Gain boost
             size_t          nOversampling;  // Oversampling
             float           fStereoLink;    // Stereo linking
             float_buffer_t *pIDisplay;      // Inline display buffer
