@@ -38,8 +38,11 @@ namespace lsp
         MESH("ig", "Input signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \
         MESH("og", "Output signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \
         MESH("grg", "Gain reduction graph", 2, surge_filter_base_metadata::MESH_POINTS), \
+        MESH("eg", "Envelope graph", 2, surge_filter_base_metadata::MESH_POINTS), \
         SWITCH("grv", "Gain reduction visibility", 1.0f), \
-        METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB)
+        SWITCH("ev", "Envelope visibility", 1.0f), \
+        METER_GAIN("grm", "Gain reduction meter", GAIN_AMP_P_24_DB), \
+        METER_GAIN("em", "Envelope meter", GAIN_AMP_P_24_DB)
 
     static const port_t surge_filter_mono_ports[] =
     {

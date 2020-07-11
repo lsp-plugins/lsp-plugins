@@ -375,7 +375,7 @@ namespace lsp
             *(dst++)   *= crossfade(&sFadeOut, x);
     }
 
-    void Depopper::process(float *gain, const float *src, size_t count)
+    void Depopper::process(float *env, float *gain, const float *src, size_t count)
     {
         // Reconfigure if needed
         reconfigure();
@@ -391,7 +391,8 @@ namespace lsp
             {
                 float s         = fabs(src[i]);
                 float x         = s - fEnvelope;
-                fEnvelope     += (x > 0.0f) ? fTauAttack * x : fTauRelease  * x;
+                fEnvelope      += (x > 0.0f) ? fTauAttack * x : fTauRelease * x;
+                env[i]          = fEnvelope;
 
                 switch (nState)
                 {
@@ -460,8 +461,9 @@ namespace lsp
 
             // Update pointers
             count          -= to_do;
-            src            += to_do;
+            env            += to_do;
             gain           += to_do;
+            src            += to_do;
         }
     }
 

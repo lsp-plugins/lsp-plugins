@@ -1,5 +1,5 @@
 <plugin resizable="true">
-	<grid rows="4" cols="2" spacing="2">
+	<grid rows="4" cols="3" spacing="2">
 		<!-- Input level meters -->
 		<ui:if test="${ex :ilm}">
 			<hbox spacing="4">
@@ -39,6 +39,7 @@
 				/>
 			</hbox>
 		</ui:if>
+		<label text="labels.Env_elope" />
 		<label text="labels.gain_" />
 		
 		<!-- Time graph -->
@@ -52,19 +53,25 @@
 				<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
 			</ui:for>
 		
-			<marker value="12 db" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
-			<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
-			<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
-			<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+			<marker value="12 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-12 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-36 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-60 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-84 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-108 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-132 db" color="g_gray" basis="1" parallel="0" />
 
 			<!-- Yellow grid -->
 			<ui:for id="t" first="1" last="4" step="1">
 				<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
 			</ui:for>
 
-			<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-			<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-			<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+			<marker value="1" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-24 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-48 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-72 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-96 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-120 db" color="g_yellow" basis="1" parallel="0" />
 
 			<!-- Meshes -->
 			<ui:if test="${ex :ilm}">
@@ -79,6 +86,7 @@
 				<mesh id="og" width="2" color="right_channel" x_index="0" y_index="2" visibility=":ogv_r" />
 			</ui:if>
 			
+			<mesh id="eg" width="2" color="bright_magenta" visibility=":ev" />
 			<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
 			
 			<!-- Boundaries -->
@@ -87,36 +95,45 @@
 			
 			<!-- Axis -->
 			<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
-			<axis min="-72 db" max="24 db" color="g_white" angle="0.5" logarithmic="true" />
+			<axis min="-144 db" max="24 db" color="g_white" angle="0.5" logarithmic="true" />
 			
 			<!-- Text -->
-			<text text="graph.units.s" coord="5;-72 db" halign="1" valign="1" />
+			<text text="graph.units.s" coord="5;-144 db" halign="1" valign="1" />
 			<ui:for id="t" first="0" last="4" step="1">
-				<text text="${t}" coord="${t};-72 db" halign="-1" valign="1" color="white" />
-				<text text="${t}.5" coord="${t}.5;-72 db" halign="-1" valign="1" color="white" />
+				<text text="${t}" coord="${t};-144 db" halign="-1" valign="1" color="white" />
+				<text text="${t}.5" coord="${t}.5;-144 db" halign="-1" valign="1" color="white" />
 			</ui:for>
 			
-			<text text="+12" coord="5;12 db" halign="1" valign="-1" />
-			<text text="0" coord="5;1" halign="1" valign="1" />
+			<text text="+12" coord="5;12 db" halign="1" valign="1" />
+			<text text="graph.values.x:db" text:value="0" coord="5;1" halign="1" valign="1" />
 			<text text="-12" coord="5;-12 db" halign="1" valign="1" />
 			<text text="-24" coord="5;-24 db" halign="1" valign="1" />
 			<text text="-36" coord="5;-36 db" halign="1" valign="1" />
 			<text text="-48" coord="5;-48 db" halign="1" valign="1" />
 			<text text="-60" coord="5;-60 db" halign="1" valign="1" />
-			<text text="graph.units.db" coord="5;24 db" halign="1" valign="-1" />
+			<text text="-72" coord="5;-72 db" halign="1" valign="1" />
+			<text text="-84" coord="5;-84 db" halign="1" valign="1" />
+			<text text="-96" coord="5;-96 db" halign="1" valign="1" />
+			<text text="-108" coord="5;-108 db" halign="1" valign="1" />
+			<text text="-120" coord="5;-120 db" halign="1" valign="1" />
+			<text text="-132" coord="5;-132 db" halign="1" valign="1" />
 			
 			<!-- Markers -->
 			<marker id="thr_on" color="g_magenta" basis="1" parallel="0" />
 			<marker id="thr_off" color="g_blue" basis="1" parallel="0" />
 		</graph>
-		<vbox>
-			<meter 
-				id="grm"  
-				angle="1" logarithmic="true" type="peak"
-				min="-72 db" max="24 db" balance="0 db" 
-				height="256" color="bright_blue"
-			/>
-		</vbox>
+		<meter 
+			id="em"  
+			angle="1" logarithmic="true" type="peak"
+			min="-144 db" max="24 db" balance="0 db" 
+			height="256" color="bright_magenta"
+		/>
+		<meter 
+			id="grm"  
+			angle="1" logarithmic="true" type="peak"
+			min="-144 db" max="24 db" balance="0 db" 
+			height="256" color="bright_blue"
+		/>
 		
 		<!-- Misc controls -->
 		<hbox spacing="4">
@@ -144,6 +161,8 @@
 				</grid>
 			</ui:if>
 			<label text="labels.output" />
+			<button id="ev" color="bright_magenta" led="true" size="16" />
+			<label text="labels.signal.envelope" />
 			<button id="grv" color="bright_blue" led="true" size="16" />
 			<label text="labels.gain" />
 			
@@ -152,9 +171,10 @@
 			</align>
 		</hbox>
 		<void />
+		<void />
 		
 		<!-- Main controls -->
-		<cell cols="2">
+		<cell cols="3">
 			<group text="labels.plug.surge_filter">
 				<grid rows="4" cols="11" spacing="2">
 					<cell rows="2"><label text="labels.input" /></cell>

@@ -47,14 +47,17 @@ namespace lsp
             size_t              nChannels;          // Number of channels
             channel_t          *vChannels;          // Array of channels
             float              *vBuffer;            // Buffer for processing
+            float              *vEnv;               // Envelope
             float              *vTimePoints;        // Time points
             float               fGainIn;            // Input gain
             float               fGainOut;           // Output gain
             bool                bGainVisible;       // Gain visible
+            bool                bEnvVisible;        // Envelope visible
             uint8_t            *pData;              // Allocated data
-            float_buffer_t     *pIDisplay;              // Inline display buffer
+            float_buffer_t     *pIDisplay;          // Inline display buffer
 
             MeterGraph          sGain;              // Gain metering graph
+            MeterGraph          sEnv;               // Envelop metering graph
             Blink               sActive;            // Activity indicator
             Depopper            sDepopper;          // Depopper module
 
@@ -73,8 +76,11 @@ namespace lsp
             IPort              *pMeshIn;            // Input mesh
             IPort              *pMeshOut;           // Output mesh
             IPort              *pMeshGain;          // Gain mesh
+            IPort              *pMeshEnv;           // Envelope mesh
             IPort              *pGainVisible;       // Gain mesh visibility
+            IPort              *pEnvVisible;        // Envelope mesh visibility
             IPort              *pGainMeter;         // Gain reduction meter
+            IPort              *pEnvMeter;          // Envelope meter
 
         public:
             explicit            surge_filter_base(size_t channels, const plugin_metadata_t &meta);

@@ -22,10 +22,12 @@ namespace lsp
         nChannels       = channels;
         vChannels       = NULL;
         vBuffer         = NULL;
+        vEnv            = NULL;
         vTimePoints     = 0;
         fGainIn         = 1.0f;
         fGainOut        = 1.0f;
         bGainVisible    = false;
+        bEnvVisible     = false;
         pData           = NULL;
         pIDisplay       = NULL;
 
@@ -44,8 +46,11 @@ namespace lsp
         pMeshIn         = NULL;
         pMeshOut        = NULL;
         pMeshGain       = NULL;
+        pMeshEnv        = NULL;
         pGainVisible    = NULL;
+        pEnvVisible     = NULL;
         pGainMeter      = NULL;
+        pEnvMeter       = NULL;
     }
 
     surge_filter_base::~surge_filter_base()
@@ -58,8 +63,9 @@ namespace lsp
         plugin_t::init(wrapper);
 
         // Allocate buffers
-        size_t meshbuf      = ALIGN_SIZE(MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
-        float *bufs         = alloc_aligned<float>(pData, BUFFER_SIZE * 3);
+        size_t meshbuf      = ALIGN_SIZE(MESH_POINTS, DEFAULT_ALIGN);
+        size_t to_alloc     = 2*BUFFER_SIZE + nChannels * BUFFER_SIZE + meshbuf;
+        float *bufs         = alloc_aligned<float>(pData, to_alloc);
         if (bufs == NULL)
             return;
 
@@ -69,8 +75,10 @@ namespace lsp
             return;
         vBuffer         = bufs;
         bufs           += BUFFER_SIZE;
+        vEnv            = bufs;
+        bufs           += BUFFER_SIZE;
         vTimePoints     = bufs;
-        bufs           += meshbuf/sizeof(float);
+        bufs           += meshbuf;
 
         for (size_t i=0; i<nChannels; ++i)
         {
@@ -141,9 +149,15 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pMeshGain       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pMeshEnv        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         pGainVisible    = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pEnvVisible     = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         pGainMeter      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pEnvMeter       = vPorts[port_id++];
 
         // Bind custom channel ports
         for (size_t i=0; i<nChannels; ++i)
@@ -206,6 +220,7 @@ namespace lsp
 
         sDepopper.init(sr, FADEOUT_MAX);
         sGain.init(MESH_POINTS, samples_per_dot);
+        sEnv.init(MESH_POINTS, samples_per_dot);
         sActive.init(sr);
 
         for (size_t i=0; i<nChannels; ++i)
@@ -226,6 +241,7 @@ namespace lsp
         fGainIn         = pGainIn->getValue();
         fGainOut        = pGainOut->getValue();
         bGainVisible    = pGainVisible->getValue() >= 0.5f;
+        bEnvVisible     = pEnvVisible->getValue() >= 0.5f;
 
         // Change depopper state
         sDepopper.set_fade_in_mode(depopper_mode_t(pModeIn->getValue()));
@@ -301,9 +317,11 @@ namespace lsp
             }
 
             // Process the gain reduction control
-            sDepopper.process(vBuffer, vBuffer, to_process);
+            sDepopper.process(vEnv, vBuffer, vBuffer, to_process);
             pGainMeter->setValue(dsp::abs_min(vBuffer, to_process));
+            pEnvMeter->setValue(dsp::abs_max(vEnv, to_process));
             sGain.process(vBuffer, to_process);
+            sEnv.process(vEnv, to_process);
 
             // Apply reduction to the signal
             for (size_t i=0; i<nChannels; ++i)
@@ -338,6 +356,15 @@ namespace lsp
             mesh->data(2, MESH_POINTS);
         }
 
+        // Sync envelope
+        mesh    = pMeshEnv->getBuffer<mesh_t>();
+        if ((mesh != NULL) && (mesh->isEmpty()) && (bEnvVisible))
+        {
+            dsp::copy(mesh->pvData[0], vTimePoints, MESH_POINTS);
+            dsp::copy(mesh->pvData[1], sEnv.data(), MESH_POINTS);
+            mesh->data(2, MESH_POINTS);
+        }
+
         // Sync input mesh
         mesh            = pMeshIn->getBuffer<mesh_t>();
         if ((mesh != NULL) && (mesh->isEmpty()))
@@ -348,9 +375,7 @@ namespace lsp
             {
                 channel_t *c    = &vChannels[i];
                 if (c->bInVisible)
-                {
                     dsp::copy(mesh->pvData[i+1], c->sIn.data(), MESH_POINTS);
-                }
                 else
                     dsp::fill_zero(mesh->pvData[i+1], MESH_POINTS);
             }
@@ -411,9 +436,9 @@ namespace lsp
         cv->paint();
 
         // Calc axis params
-        float zy    = 1.0f/GAIN_AMP_M_72_DB;
+        float zy    = 1.0f/GAIN_AMP_M_144_DB;
         float dx    = -float(width/MESH_TIME);
-        float dy    = height/logf(GAIN_AMP_M_72_DB/GAIN_AMP_P_24_DB);
+        float dy    = height/logf(GAIN_AMP_M_144_DB/GAIN_AMP_P_24_DB);
 
         // Draw axis
         cv->set_line_width(1.0);
@@ -428,7 +453,7 @@ namespace lsp
 
         // Draw horizontal lines
         cv->set_color_rgb(CV_WHITE, 0.5f);
-        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
+        for (float i=GAIN_AMP_M_144_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
         {
             float ay = height + dy*(logf(i*zy));
             cv->line(0, ay, width, ay);
@@ -458,6 +483,9 @@ namespace lsp
             b->v[0][j]      = vTimePoints[k];
         }
 
+        dsp::fill(b->v[2], width, width);
+        dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
+
         // Draw input channels
         cv->set_line_width(2.0f);
         for (size_t i=0; i<nChannels; ++i)
@@ -472,9 +500,7 @@ namespace lsp
                 b->v[1][j]      = ft[size_t(r*j)];
 
             // Initialize coords
-            dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
@@ -496,13 +522,27 @@ namespace lsp
                 b->v[1][j]      = ft[size_t(r*j)];
 
             // Initialize coords
-            dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
             cv->set_color_rgb((bypass) ? CV_SILVER : c_colors[(nChannels-1)*2 + i]);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw envelope (if present)
+        if (bEnvVisible)
+        {
+            float *ft       = sEnv.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[3], height, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_BRIGHT_MAGENTA);
             cv->draw_lines(b->v[2], b->v[3], width);
         }
 
@@ -514,9 +554,7 @@ namespace lsp
                 b->v[1][j]      = ft[size_t(r*j)];
 
             // Initialize coords
-            dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::fmadd_k3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
@@ -557,14 +595,17 @@ namespace lsp
         v->end_array();
 
         v->write("vBuffer", vBuffer);
+        v->write("vEnv", vEnv);
         v->write("vTimePoints", vTimePoints);
         v->write("fGainIn", fGainIn);
         v->write("fGainOut", fGainOut);
         v->write("bGainVisible", bGainVisible);
+        v->write("bEnvVisible", bEnvVisible);
         v->write("pData", pData);
         v->write("pIDisplay", pIDisplay);
 
         v->write_object("sGain", &sGain);
+        v->write_object("sEnv", &sEnv);
         v->write_object("sActive", &sActive);
         v->write_object("sDepopper", &sDepopper);
 
@@ -583,8 +624,11 @@ namespace lsp
         v->write("pMeshIn", pMeshIn);
         v->write("pMeshOut", pMeshOut);
         v->write("pMeshGain", pMeshGain);
+        v->write("pMeshEnv", pMeshEnv);
         v->write("pGainVisible", pGainVisible);
+        v->write("pEnvVisible", pEnvVisible);
         v->write("pGainMeter", pGainMeter);
+        v->write("pEnvMeter", pEnvMeter);
     }
 
     //-------------------------------------------------------------------------

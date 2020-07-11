@@ -218,11 +218,12 @@ namespace lsp
 
             /**
              * Process the signal, the gain should be applied respecite to the returned latency
+             * @param env envelope output
              * @param gain output gain of the depopper that should be applied to the signal
              * @param src source buffer to read the signal
              * @param count number of samples to process
              */
-            void            process(float *gain, const float *src, size_t count);
+            void            process(float *env, float *gain, const float *src, size_t count);
 
             /**
              * Dump internal state
