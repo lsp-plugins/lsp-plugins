@@ -200,7 +200,7 @@
 					<knob id="thr_on" scale_color="magenta" />
 					<knob id="fadein" />
 					<knob id="thr_off" scale_color="blue" />
-					<knob id="fadeout" />
+					<knob id="fadeout" scale_color="red" color="red" />
 					<knob id="output" />
 					
 					<value id="input" />

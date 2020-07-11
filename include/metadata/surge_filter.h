@@ -34,7 +34,7 @@ namespace lsp
 
         static const float FADEOUT_MIN      = 0.0f;
         static const float FADEOUT_MAX      = 500.0f;
-        static const float FADEOUT_DFL      = 100.0f;
+        static const float FADEOUT_DFL      = 0.0f;
         static const float FADEOUT_STEP     = 0.5f;
 
         static const size_t MESH_POINTS     = 640;
