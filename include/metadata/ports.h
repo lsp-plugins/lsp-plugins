@@ -125,8 +125,8 @@
 #define OSC_INPUT           OSC_CHANNEL(LSP_LV2_OSC_PORT_IN, F_IN, "OSC input")
 #define OSC_OUTPUT          OSC_CHANNEL(LSP_LV2_OSC_PORT_OUT, F_OUT, "OSC output")
 
-#define IN_GAIN             AMP_GAIN10("g_in", "Input gain", 1.0f)
-#define OUT_GAIN            AMP_GAIN10("g_out", "Output gain", 1.0f)
+#define IN_GAIN             AMP_GAIN("g_in", "Input gain", GAIN_AMP_0_DB, GAIN_AMP_P_60_DB)
+#define OUT_GAIN            AMP_GAIN("g_out", "Output gain", GAIN_AMP_0_DB, GAIN_AMP_P_60_DB)
 
 #define DRY_GAIN(g)         AMP_GAIN10("dry", "Dry amount", g)
 #define DRY_GAIN_L(g)       AMP_GAIN10("dry_l", "Dry amount L", g)
