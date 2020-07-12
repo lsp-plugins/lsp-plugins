@@ -45,7 +45,7 @@
   use external/internal sidechain for processing.
 * Added possibility to dump internal state of plugin to file.
 * Several plugins now support dumping of internal state.
-- Add support of loading Hydrogen drumkits by the sampler.
+* Added support of loading Hydrogen drumkits by the Multisampler plugin series.
 
 *******************************************************************************
 * New plugin check list before release
