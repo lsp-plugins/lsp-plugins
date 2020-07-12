@@ -770,7 +770,7 @@ namespace lsp
         v->write("nFreqCtrlWord", nFreqCtrlWord);
         v->write("nInitPhaseWord", nInitPhaseWord);
 
-        v->start_object("sSquaredSinusoid", &sSquaredSinusoid, sizeof(sSquaredSinusoid));
+        v->begin_object("sSquaredSinusoid", &sSquaredSinusoid, sizeof(sSquaredSinusoid));
         {
             v->write("bInvert", sSquaredSinusoid.bInvert);
             v->write("fAmplitude", sSquaredSinusoid.fAmplitude);
@@ -778,7 +778,7 @@ namespace lsp
         }
         v->end_object();
 
-        v->start_object("sRectangular", &sRectangular, sizeof(sRectangular));
+        v->begin_object("sRectangular", &sRectangular, sizeof(sRectangular));
         {
             v->write("fDutyRatio", sRectangular.fDutyRatio);
             v->write("nDutyWord", sRectangular.nDutyWord);
@@ -787,7 +787,7 @@ namespace lsp
         }
         v->end_object();
 
-        v->start_object("sSawtooth", &sSawtooth, sizeof(sSawtooth));
+        v->begin_object("sSawtooth", &sSawtooth, sizeof(sSawtooth));
         {
             v->write("fWidth", sSawtooth.fWidth);
             v->write("nWidthWord", sSawtooth.nWidthWord);
@@ -797,7 +797,7 @@ namespace lsp
         }
         v->end_object();
 
-        v->start_object("sTrapezoid", &sTrapezoid, sizeof(sTrapezoid));
+        v->begin_object("sTrapezoid", &sTrapezoid, sizeof(sTrapezoid));
         {
             v->write("fRaiseRatio", sTrapezoid.fRaiseRatio);
             v->write("fFallRatio", sTrapezoid.fFallRatio);
@@ -808,7 +808,7 @@ namespace lsp
         }
         v->end_object();
 
-        v->start_object("sPulse", &sPulse, sizeof(sPulse));
+        v->begin_object("sPulse", &sPulse, sizeof(sPulse));
         {
             v->write("fPosWidthRatio", sPulse.fPosWidthRatio);
             v->write("fNegWidthRatio", sPulse.fNegWidthRatio);
@@ -818,7 +818,7 @@ namespace lsp
         }
         v->end_object();
 
-        v->start_object("sParabolic", &sParabolic, sizeof(sParabolic));
+        v->begin_object("sParabolic", &sParabolic, sizeof(sParabolic));
         {
             v->write("bInvert", sParabolic.bInvert);
             v->write("fAmplitude", sParabolic.fAmplitude);

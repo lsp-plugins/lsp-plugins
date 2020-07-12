@@ -108,11 +108,11 @@ namespace lsp
 
     void Randomizer::dump(IStateDumper *v) const
     {
-        v->start_array("vRandom", vRandom, 4);
+        v->begin_array("vRandom", vRandom, 4);
         for (size_t i=0; i<4; ++i)
         {
-            const randgen_t *r = &vRandom[4];
-            v->start_object(r, sizeof(randgen_t));
+            const randgen_t *r = &vRandom[i];
+            v->begin_object(r, sizeof(randgen_t));
             {
                 v->write("vLast", r->vLast);
                 v->write("vMul1", r->vMul1);

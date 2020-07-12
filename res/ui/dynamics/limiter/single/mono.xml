@@ -54,6 +54,8 @@
 			
 			<!-- Graph buttons -->
 			<hbox spacing="4">
+				<button id="alr" size="16" color="yellow" led="true" />
+				<label text="labels.alr" />
 				<button id="pause" size="16" color="green" led="true" />
 				<label text="labels.pause" />
 				<button id="clear" size="16" color="red" led="true" />
@@ -109,22 +111,37 @@
 			<label text="labels.chan.out" />
 		</grid>
 		<hbox spacing="4">
+			<!-- ALR -->
+			<group text="groups.alr">
+				<grid rows="3" cols="3">
+					<label text="labels.attack" />
+					<label text="labels.release" />
+					<label text="labels.knee" />
+					
+					<knob id="alr_at" />
+					<knob id="alr_rt" />
+					<knob id="knee" />
+					
+					<value id="alr_at" />
+					<value id="alr_rt" />
+					<value id="knee" />
+				</grid>
+			</group>
+			
 			<!-- Limiter setup -->
 			<group text="groups.plug.limiter">
-				<grid rows="3" cols="6">
+				<grid rows="3" cols="5">
 					<label text="labels.sc.sc_preamp" />
 					<label text="labels.sc.lookahead" />
 					<label text="labels.threshold" />
 					<label text="labels.attack" />
 					<label text="labels.release" />
-					<label text="labels.knee" />
 					
 					<knob id="scp" />
 					<knob id="lk" />
 					<knob id="th" scale_color="magenta" />
 					<knob id="at" />
 					<knob id="rt" />
-					<knob id="knee" />
 					
 					<hbox fill="false">
 						<vbox fill="false" visibility="ex :extsc">
@@ -145,7 +162,6 @@
 					</hbox>
 					<value id="at" />
 					<value id="rt" />
-					<value id="knee" />
 				</grid>
 			</group>
 			

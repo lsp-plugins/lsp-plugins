@@ -41,6 +41,8 @@
     { id, label, U_BOOL, R_CONTROL, F_IN, 0, 0, dfl, 0, NULL, NULL }
 #define COMBO(id, label, dfl, list) \
     { id, label, U_ENUM, R_CONTROL, F_IN, 0, 0, dfl, 0, list, NULL }
+#define COMBO_START(id, label, dfl, list, min) \
+    { id, label, U_ENUM, R_CONTROL, F_IN | F_MIN, min, 0, dfl, 0, list, NULL }
 #define BLINK(id, label) \
     { id, label, U_BOOL, R_METER, F_OUT, 0, 0, 0, 0, NULL, NULL }
 #define KNOB(id, label, units, min, max, dfl, step) \
@@ -123,8 +125,8 @@
 #define OSC_INPUT           OSC_CHANNEL(LSP_LV2_OSC_PORT_IN, F_IN, "OSC input")
 #define OSC_OUTPUT          OSC_CHANNEL(LSP_LV2_OSC_PORT_OUT, F_OUT, "OSC output")
 
-#define IN_GAIN             AMP_GAIN10("g_in", "Input gain", 1.0f)
-#define OUT_GAIN            AMP_GAIN10("g_out", "Output gain", 1.0f)
+#define IN_GAIN             AMP_GAIN("g_in", "Input gain", GAIN_AMP_0_DB, GAIN_AMP_P_60_DB)
+#define OUT_GAIN            AMP_GAIN("g_out", "Output gain", GAIN_AMP_0_DB, GAIN_AMP_P_60_DB)
 
 #define DRY_GAIN(g)         AMP_GAIN10("dry", "Dry amount", g)
 #define DRY_GAIN_L(g)       AMP_GAIN10("dry_l", "Dry amount L", g)

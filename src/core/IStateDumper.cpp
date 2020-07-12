@@ -18,11 +18,11 @@ namespace lsp
     {
     }
 
-    void IStateDumper::start_object(const char *name, const void *ptr, size_t szof)
+    void IStateDumper::begin_object(const char *name, const void *ptr, size_t szof)
     {
     }
 
-    void IStateDumper::start_object(const void *ptr, size_t szof)
+    void IStateDumper::begin_object(const void *ptr, size_t szof)
     {
     }
 
@@ -30,11 +30,11 @@ namespace lsp
     {
     }
 
-    void IStateDumper::start_array(const char *name, const void *ptr, size_t count)
+    void IStateDumper::begin_array(const char *name, const void *ptr, size_t count)
     {
     }
 
-    void IStateDumper::start_array(const void *ptr, size_t count)
+    void IStateDumper::begin_array(const void *ptr, size_t count)
     {
     }
 
@@ -146,6 +146,10 @@ namespace lsp
     {
     }
 
+    void IStateDumper::writev(const void * const *value, size_t count)
+    {
+    }
+
     void IStateDumper::writev(const bool *value, size_t count)
     {
     }
@@ -187,6 +191,10 @@ namespace lsp
     }
 
     void IStateDumper::writev(const double *value, size_t count)
+    {
+    }
+
+    void IStateDumper::writev(const char *name, const void * const *value, size_t count)
     {
     }
 

@@ -77,9 +77,6 @@ namespace lsp
             float           fInGain;        // Input gain
             float           fOutGain;       // Output gain
             float           fPreamp;        // Sidechain pre-amplification
-            float           fThresh;        // Limiter threshold
-            float           fKnee;          // Limiter knee
-            bool            bBoost;         // Gain boost
             size_t          nOversampling;  // Oversampling
             float           fStereoLink;    // Stereo linking
             float_buffer_t *pIDisplay;      // Inline display buffer
@@ -91,6 +88,9 @@ namespace lsp
             IPort          *pInGain;        // Input gain
             IPort          *pOutGain;       // Output gain
             IPort          *pPreamp;        // Sidechain pre-amplification
+            IPort          *pAlrOn;         // Automatic level regulation
+            IPort          *pAlrAttack;     // Automatic level regulation attack
+            IPort          *pAlrRelease;    // Automatic level regulation release
             IPort          *pMode;          // Operating mode
             IPort          *pThresh;        // Limiter threshold
             IPort          *pLookahead;     // Lookahead time
@@ -129,6 +129,7 @@ namespace lsp
 
             virtual void process(size_t samples);
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+            virtual void dump(IStateDumper *v) const;
     };
 
     class limiter_mono: public limiter_base, public limiter_mono_metadata

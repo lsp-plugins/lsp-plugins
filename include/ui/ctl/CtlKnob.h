@@ -26,6 +26,8 @@ namespace lsp
                 bool                bLogSet;
                 bool                bCyclingSet;
                 float               fDefaultValue;
+                bool                bBalanceSet;
+                float               fBalance;
                 CtlPort            *pPort;
 
             protected:

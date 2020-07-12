@@ -358,7 +358,7 @@ namespace lsp
     {
         v->write_object("sBank", &sBank);
 
-        v->start_array("vFilters", vFilters, nFilters);
+        v->begin_array("vFilters", vFilters, nFilters);
         for (size_t i=0; i<nFilters; ++i)
             v->write_object(&vFilters[i]);
         v->end_array();

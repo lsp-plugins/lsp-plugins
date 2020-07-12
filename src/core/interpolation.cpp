@@ -14,6 +14,7 @@ namespace lsp
     {
         void hermite_quadratic(float *p, float x0, float y0, float k0, float x1, float k1)
         {
+            // y = p[0]*x^2 + p[1]*x + p[2]
             p[0]    = (k0 - k1)*0.5f / (x0 - x1);
             p[1]    = k0 - 2.0f*p[0]*x0;
             p[2]    = y0 - p[0]*x0*x0 - p[1]*x0;

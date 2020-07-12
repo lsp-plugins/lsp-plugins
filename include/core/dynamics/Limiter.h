@@ -20,8 +20,6 @@ namespace lsp
 {
     enum limiter_mode_t
     {
-        LM_COMPRESSOR,
-
         LM_HERM_THIN,
         LM_HERM_WIDE,
         LM_HERM_TAIL,
@@ -35,11 +33,7 @@ namespace lsp
         LM_LINE_THIN,
         LM_LINE_WIDE,
         LM_LINE_TAIL,
-        LM_LINE_DUCK,
-
-        LM_MIXED_HERM,
-        LM_MIXED_EXP,
-        LM_MIXED_LINE
+        LM_LINE_DUCK
     };
     
     class Limiter
@@ -57,30 +51,24 @@ namespace lsp
                 UP_MODE     = 1 << 2,
                 UP_OTHER    = 1 << 3,
                 UP_THRESH   = 1 << 4,
+                UP_ALR      = 1 << 5,
 
-                UP_ALL      = UP_SR | UP_LK | UP_MODE | UP_OTHER | UP_THRESH
+                UP_ALL      = UP_SR | UP_LK | UP_MODE | UP_OTHER | UP_THRESH | UP_ALR
             };
 
-            typedef struct comp_t
+            typedef struct alr_t
             {
                 float       fKS;            // Knee start
                 float       fKE;            // Knee end
-                float       fTauAttack;     // Attack time constant
+                float       fGain;          // Maximum output gain
+                float       fTauAttack;     // Attiack time constant
                 float       fTauRelease;    // Release time constant
+                float       vHermite[3];    // Hermite approximation
+                float       fAttack;        // Attack
+                float       fRelease;       // Release
                 float       fEnvelope;      // Envelope
-                float       fAmp;           // Amplification coefficient
-                ssize_t     nCountdown;     // Countdown
-                float       fSample;        // Last triggered sample
-                float       vHermite[3];    // Knee hermite interpolation
-            } comp_t;
-
-            #pragma pack(push, 1)
-            typedef struct peak_t
-            {
-                int32_t     nTime;
-                float       fValue;
-            } peak_t;
-            #pragma pack(pop)
+                bool        bEnable;        // Enable ALR
+            } alr_t;
 
             typedef struct sat_t
             {
@@ -115,19 +103,9 @@ namespace lsp
                 float       vRelease[2];    // Line interpolation of release
             } line_t;
 
-            typedef struct mixed_t
-            {
-                comp_t      sComp;
-                union
-                {
-                    sat_t       sSat;               // Hermite mode
-                    exp_t       sExp;               // Exponent mode
-                    line_t      sLine;              // Line mode
-                };
-            } mixed_t;
-
         protected:
             float       fThreshold;
+            float       fReqThreshold;
             float       fLookahead;
             float       fMaxLookahead;
             float       fAttack;
@@ -139,25 +117,22 @@ namespace lsp
             size_t      nSampleRate;
             size_t      nUpdate;
             size_t      nMode;
-            size_t      nThresh;
+            alr_t       sALR;
 
             // Pre-calculated parameters
             float      *vGainBuf;
-            float      *vTmpBuf;
+            float      *vTmpBuf;                // Temporary buffer to store the actual sidechain value
             uint8_t    *vData;
 
             Delay       sDelay;
             union
             {
-                comp_t      sComp;              // Compressor mode
                 sat_t       sSat;               // Hermite mode
                 exp_t       sExp;               // Exponent mode
                 line_t      sLine;              // Line mode
-                mixed_t     sMixed;             // Mixed mode
             };
 
         protected:
-            inline float    reduction(comp_t *comp);
             inline float    sat(ssize_t n);
             inline float    exp(ssize_t n);
             inline float    line(ssize_t n);
@@ -168,18 +143,13 @@ namespace lsp
             static void     reset_sat(sat_t *sat);
             static void     reset_exp(exp_t *exp);
             static void     reset_line(line_t *line);
-            static void     reset_comp(comp_t *comp);
 
             void            init_sat(sat_t *sat);
             void            init_exp(exp_t *exp);
             void            init_line(line_t *line);
-            void            init_comp(comp_t *comp);
 
-            void            process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_patch(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+            void            process_alr(float *gbuf, const float *sc, size_t samples);
 
-            static void     dump(IStateDumper *v, const char *name, const comp_t *comp);
             static void     dump(IStateDumper *v, const char *name, const sat_t *sat);
             static void     dump(IStateDumper *v, const char *name, const exp_t *exp);
             static void     dump(IStateDumper *v, const char *name, const line_t *line);
@@ -187,6 +157,16 @@ namespace lsp
         public:
             explicit Limiter();
             ~Limiter();
+
+            /**
+             * Construct the object
+             */
+            void construct();
+
+            /** Destroy all data allocated by processor
+             *
+             */
+            void destroy();
 
         public:
             /** Initialize limiter
@@ -197,24 +177,22 @@ namespace lsp
              */
             bool init(size_t max_sr, float max_lookahead);
 
-            /** Destroy all data allocated by processor
-             *
-             */
-            void destroy();
-
             /** Check if limiter is modifier
              *
              * @return true if limiter settings need to be updated
              */
-            inline bool modified() const
-            {
-                return nUpdate != 0;
-            }
+            inline bool modified() const                            { return nUpdate != 0;          }
 
             /** Update settings for limiter
              *
              */
             void update_settings();
+
+            /**
+             * Get limiter mode
+             * @return limiter mode
+             */
+            inline limiter_mode_t get_mode() const                  { return limiter_mode_t(nMode); }
 
             /** Set limiter working mode
              *
@@ -240,64 +218,59 @@ namespace lsp
                 nUpdate        |= UP_SR;
             }
 
-            /** Set limiter threshold
-             *
-             * @param thresh limiter threshold
-             */
-            inline void set_threshold(float thresh)
-            {
-                if (fThreshold == thresh)
-                    return;
-                fThreshold  = thresh;
-                nUpdate    |= UP_THRESH;
-            }
-
             /** Get threshold
              *
              * @return threshold
              */
-            inline float get_threshold() const
-            {
-                return fThreshold;
-            }
+            inline float        get_threshold() const               { return fReqThreshold;     }
+
+            /** Set limiter threshold
+             *
+             * @param thresh limiter threshold
+             */
+            float               set_threshold(float thresh);
+
+            /**
+             * Get attack time
+             * @return attack time
+             */
+            inline float        get_attack() const                  { return fAttack;           }
 
             /** Set attack time
              *
              * @param attack attack time
              */
-            inline void set_attack(float attack)
-            {
-                if (fAttack == attack)
-                    return;
-                fAttack     = attack;
-                nUpdate    |= UP_OTHER;
-            }
+            float               set_attack(float attack);
+
+            /**
+             * Get release time
+             * @return attack time
+             */
+            inline float        get_release() const                 { return fRelease;          }
 
             /** Set release time
              *
              * @param release release time
              */
-            inline void set_release(float release)
-            {
-                if (fRelease == release)
-                    return;
-                fRelease    = release;
-                nUpdate    |= UP_OTHER;
-            }
+            float               set_release(float release);
+
+            /**
+             * Get lookahead time
+             * @return lookahead time
+             */
+            inline float        get_lookahead() const               { return fLookahead;        }
 
             /** Set look-ahead time
              *
              * @param lk_ahead look-ahead time
              */
-            inline void set_lookahead(float lk_ahead)
-            {
-                if (lk_ahead > fMaxLookahead)
-                    lk_ahead = fMaxLookahead;
-                if (fLookahead == lk_ahead)
-                    return;
-                fLookahead  = lk_ahead;
-                nUpdate    |= UP_LK;
-            }
+            float               set_lookahead(float lk_ahead);
+
+            /**
+             * Get knee of the limiter
+             * @return knee of the limiter
+             */
+            inline float        get_knee() const                    { return fKnee;             }
 
             /** Set knee, the value not greater than 1.0
              * If value is 1.0, there is no knee at all
@@ -306,24 +279,52 @@ namespace lsp
              *
              * @param knee knee, 1.0 means no knee
              */
-            inline void set_knee(float knee)
-            {
-                if (knee > 1.0f)
-                    knee = 1.0f;
-                if (fKnee == knee)
-                    return;
-                fKnee       = knee;
-                nUpdate    |= UP_OTHER;
-            }
+            float               set_knee(float knee);
 
             /** Get latency of limiter
              *
              * @return limiter's latency
              */
-            inline size_t get_latency() const
-            {
-                return nLookahead;
-            }
+            inline size_t       get_latency() const                 { return nLookahead;        }
+
+            /**
+             * Get automatic level regulation attack
+             * @return automatic level regulation attack
+             */
+            inline float        get_alr_attack() const              { return sALR.fAttack;      }
+
+            /**
+             * Set automatic level regulation attack
+             * @param attack attack value
+             * @return previous value
+             */
+            float               set_alr_attack(float attack);
+
+            /**
+             * Get automatic level regulation release
+             * @return automatic level regulation attack
+             */
+            inline float        get_alr_release() const             { return sALR.fRelease;     }
+
+            /**
+             * Set automatic level regulation release
+             * @param attack attack value
+             * @return previous value
+             */
+            float               set_alr_release(float attack);
+
+            /**
+             * Check that automatic level regulation is turned on
+             * @return true if automatic level regulation is turned on
+             */
+            inline bool         get_alr() const                     { return sALR.bEnable;      }
+
+            /** Enable automatic level regulation
+             *
+             * @param enable enable flag
+             * @return previous value
+             */
+            bool                set_alr(bool enable);
 
             /** Process data by limiter
              *
@@ -333,13 +334,13 @@ namespace lsp
              * @param sc sidechain input signal
              * @param samples number of samples to process
              */
-            void process(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+            void                process(float *dst, float *gain, const float *src, const float *sc, size_t samples);
 
             /**
              * Dump internal state
              * @param v state dumper
              */
-            void dump(IStateDumper *v) const;
+            void                dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

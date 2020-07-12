@@ -1752,7 +1752,7 @@ namespace lsp
         else
             v->write("pBank", pBank);
 
-        v->start_object("sParams", &sParams, sizeof(filter_params_t));
+        v->begin_object("sParams", &sParams, sizeof(filter_params_t));
         {
             v->write("nType", sParams.nType);
             v->write("fFreq", sParams.fFreq);
@@ -1766,11 +1766,11 @@ namespace lsp
         v->write("nSampleRate", nSampleRate);
         v->write("nMode", nMode);
         v->write("nItems", nItems);
-        v->start_array("vItems", vItems, nItems);
+        v->begin_array("vItems", vItems, nItems);
         for (size_t i=0; i<nItems; ++i)
         {
             f_cascade_t *c = &vItems[i];
-            v->start_object(c, sizeof(f_cascade_t));
+            v->begin_object(c, sizeof(f_cascade_t));
             {
                 v->writev("t", c->t, 4);
                 v->writev("b", c->b, 4);

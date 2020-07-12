@@ -59,13 +59,13 @@ namespace lsp
         return sOut.close();
     }
 
-    void JsonDumper::start_raw_object(const char *name)
+    void JsonDumper::begin_raw_object(const char *name)
     {
         sOut.write_property(name);
         sOut.start_object();
     }
 
-    void JsonDumper::start_raw_object()
+    void JsonDumper::begin_raw_object()
     {
         sOut.start_object();
     }
@@ -75,7 +75,7 @@ namespace lsp
         sOut.end_object();
     }
 
-    void JsonDumper::start_object(const char *name, const void *ptr, size_t szof)
+    void JsonDumper::begin_object(const char *name, const void *ptr, size_t szof)
     {
         sOut.write_property(name);
         sOut.start_object();
@@ -85,7 +85,7 @@ namespace lsp
         sOut.start_object();
     }
 
-    void JsonDumper::start_object(const void *ptr, size_t szof)
+    void JsonDumper::begin_object(const void *ptr, size_t szof)
     {
         sOut.start_object();
         write("this", ptr);
@@ -100,7 +100,7 @@ namespace lsp
         sOut.end_object();
     }
 
-    void JsonDumper::start_array(const char *name, const void *ptr, size_t count)
+    void JsonDumper::begin_array(const char *name, const void *ptr, size_t count)
     {
         sOut.write_property(name);
         sOut.start_object();
@@ -110,7 +110,7 @@ namespace lsp
         sOut.start_array();
     }
 
-    void JsonDumper::start_array(const void *ptr, size_t count)
+    void JsonDumper::begin_array(const void *ptr, size_t count)
     {
         sOut.start_object();
         write("this", ptr);
@@ -279,6 +279,20 @@ namespace lsp
         write(value);
     }
 
+    void JsonDumper::writev(const void * const *value, size_t count)
+    {
+        if (value == NULL)
+        {
+            write(value);
+            return;
+        }
+
+        begin_array(value, count);
+        for (size_t i=0; i<count; ++i)
+            write(value[i]);
+        end_array();
+    }
+
     void JsonDumper::writev(const bool *value, size_t count)
     {
         if (value == NULL)
@@ -287,7 +301,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -301,7 +315,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -315,7 +329,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -329,7 +343,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -343,7 +357,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -357,7 +371,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -371,7 +385,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -385,7 +399,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -399,7 +413,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -413,7 +427,7 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -427,7 +441,20 @@ namespace lsp
             return;
         }
 
-        start_array(value, count);
+        begin_array(value, count);
+        for (size_t i=0; i<count; ++i)
+            write(value[i]);
+        end_array();
+    }
+
+    void JsonDumper::writev(const char *name, const void * const *value, size_t count)
+    {
+        if (value == NULL)
+        {
+            write(name, value);
+            return;
+        }
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -440,7 +467,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -453,7 +480,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -466,7 +493,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -479,7 +506,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -492,7 +519,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -505,7 +532,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -518,7 +545,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -531,7 +558,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -544,7 +571,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -557,7 +584,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
@@ -570,7 +597,7 @@ namespace lsp
             write(name, value);
             return;
         }
-        start_array(name, value, count);
+        begin_array(name, value, count);
         for (size_t i=0; i<count; ++i)
             write(value[i]);
         end_array();
