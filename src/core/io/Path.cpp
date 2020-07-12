@@ -1079,5 +1079,43 @@ namespace lsp
                 fixup_path();
             return res;
         }
+
+        ssize_t Path::fmt(const char *fmt...)
+        {
+            va_list list;
+            va_start(list, fmt);
+            ssize_t res = sPath.vfmt_utf8(fmt, list);
+            va_end(list);
+            if (res > 0)
+                fixup_path();
+            return res;
+        }
+
+        ssize_t Path::fmt(const LSPString *fmt...)
+        {
+            va_list list;
+            va_start(list, fmt);
+            ssize_t res = sPath.vfmt_utf8(fmt->get_utf8(), list);
+            va_end(list);
+            if (res > 0)
+                fixup_path();
+            return res;
+        }
+
+        ssize_t Path::vfmt(const char *fmt, va_list args)
+        {
+            ssize_t res = sPath.vfmt_utf8(fmt, args);
+            if (res > 0)
+                fixup_path();
+            return res;
+        }
+
+        ssize_t Path::vfmt(const LSPString *fmt, va_list args)
+        {
+            ssize_t res = sPath.vfmt_utf8(fmt->get_utf8(), args);
+            if (res > 0)
+                fixup_path();
+            return res;
+        }
     }
 } /* namespace lsp */

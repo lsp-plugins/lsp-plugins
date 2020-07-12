@@ -1,0 +1,519 @@
+<drumkit_info>
+    <name>ErnysPercussion</name>
+    <author>Erny</author>
+    <info>Have fun !</info>
+    <instrumentList>
+        <instrument>
+            <id>0</id>
+            <name>Conga1 Hi</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Conga Hi.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>1</id>
+            <name>Conga1 Mute</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Conga Hi Mute.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>2</id>
+            <name>Conga1 Lo</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Conga Lo.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>3</id>
+            <name>Conga2 Hi</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Conga Hi.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>4</id>
+            <name>Conga2 Hi Mute</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Conga Mute Hi.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>5</id>
+            <name>Conga2 Lo</name>
+            <volume>0.86</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Conga Lo.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>6</id>
+            <name>Conga2 Lo Mute</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.96</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Conga Mute Lo.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>7</id>
+            <name>Conga2 Slap</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Conga Slap.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>8</id>
+            <name>Bongo1 High</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Bongo High.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>9</id>
+            <name>Bongo1 Low</name>
+            <volume>0.81</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.96</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Bongo Low.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>10</id>
+            <name>Bongo2 High</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Bongo High.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>11</id>
+            <name>Bongo2 Low</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Bongo Low.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>12</id>
+            <name>Bongo3 High</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>3Bongo High.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>13</id>
+            <name>Bongo3 Low</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>3Bongo Low.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>14</id>
+            <name>Agogo Hi</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Agogo Hi.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>15</id>
+            <name>Agogo Lo</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Agogo Lo.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>16</id>
+            <name>Timbale Hi</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.96</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Timbale Hi.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>17</id>
+            <name>Timbale Lo</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Timbale Lo.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>18</id>
+            <name>Guiro1 Long</name>
+            <volume>0.82</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Guiro Long.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>19</id>
+            <name>Guiro1 Short</name>
+            <volume>0.78</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>1Guiro Short.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>20</id>
+            <name>Guiro2 Long</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Guiro Long.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>21</id>
+            <name>Guiro2 Short</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>2Guiro Short.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>22</id>
+            <name>Guiro3 Long</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>3Guiro Long.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>23</id>
+            <name>Guiro3 Short</name>
+            <volume>0.87</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>3Guiro Short.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>24</id>
+            <name>Cabasa Up</name>
+            <volume>0.84</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Cabasa Up.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>25</id>
+            <name>Cabasa Down</name>
+            <volume>0.85</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Cabasa Down.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>26</id>
+            <name>Cabasa Cut</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Cabasa Cut.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>27</id>
+            <name>Claves</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Claves.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>28</id>
+            <name>Maracas</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Maracas.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>29</id>
+            <name>Vibra Slap</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Vibra Slap.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>30</id>
+            <name>Coffecup</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>Coffecup.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+        <instrument>
+            <id>31</id>
+            <name>Cowbell</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+            <layer>
+                <filename>CowBell.wav</filename>
+                <min>0</min>
+                <max>1</max>
+                <gain>1</gain>
+                <pitch>0</pitch>
+            </layer>
+        </instrument>
+    </instrumentList>
+</drumkit_info>

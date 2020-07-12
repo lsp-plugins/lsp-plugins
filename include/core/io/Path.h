@@ -106,6 +106,11 @@ namespace lsp
                 status_t    remove_base(const LSPString *path);
                 status_t    remove_base(const Path *path);
 
+                ssize_t     fmt(const char *fmt...);
+                ssize_t     fmt(const LSPString *fmt...);
+                ssize_t     vfmt(const char *fmt, va_list args);
+                ssize_t     vfmt(const LSPString *fmt, va_list args);
+
                 bool        is_absolute() const;
                 bool        is_relative() const;
                 bool        is_canonical() const;

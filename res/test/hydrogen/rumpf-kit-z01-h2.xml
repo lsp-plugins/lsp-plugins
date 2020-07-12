@@ -1,0 +1,1164 @@
+<drumkit_info>
+	
+	<name>rumpf_kit_z01_gm</name>
+	
+	<author>Emanuel Rumpf</author>
+	<license>cc-by ==> http://creativecommons.org/licenses/by/3.0/</license>
+	
+	<info>Drum kit from analog samples.  Partly GM-drum compatible.  Format:48000Hz,24Bit,flac   Dontations accepted: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=BA27KD9DCZSXU  </info>
+	
+	<instrumentList>
+		
+		
+		<instrument>
+			<id>0</id>
+
+			<name>c3 - bass drum 1</name>
+
+			<filename>beats_06-38.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>1</id>
+
+			<name>c#3 - stick</name>
+
+			<filename>beats_09-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>2</id>
+
+			<name>d3 - snare 1</name>
+
+			<filename>beats_01-21.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>3</id>
+
+			<name>d#3 - clap</name>
+
+			<filename>beats_01-26.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>4</id>
+
+			<name>e3 - snare 2</name>
+
+			<filename>beats_06-25.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>5</id>
+
+			<name>f3 - bass drum 2</name>
+
+			<filename>beats_06-46.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>6</id>
+
+			<name>f#3 - hi-hat closed</name>
+
+			<filename>beats_09-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>7</id>
+
+			<name>g3 - bass drum 3</name>
+
+			<filename>beats_07-18.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>8</id>
+
+			<name>g#3 - hi-hat pedal</name>
+
+			<filename>beats_06-28.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>9</id>
+
+			<name>a3 - bass drum 4</name>
+
+			<filename>beats_07-20.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>10</id>
+
+			<name>a#3 - hi-hat open</name>
+
+			<filename>beats_08-31.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>11</id>
+
+			<name>b3 - low tom</name>
+
+			<filename>beats_08-17.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>12</id>
+
+			<name>c4 - middle tom</name>
+
+			<filename>beats_08-18.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>13</id>
+
+			<name>c#4 - crash</name>
+
+			<filename>beats_06-43.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>14</id>
+
+			<name>d4 - high tom</name>
+
+			<filename>beats_08-19.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>15</id>
+
+			<name>d#4 - cymbal 1</name>
+
+			<filename>beats_08-20.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>16</id>
+
+			<name>e4 - cymbal 2</name>
+
+			<filename>beats_06-30.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>17</id>
+
+			<name>f4 - ride bell</name>
+
+			<filename>beats_06-40.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>18</id>
+
+			<name>f#4 - </name>
+
+			<filename>beats_06-45.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>19</id>
+
+			<name>g4 - </name>
+
+			<filename>beats_07-15.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>20</id>
+
+			<name>g#4 - cowbell</name>
+
+			<filename>beats_08-32.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>21</id>
+
+			<name>a4 - </name>
+
+			<filename>beats_08-33.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>22</id>
+
+			<name>a#4 -  </name>
+
+			<filename>beats_08-34.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>23</id>
+
+			<name>b4 - </name>
+
+			<filename>beats_08-35.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>24</id>
+
+			<name>c5 - </name>
+
+			<filename>beats_08-36.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>25</id>
+
+			<name>Sample: beats_08-37.flac</name>
+
+			<filename>beats_08-37.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>26</id>
+
+			<name>Sample: beats_01-39.flac</name>
+
+			<filename>beats_01-39.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>27</id>
+
+			<name>Sample: beats_01-40.flac</name>
+
+			<filename>beats_01-40.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>28</id>
+
+			<name>Sample: beats_01-41.flac</name>
+
+			<filename>beats_01-41.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>29</id>
+
+			<name>Sample: beats_01-42.flac</name>
+
+			<filename>beats_01-42.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>30</id>
+
+			<name>Sample: beats_02-10.flac</name>
+
+			<filename>beats_02-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>31</id>
+
+			<name>Sample: beats_02-11.flac</name>
+
+			<filename>beats_02-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>32</id>
+
+			<name>Sample: beats_02-12.flac</name>
+
+			<filename>beats_02-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>33</id>
+
+			<name>Sample: beats_02-13.flac</name>
+
+			<filename>beats_02-13.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>34</id>
+
+			<name>Sample: beats_02-14.flac</name>
+
+			<filename>beats_02-14.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>35</id>
+
+			<name>Sample: beats_02-15.flac</name>
+
+			<filename>beats_02-15.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>36</id>
+
+			<name>Sample: beats_03-10.flac</name>
+
+			<filename>beats_03-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>37</id>
+
+			<name>Sample: beats_03-11.flac</name>
+
+			<filename>beats_03-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>38</id>
+
+			<name>Sample: beats_03-12.flac</name>
+
+			<filename>beats_03-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>39</id>
+
+			<name>Sample: beats_04-10.flac</name>
+
+			<filename>beats_04-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>40</id>
+
+			<name>Sample: beats_04-11.flac</name>
+
+			<filename>beats_04-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>41</id>
+
+			<name>Sample: beats_04-12.flac</name>
+
+			<filename>beats_04-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>42</id>
+
+			<name>Sample: beats_05-10.flac</name>
+
+			<filename>beats_05-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>43</id>
+
+			<name>Sample: beats_05-11.flac</name>
+
+			<filename>beats_05-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>44</id>
+
+			<name>Sample: beats_05-12.flac</name>
+
+			<filename>beats_05-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>45</id>
+
+			<name>Sample: beats_05-13.flac</name>
+
+			<filename>beats_05-13.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>46</id>
+
+			<name>Sample: beats_05-14.flac</name>
+
+			<filename>beats_05-14.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>47</id>
+
+			<name>Sample: beats_05-15.flac</name>
+
+			<filename>beats_05-15.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>48</id>
+
+			<name>Sample: beats_05-16.flac</name>
+
+			<filename>beats_05-16.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>49</id>
+
+			<name>Sample: beats_05-17.flac</name>
+
+			<filename>beats_05-17.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>50</id>
+
+			<name>Sample: beats_05-18.flac</name>
+
+			<filename>beats_05-18.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>51</id>
+
+			<name>Sample: beats_06-10.flac</name>
+
+			<filename>beats_06-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>52</id>
+
+			<name>Sample: beats_06-11.flac</name>
+
+			<filename>beats_06-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>53</id>
+
+			<name>Sample: beats_06-12.flac</name>
+
+			<filename>beats_06-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>54</id>
+
+			<name>Sample: beats_06-13.flac</name>
+
+			<filename>beats_06-13.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>55</id>
+
+			<name>Sample: beats_06-14.flac</name>
+
+			<filename>beats_06-14.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>56</id>
+
+			<name>Sample: beats_06-15.flac</name>
+
+			<filename>beats_06-15.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>57</id>
+
+			<name>Sample: beats_01-35.flac</name>
+
+			<filename>beats_01-35.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>59</id>
+
+			<name>Sample: beats_01-10.flac</name>
+
+			<filename>beats_01-10.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>60</id>
+
+			<name>Sample: beats_01-11.flac</name>
+
+			<filename>beats_01-11.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>61</id>
+
+			<name>Sample: beats_01-12.flac</name>
+
+			<filename>beats_01-12.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>62</id>
+
+			<name>Sample: beats_01-13.flac</name>
+
+			<filename>beats_01-13.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>63</id>
+
+			<name>Sample: beats_01-14.flac</name>
+
+			<filename>beats_01-14.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>64</id>
+
+			<name>Sample: beats_01-15.flac</name>
+
+			<filename>beats_01-15.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>65</id>
+
+			<name>Sample: beats_01-16.flac</name>
+
+			<filename>beats_01-16.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>66</id>
+
+			<name>Sample: beats_01-17.flac</name>
+
+			<filename>beats_01-17.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>67</id>
+
+			<name>Sample: beats_01-18.flac</name>
+
+			<filename>beats_01-18.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>68</id>
+
+			<name>Sample: beats_01-19.flac</name>
+
+			<filename>beats_01-19.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>69</id>
+
+			<name>Sample: beats_01-20.flac</name>
+
+			<filename>beats_01-20.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>70</id>
+
+			<name>Sample: beats_06-16.flac</name>
+
+			<filename>beats_06-16.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>71</id>
+
+			<name>Sample: beats_01-22.flac</name>
+
+			<filename>beats_01-22.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>72</id>
+
+			<name>Sample: beats_01-23.flac</name>
+
+			<filename>beats_01-23.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>73</id>
+
+			<name>Sample: beats_01-24.flac</name>
+
+			<filename>beats_01-24.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>74</id>
+
+			<name>Sample: beats_01-25.flac</name>
+
+			<filename>beats_01-25.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>75</id>
+
+			<name>Sample: beats_06-18.flac</name>
+
+			<filename>beats_06-18.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>76</id>
+
+			<name>Sample: beats_01-28.flac</name>
+
+			<filename>beats_01-28.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>77</id>
+
+			<name>Sample: beats_01-29.flac</name>
+
+			<filename>beats_01-29.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>78</id>
+
+			<name>Sample: beats_01-30.flac</name>
+
+			<filename>beats_01-30.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>79</id>
+
+			<name>Sample: beats_01-32.flac</name>
+
+			<filename>beats_01-32.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>80</id>
+
+			<name>Sample: beats_01-33.flac</name>
+
+			<filename>beats_01-33.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>81</id>
+
+			<name>Sample: beats_01-34.flac</name>
+
+			<filename>beats_01-34.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		<instrument>
+			<id>82</id>
+
+			<name>Sample: beats_06-50.flac</name>
+
+			<filename>beats_06-50.flac</filename>
+
+			<volume>0.900000</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.000000</pan_L>
+			<pan_R>1.000000</pan_R>
+			<exclude></exclude>
+		</instrument>
+	
+		
+	</instrumentList>
+</drumkit_info>
+	
