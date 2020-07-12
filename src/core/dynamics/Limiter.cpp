@@ -114,13 +114,15 @@ namespace lsp
         return old;
     }
 
-    float Limiter::set_threshold(float thresh)
+    float Limiter::set_threshold(float thresh, bool immediate)
     {
         float old = fReqThreshold;
         if (old == thresh)
             return old;
 
         fReqThreshold   = thresh;
+        if (immediate)
+            fThreshold      = thresh;
         nUpdate        |= UP_THRESH | UP_ALR;
         return old;
     }

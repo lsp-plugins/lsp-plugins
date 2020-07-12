@@ -227,8 +227,9 @@ namespace lsp
             /** Set limiter threshold
              *
              * @param thresh limiter threshold
+             * @param immediate immediately set threshold, no need to perform automated gain lowering
              */
-            float               set_threshold(float thresh);
+            float               set_threshold(float thresh, bool immediate);
 
             /**
              * Get attack time

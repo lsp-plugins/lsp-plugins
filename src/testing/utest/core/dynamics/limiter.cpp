@@ -42,7 +42,7 @@ UTEST_BEGIN("core.dynamics", limiter)
         l.set_sample_rate(SRATE);
         l.set_mode(LM_HERM_THIN);
         l.set_knee(1.0f);
-        l.set_threshold(0.5f);
+        l.set_threshold(0.5f, true);
         l.set_attack(1.5);
         l.set_release(1.5);
         l.set_lookahead(5); // 5 ms lookahead
@@ -111,7 +111,7 @@ UTEST_BEGIN("core.dynamics", limiter)
         l.set_sample_rate(SRATE);
         l.set_mode(LM_HERM_THIN);
         l.set_knee(1.0f);
-        l.set_threshold(0.5f);
+        l.set_threshold(0.5f, true);
         l.set_attack(1.5);
         l.set_release(1.5);
         l.set_lookahead(5); // 5 ms lookahead
@@ -138,18 +138,6 @@ UTEST_BEGIN("core.dynamics", limiter)
         }
 
         UTEST_ASSERT(fd.close() == STATUS_OK);
-
-//        UTEST_ASSERT(dsp::max(out, BUF_SIZE) < 0.6f);
-//        UTEST_ASSERT(dsp::min(out, BUF_SIZE) >= 0.0f);
-//
-//        UTEST_ASSERT(dsp::max(gain, BUF_SIZE) >= 1.0f);
-//        UTEST_ASSERT(dsp::min(gain, BUF_SIZE) >= 0.0f);
-//        UTEST_ASSERT(float_equals_adaptive(gain.get(0), 1.0f));
-//        UTEST_ASSERT(float_equals_adaptive(gain.get(BUF_SIZE-1), 1.0f));
-//
-//        ssize_t i1 = dsp::max_index(in, BUF_SIZE);
-//        ssize_t i2 = dsp::max_index(out, BUF_SIZE);
-//        UTEST_ASSERT(latency == (i2-i1));
 
         l.destroy();
     }
