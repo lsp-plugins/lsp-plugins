@@ -98,6 +98,11 @@ namespace lsp
         static const float TRIGGER_LEVEL_DFL = 0.0f;
         static const float TRIGGER_LEVEL_STEP = 1.0f;
 
+        static const float TRIGGER_HOLD_TIME_MAX = 60.0f;
+        static const float TRIGGER_HOLD_TIME_MIN = 0.0f;
+        static const float TRIGGER_HOLD_TIME_DFL = 0.0f;
+        static const float TRIGGER_HOLD_TIME_STEP = 0.001f;
+
         enum coupling_type_t
         {
             COUPLING_AC,

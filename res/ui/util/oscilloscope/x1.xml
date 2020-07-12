@@ -113,7 +113,7 @@
         
         <group text="Trigger" expand="true" fill="true">
         
-                <grid rows="10" cols="1">
+                <grid rows="12" cols="1">
                 
                     <label text="Histeresys" />
                     <vbox>
@@ -125,6 +125,12 @@
                     <vbox>
                         <knob id="trlv_1" size="18" />
                         <value id="trlv_1" />
+                    </vbox>
+                    
+                    <label text="Hold Time" />
+                    <vbox>
+                        <knob id="trho_1" size="18" />
+                        <value id="trho_1" />
                     </vbox>
                     
                     <label text="Mode" />

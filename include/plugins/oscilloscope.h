@@ -119,6 +119,7 @@ namespace lsp
 
                 IPort              *pTrgHys;
                 IPort              *pTrgLev;
+                IPort              *pTrgHold;
                 IPort              *pTrgMode;
                 IPort              *pTrgType;
                 IPort              *pTrgInput;

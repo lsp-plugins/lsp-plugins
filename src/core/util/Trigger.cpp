@@ -24,8 +24,6 @@ namespace lsp
         sSimpleTrg.fThreshold   = 0.0f;
         sSimpleTrg.fPrevious    = 0.0f;
 
-        nExternalTriggerCounter = 0;
-
         bSync                   = true;
     }
 
@@ -90,27 +88,58 @@ namespace lsp
             }
             break;
 
-            case TRG_TYPE_EXTERNAL:
+            case TRG_TYPE_ADVANCED_RISING_EDGE:
             {
-                if ((enTriggerState == TRG_STATE_ARMED) && (nExternalTriggerCounter == 0))
+                if (sAdvancedTrg.bDisarm)
+                {
+                    enTriggerState == TRG_STATE_WAITING;
+                    sAdvancedTrg.bDisarm = false;
+                }
+
+                if ((value >= sAdvancedTrg.fThreshold - sAdvancedTrg.fHysteresis)  && (nTriggerHoldCounter >= nTriggerHold))
+                    enTriggerState = TRG_STATE_ARMED;
+
+                if ((enTriggerState == TRG_STATE_ARMED) && (value >= sAdvancedTrg.fThreshold + sAdvancedTrg.fHysteresis))
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nTriggerHoldCounter = 0;
+                    sAdvancedTrg.bDisarm = true;
                 }
-                else if (enTriggerState == TRG_STATE_FIRED)
+            }
+            break;
+
+            case TRG_TYPE_ADVANCED_FALLING_EDGE:
+            {
+                if (sAdvancedTrg.bDisarm)
                 {
-                    enTriggerState = TRG_STATE_WAITING;
+                    enTriggerState == TRG_STATE_WAITING;
+                    sAdvancedTrg.bDisarm = false;
                 }
-                else
+
+                if ((value <= sAdvancedTrg.fThreshold + sAdvancedTrg.fHysteresis)  && (nTriggerHoldCounter >= nTriggerHold))
+                    enTriggerState = TRG_STATE_ARMED;
+
+                if ((enTriggerState == TRG_STATE_ARMED) && (value <= sAdvancedTrg.fThreshold - sAdvancedTrg.fHysteresis))
                 {
-                    --nExternalTriggerCounter;
+                    enTriggerState = TRG_STATE_FIRED;
+                    nTriggerHoldCounter = 0;
+                    sAdvancedTrg.bDisarm = true;
                 }
             }
             break;
 
             case TRG_TYPE_NONE:
             default:
-                return;
+            {
+                enTriggerState = TRG_STATE_WAITING;
+
+                // Just trigger after the hold time elapsed, no conditions.
+                if (nTriggerHoldCounter >= nTriggerHold)
+                {
+                        enTriggerState = TRG_STATE_FIRED;
+                        nTriggerHoldCounter = 0;
+                }
+            }
         }
 
         ++nTriggerHoldCounter;

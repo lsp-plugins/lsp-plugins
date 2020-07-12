@@ -16,9 +16,10 @@ namespace lsp
     enum trg_type_t
     {
         TRG_TYPE_NONE,
-        TRG_TYPE_EXTERNAL,
         TRG_TYPE_SIMPLE_RISING_EDGE,
         TRG_TYPE_SIMPLE_FALLING_EDGE,
+        TRG_TYPE_ADVANCED_RISING_EDGE,
+        TRG_TYPE_ADVANCED_FALLING_EDGE,
         TRG_TYPE_MAX
     };
 
@@ -36,9 +37,16 @@ namespace lsp
 
             typedef struct simple_trg_t
             {
-                float fThreshold;
-                float fPrevious;
+                float   fThreshold;
+                float   fPrevious;
             } simple_trg_t;
+
+            typedef struct advanced_trg_t
+            {
+                float   fThreshold;
+                float   fHysteresis;
+                bool    bDisarm;
+            } advanced_trg_t;
 
         private:
             Trigger & operator = (const Trigger &);
@@ -52,8 +60,7 @@ namespace lsp
             size_t          nTriggerHoldCounter;
 
             simple_trg_t    sSimpleTrg;
-
-            size_t          nExternalTriggerCounter;
+            advanced_trg_t  sAdvancedTrg;
 
             bool            bSync;
 
@@ -62,6 +69,23 @@ namespace lsp
             ~Trigger();
 
         protected:
+            inline void set_simple_trg_threshold(float threshold)
+            {
+                sSimpleTrg.fThreshold = threshold;
+            }
+
+            inline void set_advanced_trg_threshold(float threshold)
+            {
+                sAdvancedTrg.fThreshold = threshold;
+            }
+
+            inline void set_advanced_trg_hysteresis(float hysteresis)
+            {
+                if (hysteresis < 0.0f)
+                    hysteresis = -hysteresis;
+
+                sAdvancedTrg.fHysteresis = hysteresis;
+            }
 
         public:
 
@@ -112,7 +136,17 @@ namespace lsp
              */
             inline void set_trigger_threshold(float threshold)
             {
-                sSimpleTrg.fThreshold = threshold;
+                set_simple_trg_threshold(threshold);
+                set_advanced_trg_threshold(threshold);
+            }
+
+            /** Set the trigger hysteresis.
+             *
+             * @param hysteresis hysteresis.
+             */
+            inline void set_trigger_hysteresis(float hysteresis)
+            {
+                set_advanced_trg_hysteresis(hysteresis);
             }
 
             /** Return he trigger state.
@@ -122,19 +156,6 @@ namespace lsp
             inline trg_state_t get_trigger_state() const
             {
                 return enTriggerState;
-            }
-
-            /** Arm the trigger. This method arms the trigger only if the state is TRG_TYPE_EXTERNAL, and does nothing otherwise.
-             *
-             * After this method is called, the external trigger will fire as soon as single_sample_processor method is called. Then, the state is reseted to TRG_STATE_WAITING.
-             */
-            inline void arm_external_trigger(size_t externalCounter)
-            {
-                if (enTriggerType != TRG_TYPE_EXTERNAL)
-                    return;
-
-                enTriggerState = TRG_STATE_ARMED;
-                nExternalTriggerCounter = externalCounter;
             }
 
             /** Feed a single sample to the trigger. Query the trigger status afterwards.

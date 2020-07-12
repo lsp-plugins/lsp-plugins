@@ -301,6 +301,11 @@ namespace lsp
             c->pOut_x           = NULL;
             c->pOut_y           = NULL;
 
+            c->pOvsMode         = NULL;
+            c->pScpMode         = NULL;
+            c->pCoupling        = NULL;
+
+            c->pSweepType       = NULL;
             c->pHorDiv          = NULL;
             c->pHorPos          = NULL;
 
@@ -309,10 +314,10 @@ namespace lsp
 
             c->pTrgHys          = NULL;
             c->pTrgLev          = NULL;
+            c->pTrgHold         = NULL;
             c->pTrgMode         = NULL;
             c->pTrgType         = NULL;
-
-            c->pCoupling        = NULL;
+            c->pTrgInput        = NULL;
 
             c->pMesh            = NULL;
         }
@@ -392,6 +397,9 @@ namespace lsp
             vChannels[ch].pTrgLev = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pTrgHold = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pTrgMode = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
@@ -437,10 +445,12 @@ namespace lsp
             c->sPreTrgDelay.clear();
 
             float trgLevel = c->pTrgLev->getValue();
+            size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->pTrgHold->getValue());
+            trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
 
             c->sTrigger.set_trigger_type(get_trigger_type(c->pTrgType->getValue()));
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
-            c->sTrigger.set_trigger_hold_samples(c->nSweepSize);
+            c->sTrigger.set_trigger_hold_samples(trgHold);
             c->sTrigger.update_settings();
         }
     }
