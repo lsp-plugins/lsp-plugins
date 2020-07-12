@@ -47,7 +47,7 @@ namespace lsp
     
     para_equalizer_ui::~para_equalizer_ui()
     {
-        pRewImport = NULL;
+        pRewImport = NULL;      // Will be automatically destroyed from list of widgets
     }
 
     status_t para_equalizer_ui::slot_start_import_rew_file(LSPWidget *sender, void *ptr, void *data)

@@ -31,12 +31,12 @@ MOD_PLUGIN(spectrum_analyzer_x16, plugin_ui)
 // Sampler
 MOD_PLUGIN(sampler_mono, plugin_ui)
 MOD_PLUGIN(sampler_stereo, plugin_ui)
-MOD_PLUGIN(multisampler_x12, plugin_ui)
-MOD_PLUGIN(multisampler_x12_do, plugin_ui)
-MOD_PLUGIN(multisampler_x24, plugin_ui)
-MOD_PLUGIN(multisampler_x24_do, plugin_ui)
-MOD_PLUGIN(multisampler_x48, plugin_ui)
-MOD_PLUGIN(multisampler_x48_do, plugin_ui)
+MOD_PLUGIN(multisampler_x12, multisampler_ui)
+MOD_PLUGIN(multisampler_x12_do, multisampler_ui)
+MOD_PLUGIN(multisampler_x24, multisampler_ui)
+MOD_PLUGIN(multisampler_x24_do, multisampler_ui)
+MOD_PLUGIN(multisampler_x48, multisampler_ui)
+MOD_PLUGIN(multisampler_x48_do, multisampler_ui)
 
 // Trigger
 MOD_PLUGIN(trigger_mono, plugin_ui)

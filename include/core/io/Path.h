@@ -97,6 +97,10 @@ namespace lsp
                 status_t    append_child(const LSPString *path);
                 status_t    append_child(const Path *path);
 
+                status_t    append(const char *path);
+                status_t    append(const LSPString *path);
+                status_t    append(const Path *path);
+
                 status_t    remove_last();
                 status_t    remove_last(char *path, size_t maxlen);
                 status_t    remove_last(LSPString *path);

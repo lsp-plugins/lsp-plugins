@@ -1117,5 +1117,32 @@ namespace lsp
                 fixup_path();
             return res;
         }
+
+        status_t Path::append(const char *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString tmp;
+            if (!tmp.set_utf8(path))
+                return STATUS_NO_MEM;
+            return append(&tmp);
+        }
+
+        status_t Path::append(const LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (!sPath.append(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
+        }
+
+        status_t Path::append(const Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return append(&path->sPath);
+        }
     }
 } /* namespace lsp */
