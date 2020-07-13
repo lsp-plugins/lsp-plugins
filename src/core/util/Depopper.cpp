@@ -469,7 +469,7 @@ namespace lsp
 
     void Depopper::dump_fade(IStateDumper *v, const char *name, const fade_t *fade)
     {
-        v->start_object(name, fade, sizeof(fade_t));
+        v->begin_object(name, fade, sizeof(fade_t));
         {
             v->write("enMode", fade->enMode);
             v->write("fThresh", fade->fThresh);
