@@ -67,10 +67,11 @@ namespace lsp
             IPort              *pGainOut;           // Output gain
             IPort              *pThreshOn;          // Threshold
             IPort              *pThreshOff;         // Threshold
-            IPort              *pAttack;            // Attack time
-            IPort              *pRelease;           // Release time
+            IPort              *pRmsLen;            // RMS estimation length
             IPort              *pFadeIn;            // Fade in time
             IPort              *pFadeOut;           // Fade out time
+            IPort              *pFadeInDelay;       // Fade in time
+            IPort              *pFadeOutDelay;      // Fade out time
             IPort              *pActive;            // Active flag
             IPort              *pBypass;            // Bypass port
             IPort              *pMeshIn;            // Input mesh

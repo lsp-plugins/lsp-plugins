@@ -37,10 +37,11 @@ namespace lsp
         pGainOut        = NULL;
         pThreshOn       = NULL;
         pThreshOff      = NULL;
-        pAttack         = NULL;
-        pRelease        = NULL;
+        pRmsLen         = NULL;
         pFadeIn         = NULL;
         pFadeOut        = NULL;
+        pFadeInDelay    = NULL;
+        pFadeOutDelay   = NULL;
         pActive         = NULL;
         pBypass         = NULL;
         pMeshIn         = NULL;
@@ -131,13 +132,15 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pThreshOff      = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
-        pAttack         = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pRelease        = vPorts[port_id++];
+        pRmsLen         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pFadeIn         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pFadeOut        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFadeInDelay    = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFadeOutDelay   = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pActive         = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -218,7 +221,7 @@ namespace lsp
         size_t samples_per_dot  = seconds_to_samples(sr, MESH_TIME / MESH_POINTS);
         size_t max_delay        = millis_to_samples(sr, FADEOUT_MAX);
 
-        sDepopper.init(sr, FADEOUT_MAX);
+        sDepopper.init(sr, FADEOUT_MAX, RMS_MAX);
         sGain.init(MESH_POINTS, samples_per_dot);
         sEnv.init(MESH_POINTS, samples_per_dot);
         sActive.init(sr);
@@ -247,11 +250,12 @@ namespace lsp
         sDepopper.set_fade_in_mode(depopper_mode_t(pModeIn->getValue()));
         sDepopper.set_fade_in_threshold(pThreshOn->getValue());
         sDepopper.set_fade_in_time(pFadeIn->getValue());
+        sDepopper.set_fade_in_delay(pFadeInDelay->getValue());
         sDepopper.set_fade_out_mode(depopper_mode_t(pModeOut->getValue()));
         sDepopper.set_fade_out_threshold(pThreshOff->getValue());
         sDepopper.set_fade_out_time(pFadeOut->getValue());
-        sDepopper.set_attack(pAttack->getValue());
-        sDepopper.set_release(pRelease->getValue());
+        sDepopper.set_fade_out_delay(pFadeOutDelay->getValue());
+        sDepopper.set_rms_length(pRmsLen->getValue());
         sDepopper.reconfigure();
 
         size_t latency  = sDepopper.latency();
@@ -615,10 +619,11 @@ namespace lsp
         v->write("pGainOut", pGainOut);
         v->write("pThreshOn", pThreshOn);
         v->write("pThreshOff", pThreshOff);
-        v->write("pAttack", pAttack);
-        v->write("pRelease", pRelease);
+        v->write("pRmsLen", pRmsLen);
         v->write("pFadeIn", pFadeIn);
         v->write("pFadeOut", pFadeOut);
+        v->write("pFadeInDelay", pFadeInDelay);
+        v->write("pFadeOutDelay", pFadeOutDelay);
         v->write("pActive", pActive);
         v->write("pBypass", pBypass);
         v->write("pMeshIn", pMeshIn);

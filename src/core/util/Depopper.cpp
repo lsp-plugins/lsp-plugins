@@ -28,15 +28,22 @@ namespace lsp
     {
         nSampleRate         = -1;
         nState              = ST_CLOSED;
-        fMaxLookahead       = 0.0f;
-        fAttack             = 10.0f;
-        fRelease            = 10.0f;
-        fEnvelope           = 0.0f;
-        bReconfigure        = true;
 
-        fTauAttack          = 0.0f;
-        fTauRelease         = 0.0f;
+        fLookMax            = 0.0f;
+        nLookMin            = 0;
+        nLookMax            = 0;
+        nLookOff            = 0;
+
+        fRmsMax             = 0.0f;
+        fRmsLength          = 0.0f;
+        nRmsMin             = 0;
+        nRmsMax             = 0;
+        nRmsOff             = 0;
+        fRmsNorm            = 0.0f;
+
         nCounter            = 0;
+        nDelay              = 0;
+        fRms                = 0.0f;
 
         sFadeIn.enMode      = DPM_LINEAR;
         sFadeIn.fThresh     = GAIN_AMP_M_80_DB;
@@ -57,7 +64,10 @@ namespace lsp
         sFadeOut.fPoly[3]   = 0.0f;
 
         pGainBuf            = NULL;
+        pRmsBuf             = NULL;
         pData               = NULL;
+
+        bReconfigure        = true;
     }
 
     void Depopper::destroy()
@@ -69,23 +79,39 @@ namespace lsp
         }
 
         pGainBuf            = NULL;
+        pRmsBuf             = NULL;
     }
 
-    bool Depopper::init(size_t srate, float max_lookahead)
+    bool Depopper::init(size_t srate, float max_fade, float max_rms)
     {
         // Properties have changed?
-        if ((nSampleRate == srate) && (fMaxLookahead == max_lookahead))
+        if ((nSampleRate == srate) &&
+            (fLookMax == max_fade) &&
+            (fRmsMax == max_rms))
             return true;
 
         destroy();
 
         // Update settings
         nSampleRate         = srate;
-        fMaxLookahead       = max_lookahead;
-        nLookahead          = millis_to_samples(nSampleRate, fMaxLookahead);
+        fLookMax            = max_fade;
+        fRmsMax             = max_rms;
 
-        size_t buf_sz       = ALIGN_SIZE(nLookahead, DEFAULT_ALIGN) + BUF_SIZE;
+        size_t lk_samp      = millis_to_samples(nSampleRate, fLookMax);
+        size_t rms_samp     = millis_to_samples(nSampleRate, fRmsMax);
 
+        ssize_t lk_buf      = ALIGN_SIZE(lk_samp, DEFAULT_ALIGN);
+        ssize_t rms_buf     = ALIGN_SIZE(rms_samp, DEFAULT_ALIGN);
+
+        nLookMin            = lk_buf   + rms_buf;
+        nLookMax            = nLookMin + lsp_max(lk_buf*4, BUF_SIZE);
+        nLookOff            = nLookMin;
+
+        nRmsMin             = rms_buf;
+        nRmsMax             = nRmsMin  + lsp_max(rms_buf*4, BUF_SIZE);
+        nRmsOff             = nRmsMin;
+
+        size_t buf_sz       = nRmsMax + nLookMax;
         float *data         = alloc_aligned<float>(pData, buf_sz);
         if (data == NULL)
             return false;
@@ -93,6 +119,7 @@ namespace lsp
         dsp::fill_zero(data, buf_sz);
 
         pGainBuf            = data;
+        pRmsBuf             = &pGainBuf[nLookMax];
 
         nState              = ST_CLOSED;
         bReconfigure        = true;
@@ -103,6 +130,7 @@ namespace lsp
     void Depopper::calc_fade(fade_t *fade, bool in)
     {
         float time          = millis_to_samples(nSampleRate, fade->fTime);
+        fade->nDelay        = millis_to_samples(nSampleRate, fade->fDelay);
         fade->nSamples      = time;
         float k             = 1.0f / time;
 
@@ -205,14 +233,15 @@ namespace lsp
         if (!bReconfigure)
             return;
 
-        float att           = millis_to_samples(nSampleRate, fAttack);
-        float rel           = millis_to_samples(nSampleRate, fRelease);
-
-        fTauAttack          = (att < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / att);
-        fTauRelease         = (rel < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / rel);
-
         calc_fade(&sFadeIn, true);
         calc_fade(&sFadeOut, false);
+
+        nRmsLen             = millis_to_samples(nSampleRate, fRmsLength);
+        nLookCount          = sFadeOut.nSamples + nRmsLen;
+        fRmsNorm            = 1.0f / nRmsLen;
+
+        // Recompute RMS value
+        fRms                = dsp::h_sum(&pRmsBuf[nRmsOff - nRmsLen], nRmsLen);
 
         bReconfigure        = false;
     }
@@ -223,8 +252,8 @@ namespace lsp
         if (mode == old)
             return old;
 
-        sFadeIn.enMode  = mode;
-        bReconfigure    = true;
+        sFadeIn.enMode      = mode;
+        bReconfigure        = true;
 
         return old;
     }
@@ -235,82 +264,93 @@ namespace lsp
         if (mode == old)
             return old;
 
-        sFadeOut.enMode = mode;
-        bReconfigure    = true;
+        sFadeOut.enMode     = mode;
+        bReconfigure        = true;
 
         return old;
     }
 
     float Depopper::set_fade_in_time(float time)
     {
-        float old       = sFadeIn.fTime;
+        float old           = lsp_max(0.0f, sFadeIn.fTime);
         if (old == time)
             return old;
 
-        sFadeIn.fTime   = time;
-        bReconfigure    = true;
+        sFadeIn.fTime       = time;
+        bReconfigure        = true;
 
         return old;
     }
 
     float Depopper::set_fade_out_time(float time)
     {
-        float old       = sFadeOut.fTime;
-        if (time > fMaxLookahead)
-            time            = fMaxLookahead;
+        float old           = lsp_limit(sFadeOut.fTime, 0.0f, fLookMax);
         if (old == time)
             return old;
 
-        sFadeOut.fTime  = time;
-        bReconfigure    = true;
+        sFadeOut.fTime      = time;
+        bReconfigure        = true;
 
         return old;
     }
 
     float Depopper::set_fade_in_threshold(float thresh)
     {
-        float old       = sFadeIn.fThresh;
+        float old           = lsp_max(0.0f, sFadeIn.fThresh);
         if (old == thresh)
             return old;
 
-        sFadeIn.fThresh = thresh;
-        bReconfigure    = true;
+        sFadeIn.fThresh     = thresh;
+        bReconfigure        = true;
 
         return old;
     }
 
     float Depopper::set_fade_out_threshold(float thresh)
     {
-        float old       = sFadeOut.fThresh;
+        float old           = lsp_max(0.0f, sFadeOut.fThresh);
         if (old == thresh)
             return old;
 
-        sFadeOut.fThresh= thresh;
-        bReconfigure    = true;
+        sFadeOut.fThresh    = thresh;
+        bReconfigure        = true;
 
         return old;
     }
 
-    float Depopper::set_attack(float attack)
+    float Depopper::set_fade_in_delay(float delay)
     {
-        float old       = fAttack;
-        if (old == attack)
+        float old           = lsp_max(0.0f, sFadeIn.fDelay);
+        if (old == delay)
             return old;
 
-        fAttack         = attack;
-        bReconfigure    = true;
+        sFadeIn.fDelay      = delay;
+        bReconfigure        = true;
 
         return old;
     }
 
-    float Depopper::set_release(float release)
+    float Depopper::set_fade_out_delay(float delay)
     {
-        float old       = fRelease;
-        if (old == release)
+        float old           = lsp_max(0.0f, sFadeOut.fThresh);
+        if (old == delay)
             return old;
 
-        fRelease        = release;
-        bReconfigure    = true;
+        sFadeOut.fDelay     = delay;
+        bReconfigure        = true;
+
+        return old;
+    }
+
+    float Depopper::set_rms_length(float length)
+    {
+        length              = lsp_limit(length, 0.0f, fRmsMax);
+        float old           = fRmsLength;
+        if (old == length)
+            return old;
+
+        fRmsLength          = length;
+        bReconfigure        = true;
 
         return old;
     }
@@ -367,12 +407,34 @@ namespace lsp
         lsp_trace("samples=%d, self=%d", int(samples), int (sFadeOut.nSamples));
 
         // roll-back destination pointer
-        *dst    = 0.0f;     // Closed
-        dst    -= samples;  // Roll-back pointer by number of samples
+        *dst    = 0.0f;                 // Closed
+        dst    -= samples + nRmsLen;    // Roll-back pointer by number of samples + RMS estimation
 
         // Apply fade-out patch
         for (ssize_t x = sFadeOut.nSamples - samples; x < sFadeOut.nSamples; ++x)
             *(dst++)   *= crossfade(&sFadeOut, x);
+
+        // Fill rest samples with zeros
+        dsp::fill_zero(dst, nRmsLen);
+    }
+
+    float Depopper::calc_rms(float s)
+    {
+        s = s*s;
+
+        // Need to shift the buffer ?
+        if (nRmsOff >= nRmsMax)
+        {
+            dsp::move(pRmsBuf, &pRmsBuf[nRmsOff-nRmsMin], nRmsMin);
+            nRmsOff     = nRmsMin;
+
+            // Recompute RMS value
+            fRms        = dsp::h_sum(&pRmsBuf[nRmsOff - nRmsLen], nRmsLen);
+        }
+
+        fRms               += s - pRmsBuf[nRmsMin - nRmsLen];
+        pRmsBuf[nRmsOff++]  = s;
+        return sqrtf(fRms * fRmsNorm);
     }
 
     void Depopper::process(float *env, float *gain, const float *src, size_t count)
@@ -380,56 +442,61 @@ namespace lsp
         // Reconfigure if needed
         reconfigure();
 
-        float *gbuf     = &pGainBuf[nLookahead];        // Current read/write position in gain   buffer
-
         while (count > 0)
         {
-            size_t to_do    = (count > BUF_SIZE) ? BUF_SIZE : count;
+            // Need to shift gain buffer?
+            size_t can_do   = nLookMax - nLookOff;
+            if (can_do <= 0)
+            {
+                dsp::move(pGainBuf, &pGainBuf[nLookOff-nLookMin], nLookMin);
+                nLookOff    = nLookMin;
+                can_do      = nLookMax - nLookOff;
+            }
+
+            // Estimate number of samples and gain buffer position
+            float *gbuf     = &pGainBuf[nLookOff];
+            size_t to_do    = (count > can_do) ? can_do : count;
 
             // Process each sample
             for (size_t i=0; i<to_do; ++i)
             {
-                float s         = fabs(src[i]);
-                float x         = s - fEnvelope;
-                fEnvelope      += (x > 0.0f) ? fTauAttack * x : fTauRelease * x;
-                env[i]          = fEnvelope;
+                float s         = calc_rms(src[i]);
+                env[i]          = s;
 
                 switch (nState)
                 {
                     case ST_CLOSED:
                         gbuf[i]     = 0.0f; // Still closed
-                        if (fEnvelope < sFadeIn.fThresh) // Can fade in?
+                        if (s < sFadeIn.fThresh) // Can fade in?
                             break;
 
                         // Open the fade in
                         nCounter    = 0;
-                        nState      = (fEnvelope > sFadeOut.fThresh) ? ST_FADE2 : ST_FADE1;
+                        nDelay      = sFadeIn.nDelay;
+                        nState      = ST_FADE;
                         gbuf[i]     = crossfade(&sFadeIn, nCounter++);
                         break;
 
-                    case ST_FADE1:
+                    case ST_FADE:
                         // Compute gain
                         gbuf[i]     = crossfade(&sFadeIn, nCounter++);
 
                         // Fall-off below threshold ?
-                        if (nCounter >= sFadeIn.nSamples)
-                            nState      = ST_OPENED;
-                        else if (fEnvelope > sFadeOut.fThresh)
-                            nState      = ST_FADE2;
-                        break;
-
-                    case ST_FADE2:
-                        // Compute gain
-                        gbuf[i]    = crossfade(&sFadeIn, nCounter++);
-
-                        // Fall-off below threshold ?
-                        if (fEnvelope < sFadeOut.fThresh)
+                        if (s < sFadeOut.fThresh)
                         {
-                            apply_fadeout(&gbuf[i], nCounter);
-                            nState      = ST_WAIT;
+                            if ((--nDelay) <= 0)
+                            {
+                                apply_fadeout(&gbuf[i], nCounter);
+                                nCounter    = 0;
+                                nState      = ST_WAIT;
+                            }
                         }
-                        else if (nCounter >= sFadeIn.nSamples)
-                            nState      = ST_OPENED;
+                        else
+                        {
+                            nDelay      = sFadeIn.nDelay;       // Reset delay
+                            if (nCounter >= sFadeIn.nSamples)   // Fade has been completed?
+                                nState      = ST_OPENED;
+                        }
                         break;
 
                     case ST_OPENED:
@@ -438,17 +505,20 @@ namespace lsp
                             nCounter++;
 
                         // Fall-off before threshold ?
-                        if (fEnvelope < sFadeOut.fThresh)
+                        if (s < sFadeOut.fThresh)
                         {
                             apply_fadeout(&gbuf[i], nCounter);
                             nState      = ST_WAIT;
+                            nDelay      = sFadeOut.nDelay;
                         }
                         break;
+
                     case ST_WAIT:
                         gbuf[i]     = 0.0f; // Wait state, same as closed
-                        if (fEnvelope < sFadeIn.fThresh)
+                        if ((--nDelay) <= 0)
                             nState      = ST_CLOSED;
                         break;
+
                     default:
                         gain[i]     = 1.0f;
                         break;
@@ -456,8 +526,7 @@ namespace lsp
             }
 
             // Copy data from buffer and shift buffer
-            dsp::copy(gain, &gbuf[-sFadeOut.nSamples], to_do);
-            dsp::move(pGainBuf, &pGainBuf[to_do], BUF_SIZE + nLookahead - to_do);
+            dsp::copy(gain, &gbuf[-nLookCount], to_do);
 
             // Update pointers
             count          -= to_do;
@@ -474,7 +543,9 @@ namespace lsp
             v->write("enMode", fade->enMode);
             v->write("fThresh", fade->fThresh);
             v->write("fTime", fade->fTime);
+            v->write("fDelay", fade->fDelay);
             v->write("nSamples", fade->nSamples);
+            v->write("nDelay", fade->nDelay);
             v->writev("fPoly", fade->fPoly, 4);
         }
         v->end_object();
@@ -484,22 +555,33 @@ namespace lsp
     {
         v->write("nSampleRate", nSampleRate);
         v->write("nState", nState);
-        v->write("fMaxLookahead", fMaxLookahead);
-        v->write("nLookahead", nLookahead);
-        v->write("fAttack", fAttack);
-        v->write("fRelease", fRelease);
-        v->write("fEnvelope", fEnvelope);
-        v->write("bReconfigure", bReconfigure);
 
-        v->write("fTauAttack", fTauAttack);
-        v->write("fTauRelease", fTauRelease);
+        v->write("fLookMax", fLookMax);
+        v->write("nLookMin", nLookMin);
+        v->write("nLookMax", nLookMax);
+        v->write("nLookOff", nLookOff);
+        v->write("nLookCount", nLookCount);
+
+        v->write("fRmsMax", fRmsMax);
+        v->write("fRmsLength", fRmsLength);
+        v->write("nRmsMin", nRmsMin);
+        v->write("nRmsMax", nRmsMax);
+        v->write("nRmsOff", nRmsOff);
+        v->write("nRmsLen", nRmsLen);
+        v->write("fRmsNorm", fRmsNorm);
+
         v->write("nCounter", nCounter);
+        v->write("nDelay", nDelay);
+        v->write("fRms", fRms);
 
         dump_fade(v, "sFadeIn", &sFadeIn);
         dump_fade(v, "sFadeOut", &sFadeOut);
 
         v->write("pGainBuf", pGainBuf);
+        v->write("pRmsBuf", pRmsBuf);
         v->write("pData", pData);
+
+        v->write("bReconfigure", bReconfigure);
     }
 
 } /* namespace lsp */

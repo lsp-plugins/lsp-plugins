@@ -176,40 +176,43 @@
 		<!-- Main controls -->
 		<cell cols="3">
 			<group text="labels.plug.surge_filter">
-				<grid rows="4" cols="11" spacing="2">
+				<grid rows="4" cols="12" spacing="2">
 					<cell rows="2"><label text="labels.input" /></cell>
-					<cell rows="2"><label text="labels.attack" /></cell>
-					<cell rows="2"><label text="labels.release" /></cell>
+					<cell rows="2"><label text="labels.signal.rms" color="red" /></cell>
 					<cell rows="4"><vsep /></cell>
-					<label text="labels.signal.fade_in" />
+					<cell cols="2"><label text="labels.signal.fade_in" /></cell>
 					<combo id="modein" />
 					<cell rows="4"><vsep /></cell>
-					<label text="labels.signal.fade_out" />
+					<cell cols="2"><label text="labels.signal.fade_out" /></cell>
 					<combo id="modeout" />
 					<cell rows="4"><vsep /></cell>
 					<cell rows="2"><label text="labels.output" /></cell>
 					
 					<label text="labels.thresh_old" />
 					<label text="labels.time" />
+					<label text="labels.delay" />
 					<label text="labels.thresh_old" />
-					<label text="labels.time" />
+					<label text="labels.time" color="red" />
+					<label text="labels.delay" />
 					
 					<knob id="input" />
-					<knob id="attack" />
-					<knob id="release" />
+					<knob id="rms" />
 					<knob id="thr_on" scale_color="magenta" />
 					<knob id="fadein" />
+					<knob id="fidelay" />
 					<knob id="thr_off" scale_color="blue" />
-					<knob id="fadeout" scale_color="red" color="red" />
+					<knob id="fadeout" scale_color="red" />
+					<knob id="fodelay" />
 					<knob id="output" />
 					
 					<value id="input" />
-					<value id="attack" />
-					<value id="release" />
+					<value id="rms" />
 					<value id="thr_on" />
 					<value id="fadein" />
+					<value id="fidelay" />
 					<value id="thr_off" />
 					<value id="fadeout" />
+					<value id="fodelay" />
 					<value id="output" />
 				</grid>
 			</group>

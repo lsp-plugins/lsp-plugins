@@ -35,8 +35,7 @@ namespace lsp
             enum state_t
             {
                 ST_CLOSED,  // Fade is closed, listening for income signal raise
-                ST_FADE1,   // Fade is currently in progress, not reached fade out threshold
-                ST_FADE2,   // Fade is currently in progress, reached fade out threshold
+                ST_FADE,    // Fade is currently in progress, not reached fade out threshold
                 ST_OPENED,  // Fade is opened, listening for signal fall-off
                 ST_WAIT     // Wait until signal falls below the threshold
             };
@@ -47,32 +46,50 @@ namespace lsp
                 depopper_mode_t enMode;         // Fade mode
                 float           fThresh;        // Threshold
                 float           fTime;          // Fade time
+                float           fDelay;         // Fade delay
                 ssize_t         nSamples;       // Fade length in samples
+                ssize_t         nDelay;         // Protection delay
                 float           fPoly[4];       // Fade polynom
             } fade_t;
 
         protected:
-            size_t          nSampleRate;
+            size_t          nSampleRate;        // Sample rate
             state_t         nState;             // Fade state
-            float           fMaxLookahead;
-            size_t          nLookahead;
-            float           fAttack;
-            float           fRelease;
-            float           fEnvelope;
-            bool            bReconfigure;
+
+            float           fLookMax;           // Maximum lookahead value
+            ssize_t         nLookMin;           // Minimum lookahead offset
+            ssize_t         nLookMax;           // Maximum lookahead offset
+            ssize_t         nLookOff;           // Current lookahead offset
+            ssize_t         nLookCount;         // Number of lookahead samples
+
+            // Signal envelope computing
+            float           fRmsMax;            // Maximum permitted RMS period
+            float           fRmsLength;         // RMS estimation period
+            ssize_t         nRmsMin;            // Minimum rms offset
+            ssize_t         nRmsMax;            // Maximum rms offset
+            ssize_t         nRmsOff;            // Current rms offset
+            ssize_t         nRmsLen;            // Number of rms samples
+            float           fRmsNorm;           // Norming coefficient
 
             // Computed parameters
-            float           fTauAttack;
-            float           fTauRelease;
             ssize_t         nCounter;           // Fade-in counter
+            ssize_t         nDelay;             // Crossing delay
+            float           fRms;               // Rms value
 
+            // Fade data
             fade_t          sFadeIn;
             fade_t          sFadeOut;
 
+            // Buffers
             float          *pGainBuf;           // Gain buffer
+            float          *pRmsBuf;            // Rms estimation buffer
             uint8_t        *pData;
 
+            // Reconfiguration
+            bool            bReconfigure;       // Reconfiguration flag
+
         protected:
+            float           calc_rms(float s);
             float           crossfade(fade_t *fade, float x);
             void            calc_fade(fade_t *fade, bool in);
             void            apply_fadeout(float *dst, ssize_t samples);
@@ -98,16 +115,17 @@ namespace lsp
             /**
              * Initialize
              * @param srate sample rate
-             * @param max_lookahead maximum lookahead in milliseconds
+             * @param max_fade maximum possible fade out in milliseconds
+             * @param max_rms maximum RMS estimation time in milliseconds
              * @return true on success
              */
-            bool            init(size_t srate, float max_lookahead);
+            bool            init(size_t srate, float max_fade, float max_rms);
 
             /**
              * Check whether the module needs reconfiguration
              * @return true if the module needs reconfiguration
              */
-            inline bool     needs_reconfiguration() const   { return bReconfigure;    }
+            inline bool     needs_reconfiguration() const       { return bReconfigure;          }
 
             /**
              * Perform the reconfiguration
@@ -118,7 +136,7 @@ namespace lsp
              * Get fade in time (in milliseconds)
              * @return fade in time (in milliseconds)
              */
-            inline float    get_fade_in_time() const        { return sFadeIn.fTime;         }
+            inline float    get_fade_in_time() const            { return sFadeIn.fTime;         }
 
             /**
              * Set fade in time (in milliseconds)
@@ -131,7 +149,7 @@ namespace lsp
              * Get fade out time (in milliseconds)
              * @return fade out time (in milliseconds)
              */
-            inline float    get_fade_out_time() const        { return sFadeOut.fTime;       }
+            inline float    get_fade_out_time() const           { return sFadeOut.fTime;        }
 
             /**
              * Set fade out time (in milliseconds)
@@ -141,10 +159,36 @@ namespace lsp
             float           set_fade_out_time(float time);
 
             /**
+             * Get fade in transition delay
+             * @return fade in delay
+             */
+            inline float    get_fade_in_delay() const           { return sFadeIn.fDelay;        }
+
+            /**
+             * Set fade in transition delay
+             * @param delay delay
+             * @return previous value
+             */
+            float           set_fade_in_delay(float delay);
+
+            /**
+             * Get fade out transition delay
+             * @return fade out delay
+             */
+            inline float    get_fade_out_delay() const          { return sFadeOut.fDelay;       }
+
+            /**
+             * Set fade out transition delay
+             * @param delay delay
+             * @return previous value
+             */
+            float           set_fade_out_delay(float delay);
+
+            /**
              * Get fade in threshold
              * @return fade in threshold
              */
-            inline float    get_fade_in_threshold() const       { return sFadeIn.fThresh;        }
+            inline float    get_fade_in_threshold() const       { return sFadeIn.fThresh;       }
 
             /**
              * Set fade in threshold
@@ -156,7 +200,7 @@ namespace lsp
              * Get fade out threshold
              * @return fade out threshold
              */
-            inline float    get_fade_out_threshold() const       { return sFadeOut.fThresh;        }
+            inline float    get_fade_out_threshold() const      { return sFadeOut.fThresh;      }
 
             /**
              * Set fade out threshold
@@ -165,23 +209,23 @@ namespace lsp
             float           set_fade_out_threshold(float thresh);
 
             /**
-             * Get attack time in milliseconds
-             * @return attack time in milliseconds
+             * Get RMS estimation time length
+             * @return RMS estimation time length
              */
-            inline float    attack() const                  { return fAttack;           }
+            inline float    rms_length() const                  { return fRmsLength;            }
 
             /**
-             * Set attack time in milliseconds
-             * @param attack attack time in milliseconds
-             * @return previous attack time
+             * Set RMS estimation time length
+             * @param length RMS estimation time length
+             * @return previous value
              */
-            float           set_attack(float attack);
+            float           set_rms_length(float length);
 
             /**
              * Get fade in mode
              * @return fade in mode
              */
-            depopper_mode_t get_fade_in_mode() const        { return sFadeIn.enMode;    }
+            depopper_mode_t get_fade_in_mode() const            { return sFadeIn.enMode;        }
 
             /**
              * Set fade in mode
@@ -194,7 +238,7 @@ namespace lsp
              * Get fade out mode
              * @return fade in mode
              */
-            depopper_mode_t get_fade_out_mode() const       { return sFadeOut.enMode;    }
+            depopper_mode_t get_fade_out_mode() const           { return sFadeOut.enMode;       }
 
             /**
              * Set fade out mode
@@ -202,12 +246,6 @@ namespace lsp
              * @return previous mode
              */
             depopper_mode_t set_fade_out_mode(depopper_mode_t mode);
-
-            /**
-             * Set release time in milliseconds
-             * @return release time in milliseconds
-             */
-            inline float    release() const                 { return fRelease;          }
 
             /**
              * Set release time in milliseconds

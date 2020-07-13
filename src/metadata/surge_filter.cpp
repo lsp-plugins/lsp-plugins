@@ -29,10 +29,11 @@ namespace lsp
         AMP_GAIN("input", "Input gain", 1.0f, GAIN_AMP_P_24_DB), \
         EXT_LOG_CONTROL("thr_on", "Threshold for switching on", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
         EXT_LOG_CONTROL("thr_off", "Threshold for switching off", U_GAIN_AMP, surge_filter_base_metadata::THRESH), \
-        LOG_CONTROL("attack", "Attack time", U_MSEC, surge_filter_base_metadata::ATTACK), \
-        LOG_CONTROL("release", "Release time", U_MSEC, surge_filter_base_metadata::RELEASE), \
+        LOG_CONTROL("rms", "RMS estimation time", U_MSEC, surge_filter_base_metadata::RMS), \
         CONTROL("fadein", "Fade in time", U_MSEC, surge_filter_base_metadata::FADEIN), \
         CONTROL("fadeout", "Fade out time", U_MSEC, surge_filter_base_metadata::FADEOUT), \
+        CONTROL("fidelay", "Fade in cancel delay time", U_MSEC, surge_filter_base_metadata::PAUSE), \
+        CONTROL("fodelay", "Fade out cancel delay time", U_MSEC, surge_filter_base_metadata::PAUSE), \
         BLINK("active", "Activity indicator"), \
         AMP_GAIN("output", "Output gain", 1.0f, GAIN_AMP_P_24_DB), \
         MESH("ig", "Input signal graph", channels+1, surge_filter_base_metadata::MESH_POINTS), \
