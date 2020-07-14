@@ -15,9 +15,9 @@ namespace lsp
         static const float THRESH_MIN       = GAIN_AMP_M_120_DB;
         static const float THRESH_MAX       = GAIN_AMP_M_24_DB;
         static const float THRESH_DFL       = GAIN_AMP_M_72_DB;
-        static const float THRESH_STEP      = 0.01f;
+        static const float THRESH_STEP      = 0.1f;
 
-        static const float RMS_MIN          = 1.0f;
+        static const float RMS_MIN          = 4.0f;
         static const float RMS_MAX          = 100.0f;
         static const float RMS_DFL          = 10.0f;
         static const float RMS_STEP         = 0.01f;

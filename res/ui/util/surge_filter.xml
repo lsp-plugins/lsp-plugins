@@ -196,7 +196,7 @@
 					<label text="labels.delay" />
 					
 					<knob id="input" />
-					<knob id="rms" />
+					<knob id="rms" scale_color="red" />
 					<knob id="thr_on" scale_color="magenta" />
 					<knob id="fadein" />
 					<knob id="fidelay" />

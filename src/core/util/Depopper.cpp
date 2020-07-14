@@ -389,6 +389,7 @@ namespace lsp
             }
 
             default:
+                gain        = 0.0f;
                 break;
         }
 
@@ -420,8 +421,6 @@ namespace lsp
 
     float Depopper::calc_rms(float s)
     {
-        s = s*s;
-
         // Need to shift the buffer ?
         if (nRmsOff >= nRmsMax)
         {
@@ -431,8 +430,12 @@ namespace lsp
             // Recompute RMS value
             fRms        = dsp::h_sum(&pRmsBuf[nRmsOff - nRmsLen], nRmsLen);
         }
+        else if ((nRmsOff & 0x1f) == 0) // Recompute RMS each 32 samples
+            fRms        = dsp::h_sum(&pRmsBuf[nRmsOff - nRmsLen], nRmsLen);
 
-        fRms               += s - pRmsBuf[nRmsMin - nRmsLen];
+        s                   = s*s;
+        float g             = pRmsBuf[nRmsOff - nRmsLen];
+        fRms                = fabs(fRms + s - g);
         pRmsBuf[nRmsOff++]  = s;
         return sqrtf(fRms * fRmsNorm);
     }
@@ -520,7 +523,7 @@ namespace lsp
                         break;
 
                     default:
-                        gain[i]     = 1.0f;
+                        gbuf[i]     = 1.0f;
                         break;
                 }
             }
@@ -529,6 +532,7 @@ namespace lsp
             dsp::copy(gain, &gbuf[-nLookCount], to_do);
 
             // Update pointers
+            nLookOff       += to_do;
             count          -= to_do;
             env            += to_do;
             gain           += to_do;
