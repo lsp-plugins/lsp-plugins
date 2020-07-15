@@ -93,7 +93,7 @@ namespace lsp
         struct tm ctime;
         t           = localtime_r(&stime.tv_sec, &ctime);
     #else
-        t           = localtime_r(&stime.tv_sec);
+        t           = localtime(&stime.tv_sec);
     #endif
 
         const plugin_metadata_t *meta = pPlugin->get_metadata();
