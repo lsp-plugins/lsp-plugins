@@ -2790,3 +2790,56 @@ Description:	This plugin applies equal loudness countours to input signal and al
 	
 -----------------------------------------------------
 
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Surge Filter Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin is designed mostly as a workaround for systems which don't support smooth fade-ins and fade-outs of audio stream on playback start and stop events.
+		
+	Registration:	
+		
+	*Plugin ID:	feli
+		
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Surge Filter Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin is designed mostly as a workaround for systems which don't support smooth fade-ins and fade-outs of audio stream on playback start and stop events.
+		
+	Registration:	
+		
+	*Plugin ID:	crjf
+
+-----------------------------------------------------
+
+
+
