@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Mono Surge Filter
+GenericName=Surge Filter
+GenericName[ru]=Фильтр скачков
+Comment=Lookups for start and end of playback and applies smooth fade-in and fade-out to the signal.
+Comment[ru]=Обнаруживает начало и окончание проигрывания звука и применяет плавное нарастание и затухание сигнала.
+Exec=lsp-plugins-surge-filter-mono
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;
