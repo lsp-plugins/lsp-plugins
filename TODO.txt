@@ -28,7 +28,8 @@
 === 1.1.24 ===
 
 * Implemented Loudness Compensator plugin series (Mono and Stereo).
-- Implemented Surge Filter plugin series (Mono and Stereo).
+* Implemented Surge Filter plugin series (Mono and Stereo) for protecting audio chain
+  from possible pops on playback start/stop events.
 * Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
 * Significant changes the Limiter Plugin series, may be partially incompatible with hosts/wrappers:
   * Removed 'Classic' and 'Mixed' modes since these modes do not give effective results.
