@@ -1522,6 +1522,20 @@ namespace lsp
         6.98, 6.93, 6.91, 6.85, 6.85, 6.84, 6.80, 6.79
     };
 
+    static const float * const robinson_dadson_curves[] =
+    {
+        robinson_dadson_curve_0_phons,
+        robinson_dadson_curve_10_phons,
+        robinson_dadson_curve_20_phons,
+        robinson_dadson_curve_30_phons,
+        robinson_dadson_curve_40_phons,
+        robinson_dadson_curve_50_phons,
+        robinson_dadson_curve_60_phons,
+        robinson_dadson_curve_70_phons,
+        robinson_dadson_curve_80_phons,
+        robinson_dadson_curve_90_phons
+    };
+
     static const freq_curve_t robinson_dadson_curve =
     {
         19.96, // fmin
@@ -1530,18 +1544,7 @@ namespace lsp
         90.00, // amax
         1468, // hdots
         10, // curves
-        { // curve data
-            robinson_dadson_curve_0_phons,
-            robinson_dadson_curve_10_phons,
-            robinson_dadson_curve_20_phons,
-            robinson_dadson_curve_30_phons,
-            robinson_dadson_curve_40_phons,
-            robinson_dadson_curve_50_phons,
-            robinson_dadson_curve_60_phons,
-            robinson_dadson_curve_70_phons,
-            robinson_dadson_curve_80_phons,
-            robinson_dadson_curve_90_phons
-        }
+        robinson_dadson_curves // curve data
     };
 }
 

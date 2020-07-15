@@ -1442,6 +1442,20 @@ namespace lsp
         6.10, 6.07, 6.07, 6.03, 6.01, 6.01, 6.00, 6.01
     };
 
+    static const float * const fletcher_munson_curves[] =
+    {
+        fletcher_munson_curve_0_phons,
+        fletcher_munson_curve_10_phons,
+        fletcher_munson_curve_20_phons,
+        fletcher_munson_curve_30_phons,
+        fletcher_munson_curve_40_phons,
+        fletcher_munson_curve_50_phons,
+        fletcher_munson_curve_60_phons,
+        fletcher_munson_curve_70_phons,
+        fletcher_munson_curve_80_phons,
+        fletcher_munson_curve_90_phons
+    };
+
     static const freq_curve_t fletcher_munson_curve =
     {
         24.85, // fmin
@@ -1450,18 +1464,7 @@ namespace lsp
         90.00, // amax
         1383, // hdots
         10, // curves
-        { // curve data
-            fletcher_munson_curve_0_phons,
-            fletcher_munson_curve_10_phons,
-            fletcher_munson_curve_20_phons,
-            fletcher_munson_curve_30_phons,
-            fletcher_munson_curve_40_phons,
-            fletcher_munson_curve_50_phons,
-            fletcher_munson_curve_60_phons,
-            fletcher_munson_curve_70_phons,
-            fletcher_munson_curve_80_phons,
-            fletcher_munson_curve_90_phons
-        }
+        fletcher_munson_curves // curve data
     };
 }
 

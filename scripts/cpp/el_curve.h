@@ -610,6 +610,19 @@ void write_curves(const char *out, const char *prefix, const el_curves_t *s, siz
         fprintf(fd, "\n};\n\n");
     }
 
+    fprintf(fd, "static const float * const %s_curves[] =\n", prefix);
+    fprintf(fd, "{\n");
+    for (size_t i=0; i<count; ++i)
+    {
+        size_t phons = i*10;
+        fprintf(fd, "    %s_curve_%d_phons", prefix, int(phons));
+        if ((i+1) < count)
+            fprintf(fd, ",\n");
+        else
+            fprintf(fd, "\n");
+    }
+    fprintf(fd, "};\n\n");
+
     fprintf(fd, "static const freq_curve_t %s_curve =\n", prefix);
     fprintf(fd, "{\n");
     fprintf(fd, "    %.2f, // fmin\n", fmin);
@@ -618,17 +631,7 @@ void write_curves(const char *out, const char *prefix, const el_curves_t *s, siz
     fprintf(fd, "    %.2f, // amax\n", 90.0f);
     fprintf(fd, "    %d, // hdots\n",  int(s->xmax - s->xmin + 1));
     fprintf(fd, "    %d, // curves\n", int(count));
-    fprintf(fd, "    { // curve data\n");
-    for (size_t i=0; i<count; ++i)
-    {
-        size_t phons = i*10;
-        fprintf(fd, "        %s_curve_%d_phons", prefix, int(phons));
-        if ((i+1) < count)
-            fprintf(fd, ",\n");
-        else
-            fprintf(fd, "\n");
-    }
-    fprintf(fd, "    }\n");
+    fprintf(fd, "    %s_curves // curve data\n", prefix);
     fprintf(fd, "};\n");
 
     fclose(fd);

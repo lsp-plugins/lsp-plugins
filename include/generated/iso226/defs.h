@@ -21,7 +21,7 @@ namespace lsp
         size_t  hdots;      // Number of dots per each curve
         size_t  curves;     // The overall number of curves
 
-        const float * const data[]; // The array of curve data
+        const float * const *data; // The array of curve data
     } freq_curve_t;
 }
 

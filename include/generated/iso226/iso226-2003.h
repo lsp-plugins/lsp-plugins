@@ -1442,6 +1442,20 @@ namespace lsp
         5.92, 5.92, 5.91, 5.88, 5.87, 5.85, 5.83, 5.83
     };
 
+    static const float * const iso226_2003_curves[] =
+    {
+        iso226_2003_curve_0_phons,
+        iso226_2003_curve_10_phons,
+        iso226_2003_curve_20_phons,
+        iso226_2003_curve_30_phons,
+        iso226_2003_curve_40_phons,
+        iso226_2003_curve_50_phons,
+        iso226_2003_curve_60_phons,
+        iso226_2003_curve_70_phons,
+        iso226_2003_curve_80_phons,
+        iso226_2003_curve_90_phons
+    };
+
     static const freq_curve_t iso226_2003_curve =
     {
         19.75, // fmin
@@ -1450,18 +1464,7 @@ namespace lsp
         90.00, // amax
         1382, // hdots
         10, // curves
-        { // curve data
-            iso226_2003_curve_0_phons,
-            iso226_2003_curve_10_phons,
-            iso226_2003_curve_20_phons,
-            iso226_2003_curve_30_phons,
-            iso226_2003_curve_40_phons,
-            iso226_2003_curve_50_phons,
-            iso226_2003_curve_60_phons,
-            iso226_2003_curve_70_phons,
-            iso226_2003_curve_80_phons,
-            iso226_2003_curve_90_phons
-        }
+        iso226_2003_curves // curve data
     };
 }
 
