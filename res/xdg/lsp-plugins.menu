@@ -115,6 +115,8 @@
         <Filename>in.lsp_plug.lsp_plugins_spectrum_analyzer_x2.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_spectrum_analyzer_x4.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_spectrum_analyzer_x8.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_surge_filter_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_surge_filter_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_trigger_midi_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_trigger_midi_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_trigger_mono.desktop</Filename>

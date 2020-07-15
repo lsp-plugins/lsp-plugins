@@ -28,6 +28,7 @@
 #define CV_MIDDLE_CHANNEL_IN    0x0080aa
 #define CV_SIDE_CHANNEL_IN      0x008000
 #define CV_BRIGHT_GREEN         0x80ff80
+#define CV_BRIGHT_MAGENTA       0xff80ff
 #define CV_BRIGHT_BLUE          0x8080ff
 
 

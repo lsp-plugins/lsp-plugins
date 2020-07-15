@@ -41,6 +41,7 @@
 #include <dsp/common/pmath/abs_vv.h>
 #include <dsp/common/pmath/exp.h>
 #include <dsp/common/pmath/log.h>
+#include <dsp/common/pmath/minmax.h>
 #include <dsp/common/pmath/pow.h>
 
 #include <dsp/common/hmath/hsum.h>

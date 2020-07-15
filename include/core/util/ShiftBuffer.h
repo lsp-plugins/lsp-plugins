@@ -22,13 +22,16 @@ namespace lsp
     class ShiftBuffer
     {
         private:
+            ShiftBuffer & operator = (const ShiftBuffer &);
+
+        protected:
             float      *pData;
             size_t      nCapacity;
             size_t      nHead;
             size_t      nTail;
 
         public:
-            ShiftBuffer();
+            explicit ShiftBuffer();
             ~ShiftBuffer();
 
         public:

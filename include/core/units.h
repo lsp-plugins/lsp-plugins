@@ -36,7 +36,7 @@
 
 
 // Gain levels in decibels
-#define GAIN_AMP_P_96_DB                    3.9811e+4           /* +96 dB       */
+#define GAIN_AMP_P_96_DB                    3.98107e+4          /* +96 dB       */
 #define GAIN_AMP_P_84_DB                    1.5849e+4           /* +84 dB       */
 #define GAIN_AMP_P_72_DB                    3981.073            /* +72 dB       */
 #define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
@@ -54,11 +54,15 @@
 #define GAIN_AMP_M_18_DB                    0.12589             /* -18 dB       */
 #define GAIN_AMP_M_24_DB                    0.06310             /* -24 dB       */
 #define GAIN_AMP_M_36_DB                    0.01585             /* -36 dB       */
-#define GAIN_AMP_M_48_DB                    3.9811e-3           /* -48 dB       */
+#define GAIN_AMP_M_48_DB                    3.98107e-3          /* -48 dB       */
 #define GAIN_AMP_M_60_DB                    0.001               /* -60 dB       */
 #define GAIN_AMP_M_72_DB                    2.5119e-4           /* -72 dB       */
-#define GAIN_AMP_M_84_DB                    6.3096e-5           /* -84 dB       */
+#define GAIN_AMP_M_84_DB                    6.309575e-5         /* -84 dB       */
 #define GAIN_AMP_M_96_DB                    1.5849e-5           /* -96 dB       */
+#define GAIN_AMP_M_108_DB                   3.98107e-6          /* -60 dB       */
+#define GAIN_AMP_M_120_DB                   1e-6                /* -120 dB      */
+#define GAIN_AMP_M_132_DB                   2.5119e-7           /* -132 dB      */
+#define GAIN_AMP_M_144_DB                   6.309575e-8         /* -144 dB      */
 #define GAIN_AMP_M_INF_DB                   0.0                 /* -inf dB      */
 
 #define GAIN_AMP_MIN                        1e-6
@@ -66,14 +70,12 @@
 
 #define GAIN_AMP_M_20_DB                    0.1                 /* -20 dB       */
 #define GAIN_AMP_M_40_DB                    0.01                /* -40 dB       */
-#define GAIN_AMP_M_60_DB                    0.001               /* -60 dB       */
 #define GAIN_AMP_M_80_DB                    0.0001              /* -80 dB       */
 #define GAIN_AMP_M_100_DB                   0.00001             /* -100 dB      */
-#define GAIN_AMP_M_120_DB                   0.000001            /* -120 dB      */
 #define GAIN_AMP_M_140_DB                   0.0000001           /* -140 dB      */
+#define GAIN_AMP_M_160_DB                   0.00000001          /* -160 dB      */
 #define GAIN_AMP_P_20_DB                    10.0                /* +20 dB       */
 #define GAIN_AMP_P_40_DB                    100.0               /* +40 dB       */
-#define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
 #define GAIN_AMP_P_80_DB                    10000.0             /* +80 dB       */
 
 #define GAIN_AMP_N_12_DB                    GAIN_AMP_M_12_DB

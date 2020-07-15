@@ -442,6 +442,8 @@
 		"dry:db": "Originel\n(dB)",
 		"dry_pan": "Pan originel",
 		"duty_ratio": "Ratio obligatoire",
+		"fade_in": "Fondu ouverture",
+		"fade_out": "Fondu fermeture",
 		"fall": "Chute",
 		"in_lr": "Entrée G/D",
 		"invert": "Inverser",
