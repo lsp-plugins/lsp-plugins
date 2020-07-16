@@ -442,6 +442,8 @@
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Paneo dry",
 		"duty_ratio": "Ratio Trabajo",
+		"fade_in": "Fundido entrada",
+		"fade_out": "Fundido salida",
 		"fall": "Caída",
 		"in_lr": "Entrada D\/I",
 		"invert": "Invertir",
@@ -534,7 +536,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Seleccionado",
 		"worst": "Peor",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Zona trabajo",

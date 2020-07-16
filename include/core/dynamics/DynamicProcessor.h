@@ -9,6 +9,7 @@
 #define CORE_DYNAMICS_DYNAMICPROCESSOR_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -341,6 +342,12 @@ namespace lsp
              * @param in input level
              */
             float reduction(float in);
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

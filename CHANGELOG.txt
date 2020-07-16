@@ -2,6 +2,30 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.24 ===
+
+* Implemented Loudness Compensator plugin series (Mono and Stereo).
+* Implemented Surge Filter plugin series (Mono and Stereo) for protecting audio chain
+  from possible pops on playback start/stop events.
+* Significant changes the Limiter Plugin series, may be partially incompatible with hosts/wrappers:
+  * Removed 'Classic' and 'Mixed' modes since these modes do not give effective results.
+  * Introduced Automatic Level Regulation (ALR) feature enabled by default.
+* Added possibility to dump internal state of plugin to file.
+* Several plugins now support dumping of internal state.
+* Added support of loading Hydrogen drumkits by the Multisampler plugin series.
+* Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
+* Fixed bug that caused Spectrum Analyzer to ignore window selection.
+* Fixed bug in AVX-optimized sidechaining funcion that could cause invalid behaviour of plugins that 
+  use external/internal sidechain for processing.
+* Implemented back-buffering of the window surface, all UI controls now don't glitch on edit.
+* Refactored and simplified LV2 parameter transport between UI and plugin code.
+* VST plugins now provide possibility to save and load presets and do not crash Host.
+* Added support of lv2:StateChanged extension which properly works with Ardour 6.0.145 and higher.
+* Fixed improper behaviour of VST controls under REAPER host (and possible other VST hosts).
+* Updated metadata for dynamic processors to better match the UI.
+* Now all lv2:Atom ports that do not provide MIDI message transfer are marked as lv2:connectionOptional.
+* Exported plugin configuration now contains information about original package version.
+
 === 1.1.22 ===
 
 * Implemented Multiband Gate plugin series.

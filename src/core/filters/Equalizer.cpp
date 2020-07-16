@@ -95,6 +95,8 @@ namespace lsp
 
         // Mark equalizer for rebuild
         nFlags              = EF_REBUILD | EF_CLEAR;
+        nLatency            = 0;
+        nBufSize            = 0;
 
         return true;
     }
@@ -350,6 +352,32 @@ namespace lsp
                 break;
             }
         }
+    }
+
+    void Equalizer::dump(IStateDumper *v) const
+    {
+        v->write_object("sBank", &sBank);
+
+        v->begin_array("vFilters", vFilters, nFilters);
+        for (size_t i=0; i<nFilters; ++i)
+            v->write_object(&vFilters[i]);
+        v->end_array();
+
+        v->write("nFilters", nFilters);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nConvSize", nConvSize);
+        v->write("nFftRank", nFftRank);
+        v->write("nLatency", nLatency);
+        v->write("nBufSize", nBufSize);
+        v->write("nMode", nMode);
+        v->write("vFftRe", vFftRe);
+        v->write("vFftIm", vFftIm);
+        v->write("vConvRe", vConvRe);
+        v->write("vConvIm", vConvIm);
+        v->write("vBuffer", vBuffer);
+        v->write("vTmp", vTmp);
+        v->write("pData", pData);
+        v->write("nFlags", nFlags);
     }
 
 } /* namespace lsp */

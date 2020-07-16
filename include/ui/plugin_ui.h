@@ -332,6 +332,11 @@ namespace lsp
              * @return status of operation
              */
             virtual status_t add_kvt_listener(CtlKvtListener *listener);
+
+            /**
+             * Request state dump
+             */
+            void request_state_dump();
     };
 
 } /* namespace lsp */

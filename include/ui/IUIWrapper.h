@@ -50,6 +50,11 @@ namespace lsp
              * @return true on success
              */
             virtual bool kvt_release();
+
+            /**
+             * Request plugin for dump of the internal state
+             */
+            virtual void dump_state_request();
     };
 
 } /* namespace lsp */

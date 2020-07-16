@@ -481,6 +481,7 @@ namespace lsp
             {
                 lsp_wchar_t ch = value->char_at(curr);
 
+                // Check that we need to escape character
                 switch (ch)
                 {
                     case '\0': xb[bl++] = '0'; break;
@@ -495,9 +496,31 @@ namespace lsp
                     default:
                         if (ch < 0x20)
                         {
-                            xb[bl++] = 'x';
-                            xb[bl++] = hex(ch >> 4);
-                            xb[bl++] = hex(ch);
+                            xb[1]   = 'u';
+                            xb[2]   = '0';
+                            xb[3]   = '0';
+                            xb[4]   = hex(ch >> 4);
+                            xb[5]   = hex(ch);
+                            bl      = 6;
+                        }
+                        else if (ch >= 0x10000)
+                        {
+                            ch     -= 0x10000;
+                            lsp_wchar_t hi = 0xd800 | (ch >> 10);
+                            lsp_wchar_t lo = 0xdc00 | (ch & 0x3ff);
+
+                            xb[1]   = 'u';
+                            xb[2]   = hex(hi >> 12);
+                            xb[3]   = hex(hi >> 8);
+                            xb[4]   = hex(hi >> 4);
+                            xb[5]   = hex(hi);
+                            xb[6]   = '\\';
+                            xb[7]   = 'u';
+                            xb[8]   = hex(lo >> 12);
+                            xb[9]   = hex(lo >> 8);
+                            xb[10]  = hex(lo >> 4);
+                            xb[11]  = hex(lo);
+                            bl      = 12;
                         }
                         break;
                 }
@@ -563,7 +586,7 @@ namespace lsp
             size_t last = 0, curr = 0, bl = 4;
             char xb[0x10];
             xb[0] = '\\';
-            xb[1] = 'U';
+            xb[1] = 'u';
             xb[2] = '0';
             xb[3] = '0';
 

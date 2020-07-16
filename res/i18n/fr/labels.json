@@ -232,8 +232,8 @@
 
 	"ir_equalizer": "IR égaliseur",
 	
-	"knee": "Genoux",
-	"knee_:db": "Genoux\n(dB)",
+	"knee": "Genou",
+	"knee_:db": "Genou\n(dB)",
 
 	"latency:ms": "Latence (ms)",
 	"launch": "Lancer",
@@ -371,7 +371,7 @@
 	"ratio": "Ratio",
 	"ratio_high": "Ratio haut",
 	"ratio_low": "Ratio bas",
-	"ratio_knee:db": "Ratio,\genoux (dB)",
+	"ratio_knee:db": "Ratio,\ngenou (dB)",
 	
 	"reduction": "Réduction",
 	
@@ -442,6 +442,8 @@
 		"dry:db": "Originel\n(dB)",
 		"dry_pan": "Pan originel",
 		"duty_ratio": "Ratio obligatoire",
+		"fade_in": "Fondu ouverture",
+		"fade_out": "Fondu fermeture",
 		"fall": "Chute",
 		"in_lr": "Entrée G/D",
 		"invert": "Inverser",
@@ -534,7 +536,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Sélectionné",
 		"worst": "Pire",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Zone de travail",

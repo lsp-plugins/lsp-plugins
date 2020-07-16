@@ -9,6 +9,7 @@
 #define CORE_UTIL_BLINK_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -18,6 +19,9 @@ namespace lsp
     class Blink
     {
         private:
+            Blink & operator = (const Blink &);
+
+        protected:
             ssize_t     nCounter;
             ssize_t     nTime;
             float       fOnValue;
@@ -25,20 +29,10 @@ namespace lsp
             float       fTime;
 
         public:
-            inline Blink()
-            {
-                nCounter        = 0.0f;
-                nTime           = 0.0f;
-                fOnValue        = 1.0f;
-                fOffValue       = 0.0f;
-                fTime           = 0.1f;
-            }
+            explicit Blink();
+            ~Blink();
 
-            inline ~Blink()
-            {
-                nCounter        = 0.0f;
-                nTime           = 0.0f;
-            }
+            void construct();
 
         public:
             /** Initialize blink
@@ -145,6 +139,12 @@ namespace lsp
             {
                 return (nCounter > 0) ? fOnValue : fOffValue;
             }
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

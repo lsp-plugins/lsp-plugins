@@ -41,6 +41,16 @@ namespace lsp
         0x00092df5, 0x000b42bd, 0x000e1b15, 0x000f054d
     };
 
+    Randomizer::Randomizer()
+    {
+        construct();
+    }
+
+    void Randomizer::construct()
+    {
+        nBufID = -1;
+    }
+
     void Randomizer::init(uint32_t seed)
     {
         for (size_t i=0; i<4; ++i)
@@ -90,11 +100,30 @@ namespace lsp
                 return (rv <= 0.5f) ?
                     M_SQRT2 * RAND_T * sqrtf(rv) :
                     2.0f*RAND_T - sqrtf(4.0f - 2.0f*(1.0f + rv)) * RAND_T;
-//                    rv*rv/(2.0f * RAND_T * RAND_T) :
-//                    rv*(2.0f/RAND_T) - rv*rv/(2.0f * RAND_T * RAND_T) - 1.0f;
 
             default:
                 return rv;
         }
     }
+
+    void Randomizer::dump(IStateDumper *v) const
+    {
+        v->begin_array("vRandom", vRandom, 4);
+        for (size_t i=0; i<4; ++i)
+        {
+            const randgen_t *r = &vRandom[i];
+            v->begin_object(r, sizeof(randgen_t));
+            {
+                v->write("vLast", r->vLast);
+                v->write("vMul1", r->vMul1);
+                v->write("vMul2", r->vMul2);
+                v->write("vAdd", r->vAdd);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("nBufID", nBufID);
+    }
+
 } /* namespace lsp */

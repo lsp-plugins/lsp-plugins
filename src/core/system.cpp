@@ -291,6 +291,43 @@ namespace lsp
             time->nanos     = t.tv_nsec;
         }
 #endif /* PLATFORM_WINDOWS */
+
+#ifdef PLATFORM_WINDOWS
+        status_t get_temporary_dir(LSPString *path)
+        {
+            if (get_env_var("TEMP", path) == STATUS_OK)
+                return STATUS_OK;
+            if (get_env_var("TMP", path) == STATUS_OK)
+                return STATUS_OK;
+            return (path->set_ascii("tmp")) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t get_temporary_dir(io::Path *path)
+        {
+            LSPString tmp;
+            if (get_env_var("TEMP", &tmp) == STATUS_OK)
+                return STATUS_OK;
+            if (get_env_var("TMP", &tmp) == STATUS_OK)
+                return STATUS_OK;
+            if (!tmp.set_ascii("tmp"))
+                return STATUS_NO_MEM;
+            return path->set(&tmp);
+        }
+#else
+        status_t get_temporary_dir(LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return (path->set_ascii("/tmp")) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t get_temporary_dir(io::Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return path->set("/tmp");
+        }
+#endif /* PLATFORM_WINDOWS */
     }
 }
 

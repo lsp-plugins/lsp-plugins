@@ -261,6 +261,7 @@ namespace lsp
         PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
         PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
         PATH(UI_DLG_REW_PATH_ID, "Dialog path for importing REW settings files"),
+        PATH(UI_DLG_HYDROGEN_PATH_ID, "Dialog path for importing Hydrogen drumkit files"),
         PATH(UI_DLG_MODEL3D_PATH_ID, "Dialog for saving/loading 3D model files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
@@ -1278,6 +1279,7 @@ namespace lsp
     {
         c.append_utf8       ("This file contains configuration of the audio plugin.\n");
         c.fmt_append_utf8   ("  Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
+        c.fmt_append_utf8   ("  Package version:     %s\n", LSP_MAIN_VERSION);
         c.fmt_append_utf8   ("  Plugin version:      %d.%d.%d\n",
                 int(LSP_VERSION_MAJOR(pMetadata->version)),
                 int(LSP_VERSION_MINOR(pMetadata->version)),
@@ -1608,6 +1610,12 @@ namespace lsp
 
         }
         return NULL;
+    }
+
+    void plugin_ui::request_state_dump()
+    {
+        if (pWrapper != NULL)
+            pWrapper->dump_state_request();
     }
 
 

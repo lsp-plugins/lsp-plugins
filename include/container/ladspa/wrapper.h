@@ -15,7 +15,6 @@ namespace lsp
         private:
             cvector<LADSPAAudioPort>    vAudioPorts;
             cvector<LADSPAPort>         vPorts;
-            plugin_t                   *pPlugin;
             ipc::IExecutor             *pExecutor;      // Executor service
             size_t                      nLatencyID;     // ID of Latency port
             LADSPA_Data                *pLatency;       // Latency pointer
@@ -33,7 +32,8 @@ namespace lsp
             }
 
         public:
-            explicit LADSPAWrapper(plugin_t *plugin)
+            explicit LADSPAWrapper(plugin_t *plugin):
+                IWrapper(plugin)
             {
                 pPlugin         = plugin;
                 pExecutor       = NULL;

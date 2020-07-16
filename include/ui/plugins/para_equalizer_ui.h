@@ -27,6 +27,7 @@ namespace lsp
             static status_t slot_fetch_rew_path(LSPWidget *sender, void *ptr, void *data);
             static status_t slot_commit_rew_path(LSPWidget *sender, void *ptr, void *data);
 
+        protected:
             status_t    import_rew_file(const LSPString *path);
             void        set_port_value(const char *base, size_t id, float value);
 

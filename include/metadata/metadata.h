@@ -216,7 +216,8 @@ namespace lsp
         E_INLINE_DISPLAY        = 1 << 0,   // Supports InlineDisplay extension originally implemented in LV2 plugin format
         E_3D_BACKEND            = 1 << 1,   // Supports 3D rendering backend
         E_OSC                   = 1 << 2,   // Supports OSC protocol messaging
-        E_KVT_SYNC              = 1 << 3    // KVT synchronization required
+        E_KVT_SYNC              = 1 << 3,   // KVT synchronization required
+        E_DUMP_STATE            = 1 << 4    // Support of internal state dump
     };
 
     enum port_group_type_t
@@ -331,6 +332,7 @@ namespace lsp
     unit_t          decode_unit(const char *name);
     bool            is_discrete_unit(size_t unit);
     bool            is_decibel_unit(size_t unit);
+    bool            is_gain_unit(size_t unit);
     bool            is_degree_unit(size_t unit);
     bool            is_log_rule(const port_t *port);
 

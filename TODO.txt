@@ -33,6 +33,8 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
+* Ensure that plugin provides internal state dump.
+* Ensure that lsp-plugins.menu contains reference to the new plugin
 
 *******************************************************************************
 * Release steps
@@ -45,6 +47,7 @@
 * Run make clean && make uninstall && make install && make clean to
   build and install binaries
 * Make video
+* Ensure that video is of enough quality (at least of 4k bitrate)
 * Add video cover to res/video-covers
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php

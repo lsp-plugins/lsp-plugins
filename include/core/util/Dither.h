@@ -9,12 +9,16 @@
 #define CORE_UTIL_DITHER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 #include <core/util/Randomizer.h>
 
 namespace lsp
 {
     class Dither
     {
+        private:
+            Dither &operator = (const Dither &);
+
         protected:
             size_t      nBits;
             float       fGain;
@@ -22,7 +26,7 @@ namespace lsp
             Randomizer  sRandom;
 
         public:
-            Dither();
+            explicit Dither();
             ~Dither();
 
         public:
@@ -44,6 +48,12 @@ namespace lsp
              * @param count number of samples to process
              */
             void process(float *out, const float *in, size_t count);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

@@ -125,7 +125,7 @@ namespace lsp
             void                get_spectrum(float *dst, size_t channel, size_t flags);
 
         public:
-            spectrum_analyzer_base(const plugin_metadata_t &metadata);
+            explicit spectrum_analyzer_base(const plugin_metadata_t &metadata);
             virtual ~spectrum_analyzer_base();
 
         public:

@@ -62,7 +62,7 @@ UTEST_BEGIN("dsp.msmatrix", conv2)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
                 32, 64, 65, 100, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x0f; ++mask)

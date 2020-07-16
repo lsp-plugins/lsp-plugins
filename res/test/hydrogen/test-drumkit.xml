@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drumkit_info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.hydrogen-music.org/drumkit">
+	<name>test</name>
+	<author>TEST</author>
+	<info>test drumkit</info>
+	<license>Creative Commons</license>
+
+	<instrumentList>
+		<instrument>
+			<id>0</id>
+			<name>Kick</name>
+			<volume>1</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1.1</pan_L>
+			<pan_R>0.9</pan_R>
+			<randomPitchFactor>0.1</randomPitchFactor>
+			<gain>2.85</gain>
+			<filterActive>false</filterActive>
+			<filterCutoff>1.1</filterCutoff>
+			<filterResonance>0.5</filterResonance>
+			<Attack>10</Attack>
+			<Decay>20</Decay>
+			<Sustain>30</Sustain>
+			<Release>40</Release>
+			<muteGroup>1</muteGroup>
+			<isStopNote>false</isStopNote>
+			<midiOutNote>35</midiOutNote>
+			<midiInNote>35</midiInNote>
+			<exclude />
+			
+			<layer>
+				<filename>Kick-0.wav</filename>
+				<min>0</min>
+				<max>0.2</max>
+				<gain>1</gain>
+				<pitch>0</pitch>
+			</layer>
+			<layer>
+				<filename>Kick-1.wav</filename>
+				<min>0.2</min>
+				<max>0.4</max>
+				<gain>1.1</gain>
+				<pitch>0</pitch>
+			</layer>
+		</instrument>
+
+		<instrument>
+			<id>1</id>
+			<name>Snare</name>
+			<volume>1</volume>
+			<isMuted>false</isMuted>
+			<pan_L>1</pan_L>
+			<pan_R>0.9</pan_R>
+			<randomPitchFactor>0</randomPitchFactor>
+			<gain>2</gain>
+			<filterActive>false</filterActive>
+			<filterCutoff>1</filterCutoff>
+			<filterResonance>0</filterResonance>
+			<Attack>0</Attack>
+			<Decay>0</Decay>
+			<Sustain>1</Sustain>
+			<Release>100000</Release>
+			<muteGroup>-1</muteGroup>
+			<isStopNote>false</isStopNote>
+			<midiOutNote>40</midiOutNote>
+			<midiInNote>40</midiInNote>
+			<exclude />
+			
+			<layer>
+				<filename>Snare-0.wav</filename>
+				<min>0</min>
+				<max>0.5</max>
+				<gain>1</gain>
+				<pitch>0</pitch>
+			</layer>
+			<layer>
+				<filename>Snare-1.wav</filename>
+				<min>0.5</min>
+				<max>1</max>
+				<gain>1</gain>
+				<pitch>0</pitch>
+			</layer>
+		</instrument>
+	</instrumentList>
+</drumkit_info>

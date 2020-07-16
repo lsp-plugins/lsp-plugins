@@ -13,13 +13,18 @@ namespace lsp
     
     Bypass::Bypass()
     {
-        nState      = S_OFF;
-        fDelta      = 0;
-        fGain       = 0;
+        construct();
     }
     
     Bypass::~Bypass()
     {
+    }
+
+    void Bypass::construct()
+    {
+        nState      = S_OFF;
+        fDelta      = 0;
+        fGain       = 0;
     }
 
     bool Bypass::set_bypass(bool bypass)
@@ -175,6 +180,13 @@ namespace lsp
                     dsp::fill_zero(dst, count);
             }
         }
+    }
+
+    void Bypass::dump(IStateDumper *v) const
+    {
+        v->write("nState", nState);
+        v->write("fDelta", fDelta);
+        v->write("fGain", fGain);
     }
 
 } /* namespace lsp */

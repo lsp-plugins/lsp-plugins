@@ -514,8 +514,7 @@ namespace lsp
 
             case effGetChunk:
             {
-                if (index == 0)
-                    v       = w->serialize_state(reinterpret_cast<const void **>(ptr));
+                v       = w->serialize_state(reinterpret_cast<const void **>(ptr), index);
                 break;
             }
 

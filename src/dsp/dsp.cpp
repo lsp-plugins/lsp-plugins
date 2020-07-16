@@ -144,6 +144,19 @@ namespace dsp
     void    (* powvx1)(float *v, const float *x, size_t count) = NULL;
     void    (* powvx2)(float *dst, const float *v, const float *x, size_t count) = NULL;
 
+    void    (* pmin2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* psmin2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pamin2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pmax2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* psmax2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pamax2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pmin3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* psmin3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* pamin3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* pmax3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* psmax3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+    void    (* pamax3)(float *dst, const float *a, const float *b, size_t count) = NULL;
+
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;

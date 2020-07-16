@@ -11,14 +11,25 @@
 #include <core/dynamics/Limiter.h>
 
 #define BUF_GRANULARITY         8192
-#define GAIN_LOWERING           0.891250938134 /* 0.944060876286 */
+#define GAIN_LOWERING           0.9886 /*0.891250938134 */
 #define MIN_LIMITER_RELEASE     5.0f
 
 namespace lsp
 {
     Limiter::Limiter()
     {
-        fThreshold      = 1.0f;
+        construct();
+    }
+
+    Limiter::~Limiter()
+    {
+        destroy();
+    }
+
+    void Limiter::construct()
+    {
+        fThreshold      = GAIN_AMP_0_DB;
+        fReqThreshold   = GAIN_AMP_0_DB;
         fLookahead      = 0.0f;
         fMaxLookahead   = 0.0f;
         fAttack         = 0.0f;
@@ -29,15 +40,16 @@ namespace lsp
         nMaxSampleRate  = 0;
         nSampleRate     = 0;
         nUpdate         = UP_ALL;
-        nMode           = LM_COMPRESSOR;
-        nThresh         = 0;
+        nMode           = LM_HERM_THIN;
+
+        sALR.fAttack    = 10.0f;
+        sALR.fRelease   = 50.0f;
+        sALR.fEnvelope  = 0.0f;
+        sALR.bEnable    = false;
+
         vGainBuf        = NULL;
         vTmpBuf         = NULL;
         vData           = NULL;
-    }
-
-    Limiter::~Limiter()
-    {
     }
 
     bool Limiter::init(size_t max_sr, float max_lookahead)
@@ -78,6 +90,97 @@ namespace lsp
 
         vGainBuf    = NULL;
         vTmpBuf     = NULL;
+    }
+
+    float Limiter::set_attack(float attack)
+    {
+        float old = fAttack;
+        if (attack == old)
+            return old;
+
+        fAttack         = attack;
+        nUpdate        |= UP_OTHER;
+        return old;
+    }
+
+    float Limiter::set_release(float release)
+    {
+        float old = fRelease;
+        if (release == old)
+            return old;
+
+        fRelease        = release;
+        nUpdate        |= UP_OTHER;
+        return old;
+    }
+
+    float Limiter::set_threshold(float thresh, bool immediate)
+    {
+        float old = fReqThreshold;
+        if (old == thresh)
+            return old;
+
+        fReqThreshold   = thresh;
+        if (immediate)
+            fThreshold      = thresh;
+        nUpdate        |= UP_THRESH | UP_ALR;
+        return old;
+    }
+
+    float Limiter::set_lookahead(float lk_ahead)
+    {
+        float old = fLookahead;
+        if (lk_ahead > fMaxLookahead)
+            lk_ahead = fMaxLookahead;
+        if (old == lk_ahead)
+            return old;
+
+        fLookahead      = lk_ahead;
+        nUpdate        |= UP_LK;
+
+        return old;
+    }
+
+    float Limiter::set_knee(float knee)
+    {
+        float old = fKnee;
+        if (old == knee)
+            return old;
+
+        fKnee           = knee;
+        nUpdate        |= UP_ALR;
+        return old;
+    }
+
+    float Limiter::set_alr_attack(float attack)
+    {
+        float old = sALR.fAttack;
+        if (attack == old)
+            return old;
+
+        sALR.fAttack    = attack;
+        nUpdate        |= UP_ALR;
+        return old;
+    }
+
+    float Limiter::set_alr_release(float release)
+    {
+        float old = sALR.fRelease;
+        if (release == old)
+            return old;
+
+        sALR.fRelease   = release;
+        nUpdate        |= UP_ALR;
+        return old;
+    }
+
+    bool Limiter::set_alr(bool enable)
+    {
+        bool old        = sALR.bEnable;
+        sALR.bEnable    = enable;
+        if (!enable)
+            sALR.fEnvelope  = 0.0f;
+        return old;
     }
 
     void Limiter::reset_sat(sat_t *sat)
@@ -127,21 +230,6 @@ namespace lsp
         line->vRelease[1]   = 0.0f;
     }
 
-    void Limiter::reset_comp(comp_t *comp)
-    {
-        comp->fKS           = 0.0f;
-        comp->fKE           = 0.0f;
-        comp->fTauAttack    = 0.0f;
-        comp->fTauRelease   = 0.0f;
-        comp->fEnvelope     = 0.0f;
-        comp->fAmp          = 0.0f;
-        comp->nCountdown    = 0;
-        comp->fSample       = 0.0f;
-        comp->vHermite[0]   = 0.0f;
-        comp->vHermite[1]   = 0.0f;
-        comp->vHermite[2]   = 0.0f;
-    }
-
     void Limiter::init_sat(sat_t *sat)
     {
         ssize_t attack      = millis_to_samples(nSampleRate, fAttack);
@@ -181,12 +269,6 @@ namespace lsp
 
         interpolation::hermite_cubic(sat->vAttack, -1.0f, 0.0f, 0.0f, sat->nAttack, 1.0f, 0.0f);
         interpolation::hermite_cubic(sat->vRelease, sat->nPlane, 1.0f, 0.0f, sat->nRelease, 0.0f, 0.0f);
-
-//        #ifdef LSP_DEBUG
-//        printf("sat:\n");
-//        for (ssize_t i=0; i<sat->nRelease; ++i)
-//            printf("%.6f\n", sat(i));
-//        #endif /* LSP_DEBUG */
     }
 
     void Limiter::init_exp(exp_t *exp)
@@ -228,12 +310,6 @@ namespace lsp
 
         interpolation::exponent(exp->vAttack, -1.0f, 0.0f, exp->nAttack, 1.0f, 2.0f / attack);
         interpolation::exponent(exp->vRelease, exp->nPlane, 1.0f, exp->nRelease, 0.0f, 2.0f / release);
-
-//        #ifdef LSP_DEBUG
-//        printf("exp:\n");
-//        for (ssize_t i=0; i<exp->nRelease; ++i)
-//            printf("%.6f\n", exp(i));
-//        #endif /* LSP_DEBUG */
     }
 
     void Limiter::init_line(line_t *line)
@@ -275,46 +351,51 @@ namespace lsp
 
         interpolation::linear(line->vAttack, -1.0f, 0.0f, line->nAttack, 1.0f);
         interpolation::linear(line->vRelease, line->nPlane, 1.0f, line->nRelease, 0.0f);
-
-//        #ifdef LSP_DEBUG
-//        printf("line:\n");
-//        for (ssize_t i=0; i<line->nRelease; ++i)
-//            printf("%.6f\n", line(i));
-//        #endif /* LSP_DEBUG */
-    }
-
-    void Limiter::init_comp(comp_t *comp)
-    {
-        comp->fKS           = fThreshold * fKnee;
-        comp->fKE           = fThreshold / fKnee;
-        comp->fTauAttack    = 1.0f - expf(logf(1.0f - M_SQRT1_2) / (millis_to_samples(nSampleRate, fAttack)));
-        comp->fTauRelease   = 1.0f - expf(logf(1.0f - M_SQRT1_2) / (millis_to_samples(nSampleRate, fRelease + MIN_LIMITER_RELEASE)));
-        comp->fAmp          = 1.0f / nLookahead;
-        lsp_trace("attack=%f, release=%f, tau_attack=%f, tau_release=%f", fAttack, fRelease, comp->fTauAttack, comp->fTauRelease);
-
-        float log_ks    = logf(comp->fKS);
-        float log_ke    = logf(comp->fKE);
-        interpolation::hermite_quadratic(comp->vHermite, log_ks, log_ks, 1.0f, log_ke, 0.0f);
-
-        lsp_trace("ks=%f, ke=%f, thresh=%f, hermite={%f, %f, %f}",
-            comp->fKS, comp->fKE, fThreshold,
-            comp->vHermite[0], comp->vHermite[1], comp->vHermite[2]
-        );
     }
 
     void Limiter::update_settings()
     {
+        if (nUpdate == 0)
+            return;
+
         // Update delay settings
         if (nUpdate & UP_SR)
+        {
             sDelay.clear();
-        if (nUpdate & (UP_SR | UP_MODE))
             dsp::fill_one(vGainBuf, nMaxLookahead*3 + BUF_GRANULARITY);
+        }
 
         nLookahead          = millis_to_samples(nSampleRate, fLookahead);
         sDelay.set_delay(nLookahead);
 
-        if (nUpdate & (UP_SR | UP_MODE | UP_THRESH))
-            nThresh             = nLookahead;
+        // Update threshold
+        if (nUpdate & UP_THRESH)
+        {
+            if (fReqThreshold < fThreshold)
+            {
+                // Need to lower gain sinc threshold has been lowered
+                float gnorm         = fReqThreshold / fThreshold;
+                dsp::mul_k2(vGainBuf, gnorm, nMaxLookahead);
+            }
+
+            fThreshold          = fReqThreshold;
+        }
+
+        // Update automatic level regulation
+        if (nUpdate & UP_ALR)
+        {
+            float thresh        = fThreshold * fKnee * GAIN_AMP_M_6_DB;
+            sALR.fKS            = thresh * (M_SQRT2 - 1.0f);
+            sALR.fKE            = thresh;
+            sALR.fGain          = thresh * M_SQRT1_2;
+            interpolation::hermite_quadratic(sALR.vHermite, sALR.fKS, sALR.fKS, 1.0f, thresh, 0.0f);
+
+            float att           = millis_to_samples(nSampleRate, sALR.fAttack);
+            float rel           = millis_to_samples(nSampleRate, sALR.fRelease);
+
+            sALR.fTauAttack     = (att < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / att);
+            sALR.fTauRelease    = (rel < 1.0f)  ? 1.0f : 1.0f - expf(logf(1.0f - M_SQRT1_2) / rel);
+        }
 
         // Check that mode change has triggered
         if (nUpdate & UP_MODE)
@@ -322,10 +403,6 @@ namespace lsp
             // Clear state for the limiter
             switch (nMode)
             {
-                case LM_COMPRESSOR:
-                    reset_comp(&sComp);
-                    break;
-
                 case LM_HERM_THIN:
                 case LM_HERM_WIDE:
                 case LM_HERM_TAIL:
@@ -347,21 +424,6 @@ namespace lsp
                     reset_line(&sLine);
                     break;
 
-                case LM_MIXED_HERM:
-                    reset_comp(&sMixed.sComp);
-                    reset_sat(&sMixed.sSat);
-                    break;
-
-                case LM_MIXED_EXP:
-                    reset_comp(&sMixed.sComp);
-                    reset_exp(&sMixed.sExp);
-                    break;
-
-                case LM_MIXED_LINE:
-                    reset_comp(&sMixed.sComp);
-                    reset_line(&sMixed.sLine);
-                    break;
-
                 default:
                     break;
             }
@@ -370,10 +432,6 @@ namespace lsp
         // Update state
         switch (nMode)
         {
-            case LM_COMPRESSOR:
-                init_comp(&sComp);
-                break;
-
             case LM_HERM_THIN:
             case LM_HERM_WIDE:
             case LM_HERM_TAIL:
@@ -395,38 +453,12 @@ namespace lsp
                 init_line(&sLine);
                 break;
 
-            case LM_MIXED_HERM:
-                init_comp(&sMixed.sComp);
-                init_sat(&sMixed.sSat);
-                break;
-
-            case LM_MIXED_EXP:
-                init_comp(&sMixed.sComp);
-                init_exp(&sMixed.sExp);
-                break;
-
-            case LM_MIXED_LINE:
-                init_comp(&sMixed.sComp);
-                init_line(&sMixed.sLine);
-                break;
-
             default:
                 break;
         }
 
         // Clear the update flag
         nUpdate         = 0;
-    }
-
-    inline float Limiter::reduction(comp_t *comp)
-    {
-        if (comp->fEnvelope < comp->fKS)
-            return 1.0f;
-        else if (comp->fEnvelope >= comp->fKE)
-            return fThreshold / comp->fEnvelope;
-
-        float lx    = logf(comp->fEnvelope);
-        return expf((comp->vHermite[0]*lx + comp->vHermite[1] - 1.0f)*lx + comp->vHermite[2]);
     }
 
     inline float Limiter::sat(ssize_t n)
@@ -554,364 +586,213 @@ namespace lsp
             *(dst++)   *= 1.0f - amp * (line->vRelease[0] * (t++) + line->vRelease[1]);
     }
 
-    void Limiter::process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples)
+    void Limiter::process_alr(float *gbuf, const float *sc, size_t samples)
     {
-        // Do some stuff
         for (size_t i=0; i<samples; ++i)
         {
-            // Get lookup sample
-            float ls    = sc[i];
-            if (ls < 0.0f)
-                ls          = -ls;
+            float d     = sc[i] - sALR.fEnvelope;
+            float k     = (d > 0.0f) ? sALR.fTauAttack : sALR.fTauRelease;
+            float e     = (sALR.fEnvelope += k * d);
 
-            // Get delayed sample
-            float ds    = sDelay.process(src[i]);
-
-            // Check that limiter has triggered (overwrite sidechain signal)
-            if (sComp.nCountdown > 0)
+            if (e <= sALR.fKS)
+                gbuf[i]     = 1.0f;
+            else
             {
-                if (sComp.fSample <= ls)
-                {
-//                    lsp_trace("clipping: sample=%f, level=%f", sComp.fSample, ls);
-                    sComp.fSample       = ls;
-                    sComp.nCountdown    = nLookahead;
-                }
-                else
-                {
-                    ls                  = sComp.fSample; // * (1.0f + sComp.fAmp*(nLookahead - sComp.nCountdown));
-                    sComp.nCountdown    --;
-                }
-            }
-            else if (ls >= fThreshold)
-            {
-                sComp.fSample         = ls;
-                sComp.nCountdown      = nLookahead;
-            }
+                float dg    = (e >= sALR.fKE) ? sALR.fGain :
+                              (sALR.vHermite[0]*e + sALR.vHermite[1])*e + sALR.vHermite[2];
 
-            // Calculate envelope and reduction
-            sComp.fEnvelope    += (ls >= sComp.fEnvelope) ?
-                                    sComp.fTauAttack * (ls - sComp.fEnvelope) :
-                                    sComp.fTauRelease * (ls - sComp.fEnvelope);
-            float r             = reduction(&sComp);
-
-            gain[i]             = r;
-            dst[i]              = r*ds;
+                gbuf[i]  = dg / e;
+            }
         }
     }
-
-    void Limiter::process_patch(float *dst, float *gain, const float *src, const float *sc, size_t samples)
-    {
-        float *gbuf     = &vGainBuf[nMaxLookahead];
-
-        while (samples > 0)
-        {
-            size_t to_do    = (samples > BUF_GRANULARITY) ? BUF_GRANULARITY : samples;
-
-            // Fill gain buffer
-            dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
-            dsp::abs2(vTmpBuf, sc, to_do);
-
-            float thresh    = 1.0f;
-
-            // Repeat until there are no peaks
-            while (true)
-            {
-                // Find LIMITER_PEAKS_MAX peaks
-                peak_t vPeaks[LIMITER_PEAKS_MAX];
-                size_t nPeaks   = 0;
-                float left      = 0.0f;
-                float s         = vTmpBuf[0] * gbuf[0];
-
-                for (size_t i=1; i<=to_do; ++i)
-                {
-                    float right     = (i < to_do) ? vTmpBuf[i] * gbuf[i] : 0.0f;
-                    if (s > fThreshold)
-                    {
-                        // Check that it is a peak
-                        if ((s > left) && (s >= right))
-                        {
-                            peak_t *p = &vPeaks[0];
-
-                            if (nPeaks >= LIMITER_PEAKS_MAX)
-                            {
-                                for (size_t j=0; j<LIMITER_PEAKS_MAX; ++j)
-                                {
-                                    if (vPeaks[j].fValue < s)
-                                        p = & vPeaks[j];
-                                }
-                            }
-                            else
-                                p = & vPeaks[nPeaks++];
-
-                            p->nTime        = i-1;
-                            p->fValue       = s;
-                        }
-                    }
-                    left        = s;
-                    s           = right;
-                }
-
-                // Check that there are no peaks left
-                if (nPeaks <= 0)
-                    break;
-
-                // Apply modifications to the buffer
-                for (size_t i=0; i<nPeaks; ++i)
-                {
-                    peak_t *p       = &vPeaks[i];
-
-                    s               = vTmpBuf[p->nTime] * gbuf[p->nTime];
-                    if (s > fThreshold)
-                    {
-                        left            = (s - (fKnee * fThreshold * thresh - 0.000001))/ s;
-                        switch (nMode)
-                        {
-                            case LM_HERM_THIN:
-                            case LM_HERM_WIDE:
-                            case LM_HERM_TAIL:
-                            case LM_HERM_DUCK:
-                                apply_sat_patch(&sSat, &gbuf[p->nTime - sSat.nMiddle], left);
-                                break;
-
-                            case LM_EXP_THIN:
-                            case LM_EXP_WIDE:
-                            case LM_EXP_TAIL:
-                            case LM_EXP_DUCK:
-                                apply_exp_patch(&sExp, &gbuf[p->nTime - sExp.nMiddle], left);
-                                break;
-
-                            case LM_LINE_THIN:
-                            case LM_LINE_WIDE:
-                            case LM_LINE_TAIL:
-                            case LM_LINE_DUCK:
-                                apply_line_patch(&sLine, &gbuf[p->nTime - sLine.nMiddle], left);
-                                break;
-                        }
-                    }
-                }
-
-                // Lower gain each time at -0.5 dB
-                thresh     *=       GAIN_LOWERING;
-            }
-
-            // Copy gain value and shift gain buffer
-            dsp::copy(gain, &vGainBuf[nMaxLookahead - nLookahead], to_do);
-            dsp::move(vGainBuf, &vGainBuf[to_do], nMaxLookahead*4);
-
-            // Apply gain to delayed signal
-            sDelay.process(dst, src, to_do);
-
-            // Decrement number of samples and update pointers
-            dst            += to_do;
-            gain           += to_do;
-            src            += to_do;
-            sc             += to_do;
-            samples        -= to_do;
-        }
-    }
-
-    void Limiter::process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples)
-    {
-        float *gbuf     = &vGainBuf[nMaxLookahead];
-        comp_t *comp    = &sMixed.sComp;
-
-        while (samples > 0)
-        {
-            size_t to_do    = (samples > BUF_GRANULARITY) ? BUF_GRANULARITY : samples;
-
-            // Fill gain buffer
-            dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
-            dsp::abs2(vTmpBuf, sc, to_do);
-
-            // Issue compressor reaction
-            for (size_t i=0; i<to_do; ++i)
-            {
-                float ls        = vTmpBuf[i] * gbuf[i];
-
-                if (comp->nCountdown > 0)
-                {
-                    if (comp->fSample <= ls)
-                    {
-                        comp->fSample       = ls;
-                        comp->nCountdown    = nLookahead;
-                    }
-                    else
-                    {
-                        ls                  = comp->fSample; // * (1.0f + comp->fAmp*(nLookahead - comp->nCountdown));
-                        comp->nCountdown    --;
-                    }
-                }
-                else if (ls >= fThreshold)
-                {
-                    comp->fSample       = ls;
-                    comp->nCountdown    = nLookahead;
-                }
-
-                // Calculate envelope and reduction
-                comp->fEnvelope    += (ls >= comp->fEnvelope) ?
-                                        comp->fTauAttack * (ls - comp->fEnvelope) :
-                                        comp->fTauRelease * (ls - comp->fEnvelope);
-                gbuf[i]            *= reduction(comp);
-            }
-
-            float thresh = 1.0f;
-
-            // Repeat until there are no peaks
-            while (true)
-            {
-                // Find LIMITER_PEAKS_MAX peaks
-                peak_t vPeaks[LIMITER_PEAKS_MAX];
-                size_t nPeaks   = 0;
-                float left      = 0.0f;
-                float s         = vTmpBuf[0] * gbuf[0];
-
-                for (size_t i=1; i<=to_do; ++i)
-                {
-                    float right     = (i < to_do) ? vTmpBuf[i] * gbuf[i] : 0.0f;
-                    if (s > fThreshold)
-                    {
-                        // Check that it is a peak
-                        if ((s > left) && (s >= right))
-                        {
-                            peak_t *p = &vPeaks[0];
-
-                            if (nPeaks >= LIMITER_PEAKS_MAX)
-                            {
-                                for (size_t j=0; j<LIMITER_PEAKS_MAX; ++j)
-                                {
-                                    if (vPeaks[j].fValue < s)
-                                        p = & vPeaks[j];
-                                }
-                            }
-                            else
-                                p = & vPeaks[nPeaks++];
-
-                            p->nTime        = i-1;
-                            p->fValue       = s;
-                        }
-                    }
-                    left        = s;
-                    s           = right;
-                }
-
-                // Check that there are no peaks left
-                if (nPeaks <= 0)
-                    break;
-
-                // Apply modifications to the buffer
-                for (size_t i=0; i<nPeaks; ++i)
-                {
-                    peak_t *p       = &vPeaks[i];
-
-                    s               = vTmpBuf[p->nTime] * gbuf[p->nTime];
-                    if (s > fThreshold)
-                    {
-                        left            = (s - (fThreshold * thresh - 0.000001)) / s;
-                        switch (nMode)
-                        {
-                            case LM_MIXED_HERM:
-                                apply_sat_patch(&sMixed.sSat, &gbuf[p->nTime - sMixed.sSat.nMiddle], left);
-                                break;
-
-                            case LM_MIXED_EXP:
-                                apply_exp_patch(&sMixed.sExp, &gbuf[p->nTime - sMixed.sExp.nMiddle], left);
-                                break;
-
-                            case LM_MIXED_LINE:
-                                apply_line_patch(&sMixed.sLine, &gbuf[p->nTime - sMixed.sLine.nMiddle], left);
-                                break;
-                        }
-                    }
-                }
-
-                // Lower gain each time at -0.5 dB
-                thresh     *=       GAIN_LOWERING;
-            }
-
-            // Copy gain value and shift gain buffer
-            dsp::copy(gain, &vGainBuf[nMaxLookahead - nLookahead], to_do);
-            dsp::move(vGainBuf, &vGainBuf[to_do], nMaxLookahead*4);
-
-            // Apply gain to delayed signal
-            sDelay.process(dst, src, to_do);
-
-            // Decrement number of samples and update pointers
-            dst            += to_do;
-            gain           += to_do;
-            src            += to_do;
-            sc             += to_do;
-            samples        -= to_do;
-        }
-    }
-
 
     void Limiter::process(float *dst, float *gain, const float *src, const float *sc, size_t samples)
     {
         // Force settings update if there are any
-        if (nUpdate)
-            update_settings();
+        update_settings();
 
-        // Perform processing
+        float *gbuf     = &vGainBuf[nMaxLookahead];
+
+        while (samples > 0)
+        {
+            size_t to_do    = (samples > BUF_GRANULARITY) ? BUF_GRANULARITY : samples;
+
+            // Fill gain buffer
+            dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
+            dsp::abs_mul3(vTmpBuf, gbuf, sc, to_do);    // Apply current gain buffer to the side chain signal
+            if (sALR.bEnable) // Apply ALR if necessary
+            {
+                process_alr(gbuf, vTmpBuf, to_do);
+                dsp::abs_mul3(vTmpBuf, gbuf, sc, to_do);    // Apply gain to sidechain
+            }
+
+            float knee          = 1.0f;
+            size_t iterations   = 0;
+
+            while (true)
+            {
+                // Find peak
+                ssize_t peak    = dsp::max_index(vTmpBuf, to_do);
+                float s         = vTmpBuf[peak];
+                if (s <= fThreshold) // No more peaks are present
+                    break;
+
+                // Apply patch to the gain buffer
+                s           = (s - (fThreshold * knee - 0.000001))/ s;
+                switch (nMode)
+                {
+                    case LM_HERM_THIN:
+                    case LM_HERM_WIDE:
+                    case LM_HERM_TAIL:
+                    case LM_HERM_DUCK:
+                        apply_sat_patch(&sSat, &gbuf[peak - sSat.nMiddle], s);
+                        break;
+
+                    case LM_EXP_THIN:
+                    case LM_EXP_WIDE:
+                    case LM_EXP_TAIL:
+                    case LM_EXP_DUCK:
+                        apply_exp_patch(&sExp, &gbuf[peak - sExp.nMiddle], s);
+                        break;
+
+                    case LM_LINE_THIN:
+                    case LM_LINE_WIDE:
+                    case LM_LINE_TAIL:
+                    case LM_LINE_DUCK:
+                        apply_line_patch(&sLine, &gbuf[peak - sLine.nMiddle], s);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                // Apply new gain to sidechain
+                dsp::abs_mul3(vTmpBuf, gbuf, sc, to_do);    // Apply gain to sidechain
+
+                // Lower the knee if necessary
+                if (((++iterations) % LIMITER_PEAKS_MAX) == 0)
+                    knee     *=       GAIN_LOWERING;
+            }
+
+            // Copy gain value and shift gain buffer
+            dsp::copy(gain, &vGainBuf[nMaxLookahead - nLookahead], to_do);
+            dsp::move(vGainBuf, &vGainBuf[to_do], nMaxLookahead*4);
+
+            // Gain will be applied to the delayed signal
+            sDelay.process(dst, src, to_do);
+
+            // Decrement number of samples and update pointers
+            dst            += to_do;
+            gain           += to_do;
+            src            += to_do;
+            sc             += to_do;
+            samples        -= to_do;
+        }
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const sat_t *sat)
+    {
+        v->begin_object(name, sat, sizeof(sat_t));
+        {
+            v->write("nAttack", sat->nAttack);
+            v->write("nPlane", sat->nPlane);
+            v->write("nRelease", sat->nRelease);
+            v->write("nMiddle", sat->nMiddle);
+            v->writev("vAttack", sat->vAttack, 4);
+            v->writev("vRelease", sat->vRelease, 4);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const exp_t *exp)
+    {
+        v->begin_object(name, exp, sizeof(exp_t));
+        {
+            v->write("nAttack", exp->nAttack);
+            v->write("nPlane", exp->nPlane);
+            v->write("nRelease", exp->nRelease);
+            v->write("nMiddle", exp->nMiddle);
+            v->writev("vAttack", exp->vAttack, 4);
+            v->writev("vRelease", exp->vRelease, 4);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v, const char *name, const line_t *line)
+    {
+        v->begin_object(name, line, sizeof(line_t));
+        {
+            v->write("nAttack", line->nAttack);
+            v->write("nPlane", line->nPlane);
+            v->write("nRelease", line->nRelease);
+            v->write("nMiddle", line->nMiddle);
+            v->writev("vAttack", line->vAttack, 2);
+            v->writev("vRelease", line->vRelease, 2);
+        }
+        v->end_object();
+    }
+
+    void Limiter::dump(IStateDumper *v) const
+    {
+        v->write("fThreshold", fThreshold);
+        v->write("fReqThreshold", fReqThreshold);
+        v->write("fLookahead", fLookahead);
+        v->write("fMaxLookahead", fMaxLookahead);
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fKnee", fKnee);
+        v->write("nMaxLookahead", nMaxLookahead);
+        v->write("nLookahead", nLookahead);
+        v->write("nMaxSampleRate", nMaxSampleRate);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nUpdate", nUpdate);
+        v->write("nMode", nMode);
+        v->begin_object("sALR", &sALR, sizeof(alr_t));
+        {
+            v->write("fKS", sALR.fKS);
+            v->write("fKE", sALR.fKE);
+            v->write("fGain", sALR.fGain);
+            v->write("fTauAttack", sALR.fTauAttack);
+            v->write("fTauRelease", sALR.fTauRelease);
+            v->writev("vHermite", sALR.vHermite, 3);
+            v->write("fAttack", sALR.fAttack);
+            v->write("fRelease", sALR.fRelease);
+            v->write("fEnvelope", sALR.fEnvelope);
+            v->write("bEnable", sALR.bEnable);
+        }
+        v->end_object();
+
+        v->write("vGainBuf", vGainBuf);
+        v->write("vTmpBuf", vTmpBuf);
+        v->write("vData", vData);
+
+        v->write_object("sDelay", &sDelay);
+
         switch (nMode)
         {
-            case LM_COMPRESSOR:
-                process_compressor(dst, gain, src, sc, samples);
-                break;
-
             case LM_HERM_THIN:
             case LM_HERM_WIDE:
             case LM_HERM_TAIL:
             case LM_HERM_DUCK:
+                dump(v, "sSat", &sSat);
+                break;
+
             case LM_EXP_THIN:
             case LM_EXP_WIDE:
             case LM_EXP_TAIL:
             case LM_EXP_DUCK:
+                dump(v, "sExp", &sExp);
+                break;
+
             case LM_LINE_THIN:
             case LM_LINE_WIDE:
             case LM_LINE_TAIL:
             case LM_LINE_DUCK:
-                process_patch(dst, gain, src, sc, samples);
-                break;
-
-            case LM_MIXED_HERM:
-            case LM_MIXED_EXP:
-            case LM_MIXED_LINE:
-                process_mixed(dst, gain, src, sc, samples);
+                dump(v, "sLine", &sLine);
                 break;
 
             default:
-                dsp::fill_one(gain, samples);
-                dsp::copy(dst, src, samples);
                 break;
-        }
-
-        // Fix-up adjusted gain to prevent from overloading
-        if (nThresh <= 0)
-            return;
-
-        while ((samples > 0) && (nThresh > 0))
-        {
-            size_t to_do = (samples > nThresh) ? nThresh : samples;
-
-            float max = 0.0f;
-
-            for (size_t i=0; i<to_do; ++i)
-            {
-                float lvl = dst[i] * gain[i];
-                if (lvl < 0.0f)
-                    lvl = - lvl;
-                if (lvl > max)
-                    max = lvl;
-            }
-
-            if (max > fThreshold)
-                dsp::mul_k2(gain, (fThreshold - 0.000001f)/max, to_do);
-
-            // Move pointers
-            nThresh    -= to_do;
-            samples    -= to_do;
-            dst        += to_do;
-            gain       += to_do;
         }
     }
 

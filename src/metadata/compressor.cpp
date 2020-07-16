@@ -110,9 +110,9 @@ namespace lsp
 
     #define COMP_CHANNEL(id, label, modes) \
         COMBO("cm" id, "Compression mode" label, compressor_base_metadata::CM_DEFAULT, modes), \
-        LOG_CONTROL("al" id, "Attack level" label, U_GAIN_AMP, compressor_base_metadata::ATTACK_LVL), \
+        LOG_CONTROL("al" id, "Attack threshold" label, U_GAIN_AMP, compressor_base_metadata::ATTACK_LVL), \
         LOG_CONTROL("at" id, "Attack time" label, U_MSEC, compressor_base_metadata::ATTACK_TIME), \
-        LOG_CONTROL("rrl" id, "Relative release level" label, U_GAIN_AMP, compressor_base_metadata::RELEASE_LVL), \
+        LOG_CONTROL("rrl" id, "Release threshold" label, U_GAIN_AMP, compressor_base_metadata::RELEASE_LVL), \
         LOG_CONTROL("rt" id, "Release time" label, U_MSEC, compressor_base_metadata::RELEASE_TIME), \
         LOG_CONTROL("cr" id, "Ratio" label, U_NONE, compressor_base_metadata::RATIO), \
         LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, compressor_base_metadata::KNEE), \
@@ -259,7 +259,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 0,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
         NULL,
@@ -277,7 +277,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 1,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
         NULL,
@@ -295,7 +295,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 2,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
         NULL,
@@ -313,7 +313,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 3,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
         NULL,
@@ -332,7 +332,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 4,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
         NULL,
@@ -350,7 +350,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 5,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
         NULL,
@@ -368,7 +368,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 6,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
         NULL,
@@ -386,7 +386,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 7,
         LSP_VERSION(1, 0, 2),
         compressor_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
         NULL,

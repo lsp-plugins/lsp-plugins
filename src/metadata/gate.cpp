@@ -94,8 +94,8 @@ namespace lsp
 
     #define GATE_CHANNEL(id, label) \
         SWITCH("gh" id, "Hysteresis" label, 0.0f), \
-        LOG_CONTROL("gt" id, "Threshold" label, U_GAIN_AMP, gate_base_metadata::THRESHOLD), \
-        LOG_CONTROL("gz" id, "Zone size" label, U_GAIN_AMP, gate_base_metadata::ZONE), \
+        LOG_CONTROL("gt" id, "Curve threshold" label, U_GAIN_AMP, gate_base_metadata::THRESHOLD), \
+        LOG_CONTROL("gz" id, "Curve zone size" label, U_GAIN_AMP, gate_base_metadata::ZONE), \
         LOG_CONTROL("ht" id, "Hysteresis threshold" label, U_GAIN_AMP, gate_base_metadata::H_THRESHOLD), \
         LOG_CONTROL("hz" id, "Hysteresis zone size" label, U_GAIN_AMP, gate_base_metadata::ZONE), \
         LOG_CONTROL("at" id, "Attack" label, U_MSEC, gate_base_metadata::ATTACK_TIME), \

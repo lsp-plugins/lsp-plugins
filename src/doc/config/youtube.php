@@ -18,7 +18,8 @@ $YOUTUBE = array(
     'kXCBRnJL_qo' => 'Profiler Mono',
     'J-ruYw9TwCE' => 'Room Builder',
     'TR_Ox7U_a84' => 'Multiband Expander',
-    '7GOAM1O_RdY' => 'Multiband Gate'
+    '7GOAM1O_RdY' => 'Multiband Gate',
+    'CuySiF1VSj8' => 'Surge Filter & Loudness Compensator'
 );
 
 ?>

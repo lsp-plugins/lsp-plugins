@@ -1,0 +1,328 @@
+<drumkit_info>
+    <name>Millo-Drums_v.1</name>
+    <author>emillo.net</author>
+    <info>This drumkit was created recording my ludwig set, trying to obtain a&#x0A;&quot;sixties&quot; sound. Recorded with ecasound and edited with rezound</info>
+    <licence>GPL</licence>
+    <instrumentList>
+        <instrument>
+            <id>0</id>
+            <filename>bd1.flac</filename>
+            <name>Kick</name>
+            <volume>1</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.88</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>1</id>
+            <filename>stick_Woody.flac</filename>
+            <name>Stick</name>
+            <volume>0.69</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>2</id>
+            <filename>snare1.flac</filename>
+            <name>Snare Jazz</name>
+            <volume>0.79</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.78</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>3</id>
+            <filename>clap_Dry_c.flac</filename>
+            <name>Hand Clap</name>
+            <volume>0.88</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>4</id>
+            <filename>snare3.flac</filename>
+            <name>Snare Rock</name>
+            <volume>1</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>5</id>
+            <filename>tom2_1.flac</filename>
+            <name>Tom Low</name>
+            <volume>1</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.44</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>6</id>
+            <filename>closehihat3.flac</filename>
+            <name>Closed HH</name>
+            <volume>0.89</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.78</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>7</id>
+            <filename>tom1_1.flac</filename>
+            <name>Tom Mid</name>
+            <volume>1</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.8</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>8</id>
+            <filename>pedalhihat.flac</filename>
+            <name>Pedal HH</name>
+            <volume>0.89</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.78</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>9</id>
+            <filename>tom1_a.flac</filename>
+            <name>Tom Hi</name>
+            <volume>0.89</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.72</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>10</id>
+            <filename>openhat2.flac</filename>
+            <name>Open HH</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.84</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>11</id>
+            <filename>misc_Cowbell.flac</filename>
+            <name>Cowbell</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>12</id>
+            <filename>ride1.flac</filename>
+            <name>Ride Jazz</name>
+            <volume>0.79</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>13</id>
+            <filename>cra_Rock_a.flac</filename>
+            <name>Crash</name>
+            <volume>0.69</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.88</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>14</id>
+            <filename>ride2.flac</filename>
+            <name>Ride Rock</name>
+            <volume>0.8</volume>
+            <isMuted>false</isMuted>
+            <pan_L>0.58</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>15</id>
+            <filename>crash.flac</filename>
+            <name>Crash Jazz</name>
+            <volume>0.77</volume>
+            <isMuted>false</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>0.78</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>16</id>
+            <filename>emptySample.flac</filename>
+            <name>17</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>17</id>
+            <filename>emptySample.flac</filename>
+            <name>18</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>18</id>
+            <filename>emptySample.flac</filename>
+            <name>19</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>19</id>
+            <filename>emptySample.flac</filename>
+            <name>20</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>20</id>
+            <filename>emptySample.flac</filename>
+            <name>21</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>21</id>
+            <filename>emptySample.flac</filename>
+            <name>22</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>22</id>
+            <filename>emptySample.flac</filename>
+            <name>23</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>23</id>
+            <filename>emptySample.flac</filename>
+            <name>24</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>24</id>
+            <filename>emptySample.flac</filename>
+            <name>25</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>25</id>
+            <filename>emptySample.flac</filename>
+            <name>26</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>26</id>
+            <filename>emptySample.flac</filename>
+            <name>27</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>27</id>
+            <filename>emptySample.flac</filename>
+            <name>28</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>28</id>
+            <filename>emptySample.flac</filename>
+            <name>29</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>29</id>
+            <filename>emptySample.flac</filename>
+            <name>30</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>30</id>
+            <filename>emptySample.flac</filename>
+            <name>31</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+        <instrument>
+            <id>31</id>
+            <filename>emptySample.flac</filename>
+            <name>32</name>
+            <volume>0.8</volume>
+            <isMuted>true</isMuted>
+            <pan_L>1</pan_L>
+            <pan_R>1</pan_R>
+            <exclude />
+        </instrument>
+    </instrumentList>
+</drumkit_info>

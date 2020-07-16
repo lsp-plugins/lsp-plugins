@@ -311,4 +311,97 @@ namespace lsp
         }
     }
 
+    void FilterBank::dump(IStateDumper *v) const
+    {
+        size_t ni       = nItems;
+        size_t nc       = (ni >> 3) + ((ni >> 2) & 1) + ((ni >> 1) & 1) + (ni & 1);
+        biquad_t *b     = vFilters;
+
+        v->begin_array("vFilters", vFilters, nc);
+        while (ni >= 8)
+        {
+            v->begin_object(b, sizeof(biquad_t));
+            {
+                v->writev("b0", b->x8.b0, 8);
+                v->writev("b1", b->x8.b1, 8);
+                v->writev("b2", b->x8.b2, 8);
+                v->writev("a1", b->x8.a1, 8);
+                v->writev("a2", b->x8.a2, 8);
+            }
+            v->end_object();
+            b       ++;
+            ni      -= 8;
+        }
+        if (ni & 4)
+        {
+            v->begin_object(b, sizeof(biquad_t));
+            {
+                v->writev("b0", b->x4.b0, 4);
+                v->writev("b1", b->x4.b1, 4);
+                v->writev("b2", b->x4.b2, 4);
+                v->writev("a1", b->x4.a1, 4);
+                v->writev("a2", b->x4.a2, 4);
+            }
+            v->end_object();
+            b       ++;
+            ni      -= 8;
+        }
+        if (ni & 2)
+        {
+            v->begin_object(b, sizeof(biquad_t));
+            {
+                v->writev("b0", b->x2.b0, 2);
+                v->writev("b1", b->x2.b1, 2);
+                v->writev("b2", b->x2.b2, 2);
+                v->writev("a1", b->x2.a1, 2);
+                v->writev("a2", b->x2.a2, 2);
+                v->writev("p", b->x2.p, 2);
+            }
+            v->end_object();
+            b       ++;
+            ni      -= 8;
+        }
+        if (ni & 1)
+        {
+            v->begin_object(b, sizeof(biquad_t));
+            {
+                v->write("b0", b->x1.b0);
+                v->write("b1", b->x1.b1);
+                v->write("b2", b->x1.b2);
+                v->write("a1", b->x1.a1);
+                v->write("a2", b->x1.a2);
+                v->write("p0", b->x1.p0);
+                v->write("p1", b->x1.p1);
+                v->write("p2", b->x1.p2);
+            }
+            v->end_object();
+            b       ++;
+            ni      -= 8;
+        }
+        v->end_array();
+
+        v->begin_array("vChains", vChains, nItems);
+        for (size_t i=0; i<nItems; ++i)
+        {
+            biquad_x1_t *bq = &vChains[i];
+            v->begin_object(bq, sizeof(biquad_x1_t));
+            {
+                v->write("b0", bq->b0);
+                v->write("b1", bq->b1);
+                v->write("b2", bq->b2);
+                v->write("a1", bq->a1);
+                v->write("a2", bq->a2);
+                v->write("p0", bq->p0);
+                v->write("p1", bq->p1);
+                v->write("p2", bq->p2);
+            }
+            v->end_object();
+        }
+        v->end_array();
+        v->write("nItems", nItems);
+        v->write("nMaxItems", nMaxItems);
+        v->write("nLastItems", nLastItems);
+        v->write("vBackup", vBackup);
+        v->write("vData", vData);
+    }
 } /* namespace lsp */

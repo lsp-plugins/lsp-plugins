@@ -13,6 +13,9 @@
 		"lsp": "LSP plugin configuration file (*.cfg)",
 		"lspc": "LSP chunk data file format (*.lspc)"
 	},
+	"hydrogen": {
+		"xml": "Hydrogen drumkit file description (*.xml)"
+	},
 	"roomeqwizard": {
 		"all": "All REW filter settings (*.req, *.txt)",
 		"req": "REW binary filter settings (*.req)",

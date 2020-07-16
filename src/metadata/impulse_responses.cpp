@@ -40,7 +40,7 @@ namespace lsp
         { "4096",   NULL },
         { "8192",   NULL },
         { "16384",  NULL },
-        { "32767",  NULL },
+        { "32768",  NULL },
         { "65536",  NULL },
         { NULL, NULL }
     };

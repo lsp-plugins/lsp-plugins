@@ -7,6 +7,7 @@
 
 #include <core/debug.h>
 #include <core/util/Delay.h>
+#include <dsp/dsp.h>
 
 #define DELAY_GAP       0x200
 
@@ -15,16 +16,21 @@ namespace lsp
     
     Delay::Delay()
     {
-        pBuffer     = NULL;
-        nHead       = 0;
-        nTail       = 0;
-        nDelay      = 0;
-        nSize       = 0;
+        construct();
     }
     
     Delay::~Delay()
     {
         destroy();
+    }
+
+    void Delay::construct()
+    {
+        pBuffer     = NULL;
+        nHead       = 0;
+        nTail       = 0;
+        nDelay      = 0;
+        nSize       = 0;
     }
 
     bool Delay::init(size_t max_size)
@@ -266,6 +272,15 @@ namespace lsp
         if (pBuffer == NULL)
             return;
         dsp::fill_zero(pBuffer, nSize);
+    }
+
+    void Delay::dump(IStateDumper *v) const
+    {
+        v->write("pBuffer", pBuffer);
+        v->write("nHead", nHead);
+        v->write("nTail", nTail);
+        v->write("nDelay", nDelay);
+        v->write("nSize", nSize);
     }
 
 } /* namespace lsp */

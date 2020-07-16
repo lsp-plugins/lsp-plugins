@@ -107,8 +107,6 @@ namespace lsp
                 void            update_scroll();
                 void            update_clipboard(size_t bufid);
                 void            request_clipboard(size_t bufid);
-                static status_t clipboard_handler(void *arg, status_t s, io::IInStream *is);
-                status_t        paste_data(io::IInStream *is);
                 status_t        cut_data(size_t bufid);
                 status_t        copy_data(size_t bufid);
                 status_t        paste_data(size_t bufid);

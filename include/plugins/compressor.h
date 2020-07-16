@@ -168,6 +168,8 @@ namespace lsp
 
             virtual void process(size_t samples);
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+
+            virtual void dump(IStateDumper *v) const;
     };
 
     class compressor_mono: public compressor_base, public compressor_mono_metadata

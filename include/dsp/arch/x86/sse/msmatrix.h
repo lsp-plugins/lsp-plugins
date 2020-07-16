@@ -24,9 +24,9 @@ namespace sse
             __ASM_EMIT("movaps      %[X_HALF], %%xmm7")
             __ASM_EMIT64("sub       $8, %[count]")
             __ASM_EMIT32("subl      $8, %[count]")
+            __ASM_EMIT("movaps      %%xmm7, %%xmm6")
             __ASM_EMIT("jb          2f")
             // 8x blocks
-            __ASM_EMIT("movaps      %%xmm7, %%xmm6")
             __ASM_EMIT("1:")
             __ASM_EMIT("movups      0x00(%[left], %[off]), %%xmm0")     // xmm0 = l
             __ASM_EMIT("movups      0x10(%[left], %[off]), %%xmm3")
@@ -60,7 +60,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")                    // xmm1 = l
             __ASM_EMIT("addps       %%xmm2, %%xmm0")                    // xmm0 = l + r
             __ASM_EMIT("subps       %%xmm2, %%xmm1")                    // xmm1 = l - r
-            __ASM_EMIT("mulps       %%xmm7, %%xmm0")                    // xmm0 = (l + r) * 0.5f
+            __ASM_EMIT("mulps       %%xmm6, %%xmm0")                    // xmm0 = (l + r) * 0.5f
             __ASM_EMIT("mulps       %%xmm7, %%xmm1")                    // xmm1 = (l - r) * 0.5f
             __ASM_EMIT("movups      %%xmm0, 0x00(%[mid], %[off])")
             __ASM_EMIT("movups      %%xmm1, 0x00(%[side], %[off])")
@@ -78,7 +78,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")                    // xmm1 = l
             __ASM_EMIT("addss       %%xmm2, %%xmm0")                    // xmm0 = l + r
             __ASM_EMIT("subss       %%xmm2, %%xmm1")                    // xmm1 = l - r
-            __ASM_EMIT("mulss       %%xmm7, %%xmm0")                    // xmm0 = (l + r) * 0.5f
+            __ASM_EMIT("mulss       %%xmm6, %%xmm0")                    // xmm0 = (l + r) * 0.5f
             __ASM_EMIT("mulss       %%xmm7, %%xmm1")                    // xmm1 = (l - r) * 0.5f
             __ASM_EMIT("movss       %%xmm0, 0x00(%[mid], %[off])")
             __ASM_EMIT("movss       %%xmm1, 0x00(%[side], %[off])")
@@ -177,12 +177,11 @@ namespace sse
 
     #define LR_CVT_BODY(d, l, r, op) \
         __ASM_EMIT("xor         %[off], %[off]") \
-        __ASM_EMIT("sub         $12, %[count]") \
         __ASM_EMIT("movaps      %[X_HALF], %%xmm7") \
-        __ASM_EMIT("jb          2f") \
-        \
-        /* x12 blocks */ \
+        __ASM_EMIT("sub         $12, %[count]") \
         __ASM_EMIT("movaps      %%xmm7, %%xmm6") \
+        __ASM_EMIT("jb          2f") \
+        /* x12 blocks */ \
         __ASM_EMIT("1:") \
         __ASM_EMIT("movups      0x00(%[" l "], %[off]), %%xmm0") \
         __ASM_EMIT("movups      0x10(%[" l "], %[off]), %%xmm1") \
@@ -199,7 +198,6 @@ namespace sse
         __ASM_EMIT("movups      %%xmm0, 0x00(%[" d "], %[off])")      \
         __ASM_EMIT("movups      %%xmm1, 0x10(%[" d "], %[off])")      \
         __ASM_EMIT("movups      %%xmm2, 0x20(%[" d "], %[off])")      \
-        \
         __ASM_EMIT("add         $0x30, %[off]") \
         __ASM_EMIT("sub         $12, %[count]") \
         __ASM_EMIT("jae         1b") \
@@ -213,7 +211,7 @@ namespace sse
         __ASM_EMIT("movups      0x10(%[" r "], %[off]), %%xmm4") \
         __ASM_EMIT(op "ps       %%xmm3, %%xmm0")            /* xmm0 = l <+-> r */ \
         __ASM_EMIT(op "ps       %%xmm4, %%xmm1") \
-        __ASM_EMIT("mulps       %%xmm7, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
+        __ASM_EMIT("mulps       %%xmm6, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
         __ASM_EMIT("mulps       %%xmm7, %%xmm1") \
         __ASM_EMIT("movups      %%xmm0, 0x00(%[" d "], %[off])")      \
         __ASM_EMIT("movups      %%xmm1, 0x10(%[" d "], %[off])")      \

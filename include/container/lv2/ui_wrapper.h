@@ -514,6 +514,11 @@ namespace lsp
 
                 return 0;
             }
+
+            void dump_state_request()
+            {
+                pExt->request_state_dump();
+            }
     };
 
     status_t LV2UIWrapper::slot_ui_show(LSPWidget *sender, void *ptr, void *data)
@@ -750,32 +755,9 @@ namespace lsp
 
     void LV2UIWrapper::receive_atom(const LV2_Atom_Object * obj)
     {
-        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
+        if (obj->body.otype == pExt->uridPatchSet)
         {
-            lsp_trace("Received STATE_CHANGE primitive");
-            for (
-                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                body = lv2_atom_object_next(body)
-            )
-            {
-//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-
-                // Try to find the corresponding port
-                LV2UIPort *p = find_by_urid(vUIPorts, body->key);
-                if ((p != NULL) && (p->get_type_urid() == body->value.type))
-                {
-                    p->deserialize(&body->value);
-                    p->notify_all();
-                }
-                else
-                    lsp_warn("Port id=%d (%s) not found or has bad type", int(body->key), pExt->unmap_urid(body->key));
-            }
-        }
-        else if (obj->body.otype == pExt->uridPatchSet)
-        {
-            lsp_trace("received PATCH_SET request");
+            lsp_trace("received PATCH_SET message");
 
             // Parse atom body
             LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);

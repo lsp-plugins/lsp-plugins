@@ -58,7 +58,7 @@ namespace lsp
             static over_mode_t get_oversampling_mode(size_t mode);
 
         public:
-            oscillator_mono();
+            explicit oscillator_mono();
             virtual ~oscillator_mono();
 
         public:
@@ -69,6 +69,7 @@ namespace lsp
             virtual void destroy();
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
             virtual void ui_activated();
+            virtual void dump(IStateDumper *v) const;
     };
 }
 
