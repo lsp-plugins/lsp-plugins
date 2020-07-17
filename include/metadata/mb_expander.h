@@ -25,7 +25,7 @@ namespace lsp
         static const size_t         SC_SOURCE_DFL       = 0;
         static const size_t         SC_TYPE_DFL         = 0;
 
-        static const float          FREQ_MIN            = 20.0f;
+        static const float          FREQ_MIN            = 10.0f;
         static const float          FREQ_MAX            = 20000.0f;
         static const float          FREQ_DFL            = 1000.0f;
         static const float          FREQ_STEP           = 0.002f;

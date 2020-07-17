@@ -76,7 +76,7 @@ namespace lsp
         static const size_t TIME_MESH_SIZE          = 400;
         static const float  TIME_HISTORY_MAX        = 5.0f;
 
-        static const float  FREQ_MIN                = 20.0f;
+        static const float  FREQ_MIN                = 10.0f;
         static const float  FREQ_MAX                = 20000.0f;
         static const float  FREQ_DFL                = 1000.0f;
         static const float  FREQ_STEP               = 0.002f;
