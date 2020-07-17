@@ -27,7 +27,7 @@
 </p>
 <ul>
 	<li><b>Modern operating mode</b> - special operating mode that allows to look different at <b>classic</b> crossover-based devices.
-	Crossiver-based devices use crossover filters for splitting the original signal into independent frequency bands, then process
+	Crossover-based devices use crossover filters for splitting the original signal into independent frequency bands, then process
 	each band independently by it's individual gate. Finally, all bands become phase-compensated using all-pass filers and then
 	summarized, so the output signal is formed.
 	In <b>Modern</b> mode, each band is processed by pair of dynamic shelving filters. This allows the better control the gain of each band.
