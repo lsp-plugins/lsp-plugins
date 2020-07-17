@@ -15,9 +15,9 @@ namespace test
 {
     bool point3d_ck(const point3d_t *p1, const point3d_t *p2);
     bool point3d_sck(const point3d_t *p1, const point3d_t *p2);
-    bool point3d_ack(const point3d_t *p1, const point3d_t *p2, float tolerance);
+    bool point3d_ack(const point3d_t *p1, const point3d_t *p2, float tolerance = DSP_3D_TOLERANCE);
     bool vector3d_sck(const vector3d_t *v1, const vector3d_t *v2);
-    bool vector3d_ack(const vector3d_t *v1, const vector3d_t *v2);
+    bool vector3d_ack(const vector3d_t *v1, const vector3d_t *v2, float tolerance = DSP_3D_TOLERANCE);
     bool matrix3d_ck(const matrix3d_t *m1, const matrix3d_t *m2);
 
     void dump_point(const char *text, const point3d_t *p);

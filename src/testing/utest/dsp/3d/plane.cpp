@@ -9,6 +9,8 @@
 #include <test/utest.h>
 #include <testing/utest/dsp/3d/helpers.h>
 
+#define TOLERANCE           1e-4
+
 namespace native
 {
     float calc_plane_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
@@ -56,7 +58,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, &pv[0], &pv[1], &pv[2]);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);
@@ -94,7 +96,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, pv);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);
@@ -130,7 +132,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, &sv, &pv[0], &pv[1]);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);
