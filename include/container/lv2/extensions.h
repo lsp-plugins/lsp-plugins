@@ -117,7 +117,6 @@ namespace lsp
             LV2_URID                uridObject;
             LV2_URID                uridBlank;
             LV2_URID                uridStateChanged;
-            LV2_URID                uridStateRequest;
             LV2_URID                uridUINotification;
             LV2_URID                uridConnectUI;
             LV2_URID                uridDisconnectUI;
