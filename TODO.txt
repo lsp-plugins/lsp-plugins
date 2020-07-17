@@ -16,14 +16,14 @@
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
-- Implemented Multiband gate plugin series.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
-- Implemented equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
+
+=== 1.1.26 ===
+
+- Implemented Multiband Dynamic Processor plugin series.
 
 *******************************************************************************
 * New plugin check list before release
