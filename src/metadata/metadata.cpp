@@ -153,6 +153,19 @@ namespace lsp
         return false;
     }
 
+    bool is_gain_unit(size_t unit)
+    {
+        switch (unit)
+        {
+            case U_GAIN_AMP:
+            case U_GAIN_POW:
+                return true;
+            default:
+                break;
+        }
+        return false;
+    }
+
     bool is_degree_unit(size_t unit)
     {
         switch (unit)

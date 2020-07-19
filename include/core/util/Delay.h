@@ -9,13 +9,19 @@
 #define CORE_UTIL_DELAY_HPP_
 
 #include <core/types.h>
-#include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
+    /**
+     * Delay processor
+     */
     class Delay
     {
         private:
+            Delay & operator = (const Delay &);
+
+        protected:
             float      *pBuffer;
             size_t      nHead;
             size_t      nTail;
@@ -23,8 +29,15 @@ namespace lsp
             size_t      nSize;
 
         public:
-            Delay();
+            explicit Delay();
             ~Delay();
+
+            /** Construct the processor, can be called
+             * when there is no possibility to explicitly call
+             * the constructor
+             *
+             */
+            void construct();
 
             /** Initialize delay
              *
@@ -114,6 +127,12 @@ namespace lsp
              * @return delay in samples
              */
             inline size_t get_delay() const { return nDelay; };
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

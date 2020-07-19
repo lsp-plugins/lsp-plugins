@@ -251,4 +251,36 @@ namespace lsp
         return fReduction;
     }
 
+    void Gate::dump(IStateDumper *v) const
+    {
+        v->begin_array("sCurves", sCurves, 2);
+        for (size_t i=0; i<2; ++i)
+        {
+            const curve_t *c = &sCurves[i];
+            v->begin_object(c, sizeof(curve_t));
+            {
+                v->write("fThreshold", c->fThreshold);
+                v->write("fZone", c->fZone);
+                v->write("fZS", c->fZS);
+                v->write("fZE", c->fZE);
+                v->write("fLogZS", c->fLogZS);
+                v->write("fLogZE", c->fLogZE);
+                v->writev("vHermite", c->vHermite, 4);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("fAttack", fAttack);
+        v->write("fRelease", fRelease);
+        v->write("fTauAttack", fTauAttack);
+        v->write("fTauRelease", fTauRelease);
+        v->write("fReduction", fReduction);
+        v->write("fEnvelope", fEnvelope);
+
+        v->write("nSampleRate", nSampleRate);
+        v->write("nCurve", nCurve);
+        v->write("bUpdate", bUpdate);
+    }
+
 } /* namespace lsp */

@@ -19,6 +19,7 @@ namespace lsp
             pClass          = &metadata;
             pPort           = NULL;
             bLog            = false;
+            fDefaultValue   = 0.0f;
         }
         
         CtlFader::~CtlFader()
@@ -35,6 +36,7 @@ namespace lsp
 
             // Bind slots
             fader->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+            fader->slots()->bind(LSPSLOT_MOUSE_DBL_CLICK, slot_dbl_click, this);
         }
 
         void CtlFader::set(widget_attribute_t att, const char *value)
@@ -60,7 +62,7 @@ namespace lsp
                     break;
                 case A_DEFAULT:
                     if (fader != NULL)
-                        PARSE_FLOAT(value, fader->set_default_value(__));
+                        PARSE_FLOAT(value, fDefaultValue = __);
                     break;
                 case A_MIN:
                     if (fader != NULL)
@@ -182,6 +184,24 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t CtlFader::slot_dbl_click(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlFader *_this     = static_cast<CtlFader *>(ptr);
+            if (_this != NULL)
+                _this->set_default_value();
+            return STATUS_OK;
+        }
+
+        void CtlFader::set_default_value()
+        {
+            LSPFader *fader = widget_cast<LSPFader>(pWidget);
+            if (fader == NULL)
+                return;
+
+            fader->set_value(fDefaultValue);
+            submit_value();
+        }
+
         void CtlFader::end()
         {
             // Ensure that widget is set
@@ -209,8 +229,7 @@ namespace lsp
                 fader->set_max_value(db_max);
                 fader->set_step(step * 10.0f);
                 fader->set_tiny_step(step);
-                fader->set_value(base * log(p->start));
-                fader->set_default_value(fader->value());
+                fDefaultValue   = base * log(p->start);
             }
             else if (is_discrete_unit(p->unit)) // Integer type
             {
@@ -226,8 +245,7 @@ namespace lsp
 
                 fader->set_step(step);
                 fader->set_tiny_step(step);
-                fader->set_value(p->start);
-                fader->set_default_value(p->start);
+                fDefaultValue   = p->start;
             }
             else if (bLog)  // Float and other values, logarithmic
             {
@@ -242,8 +260,7 @@ namespace lsp
                 fader->set_max_value(l_max);
                 fader->set_step(step * 10.0f);
                 fader->set_tiny_step(step);
-                fader->set_value(log(p->start));
-                fader->set_default_value(fader->value());
+                fDefaultValue   = log(p->start);
             }
             else // Float and other values, non-logarithmic
             {
@@ -251,9 +268,10 @@ namespace lsp
                 fader->set_max_value((p->flags & F_UPPER) ? p->max : 1.0f);
                 fader->set_tiny_step((p->flags & F_STEP) ? p->step : (fader->max_value() - fader->min_value()) * 0.01f);
                 fader->set_step(fader->tiny_step() * 10.0f);
-                fader->set_value(p->start);
-                fader->set_default_value(p->start);
+                fDefaultValue = p->start;
             }
+
+            fader->set_value(fDefaultValue);
         }
     
     } /* namespace ctl */

@@ -39,10 +39,10 @@ namespace lsp
         static const float          REACT_TIME_DFL      = 0.200;
         static const float          REACT_TIME_STEP     = 0.001;
 
-        static const float          SELECTOR_MIN        = 0.01;
-        static const float          SELECTOR_DFL        = 0;
-        static const float          SELECTOR_MAX        = 100;
-        static const float          SELECTOR_STEP       = 0.005;
+        static const float          SELECTOR_MIN        = 0.01f;
+        static const float          SELECTOR_DFL        = 0.01f;
+        static const float          SELECTOR_MAX        = 100.0f;
+        static const float          SELECTOR_STEP       = 0.005f;
 
         static const float          ZOOM_MIN            = GAIN_AMP_M_36_DB;
         static const float          ZOOM_MAX            = GAIN_AMP_0_DB;

@@ -6,14 +6,14 @@
  */
 
 #include <core/debug.h>
+#include <core/files/3d/IObjHandler.h>
 #include <core/resource.h>
 #include <core/files/Model3DFile.h>
-#include <core/files/3d/ObjFileParser.h>
-#include <core/files/3d/IFileHandler3D.h>
+#include <core/files/3d/Parser.h>
 
 namespace lsp
 {
-    class FileHandler3D: public IFileHandler3D
+    class FileHandler3D: public obj::IObjHandler
     {
         protected:
             typedef struct vertex_t
@@ -386,7 +386,7 @@ namespace lsp
 
             // Try to parse as obj file
             FileHandler3D fh(scene);
-            status = ObjFileParser::parse(&tmp, &fh);
+            status = obj::Parser::parse(&tmp, &fh);
             if (status == STATUS_OK)
                 return fh.complete();
 
@@ -397,7 +397,7 @@ namespace lsp
         {
             // Try to parse as obj file
             FileHandler3D fh(scene);
-            status = ObjFileParser::parse(path, &fh);
+            status = obj::Parser::parse(path, &fh);
             if (status == STATUS_OK)
                 return fh.complete();
 

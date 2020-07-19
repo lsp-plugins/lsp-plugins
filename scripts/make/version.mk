@@ -4,7 +4,7 @@ R3D_ARTIFACT_ID         = $(ARTIFACT_ID)-r3d
 
 # Package version
 ifndef LSP_VERSION
-  LSP_VERSION                 = 1.1.22
+  LSP_VERSION                 = 1.1.24
 endif
 
 export LSP_VERSION

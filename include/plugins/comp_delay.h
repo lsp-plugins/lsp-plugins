@@ -39,7 +39,7 @@ namespace lsp
             IPort      *pOut;
 
         public:
-            comp_delay_base();
+            explicit comp_delay_base();
             virtual ~comp_delay_base();
 
         public:
@@ -84,7 +84,7 @@ namespace lsp
             virtual void createBuffers();
 
         public:
-            comp_delay_impl(const plugin_metadata_t &mdata);
+            explicit comp_delay_impl(const plugin_metadata_t &mdata);
             virtual ~comp_delay_impl();
 
         public:
@@ -103,7 +103,7 @@ namespace lsp
             virtual void createBuffers();
 
         public:
-            comp_delay_mono();
+            explicit comp_delay_mono();
             virtual ~comp_delay_mono();
 
         public:
@@ -121,7 +121,7 @@ namespace lsp
             virtual void createBuffers();
 
         public:
-            comp_delay_stereo();
+            explicit comp_delay_stereo();
             virtual ~comp_delay_stereo();
 
         public:
@@ -139,7 +139,7 @@ namespace lsp
             virtual void createBuffers();
 
         public:
-            comp_delay_x2_stereo();
+            explicit comp_delay_x2_stereo();
             virtual ~comp_delay_x2_stereo();
 
         public:

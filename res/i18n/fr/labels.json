@@ -442,6 +442,8 @@
 		"dry:db": "Originel\n(dB)",
 		"dry_pan": "Pan originel",
 		"duty_ratio": "Ratio obligatoire",
+		"fade_in": "Fondu ouverture",
+		"fade_out": "Fondu fermeture",
 		"fall": "Chute",
 		"in_lr": "Entrée G/D",
 		"invert": "Inverser",
@@ -534,7 +536,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Sélectionné",
 		"worst": "Pire",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Zone de travail",

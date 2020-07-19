@@ -24,6 +24,7 @@ namespace lsp
             plugin_ui                  *pUI;
             cvector<calc::Variables>    vStack;
             calc::Variables             vRoot;
+            calc::Resolver             *pPlugin;
 
         public:
             explicit ui_builder(plugin_ui *ui);

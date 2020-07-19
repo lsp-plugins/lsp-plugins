@@ -53,8 +53,8 @@ export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGI
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
 export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
-export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION).so
-export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION).so
+export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(LSP_VERSION).so
+export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(LSP_VERSION).so
 export LIB_R3D_GLX      = $(OBJDIR)/$(R3D_ARTIFACT_ID)-glx.so
 
 # Binaries

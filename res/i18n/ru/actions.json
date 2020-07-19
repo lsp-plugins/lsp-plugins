@@ -11,6 +11,8 @@
 		"yes": "Да"
 	},
 	
+	"debug_dump": "Отладочный дамп",
+	
 	"edit": {
 		"clear": "Очистить",
 		"copy": "Копировать",
@@ -30,6 +32,7 @@
 	"freeze": "Стоп-кадр",
 	
 	"import": "Импорт",
+	"import_hydrogen_drumkit_file": "Библиотека семплов Hydrogen...",
 	"import_settings_from_clipboard": "Импорт настроек из буфера обмена",
 	"import_settings_from_file": "Импорт настроек из файла...",
 	"import_rew_filter_file": "Файл фильтров REW...",
@@ -55,6 +58,8 @@
 	
 	"postprocess": "Постобработка",
 	"profile": "Профилировать",
+	
+	"reset": "Сбросить",
 	
 	"save": "Сохранить",
 

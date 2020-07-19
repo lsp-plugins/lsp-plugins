@@ -9,6 +9,7 @@
 #define CORE_UTIL_SIDECHAIN_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 #include <core/util/ShiftBuffer.h>
 #include <core/filters/Equalizer.h>
 
@@ -39,6 +40,9 @@ namespace lsp
 
     class Sidechain
     {
+        private:
+            Sidechain & operator = (const Sidechain &);
+
         protected:
             ShiftBuffer     sBuffer;                // Shift buffer for history
             size_t          nReactivity;            // Reactivity (in samples)
@@ -63,7 +67,7 @@ namespace lsp
             bool            preprocess(float *out, const float *in);
 
         public:
-            Sidechain();
+            explicit Sidechain();
             ~Sidechain();
 
         public:
@@ -162,6 +166,12 @@ namespace lsp
              * @param in input data (one sample per channel)
              */
             float process(const float *in);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

@@ -694,6 +694,8 @@ namespace lsp
 
     void Oscillator::process_add(float *dst, const float *src, size_t count)
     {
+        update_settings();
+
         if (src != NULL)
             dsp::copy(dst, src, count);
         else
@@ -713,6 +715,8 @@ namespace lsp
 
     void Oscillator::process_mul(float *dst, const float *src, size_t count)
     {
+        update_settings();
+
         if (src != NULL)
             dsp::copy(dst, src, count);
         else
@@ -732,6 +736,8 @@ namespace lsp
 
     void Oscillator::process_overwrite(float *dst, size_t count)
     {
+        update_settings();
+
         while (count > 0)
         {
             size_t to_do = (count > PROCESS_BUF_LIMIT_SIZE) ? PROCESS_BUF_LIMIT_SIZE : count;
@@ -742,6 +748,99 @@ namespace lsp
             dst     += to_do;
             count   -= to_do;
         }
+    }
+
+    void Oscillator::dump(IStateDumper *v) const
+    {
+        v->write("enFunction", enFunction);
+        v->write("fAmplitude", fAmplitude);
+        v->write("fFrequency", fFrequency);
+        v->write("fDCOffset", fDCOffset);
+        v->write("enDCReference", enDCReference);
+        v->write("fReferencedDC", fReferencedDC);
+        v->write("fInitPhase", fInitPhase);
+
+        v->write("nSampleRate", nSampleRate);
+        v->write("nPhaseAcc", nPhaseAcc);
+        v->write("nPhaseAccBits", nPhaseAccBits);
+        v->write("nPhaseAccMaxBits", nPhaseAccMaxBits);
+        v->write("nPhaseAccMask", nPhaseAccMask);
+        v->write("fAcc2Phase", fAcc2Phase);
+
+        v->write("nFreqCtrlWord", nFreqCtrlWord);
+        v->write("nInitPhaseWord", nInitPhaseWord);
+
+        v->begin_object("sSquaredSinusoid", &sSquaredSinusoid, sizeof(sSquaredSinusoid));
+        {
+            v->write("bInvert", sSquaredSinusoid.bInvert);
+            v->write("fAmplitude", sSquaredSinusoid.fAmplitude);
+            v->write("fWaveDC", sSquaredSinusoid.fWaveDC);
+        }
+        v->end_object();
+
+        v->begin_object("sRectangular", &sRectangular, sizeof(sRectangular));
+        {
+            v->write("fDutyRatio", sRectangular.fDutyRatio);
+            v->write("nDutyWord", sRectangular.nDutyWord);
+            v->write("fWaveDC", sRectangular.fWaveDC);
+            v->write("fBLPeakAtten", sRectangular.fBLPeakAtten);
+        }
+        v->end_object();
+
+        v->begin_object("sSawtooth", &sSawtooth, sizeof(sSawtooth));
+        {
+            v->write("fWidth", sSawtooth.fWidth);
+            v->write("nWidthWord", sSawtooth.nWidthWord);
+            v->writev("fCoeffs", sSawtooth.fCoeffs, 4);
+            v->write("fWaveDC", sSawtooth.fWaveDC);
+            v->write("fBLPeakAtten", sSawtooth.fBLPeakAtten);
+        }
+        v->end_object();
+
+        v->begin_object("sTrapezoid", &sTrapezoid, sizeof(sTrapezoid));
+        {
+            v->write("fRaiseRatio", sTrapezoid.fRaiseRatio);
+            v->write("fFallRatio", sTrapezoid.fFallRatio);
+            v->writev("nPoints", sTrapezoid.nPoints, 4);
+            v->writev("fCoeffs", sTrapezoid.fCoeffs, 4);
+            v->write("fWaveDC", sTrapezoid.fWaveDC);
+            v->write("fBLPeakAtten", sTrapezoid.fBLPeakAtten);
+        }
+        v->end_object();
+
+        v->begin_object("sPulse", &sPulse, sizeof(sPulse));
+        {
+            v->write("fPosWidthRatio", sPulse.fPosWidthRatio);
+            v->write("fNegWidthRatio", sPulse.fNegWidthRatio);
+            v->writev("nTrainPoints", sPulse.nTrainPoints, 3);
+            v->write("fWaveDC", sPulse.fWaveDC);
+            v->write("fBLPeakAtten", sPulse.fBLPeakAtten);
+        }
+        v->end_object();
+
+        v->begin_object("sParabolic", &sParabolic, sizeof(sParabolic));
+        {
+            v->write("bInvert", sParabolic.bInvert);
+            v->write("fAmplitude", sParabolic.fAmplitude);
+            v->write("fWidth", sParabolic.fWidth);
+            v->write("nWidthWord", sParabolic.nWidthWord);
+            v->write("fWaveDC", sParabolic.fWaveDC);
+            v->write("fBLPeakAtten", sParabolic.fBLPeakAtten);
+
+        }
+        v->end_object();
+
+        v->write("vProcessBuffer", vProcessBuffer);
+        v->write("vSynthBuffer", vSynthBuffer);
+        v->write("pData", pData);
+
+        v->write_object("sOver", &sOver);
+        v->write_object("sOverGetPeriods", &sOverGetPeriods);
+
+        v->write("nOversampling", nOversampling);
+        v->write("enOverMode", enOverMode);
+        v->write("nFreqCtrlWord_Over", nFreqCtrlWord_Over);
+        v->write("bSync", bSync);
     }
 
 }

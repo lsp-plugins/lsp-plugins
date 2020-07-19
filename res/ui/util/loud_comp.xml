@@ -1,0 +1,220 @@
+<plugin resizable="true">
+	<grid rows="4" cols="5" spacing="4">
+		<!-- Row 1 -->
+		<void />
+		<label text="labels.chan.in" />
+		<align hpos="0">
+			<hbox spacing="4">
+				<label text="labels.contour:" />
+				<combo id="std" />
+				<label text="labels.fft.fft:" />
+				<combo id="fft" />
+			</hbox>
+		</align>
+		<label text="labels.chan.out" />
+		<void />
+		
+		<!-- Row 2 -->
+		<grid rows="5" cols="1" fill="false">
+			<label text="labels.chan.input" />
+			<knob id="input" />
+			<value id="input" />
+			
+			<hsep />
+			<button id="refer" text="labels.signal.reference" led="true" color="yellow" size="16" />
+		</grid>
+		<ui:if test="${ex :ilm}">
+			<meter fill="true"
+				type="rms_peak" logarithmic="true"
+				id="ilm" color="middle_channel"
+				min="-72 db" max="+25 db" 
+				angle="1" height="64"
+			/>
+		</ui:if>
+		<ui:if test="${ex :ilm_r}">
+			<meter fill="true" stereo="true" 
+				type="rms_peak" logarithmic="true"
+				id="ilm_l" id2="ilm_r"
+				color="left_channel" color2="right_channel"
+				min="-72 db" max="+25 db"
+				angle="1" height="64"
+			/>
+		</ui:if>
+		
+		<vbox expand="true">
+			<graph width="256" height="96" fill="true" visibility=":relspec ieq 0">
+				<center hpos="-1" vpos="-1" visible="false" />
+				
+				<!-- Gray grid -->
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<marker value="20000" color="g_gray" basis="0" parallel="1" />
+				
+				<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+				<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+				<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+				<marker value="-84 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+				
+				<!-- Yellow grid -->
+				<marker value="100" color="g_yellow" basis="0" parallel="1" />   <!-- 100 Hz -->
+				<marker value="1000" color="g_yellow" basis="0" parallel="1" />  <!-- 1 kHz -->
+				<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+	
+				<marker value="0 db" color="g_white" basis="1" parallel="0" /> 	  <!-- 0 dB -->
+				<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+				<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+				<marker value="-72 db" color="g_yellow" basis="1" parallel="0" /> <!-- -72 dB -->
+				
+				<marker value="db :volume" color="g_green" basis="1" parallel="0" /> 	  <!-- 0 dB -->
+	
+				<!-- Meshes -->
+				<mesh id="spec" width="3" color="middle_channel" />
+				
+				<!-- Boundaries -->
+				<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
+				<marker value="24000" color="g_white" basis="0" parallel="1" />
+				
+				<!-- Axis -->
+				<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
+				<axis min="-96 db" max="12 db" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
+				<axis min="-1" max="1" visible="false" angle="0.5" />
+				
+				<!-- Marker -->
+				<marker id="freq" color="g_red" basis="0" parallel="1" />
+				<marker id="lvl" color="g_red" basis="1" parallel="0" />
+				
+				<!-- Text -->
+				<text text="graph.units.hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+				<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
+				<text text="graph.values.1k" basis="0;2" coord="1000;0" halign="1" valign="1" />
+				<text text="graph.values.10k" basis="0;2" coord="10000;0" halign="1" valign="1" />
+				
+				<text text="graph.values.x:db" text:value="0" coord="10;0 db" halign="1" valign="1" />
+				<text text="-24" coord="10;-24 db" halign="1" valign="1" />
+				<text text="-48" coord="10;-48 db" halign="1" valign="1" />
+				<text text="-72" coord="10;-72 db" halign="1" valign="1" />
+			</graph>
+			
+			<graph width="256" height="96" fill="true" visibility=":relspec ieq 1">
+				<center hpos="-1" vpos="-1" visible="false" />
+				
+				<!-- Gray grid -->
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<marker value="20000" color="g_gray" basis="0" parallel="1" />
+				
+				<!-- marker value="+12 db" color="g_gray" basis="1" parallel="0" /--> <!-- +12 dB -->
+				<marker value="12 db" color="g_gray" basis="1" parallel="0" /> <!-- 12 dB -->
+				<marker value="36 db" color="g_gray" basis="1" parallel="0" /> <!-- 36 dB -->
+				<marker value="60 db" color="g_gray" basis="1" parallel="0" /> <!-- 60 dB -->
+				
+				<!-- Yellow grid -->
+				<marker value="100" color="g_yellow" basis="0" parallel="1" />   <!-- 100 Hz -->
+				<marker value="1000" color="g_yellow" basis="0" parallel="1" />  <!-- 1 kHz -->
+				<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+	
+				<marker value="0 db" color="g_white" basis="1" parallel="0" /> 	  		<!-- 0 dB -->
+				<marker value="24 db" color="g_yellow" basis="1" parallel="0" /> 		<!-- 24 dB -->
+				<marker value="48 db" color="g_yellow" basis="1" parallel="0" /> 		<!-- 48 dB -->
+				
+				<!-- Meshes -->
+				<mesh id="spec" width="3" color="middle_channel" />
+				
+				<!-- Boundaries -->
+				<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
+				<marker value="24000" color="g_white" basis="0" parallel="1" />
+				
+				<!-- Axis -->
+				<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
+				<axis min="-12 db" max="72 db" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
+				<axis min="-1" max="1" visible="false" angle="0.5" />
+				
+				<!-- Marker -->
+				<marker id="freq" color="g_red" basis="0" parallel="1" />
+				<marker id="lvl" color="g_red" basis="1" parallel="0" />
+				
+				<!-- Text -->
+				<text text="graph.units.hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+				<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
+				<text text="graph.values.1k" basis="0;2" coord="1000;0" halign="1" valign="1" />
+				<text text="graph.values.10k" basis="0;2" coord="10000;0" halign="1" valign="1" />
+				
+				<text text="0" coord="10;0 db" halign="1" valign="1" />
+				<text text="12" coord="10;12 db" halign="1" valign="1" />
+				<text text="24" coord="10;24 db" halign="1" valign="1" />
+				<text text="36" coord="10;36 db" halign="1" valign="1" />
+				<text text="48" coord="10;48 db" halign="1" valign="1" />
+				<text text="graph.values.x:db" text:value="72" coord="10;72 db" halign="1" valign="-1" />
+			</graph>
+		</vbox>
+		
+		<ui:if test="${ex :olm}">
+			<meter fill="true"
+				type="rms_peak" logarithmic="true"
+				id="olm" color="middle_channel"
+				min="-72 db" max="+25 db" 
+				angle="1" height="64"
+			/>
+		</ui:if>
+		<ui:if test="${ex :olm_r}">
+			<meter fill="true" stereo="true" 
+				type="rms_peak" logarithmic="true"
+				id="olm_l" id2="olm_r"
+				color="left_channel" color2="right_channel"
+				min="-72 db" max="+25 db"
+				angle="1" height="64"
+			/>
+		</ui:if>
+		<grid fill="false" rows="5" cols="2" hspacing="2">
+			<label text="labels.chan.volume" />
+			<hbox spacing="2">
+				<button id="hclip" size="12" color="green" led="true" />
+				<label text="labels.signal.clipping" />
+			</hbox>
+			
+			<knob id="volume" />
+			<knob id="hcrange" />
+			
+			<value id="volume" />
+			<value id="hcrange" />
+			
+			<cell cols="2">
+				<hsep />
+			</cell>
+			
+			<button id="hcclean" text="actions.reset" led="true" color="yellow" />
+			<hbox fill="false">
+				<ui:if test="${ex :olc}">
+					<led id="olc" color="middle_channel" size="12" />
+				</ui:if>
+				<ui:if test="${ex :olc_l}">
+					<led id="olc_l" color="left_channel" size="12" />
+				</ui:if>
+				<label text="labels.signal.clip" />
+				<ui:if test="${ex :olc_r}">
+					<led id="olc_r" color="right_channel" size="12"  />
+				</ui:if>
+			</hbox>
+		</grid>
+		
+		<!-- Row 3 -->
+		<void />
+		<void />
+		<hbox>
+			<align hpos="-1">
+				<label text="labels.graphs.frequency" />
+			</align>
+			<align hpos="1">
+				<hbox spacing="4">
+					<button id="relspec" size="16" color="green" led="true" />
+					<label text="labels.signal.relative" />
+				</hbox>
+			</align>
+		</hbox>
+		<void />
+		<void />
+
+	</grid>
+</plugin>

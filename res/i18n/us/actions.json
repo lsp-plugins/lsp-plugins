@@ -11,6 +11,8 @@
 		"yes": "Yes"
 	},
 	
+	"debug_dump": "Dump for debug",
+	
 	"edit": {
 		"clear": "Clear",
 		"copy": "Copy",
@@ -30,6 +32,7 @@
 	"freeze": "Freeze",
 	
 	"import": "Import",
+	"import_hydrogen_drumkit_file": "Hydrogen drumkit file...",
 	"import_settings_from_clipboard": "Import settings from clipboard",
 	"import_settings_from_file": "Import settings from file...",
 	"import_rew_filter_file": "REW filter file...",
@@ -55,6 +58,8 @@
 	
 	"postprocess": "Post-process",
 	"profile": "Profile",
+	
+	"reset": "Reset",
 	
 	"save": "Save",
 	

@@ -16,23 +16,14 @@
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
-- Implemented Multiband gate plugin series.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
-- Implemented equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
-=== 1.1.24 ===
+=== 1.1.26 ===
 
-* Fixed improper behaviour of VST controls under REAPER host (and possible other hosts).
-* Updated metadata for dynamic processors to better match the UI.
-* VST plugins now provide possibility to save and load presets and do not crash Host.
-* Added support of lv2:StateChanged extension which properly works with Ardour 6.0.145 and higher.
-* Refactored and simplified LV2 parameter transport between UI and plugin code.
-* Now all lv2:Atom ports that do not provide MIDI message transfer are marked as lv2:connectionOptional.
+- Implemented Multiband Dynamic Processor plugin series.
 
 *******************************************************************************
 * New plugin check list before release
@@ -42,6 +33,8 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
+* Ensure that plugin provides internal state dump.
+* Ensure that lsp-plugins.menu contains reference to the new plugin
 
 *******************************************************************************
 * Release steps

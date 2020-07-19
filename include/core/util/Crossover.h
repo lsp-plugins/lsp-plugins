@@ -85,7 +85,7 @@ namespace lsp
             void            build_task(size_t &n_tasks, size_t left, size_t bands, task_t *task);
 
         public:
-            Crossover();
+            explicit Crossover();
             ~Crossover();
 
         public:

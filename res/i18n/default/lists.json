@@ -112,6 +112,7 @@
 			"blackman_harris": "Blackman-Harris",
 			"blackman_nuttall": "Blackman-Nuttall",
 			"cosine": "Cosine",
+			"cubic": "Cubic Hermite Spline",
 			"flat_top": "Flat top",
 			"gauss": "Gaussian",
 			"hamming": "Hamming",
@@ -122,6 +123,7 @@
 			"parzen": "Parzen",
 			"poisson": "Poisson",
 			"rectangular": "Rectangular",
+			"sqr_cosine": "Squared cosine",
 			"triangular": "Triangular",
 			"tukey": "Tukey",
 			"welch": "Welch"
@@ -182,9 +184,16 @@
 		}
 	},
 	
+	"lcomp": {
+		"curve": {
+			"flat": "Flat",
+			"fm": "Fletcher-Munson",
+			"iso226": "ISO 226:2003",
+			"rd": "Robinson-Dadson"
+		}
+	},
+	
 	"limiter": {
-	    "classic": "Classic",
-
         "exp_duck": "Exp Duck",
         "exp_tail": "Exp Tail",
         "exp_thin": "Exp Thin",
@@ -198,11 +207,7 @@
         "line_duck": "Line Duck",
         "line_tail": "Line Tail",
         "line_thin": "Line Thin",
-        "line_wide": "Line Wide",
-
-        "mided_exp": "Mixed Exp",
-        "mixed_herm": "Mixed Herm",
-        "mided_line": "Mixed Line"
+        "line_wide": "Line Wide"
 	},
 	
 	"mb_comp": {
@@ -609,6 +614,14 @@
 		},
 		"spectralizer": "Spectralizer",
 		"spectralizer_s": "Spectralizer Stereo"
+	},
+	
+	"surge": {
+		"cubic": "Cubic",
+		"gaussian": "Gaussian",
+		"linear": "Linear",
+		"parabolic": "Parabolic",
+		"sine": "Sine"
 	},
 	
 	"trigger": {

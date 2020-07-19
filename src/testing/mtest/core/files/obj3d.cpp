@@ -6,10 +6,11 @@
  */
 
 
+#include <core/files/3d/Parser.h>
 #include <test/mtest.h>
-#include <core/files/3d/ObjFileParser.h>
 
 using namespace lsp;
+using namespace lsp::obj;
 
 static const char *FILE_NAME = "test_data/3d/test-model.obj";
 
@@ -21,8 +22,8 @@ MTEST_BEGIN("core.files", obj3d)
         if (argc > 0)
             path = argv[0];
 
-        IFileHandler3D hdl;
-        MTEST_ASSERT(ObjFileParser::parse(path, &hdl) == STATUS_OK);
+        IObjHandler hdl;
+        MTEST_ASSERT(Parser::parse(path, &hdl) == STATUS_OK);
     }
 
 MTEST_END

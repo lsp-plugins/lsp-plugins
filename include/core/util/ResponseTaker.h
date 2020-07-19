@@ -17,6 +17,10 @@ namespace lsp
 
     class ResponseTaker
     {
+        private:
+            ResponseTaker & operator = (const ResponseTaker &);
+
+        protected:
             // Input processor state enumerator
             enum ip_state_t
             {
@@ -94,14 +98,11 @@ namespace lsp
 
         public:
 
-            ResponseTaker();
+            explicit ResponseTaker();
             ~ResponseTaker();
 
-        //protected:
-
-            status_t reconfigure(Sample *testsig);
-
         public:
+            status_t reconfigure(Sample *testsig);
 
             /** Initialise ResponseTaker
              *

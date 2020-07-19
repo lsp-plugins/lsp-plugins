@@ -20,12 +20,17 @@ namespace lsp
 
             protected:
                 bool                bLog;
+                float               fDefaultValue;
                 CtlPort            *pPort;
 
             protected:
-                static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
-                void        submit_value();
-                void        commit_value(float value);
+                static status_t     slot_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_dbl_click(LSPWidget *sender, void *ptr, void *data);
+
+            protected:
+                void                submit_value();
+                void                set_default_value();
+                void                commit_value(float value);
 
             public:
                 explicit CtlFader(CtlRegistry *src, LSPFader *widget);

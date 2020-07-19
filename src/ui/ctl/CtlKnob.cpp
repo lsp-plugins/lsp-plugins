@@ -20,6 +20,9 @@ namespace lsp
             bLog            = false;
             bLogSet         = false;
             bCyclingSet     = false;
+            fDefaultValue   = 0.0f;
+            bBalanceSet     = false;
+            fBalance        = 0.0f;
         }
 
         CtlKnob::~CtlKnob()
@@ -34,6 +37,14 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t CtlKnob::slot_dbl_click(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlKnob *_this      = static_cast<CtlKnob *>(ptr);
+            if (_this != NULL)
+                _this->set_default_value();
+            return STATUS_OK;
+        }
+
         void CtlKnob::submit_value()
         {
             if (pPort == NULL)
@@ -41,7 +52,7 @@ namespace lsp
             if (pWidget == NULL)
                 return;
 
-            LSPKnob *knob   = static_cast<LSPKnob *>(pWidget);
+            LSPKnob *knob   = widget_cast<LSPKnob>(pWidget);
             float value     = knob->value();
 
             const port_t *p = pPort->metadata();
@@ -52,7 +63,7 @@ namespace lsp
                 return;
             }
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Gain
             {
                 double base     = (p->unit == U_GAIN_AMP) ? M_LN10 * 0.05 : M_LN10 * 0.1;
                 value           = exp(value * base);
@@ -76,6 +87,40 @@ namespace lsp
             pPort->notify_all();
         }
 
+        void CtlKnob::set_default_value()
+        {
+            LSPKnob *knob = widget_cast<LSPKnob>(pWidget);
+            if (knob == NULL)
+                return;
+
+            const port_t *p = pPort->metadata();
+            float dfl   = (p != NULL) ? pPort->get_default_value() : fDefaultValue;
+            float value = dfl;
+
+            if (p != NULL)
+            {
+                if (is_gain_unit(p->unit)) // Decibels
+                {
+                    double base = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
+
+                    if (value < GAIN_AMP_M_120_DB)
+                        value           = GAIN_AMP_M_120_DB;
+
+                    value = base * log(value);
+                }
+                else if (bLog)
+                {
+                    if (value < GAIN_AMP_M_120_DB)
+                        value           = GAIN_AMP_M_120_DB;
+                    value = log(value);
+                }
+            }
+
+            knob->set_value(value);
+            pPort->set_value(dfl);
+            pPort->notify_all();
+        }
+
         void CtlKnob::commit_value(float value)
         {
             if (pWidget == NULL)
@@ -89,7 +134,7 @@ namespace lsp
             if (p == NULL)
                 return;
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Decibels
             {
                 double base = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
 
@@ -97,25 +142,17 @@ namespace lsp
                     value           = GAIN_AMP_M_120_DB;
 
                 knob->set_value(base * log(value));
-                knob->set_default_value(base * log(pPort->get_default_value()));
             }
             else if (is_discrete_unit(p->unit)) // Integer type
-            {
                 knob->set_value(truncf(value));
-                knob->set_default_value(pPort->get_default_value());
-            }
             else if (bLog)
             {
                 if (value < GAIN_AMP_M_120_DB)
                     value           = GAIN_AMP_M_120_DB;
                 knob->set_value(log(value));
-                knob->set_default_value(log(pPort->get_default_value()));
             }
             else
-            {
                 knob->set_value(value);
-                knob->set_default_value(pPort->get_default_value());
-            }
         }
 
         void CtlKnob::init()
@@ -133,6 +170,7 @@ namespace lsp
 
             // Bind slots
             knob->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+            knob->slots()->bind(LSPSLOT_MOUSE_DBL_CLICK, slot_dbl_click, this);
         }
 
         void CtlKnob::set(widget_attribute_t att, const char *value)
@@ -154,7 +192,7 @@ namespace lsp
                     break;
                 case A_DEFAULT:
                     if (knob != NULL)
-                        PARSE_FLOAT(value, knob->set_default_value(__));
+                        PARSE_FLOAT(value, fDefaultValue = __);
                     break;
                 case A_MIN:
                     if (knob != NULL)
@@ -177,8 +215,9 @@ namespace lsp
                         PARSE_FLOAT(value, knob->set_tiny_step(__));
                     break;
                 case A_BALANCE:
+                    bBalanceSet = true;
                     if (knob != NULL)
-                        PARSE_FLOAT(value, knob->set_balance(__));
+                        PARSE_FLOAT(value, knob->set_balance(fBalance = __));
                     break;
                 case A_CYCLE:
                     bCyclingSet = true;
@@ -203,6 +242,22 @@ namespace lsp
                 commit_value(pPort->get_value());
         }
 
+        static inline float limit(float v, float min, float max)
+        {
+            if (min < max)
+            {
+                if (v < min)
+                    return min;
+                return (v > max) ? max : v;
+            }
+            else
+            {
+                if (v < max)
+                    return max;
+                return (v > min) ? min : v;
+            }
+        }
+
         void CtlKnob::end()
         {
             // Call parent controller
@@ -216,48 +271,54 @@ namespace lsp
             // Ensure that port is set
             const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
             if (p == NULL)
+            {
+                knob->set_value(fDefaultValue);
                 return;
+            }
 
             // Update logarithmic flag
             if (!bLogSet)
                 bLog        = (p->flags & F_LOG);
 
-            if (is_decibel_unit(p->unit)) // Decibels
+            if (is_gain_unit(p->unit)) // Gain
             {
                 double base     = (p->unit == U_GAIN_AMP) ? 20.0 / M_LN10 : 10.0 / M_LN10;
 
                 float min       = (p->flags & F_LOWER) ? p->min : 0.0f;
                 float max       = (p->flags & F_UPPER) ? p->max : GAIN_AMP_P_12_DB;
+                float dfl       = (bBalanceSet) ? fBalance : min;
 
                 double step     = base * log((p->flags & F_STEP) ? p->step + 1.0f : 1.01f) * 0.1f;
                 double thresh   = ((p->flags & F_EXT) ? GAIN_AMP_M_140_DB : GAIN_AMP_M_80_DB);
 
                 double db_min   = (fabs(min) < thresh) ? (base * log(thresh) - step) : (base * log(min));
                 double db_max   = (fabs(max) < thresh) ? (base * log(thresh) - step) : (base * log(max));
+                double db_dfl   = (fabs(max) < thresh) ? (base * log(thresh) - step) : (base * log(dfl));
+                float balance   = limit(db_dfl, db_min, db_max);
 
                 knob->set_min_value(db_min);
                 knob->set_max_value(db_max);
+                knob->set_balance(balance);
                 knob->set_step(step * 10.0f);
                 knob->set_tiny_step(step);
-                knob->set_value(base * log(p->start));
-                knob->set_default_value(knob->value());
+                fDefaultValue   = base * log(p->start);
             }
             else if (is_discrete_unit(p->unit)) // Integer type
             {
-                knob->set_min_value((p->flags & F_LOWER) ? p->min : 0.0f);
-                if (p->unit == U_ENUM)
-                    knob->set_max_value(knob->min_value() + list_size(p->items) - 1.0f);
-                else
-                    knob->set_max_value((p->flags & F_UPPER) ? p->max : 1.0f);
-
-                // Get step, truncate to integer amd process value
+                float min       = (p->flags & F_LOWER) ? p->min : 0.0f;
+                float max       = (p->unit == U_ENUM) ? min + list_size(p->items) - 1.0f :
+                                  (p->flags & F_UPPER) ? p->max : 1.0f;
+                float dfl       = (bBalanceSet) ? fBalance : p->min;
+                float balance   = limit(dfl, min, max);
                 ssize_t step    = (p->flags & F_STEP) ? p->step : 1;
                 step            = (step == 0) ? 1 : step;
 
+                knob->set_min_value(min);
+                knob->set_max_value(max);
+                knob->set_balance(balance);
                 knob->set_step(step);
                 knob->set_tiny_step(step);
-                knob->set_value(p->start);
-                knob->set_default_value(p->start);
+                fDefaultValue   = p->start;
                 if (!bCyclingSet)
                     knob->set_cycling(p->flags & F_CYCLIC);
             }
@@ -265,29 +326,40 @@ namespace lsp
             {
                 float min       = (p->flags & F_LOWER) ? p->min : 0.0f;
                 float max       = (p->flags & F_UPPER) ? p->max : GAIN_AMP_P_12_DB;
+                float dfl       = (bBalanceSet) ? fBalance : min;
 
                 double step     = log((p->flags & F_STEP) ? p->step + 1.0f : 1.01f);
                 double l_min    = (fabs(min) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(min);
                 double l_max    = (fabs(max) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(max);
+                double l_dfl    = (fabs(dfl) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(dfl);
+                float balance   = limit(l_dfl, l_min, l_max);
 
                 knob->set_min_value(l_min);
                 knob->set_max_value(l_max);
+                knob->set_balance(balance);
                 knob->set_step(step * 10.0f);
                 knob->set_tiny_step(step);
-                knob->set_value(log(p->start));
-                knob->set_default_value(knob->value());
+                fDefaultValue = log(p->start);
             }
             else // Float and other values, non-logarithmic
             {
-                knob->set_min_value((p->flags & F_LOWER) ? p->min : 0.0f);
-                knob->set_max_value((p->flags & F_UPPER) ? p->max : 1.0f);
-                knob->set_tiny_step((p->flags & F_STEP) ? p->step : (knob->max_value() - knob->min_value()) * 0.01f);
+                float min       = (p->flags & F_LOWER) ? p->min : 0.0f;
+                float max       = (p->flags & F_UPPER) ? p->max : 1.0f;
+                float dfl       = (bBalanceSet) ? fBalance : min;
+                float balance   = limit(dfl, min, max);
+
+                knob->set_min_value(min);
+                knob->set_max_value(max);
+                knob->set_balance(balance);
+                knob->set_tiny_step((p->flags & F_STEP) ? p->step : (max - min) * 0.01f);
                 knob->set_step(knob->tiny_step() * 10.0f);
-                knob->set_value(p->start);
-                knob->set_default_value(p->start);
+                fDefaultValue   = p->start;
                 if (!bCyclingSet)
                     knob->set_cycling(p->flags & F_CYCLIC);
             }
+
+            // Set default value to the knob
+            knob->set_value(fDefaultValue);
         }
 
     } /* namespace ctl */

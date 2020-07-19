@@ -194,14 +194,14 @@ namespace sse
             __ASM_EMIT("movaps      %[x2], 0x20(%[bf])")
             __ASM_EMIT("movaps      %[x5], 0x40(%[bf])")
             __ASM_EMIT("movaps      %[x7], 0x60(%[bf])")
-            __ASM_EMIT("movss       0x20 + %[DATA], %%xmm2")    // x2 = b1[0] 0 0 0
-            __ASM_EMIT("movss       0x24 + %[DATA], %%xmm3")    // x3 = b1[1] 0 0 0
-            __ASM_EMIT("movss       0x28 + %[DATA], %%xmm4")    // x4 = b1[2] 0 0 0
-            __ASM_EMIT("movss       0x2c + %[DATA], %%xmm5")    // x5 = b1[3] 0 0 0
-            __ASM_EMIT("movaps      %%xmm2, 0x10(%[bf])")
-            __ASM_EMIT("movaps      %%xmm3, 0x30(%[bf])")
-            __ASM_EMIT("movaps      %%xmm4, 0x50(%[bf])")
-            __ASM_EMIT("movaps      %%xmm5, 0x70(%[bf])")
+            __ASM_EMIT("movss       0x20 + %[DATA], %[x2]")     // x2 = b1[0] 0 0 0
+            __ASM_EMIT("movss       0x24 + %[DATA], %[x3]")     // x3 = b1[1] 0 0 0
+            __ASM_EMIT("movss       0x28 + %[DATA], %[x4]")     // x4 = b1[2] 0 0 0
+            __ASM_EMIT("movss       0x2c + %[DATA], %[x5]")     // x5 = b1[3] 0 0 0
+            __ASM_EMIT("movaps      %[x2], 0x10(%[bf])")
+            __ASM_EMIT("movaps      %[x3], 0x30(%[bf])")
+            __ASM_EMIT("movaps      %[x4], 0x50(%[bf])")
+            __ASM_EMIT("movaps      %[x5], 0x70(%[bf])")
 
             // Update pointers and repeat loop
             __ASM_EMIT("add         $0x80, %[bc]")

@@ -30,9 +30,6 @@ namespace lsp
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
         fPreamp         = GAIN_AMP_0_DB;
-        fThresh         = GAIN_AMP_0_DB;
-        fKnee           = 0.0f;
-        bBoost          = false;
         nOversampling   = limiter_base_metadata::OVS_DEFAULT;
         fStereoLink     = 1.0f;
         pIDisplay       = NULL;
@@ -42,6 +39,10 @@ namespace lsp
         pInGain         = NULL;
         pOutGain        = NULL;
         pPreamp         = NULL;
+
+        pAlrOn          = NULL;
+        pAlrAttack      = NULL;
+        pAlrRelease     = NULL;
         pMode           = NULL;
         pThresh         = NULL;
         pLookahead      = NULL;
@@ -167,6 +168,12 @@ namespace lsp
         pOutGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pPreamp         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrOn          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrAttack      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pAlrRelease     = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMode           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -360,18 +367,10 @@ namespace lsp
             case limiter_base_metadata::LOM_LINE_DUCK:
                 return LM_LINE_DUCK;
 
-            case limiter_base_metadata::LOM_MIXED_HERM:
-                return LM_MIXED_HERM;
-            case limiter_base_metadata::LOM_MIXED_EXP:
-                return LM_MIXED_EXP;
-            case limiter_base_metadata::LOM_MIXED_LINE:
-                return LM_MIXED_LINE;
-
-            case limiter_base_metadata::LOM_CLASSIC:
             default:
-                return LM_COMPRESSOR;
+                break;
         }
-        return LM_COMPRESSOR;
+        return LM_HERM_THIN;
     }
 
     size_t limiter_base::get_dithering(size_t mode)
@@ -428,15 +427,22 @@ namespace lsp
         float attack                = pAttack->getValue();
         float release               = pRelease->getValue();
         float knee                  = pKnee->getValue();
+        bool alr_on                 = pAlrOn->getValue() >= 0.5f;
+        float alr_attack            = pAlrAttack->getValue();
+        float alr_release           = pAlrRelease->getValue();
         fStereoLink                 = (pStereoLink != NULL) ? pStereoLink->getValue()*0.01f : 1.0f;
         bExtSc                      = (pExtSc != NULL) ? pExtSc->getValue() >= 0.5f : false;
 
-        fThresh                     = 1.0f / thresh;
-        fInGain                     = pInGain->getValue();
+        bool boost                  = pBoost->getValue();
         fOutGain                    = pOutGain->getValue();
+        if (boost)
+            fOutGain                   /= thresh;
+
+        fInGain                     = pInGain->getValue();
+
         fPreamp                     = pPreamp->getValue();
         limiter_mode_t op_mode      = get_limiter_mode(pMode->getValue());
-        bBoost                      = pBoost->getValue();
+
 
         sDither.set_bits(dither);
 
@@ -466,12 +472,13 @@ namespace lsp
             c->sLimit.set_mode(op_mode);
             c->sLimit.set_sample_rate(real_sample_rate);
             c->sLimit.set_lookahead(lk_ahead);
-            c->sLimit.set_threshold(thresh);
+            c->sLimit.set_threshold(thresh, !boost);
             c->sLimit.set_attack(attack);
             c->sLimit.set_release(release);
             c->sLimit.set_knee(knee);
-            if (c->sLimit.modified())
-                c->sLimit.update_settings();
+            c->sLimit.set_alr(alr_on);
+            c->sLimit.set_alr_attack(alr_attack);
+            c->sLimit.set_alr_release(alr_release);
 
             // Update meters
             for (size_t j=0; j<G_TOTAL; ++j)
@@ -564,15 +571,13 @@ namespace lsp
                 }
             }
 
-            float out_gain = (bBoost) ? fOutGain * fThresh : fOutGain;
-
             // Perform downsampling and post-processing of signal and sidechain
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c    = &vChannels[i];
 
                 // Update output signal: adjust gain
-                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, out_gain, to_doxn);
+                dsp::fmmul_k3(c->vDataBuf, c->vGainBuf, fOutGain, to_doxn);
 
                 // Do metering
                 c->sGraph[G_OUT].process(c->vDataBuf, to_doxn);
@@ -750,6 +755,93 @@ namespace lsp
         }
 
         return true;
+    }
+
+    void limiter_base::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->write("bSidechain", bSidechain);
+        v->begin_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write_object("sBypass", &c->sBypass);
+                v->write_object("sOver", &c->sOver);
+                v->write_object("sScOver", &c->sScOver);
+                v->write_object("sLimit", &c->sLimit);
+
+                v->begin_array("sGraph", c->sGraph, G_TOTAL);
+                for (size_t j=0; j<G_TOTAL; ++j)
+                    v->write_object(&c->sGraph[j]);
+                v->end_array();
+
+                v->write_object("sBlink", &c->sBlink);
+
+                v->write("vIn", c->vIn);
+                v->write("vSc", c->vSc);
+                v->write("vOut", c->vOut);
+
+                v->write("vDataBuf", c->vDataBuf);
+                v->write("vScBuf", c->vScBuf);
+                v->write("vGainBuf", c->vGainBuf);
+                v->write("vOutBuf", c->vOutBuf);
+
+                v->writev("bVisible", c->bVisible, G_TOTAL);
+                v->write("bOutVisible", c->bOutVisible);
+                v->write("bGainVisible", c->bGainVisible);
+                v->write("bScVisible", c->bScVisible);
+
+                v->write("pIn", c->pIn);
+                v->write("pOut", c->pOut);
+                v->write("pSc", c->pSc);
+                v->writev("pVisible", c->pVisible, G_TOTAL);
+
+                v->writev("pGraph", c->pGraph, G_TOTAL);
+                v->writev("pMeter", c->pMeter, G_TOTAL);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("vTime", vTime);
+        v->write("bPause", bPause);
+        v->write("bClear", bClear);
+        v->write("bExtSc", bExtSc);
+        v->write("bScListen", bScListen);
+        v->write("fInGain", fInGain);
+        v->write("fOutGain", fOutGain);
+        v->write("fPreamp", fPreamp);
+        v->write("nOversampling", nOversampling);
+        v->write("fStereoLink", fStereoLink);
+        v->write("pIDisplay", pIDisplay);
+        v->write("bUISync", bUISync);
+
+        v->write_object("sDither", &sDither);
+
+        v->write("pBypass", pBypass);
+        v->write("pInGain", pInGain);
+        v->write("pOutGain", pOutGain);
+        v->write("pPreamp", pPreamp);
+        v->write("pAlrOn", pAlrOn);
+        v->write("pAlrAttack", pAlrAttack);
+        v->write("pAlrRelease", pAlrRelease);
+        v->write("pMode", pMode);
+        v->write("pThresh", pThresh);
+        v->write("pLookahead", pLookahead);
+        v->write("pAttack", pAttack);
+        v->write("pRelease", pRelease);
+        v->write("pPause", pPause);
+        v->write("pClear", pClear);
+        v->write("pExtSc", pExtSc);
+        v->write("pScListen", pScListen);
+        v->write("pKnee", pKnee);
+        v->write("pBoost", pBoost);
+        v->write("pOversampling", pOversampling);
+        v->write("pDithering", pDithering);
+        v->write("pStereoLink", pStereoLink);
+        v->write("pData", pData);
     }
 
     //-------------------------------------------------------------------------

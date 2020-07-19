@@ -34,7 +34,6 @@ namespace lsp
                 float               fBalance;
                 size_t              nButtons;
 
-                float               fDflValue;
                 float               fValue;
                 float               fStep;
                 float               fTinyStep;
@@ -67,7 +66,6 @@ namespace lsp
                 inline size_t           size() const { return nSize; }
                 inline float            balance() const { return fBalance; }
                 inline float            value() const { return fValue; }
-                inline float            default_value() const { return fDflValue; }
                 inline float            step() const { return fStep; }
                 inline float            tiny_step() const { return fTinyStep; }
                 inline float            min_value() const { return fMin; }
@@ -78,7 +76,6 @@ namespace lsp
                 void                    set_size(size_t value);
                 void                    set_balance(float value);
                 void                    set_value(float value);
-                void                    set_default_value(float value);
                 void                    set_step(float value);
                 void                    set_tiny_step(float value);
                 void                    set_min_value(float value);
@@ -95,8 +92,6 @@ namespace lsp
                 virtual status_t on_mouse_move(const ws_event_t *e);
 
                 virtual status_t on_mouse_scroll(const ws_event_t *e);
-
-                virtual status_t on_mouse_dbl_click(const ws_event_t *e);
 
                 virtual void draw(ISurface *s);
         };

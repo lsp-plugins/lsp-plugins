@@ -183,8 +183,6 @@
 	},
 	
 	"limiter": {
-	    "classic": "Clásico",
-
         "exp_duck": "Exp Atenuado",
         "exp_tail": "Exp Cola",
         "exp_thin": "Exp Estrecho",
@@ -198,11 +196,7 @@
         "line_duck": "Line Atenuado",
         "line_tail": "Line Cola",
         "line_thin": "Line Estrecho",
-        "line_wide": "Line Ancho",
-
-        "mided_exp": "Mixed Exp",
-        "mixed_herm": "Mixed Herm",
-        "mided_line": "Mixed Line"
+        "line_wide": "Line Ancho"
 	},
 	
 	"mb_comp": {

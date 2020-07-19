@@ -18,8 +18,6 @@ namespace lsp
 
     static port_item_t limiter_oper_modes[] =
     {
-        { "Classic",        "limiter.classic" },
-
         { "Herm Thin",      "limiter.herm_thin" },
         { "Herm Wide",      "limiter.herm_wide" },
         { "Herm Tail",      "limiter.herm_tail" },
@@ -34,10 +32,6 @@ namespace lsp
         { "Line Wide",      "limiter.line_wide" },
         { "Line Tail",      "limiter.line_tail" },
         { "Line Duck",      "limiter.line_duck" },
-
-        { "Mixed Herm",     "limiter.mixed_herm" },
-        { "Mixed Exp",      "limiter.mixed_exp" },
-        { "Mixed Line",     "limiter.mixed_line" },
 
         { NULL, NULL }
     };
@@ -90,6 +84,9 @@ namespace lsp
         IN_GAIN,            \
         OUT_GAIN,           \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB), \
+        SWITCH("alr", "Automatic level regulation", 1.0f), \
+        LOG_CONTROL("alr_at", "Automatic level regulation attack time", U_MSEC, limiter_base_metadata::ALR_ATTACK_TIME), \
+        LOG_CONTROL("alr_rt", "Automatic level regulation release time", U_MSEC, limiter_base_metadata::ALR_RELEASE_TIME), \
         COMBO("mode", "Operating mode", limiter_base_metadata::LOM_DEFAULT, limiter_oper_modes), \
         LOG_CONTROL("th", "Threshold", U_GAIN_AMP, limiter_base_metadata::THRESHOLD), \
         LOG_CONTROL("knee", "Knee", U_GAIN_AMP, limiter_base_metadata::KNEE), \
@@ -184,9 +181,9 @@ namespace lsp
         "limiter_mono",
         "jz5z",
         LSP_LIMITER_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
         NULL,
@@ -202,9 +199,9 @@ namespace lsp
         "limiter_stereo",
         "rfuc",
         LSP_LIMITER_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
         NULL,
@@ -220,9 +217,9 @@ namespace lsp
         "sc_limiter_mono",
         "kyzu",
         LSP_LIMITER_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_limiter_mono_ports,
         "dynamics/limiter/single/mono.xml",
         NULL,
@@ -238,9 +235,9 @@ namespace lsp
         "sc_limiter_stereo",
         "zwf7",
         LSP_LIMITER_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         limiter_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         sc_limiter_stereo_ports,
         "dynamics/limiter/single/stereo.xml",
         NULL,

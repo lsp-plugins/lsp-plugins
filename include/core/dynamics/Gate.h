@@ -9,6 +9,7 @@
 #define CORE_DYNAMICS_GATE_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -209,6 +210,12 @@ namespace lsp
              * @param hyst output hysteresis amplification or direct amplification
              */
             float amplification(float in, bool hyst);
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

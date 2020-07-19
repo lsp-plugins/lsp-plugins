@@ -196,6 +196,8 @@ namespace lsp
         { "Rectangular",            "fft.wnd.rectangular" },
         { "Flat top",               "fft.wnd.flat_top" },
         { "Cosine",                 "fft.wnd.cosine" },
+        { "Squared Cosine",         "fft.wnd.sqr_cosine" },
+        { "Cubic",                  "fft.wnd.cubic" },
         { NULL, NULL }
     };
 

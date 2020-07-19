@@ -1,0 +1,221 @@
+<plugin resizable="true">
+	<grid rows="4" cols="3" spacing="2">
+		<!-- Input level meters -->
+		<ui:if test="${ex :ilm}">
+			<hbox spacing="4">
+				<meter expand="true"
+					id="ilm" angle="0"
+				    type="rms_peak"
+					min="-72 db" max="+6 db" 
+					color="middle_channel"
+				/>
+				<label text="labels.input:db" />
+				<void min_width="64" />
+				<label text="labels.output:db" />
+				<meter expand="true"
+					id="olm" angle="0"
+				    type="rms_peak"
+					min="-72 db" max="+6 db" 
+					color="middle_channel"
+				/>
+			</hbox>
+		</ui:if>
+		<ui:if test="${ex :ilm_r}">
+			<hbox spacing="4">
+				<meter expand="true" 
+					stereo="true" type="rms_peak" angle="0"
+					id="ilm_l" id2="ilm_r" 
+					min="-72 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
+				<label text="labels.input:db" />
+				<void min_width="64" />
+				<label text="labels.output:db" />
+				<meter expand="true"
+					stereo="true" type="rms_peak" angle="0"
+					id="olm_l" id2="olm_r"
+					min="-72 db" max="+6 db" 
+					color="left_channel" color2="right_channel"
+				/>
+			</hbox>
+		</ui:if>
+		<label text="labels.Env_elope" />
+		<label text="labels.gain_" />
+		
+		<!-- Time graph -->
+		<graph width="640" height="256" expand="true">
+			<center hpos="1" vpos="-1" visible="false" />
+			
+			<!-- Gray grid -->
+			<ui:for id="t" first="0" last="4" step="1">
+				<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
+				<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
+				<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
+			</ui:for>
+		
+			<marker value="12 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-12 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-36 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-60 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-84 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-108 db" color="g_gray" basis="1" parallel="0" />
+			<marker value="-132 db" color="g_gray" basis="1" parallel="0" />
+
+			<!-- Yellow grid -->
+			<ui:for id="t" first="1" last="4" step="1">
+				<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
+			</ui:for>
+
+			<marker value="1" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-24 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-48 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-72 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-96 db" color="g_yellow" basis="1" parallel="0" />
+			<marker value="-120 db" color="g_yellow" basis="1" parallel="0" />
+
+			<!-- Meshes -->
+			<ui:if test="${ex :ilm}">
+				<mesh id="ig" width="2" color="middle_channel_in" x_index="0" y_index="1" visibility=":igv" />
+				<mesh id="og" width="2" color="middle_channel" x_index="0" y_index="1" visibility=":ogv" />
+			</ui:if>
+			
+			<ui:if test="${ex :ilm_r}">
+				<mesh id="ig" width="2" color="left_channel_in" x_index="0" y_index="1" visibility=":igv_l" />
+				<mesh id="ig" width="2" color="right_channel_in" x_index="0" y_index="2" visibility=":igv_r" />
+				<mesh id="og" width="2" color="left_channel" x_index="0" y_index="1" visibility=":ogv_l" />
+				<mesh id="og" width="2" color="right_channel" x_index="0" y_index="2" visibility=":ogv_r" />
+			</ui:if>
+			
+			<mesh id="eg" width="2" color="bright_magenta" visibility=":ev" />
+			<mesh id="grg" width="2" color="bright_blue" visibility=":grv" />
+			
+			<!-- Boundaries -->
+			<marker value="24 db" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
+			<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
+			
+			<!-- Axis -->
+			<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
+			<axis min="-144 db" max="24 db" color="g_white" angle="0.5" logarithmic="true" />
+			
+			<!-- Text -->
+			<text text="graph.units.s" coord="5;-144 db" halign="1" valign="1" />
+			<ui:for id="t" first="0" last="4" step="1">
+				<text text="${t}" coord="${t};-144 db" halign="-1" valign="1" color="white" />
+				<text text="${t}.5" coord="${t}.5;-144 db" halign="-1" valign="1" color="white" />
+			</ui:for>
+			
+			<text text="+12" coord="5;12 db" halign="1" valign="1" />
+			<text text="graph.values.x:db" text:value="0" coord="5;1" halign="1" valign="1" />
+			<text text="-12" coord="5;-12 db" halign="1" valign="1" />
+			<text text="-24" coord="5;-24 db" halign="1" valign="1" />
+			<text text="-36" coord="5;-36 db" halign="1" valign="1" />
+			<text text="-48" coord="5;-48 db" halign="1" valign="1" />
+			<text text="-60" coord="5;-60 db" halign="1" valign="1" />
+			<text text="-72" coord="5;-72 db" halign="1" valign="1" />
+			<text text="-84" coord="5;-84 db" halign="1" valign="1" />
+			<text text="-96" coord="5;-96 db" halign="1" valign="1" />
+			<text text="-108" coord="5;-108 db" halign="1" valign="1" />
+			<text text="-120" coord="5;-120 db" halign="1" valign="1" />
+			<text text="-132" coord="5;-132 db" halign="1" valign="1" />
+			
+			<!-- Markers -->
+			<marker id="thr_on" color="g_magenta" basis="1" parallel="0" />
+			<marker id="thr_off" color="g_blue" basis="1" parallel="0" />
+		</graph>
+		<meter 
+			id="em"  
+			angle="1" logarithmic="true" type="peak"
+			min="-144 db" max="24 db" balance="0 db" 
+			height="256" color="bright_magenta"
+		/>
+		<meter 
+			id="grm"  
+			angle="1" logarithmic="true" type="peak"
+			min="-144 db" max="24 db" balance="0 db" 
+			height="256" color="bright_blue"
+		/>
+		
+		<!-- Misc controls -->
+		<hbox spacing="4">
+			<ui:if test="${ex :igv}">
+				<button id="igv" color="middle_channel" led="true" size="16" />
+			</ui:if>
+			<ui:if test="${ex :igv_r}">
+				<grid rows="2" cols="2">
+					<button id="igv_l" color="left_channel" led="true" size="8" />
+					<button id="igv_r" color="right_channel" led="true" size="8" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
+			</ui:if>
+			<label text="labels.input" />
+			<ui:if test="${ex :ogv}">
+				<button id="ogv" color="middle_channel" led="true" size="16" />
+			</ui:if>
+			<ui:if test="${ex :ogv_r}">
+				<grid rows="2" cols="2">
+					<button id="ogv_l" color="left_channel" led="true" size="8" />
+					<button id="ogv_r" color="right_channel" led="true" size="8" />
+					<label text="labels.chan.L_eft" color="left_channel" font_size="9" />
+					<label text="labels.chan.R_ight" color="right_channel" font_size="9" />
+				</grid>
+			</ui:if>
+			<label text="labels.output" />
+			<button id="ev" color="bright_magenta" led="true" size="16" />
+			<label text="labels.signal.envelope" />
+			<button id="grv" color="bright_blue" led="true" size="16" />
+			<label text="labels.gain" />
+			
+			<align hpos="1" expand="true">
+				<label text="labels.graphs.time" />
+			</align>
+		</hbox>
+		<void />
+		<void />
+		
+		<!-- Main controls -->
+		<cell cols="3">
+			<group text="labels.plug.surge_filter">
+				<grid rows="4" cols="12" spacing="2">
+					<cell rows="2"><label text="labels.input" /></cell>
+					<cell rows="2"><label text="labels.signal.rms" color="red" /></cell>
+					<cell rows="4"><vsep /></cell>
+					<cell cols="2"><label text="labels.signal.fade_in" /></cell>
+					<combo id="modein" />
+					<cell rows="4"><vsep /></cell>
+					<cell cols="2"><label text="labels.signal.fade_out" /></cell>
+					<combo id="modeout" />
+					<cell rows="4"><vsep /></cell>
+					<cell rows="2"><label text="labels.output" /></cell>
+					
+					<label text="labels.thresh_old" />
+					<label text="labels.time" />
+					<label text="labels.delay" />
+					<label text="labels.thresh_old" />
+					<label text="labels.time" color="red" />
+					<label text="labels.delay" />
+					
+					<knob id="input" />
+					<knob id="rms" scale_color="red" />
+					<knob id="thr_on" scale_color="magenta" />
+					<knob id="fadein" />
+					<knob id="fidelay" />
+					<knob id="thr_off" scale_color="blue" />
+					<knob id="fadeout" scale_color="red" />
+					<knob id="fodelay" />
+					<knob id="output" />
+					
+					<value id="input" />
+					<value id="rms" />
+					<value id="thr_on" />
+					<value id="fadein" />
+					<value id="fidelay" />
+					<value id="thr_off" />
+					<value id="fadeout" />
+					<value id="fodelay" />
+					<value id="output" />
+				</grid>
+			</group>
+		</cell>
+	</grid>
+</plugin>

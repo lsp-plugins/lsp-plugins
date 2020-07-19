@@ -1,7 +1,6 @@
 /.svn/*
 /.settings/*
 /design/*
-/res/specs/*
 /.builconfig/*
 /.build/*
 /.buildconfig/*
@@ -21,6 +20,7 @@
 /design/
 /Debug AVX/
 /Release AVX/
+/INSTALL/*
 *.log
 /gmon.out
 **/*.gmon

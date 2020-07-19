@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <math.h>
+#include <core/IStateDumper.h>
 #include <core/util/Oversampler.h>
 
 namespace lsp
@@ -468,6 +469,12 @@ namespace lsp
              * @param count number of samples to process
              */
             void process_overwrite(float *dst, size_t count);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
 
         protected:
 

@@ -13,14 +13,19 @@ namespace lsp
     
     Crossfade::Crossfade()
     {
-        nSamples    = 0;
-        nCounter    = 0;
-        fDelta      = 0.0f;
-        fGain       = 1.0f;
+        construct();
     }
 
     Crossfade::~Crossfade()
     {
+    }
+
+    void Crossfade::construct()
+    {
+        nSamples    = 0;
+        nCounter    = 0;
+        fDelta      = 0.0f;
+        fGain       = 1.0f;
     }
 
     void Crossfade::init(int sample_rate, float time)
@@ -130,5 +135,12 @@ namespace lsp
         }
     }
 
+    void Crossfade::dump(IStateDumper *v) const
+    {
+        v->write("nSamples", nSamples);
+        v->write("nCounter", nCounter);
+        v->write("fDelta", fDelta);
+        v->write("fGain", fGain);
+    }
 
 } /* namespace lsp */

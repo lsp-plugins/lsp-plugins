@@ -20,6 +20,7 @@
 #define UI_DLG_CONFIG_PATH_ID               "dlg_config_path"
 #define UI_DLG_MODEL3D_PATH_ID              "dlg_model3d_path"
 #define UI_DLG_REW_PATH_ID                  "dlg_rew_path"
+#define UI_DLG_HYDROGEN_PATH_ID             "dlg_hydrogen_path"
 #define UI_R3D_BACKEND_PORT_ID              "r3d_backend"
 #define UI_LANGUAGE_PORT_ID                 "language"
 

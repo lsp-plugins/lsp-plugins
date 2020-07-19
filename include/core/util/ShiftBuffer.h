@@ -9,6 +9,7 @@
 #define CORE_UTIL_SHIFTBUFFER_H_
 
 #include <dsp/dsp.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -21,13 +22,16 @@ namespace lsp
     class ShiftBuffer
     {
         private:
+            ShiftBuffer & operator = (const ShiftBuffer &);
+
+        protected:
             float      *pData;
             size_t      nCapacity;
             size_t      nHead;
             size_t      nTail;
 
         public:
-            ShiftBuffer();
+            explicit ShiftBuffer();
             ~ShiftBuffer();
 
         public:
@@ -220,6 +224,12 @@ namespace lsp
              * @param src buffer to copy data from
              */
             void copy(const ShiftBuffer *src);
+
+            /**
+             * Dump data to the shift buffer
+             * @param v dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

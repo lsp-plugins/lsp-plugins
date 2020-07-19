@@ -1,0 +1,703 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drumkit_info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.hydrogen-music.org/drumkit">
+ <name>SF3007-2011-Set-03</name>
+ <author>Rainer Steffen Hain, Germany</author>
+ <info>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Lucida Grande'; font-size:10pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Acoustic Drum made of samples from a huge Sonor Force 3007 Drumset. Recorded with the Phonic Helix Board MKII and Audacity in 2011 under Muppy Linux.&lt;/p>&lt;/body>&lt;/html></info>
+ <license>What the Fuck Public License (WTFPL)</license>
+ <instrumentList>
+  <instrument>
+   <id>0</id>
+   <filename>01-bd16-r.flac</filename>
+   <name>Bassdrum 16" rechts</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>1</id>
+   <filename>02-bd22-r-1.flac</filename>
+   <name>Bassdrum 22" rechts</name>
+   <volume>0.690000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>2</id>
+   <filename>03-bd22-l-1.flac</filename>
+   <name>Bassdrum 22" links</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>3</id>
+   <filename>04-sd12-rimshot.flac</filename>
+   <name>Snaredrum 12"</name>
+   <volume>0.880000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>4</id>
+   <filename>05-sd10-rimshot.flac</filename>
+   <name>Snaredrum 10"</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>5</id>
+   <filename>06-sd145-rimshot.flac</filename>
+   <name>Snaredrum 14x5</name>
+   <volume>0.960000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.440000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>6</id>
+   <filename>06-sd146-rimshot.flac</filename>
+   <name>Snaredrum 14x6,5</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>7</id>
+   <filename>45-rimclick12-1.flac</filename>
+   <name>Rimclick 12"</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>8</id>
+   <filename>45-rimclick14-1.flac</filename>
+   <name>Rimclick 14"</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>9</id>
+   <filename>10-tom16.flac</filename>
+   <name>Tom 16"</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.800000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>10</id>
+   <filename>10-tom14.flac</filename>
+   <name>Tom 14"</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>11</id>
+   <filename>10-tom13.flac</filename>
+   <name>Tom 13"</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.420000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>12</id>
+   <filename>10-tom12.flac</filename>
+   <name>Tom 12"</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.840000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>13</id>
+   <filename>10-tom10.flac</filename>
+   <name>Tom 10"</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>14</id>
+   <filename>10-tom08.flac</filename>
+   <name>Tom 8"</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>15</id>
+   <filename>12-roto08.flac</filename>
+   <name>Rototom 8"</name>
+   <volume>0.690000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.880000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>16</id>
+   <filename>12-roto06.flac</filename>
+   <name>Rototom 6"</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.580000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>17</id>
+   <filename>07-hihat-closed-short.flac</filename>
+   <name>HiHat closed</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>18</id>
+   <filename>07-hihat-closed-long.flac</filename>
+   <name>HiHat half open</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>19</id>
+   <filename>07-hihat-open-short.flac</filename>
+   <name>HiHat open short</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>20</id>
+   <filename>07-hihat-open-long.flac</filename>
+   <name>HiHat open long</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>21</id>
+   <filename>15-ride-1.flac</filename>
+   <name>Ride Cymbal 22"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>22</id>
+   <filename>15-ridebell-1.flac</filename>
+   <name>Ride Bell 22"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>23</id>
+   <filename>16-crash18mstw.flac</filename>
+   <name>Masterworks 18"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>24</id>
+   <filename>17-crash15ana.flac</filename>
+   <name>Anatolian 15"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>25</id>
+   <filename>18-crash15stgg.flac</filename>
+   <name>Stagg 15"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>26</id>
+   <filename>19-crash14ana.flac</filename>
+   <name>Anatolian 14"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>27</id>
+   <filename>20-ozone18.flac</filename>
+   <name>Ozone 18"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>28</id>
+   <filename>24-china18stgg-1.flac</filename>
+   <name>Stagg China 18 rechts"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>29</id>
+   <filename>26-china18stgg-2.flac</filename>
+   <name>Stagg China 18 links</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>30</id>
+   <filename>21-china12mfx.flac</filename>
+   <name>Meinl China FX 12"/16</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>31</id>
+   <filename>22-china18wuh.flac</filename>
+   <name>Wuhan China 18"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>32</id>
+   <filename>23-china12stgg.flac</filename>
+   <name>Stagg China 12"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>33</id>
+   <filename>25-china10stgg.flac</filename>
+   <name>Stagg China 10"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>34</id>
+   <filename>28-china16stgg.flac</filename>
+   <name>Stagg China 16"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>35</id>
+   <filename>27-china14wuh.flac</filename>
+   <name>Wuhan China 14</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>36</id>
+   <filename>29-china1416kombi.flac</filename>
+   <name>China 14/16 Kombi</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>37</id>
+   <filename>30-crash18ist.flac</filename>
+   <name>Istanbul 18"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>38</id>
+   <filename>31-crash16pst.flac</filename>
+   <name>Paiste 16"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>39</id>
+   <filename>37-splash10stgg.flac</filename>
+   <name>Stagg Splash 10"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>40</id>
+   <filename>39-splash08ist.flac</filename>
+   <name>Istanbul Splash 8"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>41</id>
+   <filename>40-china10mfx.flac</filename>
+   <name>Meinl ChinaSplash 10"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>42</id>
+   <filename>41-hiaht10stgg.flac</filename>
+   <name>Stagg HiHat 10" closed</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>43</id>
+   <filename>41-hihat10.flac</filename>
+   <name>Zildjian HiHat 10" open</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>44</id>
+   <filename>41-hihat16trash-1.flac</filename>
+   <name>TrashHat 16" 1</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>45</id>
+   <filename>42-cowbell8.flac</filename>
+   <name>Cowbell 8"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>46</id>
+   <filename>42-cowbell6.flac</filename>
+   <name>Cowbell 6"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>47</id>
+   <filename>42-cowbell4.flac</filename>
+   <name>Cowbell 4"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>48</id>
+   <filename>44-sonorblock.flac</filename>
+   <name>Sonor Block 6""</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>49</id>
+   <filename>33-alubell09.flac</filename>
+   <name>Alubell 9"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>50</id>
+   <filename>32-alubell07.flac</filename>
+   <name>Alubell 7"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>51</id>
+   <filename>35-icebell09.flac</filename>
+   <name>Icebell 9"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>52</id>
+   <filename>34-icebell07.flac</filename>
+   <name>Icebell 7"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>53</id>
+   <filename>36-accent08.flac</filename>
+   <name>Accent 8"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>54</id>
+   <filename>36-accent06.flac</filename>
+   <name>Accent 6"</name>
+   <volume>0.770000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>55</id>
+   <filename>36-accent04.flac</filename>
+   <name>Accent 4"</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>56</id>
+   <filename>38-celticbell12.flac</filename>
+   <name>Celtic Bell 12"</name>
+   <volume>0.880000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>57</id>
+   <filename>38-celticbell10.flac</filename>
+   <name>Celtic Bell 10"</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>58</id>
+   <filename>38-celticbell08.flac</filename>
+   <name>Celtic Bell 8"</name>
+   <volume>0.960000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.440000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>59</id>
+   <filename>43-chimesdown.flac</filename>
+   <name>Chimebars down</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>60</id>
+   <filename>43-chimesup.flac</filename>
+   <name>Chimebars up</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.800000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>61</id>
+   <filename>48-thundertube-long.flac</filename>
+   <name>Thunder Tube long</name>
+   <volume>0.890000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.780000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>62</id>
+   <filename>48-thundertube-short.flac</filename>
+   <name>Thunder Tube short</name>
+   <volume>1.000000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.420000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>63</id>
+   <filename>46-clap-1.flac</filename>
+   <name>Handclap</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.840000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>64</id>
+   <filename>49-spoxehh.flac</filename>
+   <name>Spoxe HiHat</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.650000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>65</id>
+   <filename>50-tambourine.flac</filename>
+   <name>Tambourine</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>0.650000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>66</id>
+   <filename>47-sticks-1.flac</filename>
+   <name>Drum Sticks 1</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>67</id>
+   <filename>47-sticks-2.flac</filename>
+   <name>Drum Sticks 2</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>1.000000</pan_R>
+   <exclude />
+  </instrument>
+  <instrument>
+   <id>68</id>
+   <filename>41-hihat16trash-2.flac</filename>
+   <name>TrashHat 16" 2</name>
+   <volume>0.800000</volume>
+   <isMuted>false</isMuted>
+   <pan_L>1.000000</pan_L>
+   <pan_R>0.650000</pan_R>
+   <exclude />
+  </instrument>
+ </instrumentList>
+</drumkit_info>

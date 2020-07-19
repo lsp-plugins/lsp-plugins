@@ -97,6 +97,12 @@ template <class A, class B>
         return (a <= b) ? a : b;
     }
 
+template <class A, class B, class C>
+    inline A lsp_limit(A a, B min, C max)
+    {
+        return (a < min) ? min : ((a > max) ? max : a);
+    }
+
 /** Free aligned pointer and write NULL to it
  *
  * @param ptr pointer to free

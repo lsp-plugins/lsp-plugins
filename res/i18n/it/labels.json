@@ -446,6 +446,8 @@
 		"dry:db": "Dry\n(dB)",
 		"dry_pan": "Dry pan",
 		"duty_ratio": "Ciclo di lavoro",
+		"fade_in": "Dissolvenza ad aprire",
+		"fade_out": "Dissolvenza",
 		"fall": "Caduta",
 		"in_lr": "In L/R",
 		"invert": "Inverti",
@@ -537,7 +539,8 @@
 		"fmt_value": "{@value}",
 		"selected": "Selezionato",
 		"worst": "Peggiore",
-		"x_k": "{@value}k"
+		"x_k": "{@value}k",
+		"x_khz": "{@value} kHz"
 	},
 	
 	"working_area": "Area lavoro",

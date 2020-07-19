@@ -514,6 +514,11 @@ namespace lsp
 
                 return 0;
             }
+
+            void dump_state_request()
+            {
+                pExt->request_state_dump();
+            }
     };
 
     status_t LV2UIWrapper::slot_ui_show(LSPWidget *sender, void *ptr, void *data)

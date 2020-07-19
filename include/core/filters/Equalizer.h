@@ -8,6 +8,7 @@
 #ifndef CORE_FILTERS_EQUALIZER_H_
 #define CORE_FILTERS_EQUALIZER_H_
 
+#include <core/IStateDumper.h>
 #include <core/filters/FilterBank.h>
 #include <core/filters/Filter.h>
 
@@ -153,6 +154,12 @@ namespace lsp
              * @param samples number of samples to process
              */
             void process(float *out, const float *in, size_t samples);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

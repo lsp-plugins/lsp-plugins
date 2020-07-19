@@ -113,6 +113,20 @@ namespace lsp
          * @param time pointer to structure to store time value
          */
         void get_time(time_t *time);
+
+        /**
+         * Get temporary directory
+         * @param path pointer to store result
+         * @return status of operation
+         */
+        status_t get_temporary_dir(LSPString *path);
+
+        /**
+         * Get temporary directory
+         * @param path pointer to store result
+         * @return status of operation
+         */
+        status_t get_temporary_dir(io::Path *path);
     }
 }
 

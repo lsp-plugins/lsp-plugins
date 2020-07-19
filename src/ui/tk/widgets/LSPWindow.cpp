@@ -278,10 +278,11 @@ namespace lsp
             if (s == NULL)
                 return STATUS_OK;
 
+            bool force = nFlags & REDRAW_SURFACE;
             ws::ISurface *bs = get_surface(s);
 
             s->begin();
-                render(bs, nFlags & REDRAW_SURFACE);
+                render(bs, force);
                 s->draw(bs, 0, 0);
                 commit_redraw();
             s->end();
@@ -613,7 +614,10 @@ namespace lsp
                     r.nWidth    = e->nWidth;
                     r.nHeight   = e->nHeight;
                     if (result == STATUS_OK)
+                    {
                         this->realize(&r);
+                        query_draw(REDRAW_CHILD | REDRAW_SURFACE);
+                    }
                     break;
                 }
 
