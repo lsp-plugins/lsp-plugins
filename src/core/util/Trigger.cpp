@@ -144,4 +144,30 @@ namespace lsp
 
         ++nTriggerHoldCounter;
     }
+
+    void Trigger::dump(IStateDumper *v) const
+    {
+        v->write("enTriggerType", enTriggerType);
+        v->write("enTriggerState", enTriggerState);
+
+        v->write("nTriggerHold", nTriggerHold);
+        v->write("nTriggerHoldCounter", nTriggerHoldCounter);
+
+        v->begin_object("sSimpleTrg", &sSimpleTrg, sizeof(sSimpleTrg));
+        {
+            v->write("fThreshold", sSimpleTrg.fThreshold);
+            v->write("fPrevious", sSimpleTrg.fPrevious);
+        }
+        v->end_object();
+
+        v->begin_object("sAdvancedTrg", &sAdvancedTrg, sizeof(sAdvancedTrg));
+        {
+            v->write("fThreshold", sAdvancedTrg.fThreshold);
+            v->write("fHysteresis", sAdvancedTrg.fHysteresis);
+            v->write("bDisarm", sAdvancedTrg.bDisarm);
+        }
+        v->end_object();
+
+        v->write("bSync", bSync);
+    }
 }

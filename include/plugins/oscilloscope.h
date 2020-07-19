@@ -150,7 +150,7 @@ namespace lsp
             inline void configure_oversamplers(channel_t *c);
 
         public:
-            oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);
+            explicit oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);
             virtual ~oscilloscope_base();
 
         public:
@@ -161,6 +161,8 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+
+            virtual void dump(IStateDumper *v) const;
     };
 
     class oscilloscope_x1: public oscilloscope_base, public oscilloscope_x1_metadata

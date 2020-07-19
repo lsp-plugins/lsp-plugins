@@ -605,6 +605,96 @@ namespace lsp
         }
     }
 
+    void oscilloscope_base::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+
+        v->begin_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            const channel_t *c = &vChannels[i];
+
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write_object("enMode", &c->enMode);
+                v->write_object("enSweepType", &c->enSweepType);
+                v->write_object("enTrgInput", &c->enTrgInput);
+
+                v->write_object("enOverMode", &c->enOverMode);
+                v->write_object("nOversampling", &c->nOversampling);
+                v->write_object("nOverSampleRate", &c->nOverSampleRate);
+
+                v->write_object("sOversampler_x", &c->sOversampler_x);
+                v->write_object("sOversampler_y", &c->sOversampler_y);
+                v->write_object("sOversampler_ext", &c->sOversampler_ext);
+
+                v->write_object("sPreTrgDelay", &c->sPreTrgDelay);
+
+                v->write_object("sTrigger", &c->sTrigger);
+
+                v->write_object("sSweepGenerator", &c->sSweepGenerator);
+
+                v->write_object("vData_x", &c->vData_x);
+                v->write_object("vData_y", &c->vData_y);
+                v->write_object("vData_ext", &c->vData_ext);
+                v->write_object("vData_y_delay", &c->vData_y_delay);
+                v->write_object("vDisplay_x", &c->vDisplay_x);
+                v->write_object("vDisplay_y", &c->vDisplay_y);
+
+                v->write_object("nDataHead", &c->nDataHead);
+                v->write_object("nDisplayHead", &c->nDisplayHead);
+                v->write_object("nSamplesCounter", &c->nSamplesCounter);
+
+                v->write_object("nPreTrigger", &c->nPreTrigger);
+                v->write_object("nSweepSize", &c->nSweepSize);
+
+                v->write_object("fScale", &c->fScale);
+                v->write_object("fOffset", &c->fOffset);
+
+                v->write_object("enState", &c->enState);
+
+                v->write_object("vIn_x", &c->vIn_x);
+                v->write_object("vIn_y", &c->vIn_y);
+                v->write_object("vIn_ext", &c->vIn_ext);
+
+                v->write_object("vOut_x", &c->vOut_x);
+                v->write_object("vOut_y", &c->vOut_y);
+
+                v->write_object("pIn_x", &c->pIn_x);
+                v->write_object("pIn_y", &c->pIn_y);
+                v->write_object("pIn_ext", &c->pIn_ext);
+
+                v->write_object("pOut_x", &c->pOut_x);
+                v->write_object("pOut_y", &c->pOut_y);
+
+                v->write_object("pOvsMode", &c->pOvsMode);
+                v->write_object("pScpMode", &c->pScpMode);
+                v->write_object("pCoupling", &c->pCoupling);
+
+                v->write_object("pSweepType", &c->pSweepType);
+                v->write_object("pHorDiv", &c->pHorDiv);
+                v->write_object("pHorPos", &c->pHorPos);
+
+                v->write_object("pVerDiv", &c->pVerDiv);
+                v->write_object("pVerPos", &c->pVerPos);
+
+                v->write_object("pTrgHys", &c->pTrgHys);
+                v->write_object("pTrgLev", &c->pTrgLev);
+                v->write_object("pTrgHold", &c->pTrgHold);
+                v->write_object("pTrgMode", &c->pTrgMode);
+                v->write_object("pTrgType", &c->pTrgType);
+                v->write_object("pTrgInput", &c->pTrgInput);
+
+                v->write_object("pMesh", &c->pMesh);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("nSampleRate", nSampleRate);
+        v->write("pData", pData);
+    }
+
     oscilloscope_x1::oscilloscope_x1(): oscilloscope_base(metadata, 1)
     {
     }

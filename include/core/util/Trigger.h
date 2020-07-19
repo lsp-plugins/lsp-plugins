@@ -9,6 +9,7 @@
 #define CORE_UTIL_TRIGGER_H_
 
 #include <core/types.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -162,6 +163,12 @@ namespace lsp
              *
              */
             void single_sample_processor(float value);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 }
 
