@@ -616,13 +616,13 @@ namespace lsp
 
             v->begin_object(c, sizeof(channel_t));
             {
-                v->write_object("enMode", &c->enMode);
-                v->write_object("enSweepType", &c->enSweepType);
-                v->write_object("enTrgInput", &c->enTrgInput);
+                v->write("enMode", &c->enMode);
+                v->write("enSweepType", &c->enSweepType);
+                v->write("enTrgInput", &c->enTrgInput);
 
-                v->write_object("enOverMode", &c->enOverMode);
-                v->write_object("nOversampling", &c->nOversampling);
-                v->write_object("nOverSampleRate", &c->nOverSampleRate);
+                v->write("enOverMode", &c->enOverMode);
+                v->write("nOversampling", &c->nOversampling);
+                v->write("nOverSampleRate", &c->nOverSampleRate);
 
                 v->write_object("sOversampler_x", &c->sOversampler_x);
                 v->write_object("sOversampler_y", &c->sOversampler_y);
@@ -634,58 +634,58 @@ namespace lsp
 
                 v->write_object("sSweepGenerator", &c->sSweepGenerator);
 
-                v->write_object("vData_x", &c->vData_x);
-                v->write_object("vData_y", &c->vData_y);
-                v->write_object("vData_ext", &c->vData_ext);
-                v->write_object("vData_y_delay", &c->vData_y_delay);
-                v->write_object("vDisplay_x", &c->vDisplay_x);
-                v->write_object("vDisplay_y", &c->vDisplay_y);
+                v->write("vData_x", &c->vData_x);
+                v->write("vData_y", &c->vData_y);
+                v->write("vData_ext", &c->vData_ext);
+                v->write("vData_y_delay", &c->vData_y_delay);
+                v->write("vDisplay_x", &c->vDisplay_x);
+                v->write("vDisplay_y", &c->vDisplay_y);
 
-                v->write_object("nDataHead", &c->nDataHead);
-                v->write_object("nDisplayHead", &c->nDisplayHead);
-                v->write_object("nSamplesCounter", &c->nSamplesCounter);
+                v->write("nDataHead", &c->nDataHead);
+                v->write("nDisplayHead", &c->nDisplayHead);
+                v->write("nSamplesCounter", &c->nSamplesCounter);
 
-                v->write_object("nPreTrigger", &c->nPreTrigger);
-                v->write_object("nSweepSize", &c->nSweepSize);
+                v->write("nPreTrigger", &c->nPreTrigger);
+                v->write("nSweepSize", &c->nSweepSize);
 
-                v->write_object("fScale", &c->fScale);
-                v->write_object("fOffset", &c->fOffset);
+                v->write("fScale", &c->fScale);
+                v->write("fOffset", &c->fOffset);
 
-                v->write_object("enState", &c->enState);
+                v->write("enState", &c->enState);
 
-                v->write_object("vIn_x", &c->vIn_x);
-                v->write_object("vIn_y", &c->vIn_y);
-                v->write_object("vIn_ext", &c->vIn_ext);
+                v->write("vIn_x", &c->vIn_x);
+                v->write("vIn_y", &c->vIn_y);
+                v->write("vIn_ext", &c->vIn_ext);
 
-                v->write_object("vOut_x", &c->vOut_x);
-                v->write_object("vOut_y", &c->vOut_y);
+                v->write("vOut_x", &c->vOut_x);
+                v->write("vOut_y", &c->vOut_y);
 
-                v->write_object("pIn_x", &c->pIn_x);
-                v->write_object("pIn_y", &c->pIn_y);
-                v->write_object("pIn_ext", &c->pIn_ext);
+                v->write("pIn_x", &c->pIn_x);
+                v->write("pIn_y", &c->pIn_y);
+                v->write("pIn_ext", &c->pIn_ext);
 
-                v->write_object("pOut_x", &c->pOut_x);
-                v->write_object("pOut_y", &c->pOut_y);
+                v->write("pOut_x", &c->pOut_x);
+                v->write("pOut_y", &c->pOut_y);
 
-                v->write_object("pOvsMode", &c->pOvsMode);
-                v->write_object("pScpMode", &c->pScpMode);
-                v->write_object("pCoupling", &c->pCoupling);
+                v->write("pOvsMode", &c->pOvsMode);
+                v->write("pScpMode", &c->pScpMode);
+                v->write("pCoupling", &c->pCoupling);
 
-                v->write_object("pSweepType", &c->pSweepType);
-                v->write_object("pHorDiv", &c->pHorDiv);
-                v->write_object("pHorPos", &c->pHorPos);
+                v->write("pSweepType", &c->pSweepType);
+                v->write("pHorDiv", &c->pHorDiv);
+                v->write("pHorPos", &c->pHorPos);
 
-                v->write_object("pVerDiv", &c->pVerDiv);
-                v->write_object("pVerPos", &c->pVerPos);
+                v->write("pVerDiv", &c->pVerDiv);
+                v->write("pVerPos", &c->pVerPos);
 
-                v->write_object("pTrgHys", &c->pTrgHys);
-                v->write_object("pTrgLev", &c->pTrgLev);
-                v->write_object("pTrgHold", &c->pTrgHold);
-                v->write_object("pTrgMode", &c->pTrgMode);
-                v->write_object("pTrgType", &c->pTrgType);
-                v->write_object("pTrgInput", &c->pTrgInput);
+                v->write("pTrgHys", &c->pTrgHys);
+                v->write("pTrgLev", &c->pTrgLev);
+                v->write("pTrgHold", &c->pTrgHold);
+                v->write("pTrgMode", &c->pTrgMode);
+                v->write("pTrgType", &c->pTrgType);
+                v->write("pTrgInput", &c->pTrgInput);
 
-                v->write_object("pMesh", &c->pMesh);
+                v->write("pMesh", &c->pMesh);
             }
             v->end_object();
         }
