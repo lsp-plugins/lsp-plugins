@@ -78,6 +78,8 @@ namespace lsp
                 static status_t slot_export_settings_to_clipboard(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_import_settings_from_clipboard(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_toggle_rack_mount(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show_plugin_manual(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show_ui_manual(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_debug_dump(LSPWidget *sender, void *ptr, void *data);
 
                 static status_t slot_show_menu_top(LSPWidget *sender, void *ptr, void *data);
@@ -103,6 +105,7 @@ namespace lsp
                 LSPHyperlink   *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
                 status_t        init_r3d_support(LSPMenu *menu);
                 status_t        init_i18n_support(LSPMenu *menu);
+                static status_t follow_url(const LSPString *url);
 
             public:
                 explicit CtlPluginWindow(plugin_ui *src, LSPWindow *wnd);

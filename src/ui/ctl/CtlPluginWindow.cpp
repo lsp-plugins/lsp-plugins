@@ -24,6 +24,7 @@
 #include <ui/ui.h>
 #include <ui/plugin_ui.h>
 #include <metadata/ports.h>
+#include <core/ipc/Process.h>
 
 namespace lsp
 {
@@ -136,13 +137,43 @@ namespace lsp
 
                 // Initialize menu items
                 {
-                    // Create export menu
+                    // Create 'About Plugin' menu item
                     LSPMenu *submenu = new LSPMenu(dpy);
                     vWidgets.add(submenu);
                     submenu->init();
                     submenu->set_unique_id(WUID_EXPORT_MENU);
 
-                    LSPMenuItem *itm = new LSPMenuItem(dpy);
+                    // Add 'Plugin manual' menu item
+                    LSPMenuItem *itm     = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->text()->set("actions.plugin_manual");
+                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_show_plugin_manual, this);
+                    pMenu->add(itm);
+
+                    // Add 'UI manual' menu item
+                    itm                 = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->text()->set("actions.ui_manual");
+                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_show_ui_manual, this);
+                    pMenu->add(itm);
+
+
+                    // Add separator
+                    itm     = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->set_separator(true);
+                    pMenu->add(itm);
+
+                    // Create export menu
+                    submenu = new LSPMenu(dpy);
+                    vWidgets.add(submenu);
+                    submenu->init();
+                    submenu->set_unique_id(WUID_EXPORT_MENU);
+
+                    itm = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
                     itm->text()->set("actions.export");
@@ -808,6 +839,115 @@ namespace lsp
                 mstud->set_value((x) ? 0.0f : 1.0f);
                 mstud->notify_all();
             }
+
+            return STATUS_OK;
+        }
+
+        static const char * manual_prefixes[] =
+        {
+            LSP_LIB_PREFIX("/share"),
+            LSP_LIB_PREFIX("/local/share"),
+            "/usr/share",
+            "/usr/local/share",
+            "/share",
+            NULL
+        };
+
+        status_t CtlPluginWindow::slot_show_plugin_manual(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+            const plugin_metadata_t *meta = __this->pUI->metadata();
+
+            io::Path path;
+            LSPString spath;
+            status_t res;
+
+            // Try to open local documentation
+            for (const char **prefix = manual_prefixes; *prefix != NULL; ++prefix)
+            {
+                path.fmt("%s/doc/%s/html/plugins/%s.html",
+                        *prefix, LSP_ARTIFACT_ID, meta->lv2_uid
+                    );
+
+                lsp_trace("Checking path: %s", path.as_utf8());
+
+                if (path.exists())
+                {
+                    if (spath.fmt_utf8("file://%s", path.as_utf8()))
+                    {
+                        if ((res = follow_url(&spath)) == STATUS_OK)
+                            return res;
+                    }
+                }
+            }
+
+            // Follow the online documentation
+            if (spath.fmt_utf8("%s?page=manuals&section=%s", LSP_BASE_URI, meta->lv2_uid))
+            {
+                if ((res = follow_url(&spath)) == STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
+        status_t CtlPluginWindow::slot_show_ui_manual(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+
+            io::Path path;
+            LSPString spath;
+            status_t res;
+
+            // Try to open local documentation
+            for (const char **prefix = manual_prefixes; *prefix != NULL; ++prefix)
+            {
+                path.fmt("%s/doc/%s/html/constrols.html", *prefix, LSP_ARTIFACT_ID);
+                lsp_trace("Checking path: %s", path.as_utf8());
+
+                if (path.exists())
+                {
+                    if (spath.fmt_utf8("file://%s", path.as_utf8()))
+                    {
+                        if ((res = follow_url(&spath)) == STATUS_OK)
+                            return res;
+                    }
+                }
+            }
+
+            // Follow the online documentation
+            if (spath.fmt_utf8("%s?page=manuals&section=controls", LSP_BASE_URI))
+            {
+                if ((res = follow_url(&spath)) == STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
+        status_t CtlPluginWindow::follow_url(const LSPString *url)
+        {
+            #ifdef PLATFORM_WINDOWS
+                ::ShellExecuteW(
+                    NULL,               // Not associated with window
+                    L"open",            // Open hyperlink
+                    sUrl.get_utf16(),   // The file to execute
+                    NULL,               // Parameters
+                    NULL,               // Directory
+                    SW_SHOWNORMAL       // Show command
+                );
+            #else
+                status_t res;
+                ipc::Process p;
+
+                if ((res = p.set_command("xdg-open")) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.add_arg(url)) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.launch()) != STATUS_OK)
+                    return STATUS_OK;
+                p.wait();
+            #endif /* PLATFORM_WINDOWS */
 
             return STATUS_OK;
         }
