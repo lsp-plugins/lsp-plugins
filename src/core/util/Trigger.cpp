@@ -92,7 +92,7 @@ namespace lsp
             {
                 if (sAdvancedTrg.bDisarm)
                 {
-                    enTriggerState == TRG_STATE_WAITING;
+                    enTriggerState = TRG_STATE_WAITING;
                     sAdvancedTrg.bDisarm = false;
                 }
 
@@ -112,7 +112,7 @@ namespace lsp
             {
                 if (sAdvancedTrg.bDisarm)
                 {
-                    enTriggerState == TRG_STATE_WAITING;
+                    enTriggerState = TRG_STATE_WAITING;
                     sAdvancedTrg.bDisarm = false;
                 }
 
