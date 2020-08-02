@@ -627,6 +627,45 @@
 	"trigger": {
 		"inst": "Instrument",
 		"trig": "Trigger"
+	},
+	
+	"oscilloscope": {
+	    "oversampler": {
+	        "none": "None",
+	        "2x": "2X",
+	        "3x": "3X",
+	        "4x": "4X",
+	        "6x": "6X",
+	        "8x": "8X"
+	    },
+	    "mode": {
+	        "xy": "XY",
+	        "triggered": "Triggered"
+	    },
+	    "sweeptype": {
+	        "sawtooth": "Sawtooth",
+	        "triangular": "Triangular",
+	        "sine": "Sine"
+	    },
+	    "trigger": {
+	        "input": {
+	            "y": "Y",
+	            "ext": "EXT"
+	        },
+	        "mode": {
+	            "none": "None",
+	            "single": "Single",
+	            "repeat": "Repeat"
+	        },
+	        "type": {
+	            "rising_edge": "Rising Edge",
+	            "falling_edge": "Falling Edge"
+	        }
+	    },
+        "coupling": {
+            "ac" : "AC",
+            "dc" : "DC"
+        }
 	}
 }
 

@@ -2,7 +2,7 @@
     <hbox spacing="4">
     
         <vbox>
-            <group text="Screen" expand="true" fill="true">
+            <group text="groups.oscilloscope.screen" expand="true" fill="true">
         
 	            <graph width="512" height="320" expand="true" fill="true">
 	                <center hpos="-1.0" vpos="0.0" visible="false" />
@@ -43,17 +43,16 @@
 	            
 	        </group>
 	            
-            <group text="Operation" expand="true" fill="true">
+            <group text="groups.oscilloscope.operation" expand="true" fill="true">
             
                 <grid rows="2" cols="3">
                 
-                    <label text="Oversampler Mode" />
+                    <label text="labels.oscilloscope.oversampler_mode" />
+                    <label text="labels.oscilloscope.mode" />
+                    <label text="labels.oscilloscope.coupling" />
+                                        
                     <combo id="ovmo_1" same_line="true" />
-                
-                    <label text="Mode" />
                     <combo id="scmo_1" same_line="true" />
-                    
-                    <label text="Coupling" />
                     <combo id="sccp_1" same_line="true" />
                     
                 </grid>
@@ -64,20 +63,20 @@
         
         <vbox spacing="4">
             
-            <group text="Horizontal" expand="true" fill="true">
+            <group text="groups.oscilloscope.horizontal" expand="true" fill="true">
             
                 <grid rows="6" cols="1">
                 
-                    <label text="Sweep Type" />
+                    <label text="labels.oscilloscope.sweep_type" />
                     <combo id="swtp_1" same_line="true" />
                 
-                    <label text="Division" />
+                    <label text="labels.oscilloscope.division" />
                     <vbox>
                         <knob id="hzdv_1" size="18" />
                         <value id="hzdv_1" />
                     </vbox>
                     
-                    <label text="Position" />
+                    <label text="labels.oscilloscope.position" />
                     <vbox>
                         <knob id="hzps_1" size="18" />
                         <value id="hzps_1" />
@@ -87,18 +86,18 @@
                 
 	        </group>
 	        
-	        <group text="Vertical" expand="true" fill="true">
+	        <group text="groups.oscilloscope.vertical" expand="true" fill="true">
 	        
                 <grid rows="4" cols="1">
                 
-                    <label text="Division" />
+                    <label text="labels.oscilloscope.division" />
                 
                     <vbox>
                         <knob id="vedv_1" size="18" />
                         <value id="vedv_1" />
                     </vbox>
                     
-                    <label text="Position" />
+                    <label text="labels.oscilloscope.position" />
                 
                     <vbox>
                         <knob id="veps_1" size="18" />
@@ -111,35 +110,35 @@
 	        
         </vbox>
         
-        <group text="Trigger" expand="true" fill="true">
+        <group text="groups.oscilloscope.trigger" expand="true" fill="true">
         
                 <grid rows="12" cols="1">
                 
-                    <label text="Histeresys" />
+                    <label text="labels.oscilloscope.trigger_hysteresis" />
                     <vbox>
                         <knob id="trhy_1" size="18" />
                         <value id="trhy_1" />
                     </vbox>
                 
-                    <label text="Level" />
+                    <label text="labels.oscilloscope.trigger_level" />
                     <vbox>
                         <knob id="trlv_1" size="18" />
                         <value id="trlv_1" />
                     </vbox>
                     
-                    <label text="Hold Time" />
+                    <label text="labels.oscilloscope.trigger_hold_time" />
                     <vbox>
                         <knob id="trho_1" size="18" />
                         <value id="trho_1" />
                     </vbox>
                     
-                    <label text="Mode" />
+                    <label text="labels.oscilloscope.trigger_mode" />
                     <combo id="trmo_1" same_line="true" />
                     
-                    <label text="Type" />
+                    <label text="labels.oscilloscope.trigger_type" />
                     <combo id="trtp_1" same_line="true" />
                     
-                    <label text="Input" />
+                    <label text="labels.oscilloscope.trigger_input" />
                     <combo id="trin_1" same_line="true" />
                     
                 </grid>

@@ -83,5 +83,13 @@
 	"test_signal": "Test Signal",
 	"time": "Time",
 	
-	"wet_signal_eq": "Wet Signal Equalization"
+	"wet_signal_eq": "Wet Signal Equalization",
+	
+	"oscilloscope": {
+	    "screen": "Screen",
+	    "operation": "Operation",
+	    "horizontal": "Horizontal",
+	    "vertical": "Vertical",
+	    "trigger": "Trigger"
+	}
 }

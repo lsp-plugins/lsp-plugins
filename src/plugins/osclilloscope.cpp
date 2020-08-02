@@ -80,6 +80,20 @@ namespace lsp
         }
     }
 
+    oscilloscope_base::ch_coupling_t oscilloscope_base::get_coupling_type(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::COUPLING_AC:
+                return CH_COUPLING_AC;
+            case oscilloscope_base_metadata::COUPLING_DC:
+                return CH_COUPLING_DC;
+            default:
+                return CH_COUPLING_DFL;
+
+        }
+    }
+
     trg_type_t oscilloscope_base::get_trigger_type(size_t portValue)
     {
         switch (portValue)
@@ -426,6 +440,8 @@ namespace lsp
 
             c->enTrgInput = get_trigger_input(c->pTrgInput->getValue());
 
+            c->enCoupling = get_coupling_type(c->pCoupling->getValue());
+
             float verDiv = c->pVerDiv->getValue();
             float verPos = c->pVerPos->getValue();
 
@@ -619,6 +635,7 @@ namespace lsp
                 v->write("enMode", &c->enMode);
                 v->write("enSweepType", &c->enSweepType);
                 v->write("enTrgInput", &c->enTrgInput);
+                v->write("enCoupling", &c->enCoupling);
 
                 v->write("enOverMode", &c->enOverMode);
                 v->write("nOversampling", &c->nOversampling);

@@ -90,7 +90,7 @@ namespace lsp
 
         static const float TRIGGER_HYSTERESIS_MAX = 100.0f;
         static const float TRIGGER_HYSTERESIS_MIN = 0.0f;
-        static const float TRIGGER_HYSTERESIS_DFL = 1.0f;
+        static const float TRIGGER_HYSTERESIS_DFL = 0.0f;
         static const float TRIGGER_HYSTERESIS_STEP = 1.0f;
 
         static const float TRIGGER_LEVEL_MAX = 100.0f;

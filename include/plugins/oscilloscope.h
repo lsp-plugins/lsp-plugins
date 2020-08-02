@@ -47,6 +47,14 @@ namespace lsp
                 CH_TRG_INPUT_DFL = CH_TRG_INPUT_Y
             };
 
+            enum ch_coupling_t
+            {
+                CH_COUPLING_AC,
+                CH_COUPLING_DC,
+
+                CH_COUPLING_DFL = CH_COUPLING_DC
+            };
+
             enum ch_state_t
             {
                 CH_STATE_LISTENING,
@@ -58,6 +66,7 @@ namespace lsp
                 ch_mode_t           enMode;
                 ch_sweep_type_t     enSweepType;
                 ch_trg_input_t      enTrgInput;
+                ch_coupling_t       enCoupling;
 
                 over_mode_t         enOverMode;
                 size_t              nOversampling;
@@ -140,6 +149,7 @@ namespace lsp
             ch_mode_t get_scope_mode(size_t portValue);
             ch_sweep_type_t get_sweep_type(size_t portValue);
             ch_trg_input_t get_trigger_input(size_t portValue);
+            ch_coupling_t get_coupling_type(size_t portValue);
             trg_type_t get_trigger_type(size_t portValue);
 
         protected:

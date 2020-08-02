@@ -15,56 +15,56 @@ namespace lsp
 
     static const port_item_t ovs_mode[] =
     {
-        {"None",    "oscilloscope.ovs_none"},
-        {"2X",      "oscilloscope.ovs_2x"},
-        {"3X",      "oscilloscope.ovs_3x"},
-        {"4X",      "oscilloscope.ovs_4x"},
-        {"6X",      "oscilloscope.ovs_6x"},
-        {"8X",      "oscilloscope.ovs_8x"},
+        {"None",    "oscilloscope.oversampler.none"},
+        {"2X",      "oscilloscope.oversampler.2x"},
+        {"3X",      "oscilloscope.oversampler.3x"},
+        {"4X",      "oscilloscope.oversampler.4x"},
+        {"6X",      "oscilloscope.oversampler.6x"},
+        {"8X",      "oscilloscope.oversampler.8x"},
         {NULL,          NULL}
     };
 
     static const port_item_t osc_mode[] =
     {
-        {"XY",          "oscilloscope.mode_xy"},
-        {"Triggered",   "oscilloscope.mode_triggered"},
+        {"XY",          "oscilloscope.mode.xy"},
+        {"Triggered",   "oscilloscope.mode.triggered"},
         {NULL,          NULL}
     };
 
     static const port_item_t sweep_type[] =
     {
-        {"Sawtooth",    "oscilloscope.sweeptype_sawtooth"},
-        {"Triangular",   "oscilloscope.sweeptype_triangular"},
-        {"Triangular",   "oscilloscope.sweeptype_sine"},
+        {"Sawtooth",    "oscilloscope.sweeptype.sawtooth"},
+        {"Triangular",  "oscilloscope.sweeptype.triangular"},
+        {"Triangular",  "oscilloscope.sweeptype.sine"},
         {NULL,          NULL}
     };
 
     static const port_item_t osc_trg_input[] =
     {
-        {"Y",    "oscilloscope.trigger_input_y"},
-        {"EXT",  "oscilloscope.trigger_input_ext"},
+        {"Y",    "oscilloscope.trigger.input.y"},
+        {"EXT",  "oscilloscope.trigger.input.ext"},
         {NULL,      NULL}
     };
 
     static const port_item_t osc_trg_mode[] =
     {
-        {"None",    "oscilloscope.trigger_none"},
-        {"Single",  "oscilloscope.trigger_single"},
-        {"Repeat",  "oscilloscope.trigger_repeat"},
+        {"None",    "oscilloscope.trigger.mode.none"},
+        {"Single",  "oscilloscope.trigger.mode.single"},
+        {"Repeat",  "oscilloscope.trigger.mode.repeat"},
         {NULL,      NULL}
     };
 
     static const port_item_t osc_trg_type[] =
     {
-        {"Rising Edge",     "oscilloscope.trigger_rising_edge"},
-        {"Falling Edge",    "oscilloscope.trigger_falling_edge"},
+        {"Rising Edge",     "oscilloscope.trigger.type.rising_edge"},
+        {"Falling Edge",    "oscilloscope.trigger.type.falling_edge"},
         {NULL,              NULL}
     };
 
     static const port_item_t osc_coupling[] =
     {
-        {"AC",  "oscilloscope.coupling_ac"},
-        {"DC",  "oscilloscope.coupling_dc"},
+        {"AC",  "oscilloscope.coupling.ac"},
+        {"DC",  "oscilloscope.coupling.dc"},
         {NULL,  NULL}
     };
 
@@ -90,7 +90,7 @@ namespace lsp
         CONTROL("veps" id, "Vertical Position" label, U_PERCENT, oscilloscope_base_metadata::VERTICAL_POSITION)
 
     #define TRG_CONTROLS(id, label) \
-        CONTROL("trhy" id, "Trigger Hysteresis" label, U_NONE, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
+        CONTROL("trhy" id, "Trigger Hysteresis" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
         CONTROL("trlv" id, "Trigger Level" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_LEVEL), \
         CONTROL("trho" id, "Trigger Hold Time" label, U_SEC, oscilloscope_base_metadata::TRIGGER_HOLD_TIME), \
         COMBO("trmo" id, "Trigger Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
