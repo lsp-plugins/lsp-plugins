@@ -13,6 +13,13 @@
 
 namespace lsp
 {
+    enum trg_mode_t
+    {
+        TRG_MODE_SINGLE,
+        TRG_MODE_MANUAL,
+        TRG_MODE_REPEAT,
+        TRG_MODE_MAX
+    };
 
     enum trg_type_t
     {
@@ -36,6 +43,14 @@ namespace lsp
     {
         protected:
 
+            // To use with Manual and Single Mode
+            typedef struct trg_locks_t
+            {
+                bool    bSingleLock;
+                bool    bManualAllow;
+                bool    bManualLock;
+            } trg_locks_t;
+
             typedef struct simple_trg_t
             {
                 float   fThreshold;
@@ -54,11 +69,14 @@ namespace lsp
 
         private:
 
+            trg_mode_t      enTriggerMode;
             trg_type_t      enTriggerType;
             trg_state_t     enTriggerState;
 
             size_t          nTriggerHold;
             size_t          nTriggerHoldCounter;
+
+            trg_locks_t     sLocks;
 
             simple_trg_t    sSimpleTrg;
             advanced_trg_t  sAdvancedTrg;
@@ -105,6 +123,36 @@ namespace lsp
              */
             void update_settings();
 
+            /** Set the trigger mode.
+             *
+             * @param mode trigger mode.
+             */
+            inline void set_trigger_mode(trg_mode_t mode)
+            {
+                if ((mode < TRG_MODE_SINGLE) || (mode >= TRG_MODE_MAX) || (enTriggerMode == mode))
+                    return;
+
+                enTriggerMode = mode;
+                bSync = true;
+            }
+
+            /** Reset the single trigger.
+             *
+             */
+            inline void reset_single_trigger()
+            {
+                sLocks.bSingleLock = true;
+            }
+
+            /** Activate the manual trigger.
+             *
+             */
+            inline void activate_manual_trigger()
+            {
+                sLocks.bManualAllow = true;
+                sLocks.bManualLock = false;
+            }
+
             /** Set the post-trigger samples. The trigger can be allowed to fire only after the post-trigger samples have elapsed.
              *
              * @param nSamples number of post-trigger samples.
@@ -124,7 +172,7 @@ namespace lsp
              */
             inline void set_trigger_type(trg_type_t type)
             {
-                if ((type <= TRG_TYPE_NONE) || (type >= TRG_TYPE_MAX) || (enTriggerType == type))
+                if ((type < TRG_TYPE_NONE) || (type >= TRG_TYPE_MAX) || (enTriggerType == type))
                     return;
 
                 enTriggerType = type;

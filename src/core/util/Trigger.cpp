@@ -15,16 +15,25 @@ namespace lsp
 {
     Trigger::Trigger()
     {
-        enTriggerType           = TRG_TYPE_NONE;
-        enTriggerState          = TRG_STATE_WAITING;
+        enTriggerMode               = TRG_MODE_REPEAT;
+        enTriggerType               = TRG_TYPE_NONE;
+        enTriggerState              = TRG_STATE_WAITING;
 
-        nTriggerHold            = 0;
-        nTriggerHoldCounter     = 0;
+        nTriggerHold                = 0;
+        nTriggerHoldCounter         = 0;
 
-        sSimpleTrg.fThreshold   = 0.0f;
-        sSimpleTrg.fPrevious    = 0.0f;
+        sLocks.bSingleLock          = false;
+        sLocks.bManualAllow         = false;
+        sLocks.bManualLock          = false;
 
-        bSync                   = true;
+        sSimpleTrg.fThreshold       = 0.0f;
+        sSimpleTrg.fPrevious        = 0.0f;
+
+        sAdvancedTrg.fThreshold     = 0.0f;
+        sAdvancedTrg.fHysteresis    = 0.0f;
+        sAdvancedTrg.bDisarm        = false;
+
+        bSync                       = true;
     }
 
     Trigger::~Trigger()
@@ -42,6 +51,25 @@ namespace lsp
 
     void Trigger::single_sample_processor(float value)
     {
+
+        if (enTriggerMode == TRG_MODE_SINGLE)
+        {
+            if (sLocks.bSingleLock)
+            {
+                enTriggerState = TRG_STATE_WAITING;
+                return;
+            }
+        }
+
+        if (enTriggerMode == TRG_MODE_MANUAL)
+        {
+            if (!sLocks.bManualAllow || sLocks.bManualLock)
+            {
+                enTriggerState = TRG_STATE_WAITING;
+                return;
+            }
+        }
+
         switch (enTriggerType)
         {
             case TRG_TYPE_SIMPLE_RISING_EDGE:
@@ -136,9 +164,22 @@ namespace lsp
                 // Just trigger after the hold time elapsed, no conditions.
                 if (nTriggerHoldCounter >= nTriggerHold)
                 {
-                        enTriggerState = TRG_STATE_FIRED;
-                        nTriggerHoldCounter = 0;
+                    enTriggerState = TRG_STATE_FIRED;
+                    nTriggerHoldCounter = 0;
                 }
+            }
+            break;
+        }
+
+        if (enTriggerState == TRG_STATE_FIRED)
+        {
+            if (enTriggerMode == TRG_MODE_SINGLE)
+                sLocks.bSingleLock = true;
+
+            if (enTriggerMode == TRG_MODE_MANUAL)
+            {
+                sLocks.bManualAllow = false;
+                sLocks.bManualLock = true;
             }
         }
 
@@ -147,11 +188,20 @@ namespace lsp
 
     void Trigger::dump(IStateDumper *v) const
     {
+        v->write("enTriggerMode", enTriggerMode);
         v->write("enTriggerType", enTriggerType);
         v->write("enTriggerState", enTriggerState);
 
         v->write("nTriggerHold", nTriggerHold);
         v->write("nTriggerHoldCounter", nTriggerHoldCounter);
+
+        v->begin_object("sLocks", &sLocks, sizeof(sLocks));
+        {
+            v->write("bSingleLock", sLocks.bSingleLock);
+            v->write("bManualAllow", sLocks.bManualAllow);
+            v->write("bManualLock", sLocks.bManualLock);
+        }
+        v->end_object();
 
         v->begin_object("sSimpleTrg", &sSimpleTrg, sizeof(sSimpleTrg));
         {
