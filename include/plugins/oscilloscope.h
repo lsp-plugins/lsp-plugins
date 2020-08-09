@@ -132,6 +132,7 @@ namespace lsp
                 IPort              *pTrgMode;
                 IPort              *pTrgType;
                 IPort              *pTrgInput;
+                IPort              *pTrgReset;
 
                 IPort              *pMesh;
             } channel_t;
@@ -150,6 +151,7 @@ namespace lsp
             ch_sweep_type_t get_sweep_type(size_t portValue);
             ch_trg_input_t get_trigger_input(size_t portValue);
             ch_coupling_t get_coupling_type(size_t portValue);
+            trg_mode_t get_trigger_mode(size_t portValue);
             trg_type_t get_trigger_type(size_t portValue);
 
         protected:

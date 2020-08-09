@@ -94,14 +94,35 @@ namespace lsp
         }
     }
 
+    trg_mode_t oscilloscope_base::get_trigger_mode(size_t portValue)
+    {
+        switch (portValue)
+        {
+            case oscilloscope_base_metadata::TRIGGER_MODE_SINGLE:
+                return TRG_MODE_SINGLE;
+            case  oscilloscope_base_metadata::TRIGGER_MODE_MANUAL:
+                return TRG_MODE_MANUAL;
+            case oscilloscope_base_metadata::TRIGGER_MODE_REPEAT:
+                return TRG_MODE_REPEAT;
+            default:
+                return TRG_MODE_REPEAT;
+        }
+    }
+
     trg_type_t oscilloscope_base::get_trigger_type(size_t portValue)
     {
         switch (portValue)
         {
-            case oscilloscope_base_metadata::TRIGGER_TYPE_RISING_EDGE:
+            case oscilloscope_base_metadata::TRIGGER_TYPE_NONE:
+                return TRG_TYPE_NONE;
+            case oscilloscope_base_metadata::TRIGGER_TYPE_SIMPLE_RISING_EDGE:
                 return TRG_TYPE_SIMPLE_RISING_EDGE;
-            case oscilloscope_base_metadata::TRIGGER_TYPE_FALLING_EDGE:
+            case oscilloscope_base_metadata::TRIGGER_TYPE_SIMPE_FALLING_EDGE:
                 return TRG_TYPE_SIMPLE_FALLING_EDGE;
+            case oscilloscope_base_metadata::TRIGGER_TYPE_ADVANCED_RISING_EDGE:
+                return TRG_TYPE_ADVANCED_RISING_EDGE;
+            case oscilloscope_base_metadata::TRIGGER_TYPE_ADVANCED_FALLING_EDGE:
+                return TRG_TYPE_ADVANCED_FALLING_EDGE;
             default:
                 return TRG_TYPE_NONE;
         }
@@ -332,6 +353,7 @@ namespace lsp
             c->pTrgMode         = NULL;
             c->pTrgType         = NULL;
             c->pTrgInput        = NULL;
+            c->pTrgReset        = NULL;
 
             c->pMesh            = NULL;
         }
@@ -423,6 +445,9 @@ namespace lsp
             vChannels[ch].pTrgInput = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pTrgReset = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pMesh = vPorts[port_id++];
         }
     }
@@ -464,6 +489,13 @@ namespace lsp
             size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->pTrgHold->getValue());
             trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
 
+            if (c->pTrgReset->getValue() >= 0.5f)
+            {
+                c->sTrigger.reset_single_trigger();
+                c->sTrigger.activate_manual_trigger();
+            }
+
+            c->sTrigger.set_trigger_hysteresis(0.01f * c->pTrgHys->getValue() * N_VER_DIVISIONS * verDiv);
             c->sTrigger.set_trigger_type(get_trigger_type(c->pTrgType->getValue()));
             c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
             c->sTrigger.set_trigger_hold_samples(trgHold);
@@ -701,6 +733,7 @@ namespace lsp
                 v->write("pTrgMode", &c->pTrgMode);
                 v->write("pTrgType", &c->pTrgType);
                 v->write("pTrgInput", &c->pTrgInput);
+                v->write("pTrgReset", &c->pTrgReset);
 
                 v->write("pMesh", &c->pMesh);
             }

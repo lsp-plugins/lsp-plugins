@@ -48,17 +48,20 @@ namespace lsp
 
     static const port_item_t osc_trg_mode[] =
     {
-        {"None",    "oscilloscope.trigger.mode.none"},
         {"Single",  "oscilloscope.trigger.mode.single"},
+        {"Manual",  "oscilloscope.trigger.mode.manual"},
         {"Repeat",  "oscilloscope.trigger.mode.repeat"},
         {NULL,      NULL}
     };
 
     static const port_item_t osc_trg_type[] =
     {
-        {"Rising Edge",     "oscilloscope.trigger.type.rising_edge"},
-        {"Falling Edge",    "oscilloscope.trigger.type.falling_edge"},
-        {NULL,              NULL}
+        {"None",                    "oscilloscope.trigger.type.none"},
+        {"Simple Rising Edge",      "oscilloscope.trigger.type.simple_rising_edge"},
+        {"Simple Falling Edge",     "oscilloscope.trigger.type.simple_falling_edge"},
+        {"Advanced Rising Edge",    "oscilloscope.trigger.type.advanced_rising_edge"},
+        {"Advanced Falling Edge",   "oscilloscope.trigger.type.advanced_falling_edge"},
+        {NULL,                      NULL}
     };
 
     static const port_item_t osc_coupling[] =
@@ -95,7 +98,8 @@ namespace lsp
         CONTROL("trho" id, "Trigger Hold Time" label, U_SEC, oscilloscope_base_metadata::TRIGGER_HOLD_TIME), \
         COMBO("trmo" id, "Trigger Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
         COMBO("trtp" id, "Trigger Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type), \
-        COMBO("trin" id, "Trigger Input" label, oscilloscope_base_metadata::TRIGGER_INPUT_DFL, osc_trg_input)
+        COMBO("trin" id, "Trigger Input" label, oscilloscope_base_metadata::TRIGGER_INPUT_DFL, osc_trg_input), \
+        TRIGGER("trre" id, "Trigger Reset")
 
     #define CHANNEL_CONTROLS(id, label) \
         OP_CONTROLS(id, label), \

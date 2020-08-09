@@ -73,8 +73,8 @@ namespace lsp
 
         enum trigger_mode_selector_t
         {
-            TRIGGER_MODE_NONE,
             TRIGGER_MODE_SINGLE,
+            TRIGGER_MODE_MANUAL,
             TRIGGER_MODE_REPEAT,
 
             TRIGGER_MODE_DFL = TRIGGER_MODE_REPEAT
@@ -82,10 +82,13 @@ namespace lsp
 
         enum trigger_type_selector_t
         {
-            TRIGGER_TYPE_RISING_EDGE,
-            TRIGGER_TYPE_FALLING_EDGE,
+            TRIGGER_TYPE_NONE,
+            TRIGGER_TYPE_SIMPLE_RISING_EDGE,
+            TRIGGER_TYPE_SIMPE_FALLING_EDGE,
+            TRIGGER_TYPE_ADVANCED_RISING_EDGE,
+            TRIGGER_TYPE_ADVANCED_FALLING_EDGE,
 
-            TRIGGER_TYPE_DFL = TRIGGER_TYPE_RISING_EDGE
+            TRIGGER_TYPE_DFL = TRIGGER_TYPE_SIMPLE_RISING_EDGE
         };
 
         static const float TRIGGER_HYSTERESIS_MAX = 100.0f;

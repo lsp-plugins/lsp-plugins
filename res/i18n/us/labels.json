@@ -572,6 +572,7 @@
 	    "trigger_hold_time": "Hold Time",
 	    "trigger_mode": "Mode",
 	    "trigger_type": "Type",
-	    "trigger_input": "Input"
+	    "trigger_input": "Input",
+	    "trigger_reset": "Reset"
 	}
 }

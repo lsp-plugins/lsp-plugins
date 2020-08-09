@@ -653,13 +653,16 @@
 	            "ext": "EXT"
 	        },
 	        "mode": {
-	            "none": "None",
 	            "single": "Single",
+	            "manual": "Manual",
 	            "repeat": "Repeat"
 	        },
 	        "type": {
-	            "rising_edge": "Rising Edge",
-	            "falling_edge": "Falling Edge"
+	            "none": "None",
+	            "simple_rising_edge": "Simple Rising Edge",
+	            "simple_falling_edge": "Simple Falling Edge",
+	            "advanced_rising_edge": "Advanced Rising Edge",
+	            "advanced_falling_edge": "Advanced Falling Edge"
 	        }
 	    },
         "coupling": {

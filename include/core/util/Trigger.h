@@ -142,6 +142,7 @@ namespace lsp
             inline void reset_single_trigger()
             {
                 sLocks.bSingleLock = true;
+                bSync = true;
             }
 
             /** Activate the manual trigger.
@@ -151,6 +152,7 @@ namespace lsp
             {
                 sLocks.bManualAllow = true;
                 sLocks.bManualLock = false;
+                bSync = true;
             }
 
             /** Set the post-trigger samples. The trigger can be allowed to fire only after the post-trigger samples have elapsed.
@@ -187,6 +189,7 @@ namespace lsp
             {
                 set_simple_trg_threshold(threshold);
                 set_advanced_trg_threshold(threshold);
+                bSync = true;
             }
 
             /** Set the trigger hysteresis.
@@ -196,6 +199,7 @@ namespace lsp
             inline void set_trigger_hysteresis(float hysteresis)
             {
                 set_advanced_trg_hysteresis(hysteresis);
+                bSync = true;
             }
 
             /** Return he trigger state.
