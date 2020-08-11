@@ -466,12 +466,12 @@ namespace lsp
             size_t real_samples_per_dot = seconds_to_samples(real_sample_rate, scaling_factor);
 
             // Update lookahead because oversampling adds extra latency
-            lk_ahead                   += samples_to_millis(fSampleRate, c->sScOver.latency());
+            float lk_ahead_ch = lk_ahead + samples_to_millis(fSampleRate, c->sScOver.latency());
 
             // Update settings for limiter
             c->sLimit.set_mode(op_mode);
             c->sLimit.set_sample_rate(real_sample_rate);
-            c->sLimit.set_lookahead(lk_ahead);
+            c->sLimit.set_lookahead(lk_ahead_ch);
             c->sLimit.set_threshold(thresh, !boost);
             c->sLimit.set_attack(attack);
             c->sLimit.set_release(release);
