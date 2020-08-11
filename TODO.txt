@@ -25,6 +25,9 @@
   topic: https://linuxmusicians.com/viewtopic.php?p=113835
 - Review internal convolver module.
 
+=== 1.1.26 ===
+* Fixed phase mismatch between channels in the oversampling mode of limiter (contributed by Hector Martin)
+
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************
