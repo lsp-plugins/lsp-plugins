@@ -20,10 +20,12 @@
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Review internal convolver module.
+- Implemented Multiband Dynamic Processor plugin series.
 
 === 1.1.26 ===
 
-- Implemented Multiband Dynamic Processor plugin series.
+* Fixed phase mismatch between channels in the oversampling mode of limiter (contributed by Hector Martin).
+- Implemented Crossover Plugin.
 
 *******************************************************************************
 * New plugin check list before release
