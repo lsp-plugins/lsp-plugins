@@ -121,7 +121,7 @@ namespace lsp
                 delete gr;
             }
 
-            s->wire_round_rect(thick + 0.5f, thick + 0.5f, width - (thick << 1) - 1, height - (thick << 1) - 1, radius - thick, mask, 1.0f, c);
+            (*g)->wire_round_rect(thick + 0.5f, thick + 0.5f, width - (thick << 1) - 1, height - (thick << 1) - 1, radius - thick, mask, 1.0f, c);
 
             // Draw glass effect
             gr = (*g)->radial_gradient(width, 0, 1, width, 0, pr);
