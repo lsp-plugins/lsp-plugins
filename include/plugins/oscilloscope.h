@@ -15,6 +15,7 @@
 #include <core/util/Oversampler.h>
 #include <core/util/Trigger.h>
 #include <core/util/Oscillator.h>
+#include <core/filters/FilterBank.h>
 
 namespace lsp
 {
@@ -61,12 +62,24 @@ namespace lsp
                 CH_STATE_SWEEPING
             };
 
+            typedef struct ac_block_t
+            {
+                float               fAlpha;
+                float               fGain;
+            } ac_block_t;
+
             typedef struct channel_t
             {
                 ch_mode_t           enMode;
                 ch_sweep_type_t     enSweepType;
                 ch_trg_input_t      enTrgInput;
-                ch_coupling_t       enCoupling;
+                ch_coupling_t       enCoupling_x;
+                ch_coupling_t       enCoupling_y;
+                ch_coupling_t       enCoupling_ext;
+
+                FilterBank          sACBlockBank_x;
+                FilterBank          sACBlockBank_y;
+                FilterBank          sACBlockBank_ext;
 
                 over_mode_t         enOverMode;
                 size_t              nOversampling;
@@ -82,6 +95,7 @@ namespace lsp
 
                 Oscillator          sSweepGenerator;
 
+                float              *vTemp;
                 float              *vData_x;
                 float              *vData_y;
                 float              *vData_ext;
@@ -117,7 +131,9 @@ namespace lsp
 
                 IPort              *pOvsMode;
                 IPort              *pScpMode;
-                IPort              *pCoupling;
+                IPort              *pCoupling_x;
+                IPort              *pCoupling_y;
+                IPort              *pCoupling_ext;
 
                 IPort              *pSweepType;
                 IPort              *pHorDiv;
@@ -138,6 +154,7 @@ namespace lsp
             } channel_t;
 
         protected:
+            ac_block_t  sACBlockParams;
             size_t      nChannels;
             channel_t  *vChannels;
 
@@ -155,6 +172,8 @@ namespace lsp
             trg_type_t get_trigger_type(size_t portValue);
 
         protected:
+            void update_dc_block_filter(FilterBank &rFilterBank);
+            void reconfigure_dc_block_filters();
             void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);

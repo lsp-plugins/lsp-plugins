@@ -16,6 +16,8 @@
 #define VER_FULL_SCALE_AMP  1.0f
 #define SWEEP_GEN_N_BITS    32
 #define SWEEP_GEN_PEAK      1.0f
+#define AC_BLOCK_CUTOFF_HZ  5.0f
+#define AC_BLOCK_DFL_ALPHA  0.999f
 
 namespace lsp
 {
@@ -128,6 +130,54 @@ namespace lsp
         }
     }
 
+    void oscilloscope_base::update_dc_block_filter(FilterBank &rFilterBank)
+    {
+        rFilterBank.begin();
+
+        biquad_x1_t *f = rFilterBank.add_chain();
+        if (f == NULL)
+            return;
+
+        f->b0   = sACBlockParams.fGain;
+        f->b1   = -sACBlockParams.fGain;
+        f->b2   = 0.0f;
+        f->a1   = -sACBlockParams.fAlpha;
+        f->a2   = 0.0f;
+        f->p0   = 0.0f;
+        f->p1   = 0.0f;
+        f->p2   = 0.0f;
+    }
+
+    void oscilloscope_base::reconfigure_dc_block_filters()
+    {
+        float omega = 2 * M_PI * AC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
+
+        float c = cosf(omega);
+        float g = 1.9952623149688795f; // This is 10^(3/10), used to calculate the parameter alpha so that it is exactly associated to the cutoff frequency (-3 dB).
+        float r = sqrt(c*c - 1.0f - 2.0f * g * c + 2.0f * g);
+
+        float alpha1 = c + r;
+        float alpha2 = c - r;
+
+        if ((alpha1 >= 0.0f) && (alpha1 < 1.0f))
+            sACBlockParams.fAlpha = alpha1;
+        else if ((alpha2 >= 0.0f) && (alpha2 < 1.0f))
+            sACBlockParams.fAlpha = alpha2;
+        else
+            sACBlockParams.fAlpha = AC_BLOCK_DFL_ALPHA;
+
+        sACBlockParams.fGain = 0.5f * (1 + sACBlockParams.fAlpha);
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            channel_t *c = &vChannels[ch];
+
+            update_dc_block_filter(c->sACBlockBank_x);
+            update_dc_block_filter(c->sACBlockBank_y);
+            update_dc_block_filter(c->sACBlockBank_ext);
+        }
+    }
+
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
         // fill_zero is for DEBUG
@@ -234,6 +284,10 @@ namespace lsp
             {
                 channel_t *c = &vChannels[ch];
 
+                c->sACBlockBank_x.destroy();
+                c->sACBlockBank_y.destroy();
+                c->sACBlockBank_ext.destroy();
+
                 c->sOversampler_x.destroy();
                 c->sOversampler_y.destroy();
                 c->sOversampler_ext.destroy();
@@ -242,12 +296,13 @@ namespace lsp
 
                 c->sSweepGenerator.destroy();
 
-                c->vData_x = NULL;
-                c->vData_y = NULL;
-                c->vData_ext = NULL;
-                c->vData_y_delay = NULL;
-                c->vDisplay_x = NULL;
-                c->vDisplay_y = NULL;
+                c->vTemp            = NULL;
+                c->vData_x          = NULL;
+                c->vData_y          = NULL;
+                c->vData_ext        = NULL;
+                c->vData_y_delay    = NULL;
+                c->vDisplay_x       = NULL;
+                c->vDisplay_y       = NULL;
             }
 
             delete [] vChannels;
@@ -263,8 +318,8 @@ namespace lsp
         if (vChannels == NULL)
             return;
 
-        // For each channel: 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
-        size_t samples = nChannels * BUF_LIM_SIZE * 6;
+        // For each channel: 1X temp buffer + 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
+        size_t samples = nChannels * BUF_LIM_SIZE * 7;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -279,6 +334,15 @@ namespace lsp
             c->enMode           = CH_MODE_DFL;
             c->enSweepType      = CH_SWEEP_TYPE_DFL;
             c->enTrgInput       = CH_TRG_INPUT_DFL;
+
+            if (!c->sACBlockBank_x.init(FILTER_CHAINS_MAX))
+                return;
+
+            if (!c->sACBlockBank_y.init(FILTER_CHAINS_MAX))
+                return;
+
+            if (!c->sACBlockBank_ext.init(FILTER_CHAINS_MAX))
+                return;
 
             if (!c->sOversampler_x.init())
                 return;
@@ -301,6 +365,9 @@ namespace lsp
             c->sSweepGenerator.set_phase_accumulator_bits(SWEEP_GEN_N_BITS);
             c->sSweepGenerator.set_phase(0.0f);
             c->sSweepGenerator.update_settings();
+
+            c->vTemp            = ptr;
+            ptr                += BUF_LIM_SIZE;
 
             c->vData_x          = ptr;
             ptr                += BUF_LIM_SIZE;
@@ -338,7 +405,9 @@ namespace lsp
 
             c->pOvsMode         = NULL;
             c->pScpMode         = NULL;
-            c->pCoupling        = NULL;
+            c->pCoupling_x      = NULL;
+            c->pCoupling_y      = NULL;
+            c->pCoupling_ext    = NULL;
 
             c->pSweepType       = NULL;
             c->pHorDiv          = NULL;
@@ -409,7 +478,13 @@ namespace lsp
             vChannels[ch].pScpMode = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pCoupling = vPorts[port_id++];
+            vChannels[ch].pCoupling_x = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pCoupling_y = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pCoupling_ext = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pSweepType = vPorts[port_id++];
@@ -465,7 +540,9 @@ namespace lsp
 
             c->enTrgInput = get_trigger_input(c->pTrgInput->getValue());
 
-            c->enCoupling = get_coupling_type(c->pCoupling->getValue());
+            c->enCoupling_x = get_coupling_type(c->pCoupling_x->getValue());
+            c->enCoupling_y = get_coupling_type(c->pCoupling_y->getValue());
+            c->enCoupling_ext = get_coupling_type(c->pCoupling_ext->getValue());
 
             float verDiv = c->pVerDiv->getValue();
             float verPos = c->pVerPos->getValue();
@@ -506,6 +583,8 @@ namespace lsp
     void oscilloscope_base::update_sample_rate(long sr)
     {
         nSampleRate = sr;
+
+        reconfigure_dc_block_filters();
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -575,8 +654,25 @@ namespace lsp
                 {
                     case CH_MODE_XY:
                     {
-                        c->sOversampler_x.upsample(c->vData_x, c->vIn_x, to_do);
-                        c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
+                        if (c->enCoupling_x == CH_COUPLING_AC)
+                        {
+                            c->sACBlockBank_x.process(c->vTemp, c->vIn_x, to_do);
+                            c->sOversampler_x.upsample(c->vData_x, c->vTemp, to_do);
+                        }
+                        else
+                        {
+                            c->sOversampler_x.upsample(c->vData_x, c->vIn_x, to_do);
+                        }
+
+                        if (c->enCoupling_y == CH_COUPLING_AC)
+                        {
+                            c->sACBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
+                            c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
+                        }
+                        else
+                        {
+                            c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
+                        }
 
                         size_t remaining = c->nSweepSize - c->nDisplayHead;
                         size_t to_copy = (to_do_upsample < remaining) ? to_do_upsample : remaining;
@@ -597,9 +693,27 @@ namespace lsp
 
                     case CH_MODE_TRIGGERED:
                     {
-                        c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
+                        if (c->enCoupling_y == CH_COUPLING_AC)
+                        {
+                            c->sACBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
+                            c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
+                        }
+                        else
+                        {
+                            c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
+                        }
                         c->sPreTrgDelay.process(c->vData_y_delay, c->vData_y, to_do_upsample);
-                        c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
+
+                        if (c->enCoupling_ext == CH_COUPLING_AC)
+                        {
+                            c->sACBlockBank_ext.process(c->vTemp, c->vIn_ext, to_do);
+                            c->sOversampler_ext.upsample(c->vData_ext, c->vTemp, to_do);
+                        }
+                        else
+                        {
+                            c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
+                        }
+
                         c->nDataHead = 0;
 
                         float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
@@ -655,6 +769,13 @@ namespace lsp
 
     void oscilloscope_base::dump(IStateDumper *v) const
     {
+        v->begin_object("sACBlockParams", &sACBlockParams, sizeof(sACBlockParams));
+        {
+            v->write("fAlpha", sACBlockParams.fAlpha);
+            v->write("fGain", sACBlockParams.fGain);
+        }
+        v->end_object();
+
         v->write("nChannels", nChannels);
 
         v->begin_array("vChannels", vChannels, nChannels);
@@ -667,7 +788,13 @@ namespace lsp
                 v->write("enMode", &c->enMode);
                 v->write("enSweepType", &c->enSweepType);
                 v->write("enTrgInput", &c->enTrgInput);
-                v->write("enCoupling", &c->enCoupling);
+                v->write("enCoupling_x", &c->enCoupling_x);
+                v->write("enCoupling_y", &c->enCoupling_y);
+                v->write("enCoupling_ext", &c->enCoupling_ext);
+
+                v->write_object("sACBlockBank_x", &c->sACBlockBank_x);
+                v->write_object("sACBlockBank_y", &c->sACBlockBank_y);
+                v->write_object("sACBlockBank_ext", &c->sACBlockBank_ext);
 
                 v->write("enOverMode", &c->enOverMode);
                 v->write("nOversampling", &c->nOversampling);
@@ -683,6 +810,7 @@ namespace lsp
 
                 v->write_object("sSweepGenerator", &c->sSweepGenerator);
 
+                v->write("vTemp", &c->vTemp);
                 v->write("vData_x", &c->vData_x);
                 v->write("vData_y", &c->vData_y);
                 v->write("vData_ext", &c->vData_ext);
@@ -718,7 +846,9 @@ namespace lsp
 
                 v->write("pOvsMode", &c->pOvsMode);
                 v->write("pScpMode", &c->pScpMode);
-                v->write("pCoupling", &c->pCoupling);
+                v->write("pCoupling_x", &c->pCoupling_x);
+                v->write("pCoupling_y", &c->pCoupling_y);
+                v->write("pCoupling_ext", &c->pCoupling_ext);
 
                 v->write("pSweepType", &c->pSweepType);
                 v->write("pHorDiv", &c->pHorDiv);

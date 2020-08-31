@@ -1,7 +1,7 @@
 <plugin resizable="false">
     <hbox spacing="4">
     
-        <vbox>
+        <vbox spacing="4">
             <group text="groups.oscilloscope.screen" expand="true" fill="true">
         
 	            <graph width="512" height="320" expand="true" fill="true">
@@ -42,19 +42,30 @@
 	            </graph>
 	            
 	        </group>
+	        
+	        <hbox spacing="4">
+	        
+	            <group text="groups.oscilloscope.operation" expand="true" fill="true">
+	                <grid rows="2" cols="2" spacing="4">
+	                    <label text="labels.oscilloscope.oversampler_mode" />
+	                    <combo id="ovmo_1" same_line="true" />
+	                    <label text="labels.oscilloscope.mode" />          
+	                    <combo id="scmo_1" same_line="true" />
+	                </grid>
+	            </group>
 	            
-            <group text="groups.oscilloscope.operation" expand="true" fill="true">
-            
-                <grid rows="2" cols="3" hspacing="4">
-                    <label text="labels.oscilloscope.oversampler_mode" />
-                    <label text="labels.oscilloscope.mode" />
-                    <label text="labels.oscilloscope.coupling" />             
-                    <combo id="ovmo_1" same_line="true" />
-                    <combo id="scmo_1" same_line="true" />
-                    <combo id="sccp_1" same_line="true" />
-                </grid>
-           
-            </group>
+	            <group text="labels.oscilloscope.coupling" expand="true" fill="true">
+	                <grid rows="3" cols="2" spacing="4">
+	                    <label text="X" />
+	                    <combo id="sccx_1" same_line="true" />
+	                    <label text="Y" />
+	                    <combo id="sccy_1" same_line="true" />
+	                    <label text="EXT" />
+	                    <combo id="scce_1" same_line="true" />
+	                </grid>
+	            </group>
+	        
+	        </hbox>
 	            
         </vbox>
         

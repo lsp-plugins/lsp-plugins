@@ -80,8 +80,12 @@ namespace lsp
 
     #define OP_CONTROLS(id, label) \
         COMBO("ovmo" id, "Oversampler Mode" label, oscilloscope_base_metadata::OSC_OVS_DFL, ovs_mode), \
-        COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode), \
-        COMBO("sccp" id, "Coupling" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling)
+        COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode)
+
+    #define CP_CONTROLS(id, label) \
+        COMBO("sccx" id, "Coupling X" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling), \
+        COMBO("sccy" id, "Coupling Y" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling), \
+        COMBO("scce" id, "Coupling EXT" label, oscilloscope_base_metadata::COUPLING_DFL, osc_coupling)
 
     #define HOR_CONTROLS(id, label) \
         COMBO("swtp" id, "Sweep Type" label, oscilloscope_base_metadata::SWEEP_TYPE_DFL, sweep_type), \
@@ -103,6 +107,7 @@ namespace lsp
 
     #define CHANNEL_CONTROLS(id, label) \
         OP_CONTROLS(id, label), \
+        CP_CONTROLS(id, label), \
         HOR_CONTROLS(id, label), \
         VER_CONTROLS(id, label), \
         TRG_CONTROLS(id, label)
