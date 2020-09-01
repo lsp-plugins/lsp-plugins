@@ -770,13 +770,6 @@ namespace lsp
                 vWidgets.add(cnt);
                 return new CtlCenter(this, cnt);
             }
-            case WC_BASIS:
-            {
-                LSPBasis *basis = new LSPBasis(&sDisplay);
-                basis->init();
-                vWidgets.add(basis);
-                return new CtlBasis(this, basis);
-            }
             case WC_MARKER:
             {
                 LSPMarker *mark = new LSPMarker(&sDisplay);

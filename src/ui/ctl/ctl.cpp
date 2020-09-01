@@ -10,7 +10,6 @@ namespace lsp
         {
             "align",
             "axis",
-            "basis",
             "body",
             "box",
             "button",

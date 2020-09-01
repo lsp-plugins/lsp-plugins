@@ -286,7 +286,6 @@ namespace lsp
 #include <ui/tk/widgets/graph/LSPGraphItem.h>
 #include <ui/tk/widgets/graph/LSPAxis.h>
 #include <ui/tk/widgets/graph/LSPCenter.h>
-#include <ui/tk/widgets/graph/LSPBasis.h>
 #include <ui/tk/widgets/graph/LSPMarker.h>
 #include <ui/tk/widgets/graph/LSPMesh.h>
 #include <ui/tk/widgets/graph/LSPDot.h>

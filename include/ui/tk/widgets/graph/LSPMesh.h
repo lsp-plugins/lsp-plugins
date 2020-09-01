@@ -18,7 +18,6 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                cstorage<ssize_t>   sBasis;
                 size_t              nWidth;
                 size_t              nCenter;
                 size_t              nDimensions;
@@ -57,8 +56,6 @@ namespace lsp
 
             public:
                 virtual void render(ISurface *s, bool force);
-
-                virtual void add(LSPWidget *widget);
         };
     
     } /* namespace tk */

@@ -32,7 +32,6 @@ namespace lsp
 
             WC_ALIGN,
             WC_AXIS,
-            WC_BASIS,
             WC_BODY,
             WC_BOX,
             WC_BUTTON,
@@ -333,7 +332,6 @@ namespace lsp
 #include <ui/ctl/CtlGraph.h>
 #include <ui/ctl/CtlAxis.h>
 #include <ui/ctl/CtlCenter.h>
-#include <ui/ctl/CtlBasis.h>
 #include <ui/ctl/CtlMarker.h>
 #include <ui/ctl/CtlMesh.h>
 #include <ui/ctl/CtlDot.h>
