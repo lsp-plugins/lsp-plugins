@@ -122,6 +122,7 @@ namespace lsp
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate, CONVOLVER_DATA_ALIGN);
         lsp_guard_assert(float *save = fptr);
+        lsp_guard_assert(const float *sdata = data);
         if (fptr == NULL)
             return false;
 
@@ -189,16 +190,16 @@ namespace lsp
         nLevels                 = 0;
         for (; (count > 0) && (brank < rank); ++brank)
         {
-            size_t samples          = lsp_min(count, size_t(1 << (brank - 1)));
+            size_t n                = lsp_min(count, size_t(1 << (brank - 1)));
 
             // Prepare raising convolution
             dsp::fill_zero(vConvBuffer, fft_buf_size);
-            dsp::copy(vConvBuffer, data, samples);
+            dsp::copy(vConvBuffer, data, n);
             dsp::fastconv_parse(conv, vConvBuffer, brank);
 
-            data                   += samples;
+            data                   += n;
             conv                   += (1 << (brank + 1));
-            count                  -= samples;
+            count                  -= n;
             nLevels                 ++;             // Increment number of raising levels
         }
 
@@ -206,18 +207,21 @@ namespace lsp
         nBlocks                 = 0;
         while (count > 0)
         {
-            size_t samples          = lsp_min(count, data_buf_size);
+            size_t n            = lsp_min(count, data_buf_size);
 
             // Prepare raising convolution
             dsp::fill_zero(vConvBuffer, fft_buf_size);
-            dsp::copy(vConvBuffer, data, samples);
+            dsp::copy(vConvBuffer, data, n);
             dsp::fastconv_parse(conv, vConvBuffer, rank);
 
-            data                   += samples;
+            data                   += n;
             conv                   += fft_buf_size;
-            count                  -= samples;
+            count                  -= n;
             nBlocks                 ++;             // Increment number of constant-size blocks
         }
+
+        lsp_assert(conv <= vDirectData);
+
         nBlocksDone             = nBlocks;
 
         nRank                   = rank;
@@ -292,18 +296,15 @@ namespace lsp
 
             // Apply direct convolution
             size_t to_do        = lsp_min(count, size_t(CONVOLVER_MIN_DATA_BUF_SIZE - sub_off));
-            if (to_do > count)
-                to_do               = count;
-
             dsp::copy(&vFrame[nFrameOff], src, to_do);      // Store data to frame
             if (to_do == CONVOLVER_MIN_DATA_BUF_SIZE)
                 dsp::fastconv_parse_apply(&vDataBuffer[nFrameOff], vConvBuffer, vConvData, src, CONVOLVER_RANK_MIN);
             else
                 dsp::convolve(&vDataBuffer[nFrameOff], src, vDirectData, nDirectSize, to_do);
-            nFrameOff          += to_do;
+            dsp::copy(dst, &vDataBuffer[nFrameOff], to_do); // Output result
 
-            // Output the result to destination buffer and update counters/pointers
-            dsp::copy(dst, &vDataBuffer[nFrameOff], to_do);
+            // Update counters/pointers
+            nFrameOff          += to_do;
             src                += to_do;
             dst                += to_do;
             count              -= to_do;
