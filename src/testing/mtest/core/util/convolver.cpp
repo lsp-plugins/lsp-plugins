@@ -23,6 +23,7 @@
 #include <test/helpers.h>
 #include <core/files/AudioFile.h>
 #include <core/util/Convolver.h>
+#include <dsp/dsp.h>
 
 using namespace lsp;
 
@@ -31,7 +32,7 @@ MTEST_BEGIN("core.util", convolver)
     MTEST_MAIN
     {
         Convolver cv;
-        AudioFile vox, conv, out;
+        AudioFile vox, conv, out, dir;
 
         MTEST_ASSERT(vox.load("tmp/convolver/vox.wav") == STATUS_OK);
         MTEST_ASSERT(conv.load("tmp/convolver/mono-hall.wav") == STATUS_OK);
@@ -39,10 +40,13 @@ MTEST_BEGIN("core.util", convolver)
         MTEST_ASSERT(cv.init(conv.channel(0), conv.samples(), 13, 0.0f));
 
         MTEST_ASSERT(out.create_samples(1, vox.sample_rate(), vox.samples() + conv.samples()) == STATUS_OK);
+        MTEST_ASSERT(dir.create_samples(1, vox.sample_rate(), vox.samples() + conv.samples()) == STATUS_OK);
 
         cv.process(out.channel(0), vox.channel(0), vox.samples());
+        dsp::convolve(dir.channel(0), vox.channel(0), conv.channel(0), conv.samples(), vox.samples());
 
-        MTEST_ASSERT(out.store("tmp/convolver/out-sse.wav") == STATUS_OK);
+        MTEST_ASSERT(out.store("tmp/convolver/processed.wav") == STATUS_OK);
+        MTEST_ASSERT(dir.store("tmp/convolver/direct.wav") == STATUS_OK);
     }
 
 MTEST_END
