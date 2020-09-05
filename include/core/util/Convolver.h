@@ -38,6 +38,8 @@ namespace lsp
             size_t          nBlocks;                // Number of constant-size blocks
             size_t          nBlocksDone;            // Number of applied constant-size blocks
             size_t          nRank;                  // The actual rank of the convolution
+            size_t          nBlkInit;               // Initial number of blocks to apply at step # 0
+            float           fBlkCoef;               // The actual coefficient to compute proper block number per formula
 
             uint8_t        *vData;                  // Non-aligned pointer to the whole allocated data
 

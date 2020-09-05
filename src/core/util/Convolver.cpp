@@ -122,7 +122,6 @@ namespace lsp
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate, CONVOLVER_DATA_ALIGN);
         lsp_guard_assert(float *save = fptr);
-        lsp_guard_assert(const float *sdata = data);
         if (fptr == NULL)
             return false;
 
@@ -223,6 +222,17 @@ namespace lsp
         lsp_assert(conv <= vDirectData);
 
         nBlocksDone             = nBlocks;
+        ssize_t steps           = data_buf_size >> (CONVOLVER_RANK_MIN - 1);
+        if (steps <= 1)
+        {
+            nBlkInit                = nBlocks;
+            fBlkCoef                = 0.0f;
+        }
+        else
+        {
+            nBlkInit                = 1;
+            fBlkCoef                = (float(nBlocks) + 1e-3f) / (float(steps) - 1.0f);
+        }
 
         nRank                   = rank;
 
@@ -276,16 +286,23 @@ namespace lsp
                     mask              >>= 1;
                 }
 
-                // Apply tail convolution
-                if ((mask & 1) && (nBlocks > 0))
+                // Need to apply long tail?
+                if (nBlocks > 0)
                 {
-                    dsp::fastconv_parse(vTaskData, vFrame - nFrameSize, nRank);
+                    // Need to reset tasks?
+                    if (mask & 1)
+                    {
+                        dsp::fastconv_parse(vTaskData, vFrame - nFrameSize, nRank);
+                        nBlocksDone         = 0;
+                    }
 
+                    // Need to execute tasks?
+                    size_t target_blk   = lsp_min(nBlocks, size_t(nBlkInit + fBlkCoef * sub_id));
                     size_t fft_step     = 1 << (nRank + 1);
-                    conv                = &vConvData[fft_step];
-                    float *xdst         = vDataBuffer;
+                    conv                = &vConvData[(nBlocksDone + 1) * fft_step];     // Source convolution
+                    float *xdst         = &vDataBuffer[nBlocksDone << (nRank - 1)];     // Offset to store the block
 
-                    for (size_t i=0; i<nBlocks; ++i)
+                    for ( ; nBlocksDone < target_blk; ++nBlocksDone)
                     {
                         dsp::fastconv_apply(xdst, vConvBuffer, conv, vTaskData, rank);
                         xdst               += (fft_step >> 2);
@@ -322,7 +339,26 @@ namespace lsp
 
     void Convolver::dump(IStateDumper *v) const
     {
-        // TODO
+        v->write("pDataBuffer", vDataBuffer);
+        v->write("vFrame", vFrame);
+        v->write("vConvBuffer", vConvBuffer);
+        v->write("vTaskData", vTaskData);
+        v->write("vConvData", vConvData);
+        v->write("vDirectData", vDirectData);
+
+        v->write("nDataBufferSize", nDataBufferSize);
+        v->write("nDirectSize", nDirectSize);
+        v->write("nFrameSize", nFrameSize);
+        v->write("nFrameOff", nFrameOff);
+        v->write("nConvSize", nConvSize);
+        v->write("nLevels", nLevels);
+        v->write("nBlocks", nBlocks);
+        v->write("nBlocksDone", nBlocksDone);
+        v->write("nRank", nRank);
+        v->write("nBlkInit", nBlkInit);
+        v->write("fBlkCoef", fBlkCoef);
+
+        v->write("vData", vData);
     }
 
 } /* namespace lsp */
