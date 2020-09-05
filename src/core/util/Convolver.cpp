@@ -8,6 +8,7 @@
 #include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/util/Convolver.h>
+#include <core/sugar.h>
 #include <stdarg.h>
 
 #define CONVOLVER_RANK_FRM_SMALL    (CONVOLVER_RANK_FFT_SMALL - 1)
@@ -20,6 +21,7 @@ namespace lsp
 {
     Convolver::Convolver()
     {
+        nConvSize       = 0;
         nFrameSize      = 0;
         nFrameMax       = 0;
 
@@ -96,10 +98,7 @@ namespace lsp
 //        lsp_trace("Initializing convolver this=%p", this);
 
         // Determine number of buffers
-        if (rank < CONVOLVER_RANK_MIN)
-            rank    = CONVOLVER_RANK_MIN;
-        else if (rank >= CONVOLVER_RANK_MAX)
-            rank    = CONVOLVER_RANK_MAX;
+        rank                    = lsp_limit(ssize_t(rank), CONVOLVER_RANK_MIN, CONVOLVER_RANK_MAX);
 
         // Determine size of buffer
         size_t fft_buf_size     = 1 << rank;
@@ -174,7 +173,7 @@ namespace lsp
 
             Conv buffer layout:
             +---+---+------+------------+------------------------+
-            |FFT|FFT|FFT x2|   FFT x4   |       FFT x5           |  . . .
+            |FFT|FFT|FFT x2|   FFT x4   |       FFT x8           |  . . .
             +---+---+------+------------+------------------------+
          */
         float *conv_re      = vConv;
@@ -436,10 +435,10 @@ namespace lsp
                 // Update frame
 //                lsp_trace("switch_frame");
 //                lsp_trace("dsp::copy dst=%p src=%p, count=0x%x", vFrame-nFrameMax, vFrame, int(nFrameMax));
-                dsp::copy(vFrame-nFrameMax, vFrame, nFrameMax);
+                dsp::move(vFrame - nFrameMax, vFrame, nFrameMax);
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vFrame, int(nFrameMax));
                 dsp::fill_zero(vFrame, nFrameMax);
-                nFrameSize -= nFrameMax;
+                nFrameSize     -= nFrameMax;
             }
 
             // Copy data to output and update buffer pointers
