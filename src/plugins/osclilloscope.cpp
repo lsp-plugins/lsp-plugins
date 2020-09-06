@@ -16,7 +16,7 @@
 #define VER_FULL_SCALE_AMP  1.0f
 #define SWEEP_GEN_N_BITS    32
 #define SWEEP_GEN_PEAK      1.0f
-#define AC_BLOCK_CUTOFF_HZ  5.0f
+#define AC_BLOCK_CUTOFF_HZ  5.0
 #define AC_BLOCK_DFL_ALPHA  0.999f
 
 namespace lsp
@@ -132,6 +132,15 @@ namespace lsp
 
     void oscilloscope_base::update_dc_block_filter(FilterBank &rFilterBank)
     {
+        /* Filter Transfer Function:
+         *
+         *          g - g z^-1
+         * H(z) = ----------------
+         *          1 - a * z^-1
+         *
+         * With g = sACBlockParams.fGain, a = sACBlockParams.fAlpha
+         */
+
         rFilterBank.begin();
 
         biquad_x1_t *f = rFilterBank.add_chain();
@@ -146,27 +155,29 @@ namespace lsp
         f->p0   = 0.0f;
         f->p1   = 0.0f;
         f->p2   = 0.0f;
+
+        rFilterBank.end();
     }
 
     void oscilloscope_base::reconfigure_dc_block_filters()
     {
-        float omega = 2 * M_PI * AC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
+        double omega = 2.0 * M_PI * AC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
 
-        float c = cosf(omega);
-        float g = 1.9952623149688795f; // This is 10^(3/10), used to calculate the parameter alpha so that it is exactly associated to the cutoff frequency (-3 dB).
-        float r = sqrt(c*c - 1.0f - 2.0f * g * c + 2.0f * g);
+        double c = cos(omega);
+        double g = 1.9952623149688795; // This is 10^(3/10), used to calculate the parameter alpha so that it is exactly associated to the cutoff frequency (-3 dB).
+        double r = sqrt(c*c - 1.0 - 2.0 * g * c + 2.0 * g);
 
-        float alpha1 = c + r;
-        float alpha2 = c - r;
+        double alpha1 = c + r;
+        double alpha2 = c - r;
 
-        if ((alpha1 >= 0.0f) && (alpha1 < 1.0f))
+        if ((alpha1 >= 0.0) && (alpha1 < 1.0))
             sACBlockParams.fAlpha = alpha1;
-        else if ((alpha2 >= 0.0f) && (alpha2 < 1.0f))
+        else if ((alpha2 >= 0.0) && (alpha2 < 1.0))
             sACBlockParams.fAlpha = alpha2;
         else
             sACBlockParams.fAlpha = AC_BLOCK_DFL_ALPHA;
 
-        sACBlockParams.fGain = 0.5f * (1 + sACBlockParams.fAlpha);
+        sACBlockParams.fGain = 0.5f * (1.0f + sACBlockParams.fAlpha);
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
