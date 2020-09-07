@@ -150,7 +150,7 @@ namespace lsp
         f->b0   = sACBlockParams.fGain;
         f->b1   = -sACBlockParams.fGain;
         f->b2   = 0.0f;
-        f->a1   = -sACBlockParams.fAlpha;
+        f->a1   = sACBlockParams.fAlpha;
         f->a2   = 0.0f;
         f->p0   = 0.0f;
         f->p1   = 0.0f;
