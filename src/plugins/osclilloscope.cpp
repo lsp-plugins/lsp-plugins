@@ -156,7 +156,7 @@ namespace lsp
         f->p1   = 0.0f;
         f->p2   = 0.0f;
 
-        rFilterBank.end();
+        rFilterBank.end(true);
     }
 
     void oscilloscope_base::reconfigure_dc_block_filters()
