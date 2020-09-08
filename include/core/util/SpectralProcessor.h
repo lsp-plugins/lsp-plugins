@@ -13,6 +13,13 @@
 
 namespace lsp
 {
+    /**
+     * Spectral processor callback function
+     * @param object the object that handles callback
+     * @param subject the subject that is used to handle callback
+     * @param spectrum spectral data for processing (packed complex numbers)
+     * @param rank the overall rank of the FFT transform (log2(size))
+     */
     typedef void (* spectral_processor_func_t)(void *object, void *subject, float *spectrum, size_t rank);
     
     /**
