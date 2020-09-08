@@ -170,9 +170,16 @@ MOD_PLUGIN(sc_mb_gate_ms, plugin_ui)
 MOD_PLUGIN(loud_comp_mono, plugin_ui)
 MOD_PLUGIN(loud_comp_stereo, plugin_ui)
 
-// Pop destroyer
+// Surge filter
 MOD_PLUGIN(surge_filter_mono, plugin_ui)
 MOD_PLUGIN(surge_filter_stereo, plugin_ui)
+
+// Crossover plugin
+MOD_PLUGIN(crossover_mono, plugin_ui)
+MOD_PLUGIN(crossover_stereo, plugin_ui)
+MOD_PLUGIN(crossover_ms, plugin_ui)
+MOD_PLUGIN(crossover_lr, plugin_ui)
+
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver

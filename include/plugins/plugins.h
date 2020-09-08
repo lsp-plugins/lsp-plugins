@@ -35,9 +35,12 @@
 #include <plugins/mb_expander.h>
 #include <plugins/mb_gate.h>
 #include <plugins/loud_comp.h>
+#include <plugins/surge_filter.h>
+#include <plugins/crossover.h>
+
 #include <plugins/nonlinear_convolver.h>
 
 #include <plugins/experimental.h>
-#include <plugins/surge_filter.h>
+
 
 #endif /* PLUGINS_PLUGINS_H_ */

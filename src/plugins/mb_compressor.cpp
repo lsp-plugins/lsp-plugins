@@ -584,6 +584,12 @@ namespace lsp
         if (pData != NULL)
             free_aligned(pData);
 
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
+
         // Destroy analyzer
         sAnalyzer.destroy();
 

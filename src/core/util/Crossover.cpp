@@ -203,6 +203,10 @@ namespace lsp
         }
     }
 
+    void Crossover::construct()
+    {
+    }
+
     void Crossover::destroy()
     {
         if (vBuffers != NULL)

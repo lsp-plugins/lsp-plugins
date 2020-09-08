@@ -27,6 +27,8 @@
 * Fixed phase mismatch between channels in the oversampling mode of limiter (contributed by Hector Martin).
 * Fixed bug in convolver module which could perform improper tail convolution (reported by Robin Gareus).
   Affected plugins: Impulse Responses, Impulse Reverb, Room Builder.
+* Fixed small memory leakage in multiband plugins (Compressor, Gate, Expander) related to usage of
+  Inline Display feature.
 - Implemented Crossover Plugin.
 
 *******************************************************************************

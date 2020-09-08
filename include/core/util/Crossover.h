@@ -88,6 +88,16 @@ namespace lsp
             explicit Crossover();
             ~Crossover();
 
+            /** Construct crossover
+             *
+             */
+            void            construct();
+
+            /** Destroy crossover
+             *
+             */
+            void            destroy();
+
         public:
             /** Initialize crossover
              *
@@ -96,11 +106,6 @@ namespace lsp
              * @return status of operation
              */
             bool init(size_t bands, size_t buf_size);
-
-            /** Destroy crossover
-             *
-             */
-            void destroy();
 
             /** Bind the signal processing handler for the crossover
              *
