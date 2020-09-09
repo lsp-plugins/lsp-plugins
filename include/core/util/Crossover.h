@@ -13,41 +13,48 @@
 
 namespace lsp
 {
-    /**
-     * Spectral processor callback function
-     * @param object the object that handles callback
-     * @param subject the subject that is used to handle callback
-     * @param band number of the band
-     * @param data the output buffer produced by crossover (valid only until handler returns)
-     * @param count number of samples in the data buffer
-     */
-    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, const float *data, size_t count);
-
     /*
          The overall schema of signal processing by the crossover for 4 bands
          (filters are following in order of the increasing frequency):
 
+        INPUT = Input signal passed to the process() method
+        LPF   = Low-pass filter
+        HPF   = High-pass filter
+        APF   = All-pass filter
+        OUT   = Output signal for the particular band passed to the crossover_func_t callback function
 
-        s   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐
-       ──┬─►│LPF 0│────►│APF 1│────►│APF 2│────►│OUT 0│
-         │  └─────┘     └─────┘     └─────┘     └─────┘
-         │
-         │
-         │  ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐
-         └─►│HPF 0│──┬─►│LPF 1│────►│APF 2│────►│OUT 1│
-            └─────┘  │  └─────┘     └─────┘     └─────┘
-                     │
-                     │
-                     │  ┌─────┐     ┌─────┐     ┌─────┐
-                     └─►│HPF 1│──┬─►│LPF 2│────►│OUT 2│
-                        └─────┘  │  └─────┘     └─────┘
-                                 │
-                                 │
-                                 │  ┌─────┐     ┌─────┐
-                                 └─►│HPF 2│────►│OUT 3│
-                                    └─────┘     └─────┘
+       ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐
+       │INPUT│──┬─►│LPF 0│────►│APF 1│────►│APF 2│────►│OUT 0│
+       └─────┘  │  └─────┘     └─────┘     └─────┘     └─────┘
+                │
+                │
+                │  ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐
+                └─►│HPF 0│──┬─►│LPF 1│────►│APF 2│────►│OUT 1│
+                   └─────┘  │  └─────┘     └─────┘     └─────┘
+                            │
+                            │
+                            │  ┌─────┐     ┌─────┐     ┌─────┐
+                            └─►│HPF 1│──┬─►│LPF 2│────►│OUT 2│
+                               └─────┘  │  └─────┘     └─────┘
+                                        │
+                                        │
+                                        │  ┌─────┐     ┌─────┐
+                                        └─►│HPF 2│────►│OUT 3│
+                                           └─────┘     └─────┘
      */
 
+    /**
+     * Crossover callback function for processing band signal
+     *
+     * @param object the object that handles callback
+     * @param subject the subject that is used to handle callback
+     * @param band number of the band
+     * @param data the output band signal produced by crossover,
+     *        may be used as a temporary buffer for computations,
+     *        is valid only until the function returns
+     * @param count number of samples in the data buffer
+     */
+    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, float *data, size_t count);
 
     /** Crossover, splits signal into bands, calls processing handler (if present)
      * and mixes processed bands back after adjusting the post-processing amplification gain
@@ -200,28 +207,25 @@ namespace lsp
             float           get_gain(size_t band) const;
 
             /**
-             * Get start frequency of the band, valid only if reconfigure() request is not
-             * pending
+             * Get start frequency of the band, may call reconfigure()
              * @param band band number
              * @return start frequency of the band or negative value on invalid index
              */
-            float           get_band_start(size_t band) const;
+            float           get_band_start(size_t band);
 
             /**
-             * Get end frequency of the band, valid only if reconfigure() request is not
-             * pending
+             * Get end frequency of the band, may call reconfigure()
              * @param band band number
              * @return end frequency of the band or negative value on invalid index
              */
-            float           get_band_end(size_t band) const;
+            float           get_band_end(size_t band);
 
             /**
-             * Check that the band is active (always true for band 0), valid only if
-             * reconfigure() request is not pending
+             * Check that the band is active (always true for band 0), may call reconfigure()
              * @param band band number
              * @return true if band is active
              */
-            bool            band_active(size_t band) const;
+            bool            band_active(size_t band);
 
             /**
              * Set band signal handler

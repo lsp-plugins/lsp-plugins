@@ -199,13 +199,15 @@ namespace lsp
         return (band <= nSplits) ? vBands[band].fGain: -1.0f;
     }
 
-    float Crossover::get_band_start(size_t band) const
+    float Crossover::get_band_start(size_t band)
     {
+        reconfigure();
         return (band <= nSplits) ? vBands[band].fStart : -1.0f;
     }
 
-    float Crossover::get_band_end(size_t band) const
+    float Crossover::get_band_end(size_t band)
     {
+        reconfigure();
         return (band <= nSplits) ? vBands[band].fEnd : -1.0f;
     }
 
@@ -234,10 +236,14 @@ namespace lsp
         return true;
     }
 
-    bool Crossover::band_active(size_t band) const
+    bool Crossover::band_active(size_t band)
     {
         if (band > nSplits)
             return false;
+        else if (band == 0)
+            return true;
+
+        reconfigure();
         return vBands[band].bEnabled;
     }
 
@@ -372,7 +378,7 @@ namespace lsp
         {
             size_t to_do        = lsp_min(samples, nBufSize);
             band_t *left        = &vBands[0];
-            const float *buf    = in;
+            const float *src    = in;
 
             if (nPlanSize > 0)
             {
@@ -384,12 +390,12 @@ namespace lsp
 
                     if (left->pFunc != NULL)
                     {
-                        sp->sLPF.process(vLpfBuf, buf, to_do);
+                        sp->sLPF.process(vLpfBuf, src, to_do);
                         left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
                     }
 
-                    sp->sHPF.process(vHpfBuf, buf, to_do);
-                    buf                 = vHpfBuf;
+                    sp->sHPF.process(vHpfBuf, src, to_do);
+                    src                 = vHpfBuf;
                     left                = right;
                 }
 
@@ -399,7 +405,7 @@ namespace lsp
             }
             else if (left->pFunc != NULL)
             {
-                dsp::mul_k2(vLpfBuf, vBands[0].fGain, to_do);
+                dsp::mul_k3(vLpfBuf, src, vBands[0].fGain, to_do);
                 left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
             }
 
