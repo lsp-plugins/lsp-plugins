@@ -16,6 +16,16 @@ namespace lsp
 {
     Filter::Filter()
     {
+        construct();
+    }
+
+    Filter::~Filter()
+    {
+        destroy();
+    }
+
+    void Filter::construct()
+    {
         pBank               = NULL;
         sParams.nType       = FLT_NONE;
         sParams.fFreq       = 0;
@@ -32,11 +42,6 @@ namespace lsp
         vItems              = NULL;
         vData               = NULL;
         nFlags              = FF_REBUILD | FF_CLEAR;
-    }
-
-    Filter::~Filter()
-    {
-        destroy();
     }
 
     bool Filter::init(FilterBank *fb)

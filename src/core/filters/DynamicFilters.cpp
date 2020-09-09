@@ -23,6 +23,16 @@ namespace lsp
 
     DynamicFilters::DynamicFilters()
     {
+        construct();
+    }
+
+    DynamicFilters::~DynamicFilters()
+    {
+        destroy();
+    }
+
+    void DynamicFilters::construct()
+    {
         vFilters        = NULL;
         vMemory         = NULL;
         vCascades       = NULL;
@@ -31,11 +41,6 @@ namespace lsp
         nSampleRate     = 0;
         pData           = NULL;
         bClearMem       = false;
-    }
-
-    DynamicFilters::~DynamicFilters()
-    {
-        destroy();
     }
 
     status_t DynamicFilters::init(size_t filters)
@@ -84,22 +89,17 @@ namespace lsp
         return STATUS_OK;
     }
 
-    void DynamicFilters::set_sample_rate(size_t sr)
-    {
-        nSampleRate         = sr;
-    }
-
     void DynamicFilters::destroy()
     {
         if (pData != NULL)
             free_aligned(pData);
 
-        vFilters        = NULL;
-        vCascades       = NULL;
-        vMemory         = NULL;
-        vBiquads.ptr    = NULL;
-        nFilters        = 0;
-        nSampleRate     = 0;
+        construct();
+    }
+
+    void DynamicFilters::set_sample_rate(size_t sr)
+    {
+        nSampleRate         = sr;
     }
 
     bool DynamicFilters::set_params(size_t id, const filter_params_t *params)

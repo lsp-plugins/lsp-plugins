@@ -14,6 +14,18 @@ namespace lsp
 {
     Equalizer::Equalizer()
     {
+        construct();
+    }
+
+    Equalizer::~Equalizer()
+    {
+        destroy();
+    }
+
+    void Equalizer::construct()
+    {
+        sBank.construct();
+
         vFilters        = NULL;
         nFilters        = 0;
         nSampleRate     = 0;
@@ -30,11 +42,6 @@ namespace lsp
         vTmp            = NULL;
         pData           = NULL;
         nFlags          = EF_REBUILD | EF_CLEAR;
-    }
-
-    Equalizer::~Equalizer()
-    {
-        destroy();
     }
 
     bool Equalizer::init(size_t filters, size_t conv_rank)

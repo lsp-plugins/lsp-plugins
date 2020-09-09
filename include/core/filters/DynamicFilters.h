@@ -14,7 +14,7 @@
 
 namespace lsp
 {
-    /** This class implements set of dynamic filters grouped
+    /** This class implements set of sequential dynamic filters grouped
      * into one object for resource economy purpose.
      *
      */
@@ -67,38 +67,43 @@ namespace lsp
             explicit DynamicFilters();
             ~DynamicFilters();
 
-        public:
+            /**
+             * Construct the object as a part of memory chunkk
+             */
+            void                construct();
+
             /** Initialize the dynamic filters set
              *
              * @param filters
              * @return
              */
-            status_t init(size_t filters);
-
-            /** Set sample rate
-             *
-             * @param sr sample rate
-             */
-            void set_sample_rate(size_t sr);
+            status_t            init(size_t filters);
 
             /** Destroy the dynamic filters set
              *
              */
-            void destroy();
+            void                destroy();
+
+        public:
+            /** Set sample rate
+             *
+             * @param sr sample rate
+             */
+            void                set_sample_rate(size_t sr);
 
             /** Check that filter is active
              *
              * @param id ID of filter
              * @return true if filter is active
              */
-            inline bool filter_active(size_t id) const { return (id < nFilters) ? vFilters[id].bActive : false; };
+            inline bool         filter_active(size_t id) const { return (id < nFilters) ? vFilters[id].bActive : false; };
 
             /** Check that filter is inactive
              *
              * @param id ID of filter
              * @return true if filter is inactive
              */
-            inline bool filter_inactive(size_t id) const { return (id < nFilters) ? !vFilters[id].bActive : true; };
+            inline bool         filter_inactive(size_t id) const { return (id < nFilters) ? !vFilters[id].bActive : true; };
 
             /** Set activity of the specific filter
              *
@@ -106,7 +111,7 @@ namespace lsp
              * @param active activity of the specific filter
              * @return true on success
              */
-            inline bool set_filter_active(size_t id, bool active)
+            inline bool         set_filter_active(size_t id, bool active)
             {
                 if (id >= nFilters)
                     return false;
@@ -119,14 +124,14 @@ namespace lsp
              * @param params  filter parameters
              * @return true on success
              */
-            bool set_params(size_t id, const filter_params_t *params);
+            bool                set_params(size_t id, const filter_params_t *params);
 
             /** Get filter parameters
              * @param id ID of the filter
              * @param params  filter parameters
              * @return true on success
              */
-            bool get_params(size_t id, filter_params_t *params);
+            bool                get_params(size_t id, filter_params_t *params);
 
             /** Process signal with filter varying by it's gain parameter
              *
@@ -136,7 +141,7 @@ namespace lsp
              * @param gain the gain level of the filter
              * @param samples number of samples to process
              */
-            void process(size_t id, float *out, const float *in, const float *gain, size_t samples);
+            void                process(size_t id, float *out, const float *in, const float *gain, size_t samples);
 
             /** Get frequency chart of the specific filter
              *
@@ -146,7 +151,7 @@ namespace lsp
              * @param f frequencies to calculate value
              * @param count number of dots for the chart
              */
-            bool freq_chart(size_t id, float *re, float *im, const float *f, float gain, size_t count);
+            bool                freq_chart(size_t id, float *re, float *im, const float *f, float gain, size_t count);
 
             /** Get frequency chart of the specific filter
              *
@@ -155,7 +160,7 @@ namespace lsp
              * @param f frequencies to calculate value
              * @param count number of dots for the chart
              */
-            bool freq_chart(size_t id, float *dst, const float *f, float gain, size_t count);
+            bool                freq_chart(size_t id, float *dst, const float *f, float gain, size_t count);
     };
 } /* namespace lsp */
 

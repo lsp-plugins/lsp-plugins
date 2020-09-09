@@ -27,13 +27,17 @@ namespace lsp
             uint8_t            *vData;      // Unaligned data
 
         protected:
-            void        clear_delays();
+            void                clear_delays();
 
         public:
             explicit FilterBank();
             ~FilterBank();
 
-        public:
+            /**
+             * Construct the filter bank being a chunk of memory
+             */
+            void                construct();
+
             /** Initialize filter bank
              *
              * @param filters number of biquad filters
@@ -46,6 +50,7 @@ namespace lsp
              */
             void                destroy();
 
+        public:
             /** Start filter bank, clears number of cascades
              *
              */
