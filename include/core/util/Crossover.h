@@ -92,13 +92,13 @@ namespace lsp
 
         protected:
             size_t          nReconfigure;   // Change flag
-            size_t          nBands;         // Number of bands
+            size_t          nSplits;        // Number of splits
             size_t          nBufSize;       // Buffer size
             size_t          nSampleRate;    // Sample rate
 
             band_t         *vBands;         // List of bands
             split_t        *vSplit;         // List of split points
-            split_t        *vPlan;          // Split plan
+            split_t       **vPlan;          // Split plan
             size_t          nPlanSize;      // Size of plan
 
             float          *vLpfBuf;        // Buffer for LPF
@@ -136,7 +136,13 @@ namespace lsp
              * Get number of bands
              * @return number of bands
              */
-            inline size_t   num_bands() const                       { return nBands;        }
+            inline size_t   num_bands() const                       { return nSplits+1;     }
+
+            /**
+             * Get number of split points
+             * @return number of split points
+             */
+            inline size_t   num_splits() const                      { return nSplits;       }
 
             /**
              * Get maximum buffer size for one iteration, if the provided
@@ -213,14 +219,16 @@ namespace lsp
              * @param func handler function
              * @param object object to pass to function
              * @param subject subject to pass to function
+             * @return false if invalid band number has been specified
              */
-            void            set_handler(size_t band, crossover_func_t func, void *object, void *subject);
+            bool            set_handler(size_t band, crossover_func_t func, void *object, void *subject);
 
             /**
              * Unset band signal handler
              * @param band band number
+             * @return false if invalid band number has been specified
              */
-            void            unset_handler(size_t band);
+            bool            unset_handler(size_t band);
 
             /** Set sample rate, needs reconfiguration
              *
