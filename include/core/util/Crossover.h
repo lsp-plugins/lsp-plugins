@@ -64,7 +64,7 @@ namespace lsp
                 Equalizer           sLPF;           // Lo-pass filter
                 Filter              sHPF;           // Hi-pass filter with all-pass filters
 
-                size_t              nId;            // Number of split point
+                size_t              nBandId;        // Number of split point
                 size_t              nSlope;         // Filter slope (0 = off)
                 float               fFreq;          // Frequency
             } split_t;
@@ -75,11 +75,13 @@ namespace lsp
                 float               fStart;         // Start frequency of the band
                 float               fEnd;           // End frequency of the band
                 bool                bEnabled;       // Enabled flag
+                split_t            *pStart;         // Pointer to starting split point
+                split_t            *pEnd;           // Pointer to ending split point
 
                 crossover_func_t    pFunc;          // Function
                 void               *pObject;        // Bound object
                 void               *pSubject;       // Bound subject
-                size_t              id;             // Number of the band
+                size_t              nId;            // Number of the band
             } band_t;
 
             enum reconfigure_t
@@ -214,6 +216,14 @@ namespace lsp
             float           get_band_end(size_t band) const;
 
             /**
+             * Check that the band is active (always true for band 0), valid only if
+             * reconfigure() request is not pending
+             * @param band band number
+             * @return true if band is active
+             */
+            bool            band_active(size_t band) const;
+
+            /**
              * Set band signal handler
              * @param band band number
              * @param func handler function
@@ -244,24 +254,24 @@ namespace lsp
 
             /** Get frequency chart of the crossover
              *
+             * @param band number of the band
              * @param re real part of the frequency chart
              * @param im imaginary part of the frequency chart
-             * @param band number of the band
              * @param f frequencies to calculate value
              * @param count number of points for the chart
              * @return false if invalid band index is specified
              */
-            bool            freq_chart(float *re, float *im, size_t band, const float *f, size_t count);
+            bool            freq_chart(size_t band,  float *re, float *im, const float *f, size_t count);
 
             /** Get frequency chart of the crossover
              *
-             * @param tf transfer function (packed complex numbers)
              * @param band number of the band
+             * @param c transfer function (packed complex numbers)
              * @param f frequencies to calculate value
              * @param count number of points for the chart
              * @return false if invalid band index is specified
              */
-            bool            freq_chart(float *tf, const float *f, size_t band, size_t count);
+            bool            freq_chart(size_t band, float *c, const float *f, size_t count);
 
             /**
              * Check that we need to call reconfigure()

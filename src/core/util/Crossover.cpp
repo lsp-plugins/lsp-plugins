@@ -8,6 +8,7 @@
 #include <core/debug.h>
 #include <dsp/dsp.h>
 #include <core/util/Crossover.h>
+#include <core/sugar.h>
 #include <core/stdlib/math.h>
 
 namespace lsp
@@ -94,6 +95,9 @@ namespace lsp
         nBufSize            = buf_size;
         nPlanSize           = 0;
 
+        // Store allocated data pointer
+        pData               = ptr;
+
         // Construct all splits
         float step          = logf(SPEC_FREQ_MAX / SPEC_FREQ_MIN) / bands;
 
@@ -101,10 +105,26 @@ namespace lsp
         {
             split_t *sp         = &vSplit[i];
 
+            // Initialize filters
             sp->sLPF.construct();
             sp->sHPF.construct();
 
-            sp->nId             = i;
+            if (!sp->sLPF.init(bands, 0))
+            {
+                destroy();
+                return false;
+            }
+            if (!sp->sHPF.init(NULL))
+            {
+                destroy();
+                return false;
+            }
+
+            // Set IIR mode for each filter
+            sp->sLPF.set_mode(EQM_IIR);
+
+            // Initialize split point parameters
+            sp->nBandId         = i + 1; // Band N+1 is attached to split point N
             sp->nSlope          = 0;
             sp->fFreq           = SPEC_FREQ_MIN * expf((i+1) * step);
         }
@@ -118,15 +138,14 @@ namespace lsp
             sb->fStart          = (i == 0) ? SPEC_FREQ_MIN : vSplit[i-1].fFreq;
             sb->fEnd            = vSplit[i].fFreq;
             sb->bEnabled        = false;
+            sb->pStart           = NULL;
+            sb->pEnd          = NULL;
 
             sb->pFunc           = NULL;
             sb->pObject         = NULL;
             sb->pSubject        = NULL;
-            sb->id              = i;
+            sb->nId             = i;
         }
-
-        // Store allocated data pointer
-        pData               = ptr;
 
         return true;
     }
@@ -215,6 +234,13 @@ namespace lsp
         return true;
     }
 
+    bool Crossover::band_active(size_t band) const
+    {
+        if (band > nSplits)
+            return false;
+        return vBands[band].bEnabled;
+    }
+
     void Crossover::set_sample_rate(size_t sr)
     {
         if (nSampleRate == sr)
@@ -224,24 +250,117 @@ namespace lsp
         nReconfigure   |= R_ALL;
     }
 
-    bool Crossover::freq_chart(float *re, float *im, size_t band, const float *f, size_t count)
-    {
-        // TODO
-        return false;
-    }
-
-    bool Crossover::freq_chart(float *tf, const float *f, size_t band, size_t count)
-    {
-        return false;
-    }
-
     void Crossover::reconfigure()
     {
         if (!nReconfigure)
             return;
 
-        // TODO
+        // Form the plan and reset band state
+        nPlanSize       = 0;
+        for (size_t i=0; i<nSplits; ++i)
+        {
+            if (vSplit[i].nSlope > 0)
+                vPlan[nPlanSize++]  = &vSplit[i];
+        }
+        for (size_t i=0; i<=nSplits; ++i)
+            vBands[i].bEnabled  = false;
 
+        // Sort split bands in ascending order
+        for (ssize_t si=0, n=nPlanSize; si < n-1; ++si)
+            for (ssize_t sj=si+1; sj < n; ++sj)
+                if (vPlan[sj]->fFreq < vPlan[si]->fFreq)
+                    swap(vPlan[si], vPlan[sj]);
+
+        band_t *left        = &vBands[0];
+        left->fStart        = SPEC_FREQ_MIN;
+        left->bEnabled      = true;
+        left->pStart        = NULL;
+
+        // Configure LPF and HPF bands
+        for (size_t i=0; i<nPlanSize; ++i)
+        {
+            split_t *sp         = vPlan[i];
+            band_t *right       = &vBands[sp->nBandId];
+
+            left->fEnd          = sp->fFreq;
+            left->pEnd          = sp;
+            right->fStart       = sp->fFreq;
+            right->pStart       = sp;
+            right->bEnabled     = true;
+
+            // Set LPF parameters
+            size_t filter_id    = 0;
+            filter_params_t fp;
+            if (nReconfigure & R_SPLIT)
+            {
+                fp.nType            = FLT_BT_LRX_LOPASS;
+                fp.fFreq            = sp->fFreq;
+                fp.fFreq2           = sp->fFreq;
+                fp.nSlope           = sp->nSlope;
+                fp.fQuality         = 0.0f;
+            }
+            else
+                sp->sLPF.get_params(filter_id, &fp);
+
+            fp.fGain            = left->fGain;
+            sp->sLPF.set_params(filter_id++, &fp);
+
+            // Append APF filters
+            for (size_t j=i+1; j<nPlanSize; ++j)
+            {
+                split_t *xsp        = vPlan[j];
+
+                if (nReconfigure & R_SPLIT)
+                {
+                    fp.nType            = FLT_BT_LRX_ALLPASS;
+                    fp.fFreq            = sp->fFreq;
+                    fp.fFreq2           = sp->fFreq;
+                    fp.nSlope           = xsp->nSlope;
+                    fp.fQuality         = 0.0f;
+                }
+                else
+                    sp->sLPF.get_params(filter_id, &fp);
+
+                fp.fGain            = GAIN_AMP_0_DB;
+                sp->sLPF.set_params(filter_id++, &fp);
+            }
+
+            // Disable all other filters in the chain
+            while (filter_id <= nSplits)
+            {
+                fp.nType            = FLT_NONE;
+                fp.fFreq            = 0;
+                fp.fFreq2           = 0;
+                fp.fGain            = GAIN_AMP_0_DB;
+                fp.nSlope           = 0;
+                fp.fQuality         = 0.0f;
+                sp->sLPF.set_params(filter_id++, &fp);
+            }
+
+            // Set HPF parameters
+            if (nReconfigure & R_SPLIT)
+            {
+                fp.nType            = FLT_BT_LRX_LOPASS;
+                fp.fFreq            = sp->fFreq;
+                fp.fFreq2           = sp->fFreq;
+                fp.nSlope           = sp->nSlope;
+                fp.fQuality         = 0.0f;
+            }
+            else
+                sp->sHPF.get_params(&fp);
+
+            fp.fGain            = (i < (nPlanSize-1)) ? GAIN_AMP_0_DB : right->fGain;
+            sp->sHPF.update(nSampleRate, &fp);
+
+            // Move to next band
+            left                = right;
+        }
+
+        // Update frequency of the last band
+        left->fEnd          = nSampleRate * 0.5f;
+        left->pEnd          = NULL;
+
+        // Reset reconfiguration flag
         nReconfigure        = 0;
     }
 
@@ -249,7 +368,128 @@ namespace lsp
     {
         reconfigure();
 
-        // TODO
+        while (samples > 0)
+        {
+            size_t to_do        = lsp_min(samples, nBufSize);
+            band_t *left        = &vBands[0];
+            const float *buf    = in;
+
+            if (nPlanSize > 0)
+            {
+                // Process each band except last
+                for (size_t i=0; i<nPlanSize; ++i)
+                {
+                    split_t *sp         = vPlan[i];
+                    band_t *right       = &vBands[sp->nBandId];
+
+                    if (left->pFunc != NULL)
+                    {
+                        sp->sLPF.process(vLpfBuf, buf, to_do);
+                        left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
+                    }
+
+                    sp->sHPF.process(vHpfBuf, buf, to_do);
+                    buf                 = vHpfBuf;
+                    left                = right;
+                }
+
+                // Process last band
+                if (left->pFunc != NULL)
+                    left->pFunc(left->pObject, left->pSubject, left->nId, vHpfBuf, to_do);
+            }
+            else if (left->pFunc != NULL)
+            {
+                dsp::mul_k2(vLpfBuf, vBands[0].fGain, to_do);
+                left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
+            }
+
+            // Update pointers
+            in                 += to_do;
+            samples            -= to_do;
+        }
+    }
+
+    bool Crossover::freq_chart(size_t band, float *re, float *im, const float *f, size_t count)
+    {
+        // Valid index of the band?
+        if (band > nSplits)
+            return false;
+
+        // Reconfigure
+        reconfigure();
+
+        // Band is enabled ?
+        band_t *b       = &vBands[band];
+        if (!b->bEnabled)
+        {
+            dsp::fill_zero(re, count);
+            dsp::fill_zero(im, count);
+        }
+        else if (b->pEnd == NULL)
+            b->pStart->sHPF.freq_chart(re, im, f, count);
+        else if (b->pStart == NULL)
+            b->pEnd->sLPF.freq_chart(re, im, f, count);
+        else
+        {
+            // Compute frequency chart with chunks of maximum nBufSize size
+            while (count > 0)
+            {
+                size_t to_do    = lsp_min(count, nBufSize);
+
+                // Apply frequency chart
+                b->pStart->sHPF.freq_chart(re, im, f, to_do);
+                b->pEnd->sLPF.freq_chart(vLpfBuf, vHpfBuf, f, to_do);
+                dsp::complex_mul2(re, im, vLpfBuf, vHpfBuf, to_do);
+
+                // Update pointers
+                re             += to_do;
+                im             += to_do;
+                f              += to_do;
+                count          -= to_do;
+            }
+        }
+
+        return true;
+    }
+
+    bool Crossover::freq_chart(size_t band, float *c, const float *f, size_t count)
+    {
+        // Valid index of the band?
+        if (band > nSplits)
+            return false;
+
+        // Reconfigure
+        reconfigure();
+
+        // Band is enabled ?
+        band_t *b       = &vBands[band];
+        if (!b->bEnabled)
+            dsp::pcomplex_fill_ri(c, 0.0f, 0.0f, count);
+        else if (b->pEnd == NULL)
+            b->pStart->sHPF.freq_chart(c, f, count);
+        else if (b->pStart == NULL)
+            b->pEnd->sLPF.freq_chart(c, f, count);
+        else
+        {
+            // Compute frequency chart with chunks of maximum nBufSize size
+            while (count > 0)
+            {
+                // We can go out of vLpfBuf because vHpfBuf is there after it
+                size_t to_do    = lsp_min(count, nBufSize);
+
+                // Apply frequency chart
+                b->pStart->sHPF.freq_chart(c, f, to_do);
+                b->pEnd->sLPF.freq_chart(vLpfBuf, f, to_do);
+                dsp::pcomplex_mul2(c, vLpfBuf, to_do);
+
+                // Update pointers
+                c              += to_do;
+                f              += to_do;
+                count          -= to_do;
+            }
+        }
+
+        return true;
     }
 
 } /* namespace lsp */

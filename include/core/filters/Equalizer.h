@@ -134,7 +134,7 @@ namespace lsp
              */
             inline size_t       get_latency() const { return nLatency; }
 
-            /** Get frequency chart of the filter
+            /** Get frequency chart of the specific filter
              *
              * @param id ID of the filter
              * @param re real part of the frequency chart
@@ -145,7 +145,7 @@ namespace lsp
              */
             bool                freq_chart(size_t id, float *re, float *im, const float *f, size_t count);
 
-            /** Get frequency chart of the filter
+            /** Get frequency chart of the specific filter
              *
              * @param id ID of the filter
              * @param c complex numbers that contain the filter transfer function
@@ -154,6 +154,23 @@ namespace lsp
              * @return status of operation
              */
             bool                freq_chart(size_t id, float *c, const float *f, size_t count);
+
+            /**
+             * Get frequency chart of the whole equalizer
+             * @param re real part of the frequency chart
+             * @param im imaginary part of the frequency chart
+             * @param f frequencies to calculate value
+             * @param count number of dots for the chart
+             */
+            void                freq_chart(float *re, float *im, const float *f, size_t count);
+
+            /**
+             * Get frequency chart of the whole equalizer
+             * @param c complex numbers that contain the filter transfer function
+             * @param f frequencies to calculate filter transfer function
+             * @param count number of points
+             */
+            void                freq_chart(float *c, const float *f, size_t count);
 
             /** Process the signal
              *

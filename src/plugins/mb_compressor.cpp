@@ -911,8 +911,8 @@ namespace lsp
                     }
 
                     // Update transfer function for equalizer
-                    b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(0), b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(1), vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul2(b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
