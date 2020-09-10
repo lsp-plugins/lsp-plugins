@@ -8,6 +8,7 @@
 #ifndef CORE_UTIL_CROSSOVER_H_
 #define CORE_UTIL_CROSSOVER_H_
 
+#include <core/IStateDumper.h>
 #include <core/filters/Filter.h>
 #include <core/filters/Equalizer.h>
 
@@ -50,11 +51,10 @@ namespace lsp
      * @param subject the subject that is used to handle callback
      * @param band number of the band
      * @param data the output band signal produced by crossover,
-     *        may be used as a temporary buffer for computations,
      *        is valid only until the function returns
      * @param count number of samples in the data buffer
      */
-    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, float *data, size_t count);
+    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, const float *data, size_t count);
 
     /** Crossover, splits signal into bands, calls processing handler (if present)
      * and mixes processed bands back after adjusting the post-processing amplification gain
@@ -295,6 +295,12 @@ namespace lsp
              * @param samples number of samples to process
              */
             void            process(const float *in, size_t samples);
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void            dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

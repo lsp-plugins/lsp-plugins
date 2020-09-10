@@ -388,13 +388,15 @@ namespace lsp
                     split_t *sp         = vPlan[i];
                     band_t *right       = &vBands[sp->nBandId];
 
+                    // Perform split first
                     if (left->pFunc != NULL)
-                    {
                         sp->sLPF.process(vLpfBuf, src, to_do);
-                        left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
-                    }
-
                     sp->sHPF.process(vHpfBuf, src, to_do);
+
+                    // Now call handlers
+                    if (left->pFunc != NULL)
+                        left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
+
                     src                 = vHpfBuf;
                     left                = right;
                 }
@@ -496,6 +498,11 @@ namespace lsp
         }
 
         return true;
+    }
+
+    void Crossover::dump(IStateDumper *v) const
+    {
+        // TODO
     }
 
 } /* namespace lsp */

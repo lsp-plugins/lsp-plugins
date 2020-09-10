@@ -24,7 +24,7 @@
 #include <core/util/Color.h>
 #include <plugins/crossover.h>
 
-#define BUFFER_SIZE             0x1000
+#define BUFFER_SIZE             0x400U
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
@@ -32,11 +32,11 @@ namespace lsp
     crossover_base::crossover_base(const plugin_metadata_t &metadata, size_t mode): plugin_t(metadata)
     {
         nMode           = 0;
-        bEnvUpdate      = true;
         vChannels       = NULL;
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
         fZoom           = GAIN_AMP_0_DB;
+        bMSOut          = false;
 
         pData           = NULL;
         vTr             = NULL;
@@ -76,6 +76,8 @@ namespace lsp
                                   crossover_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes
                                   channels * (
                                       BUFFER_SIZE * sizeof(float)             +                   // vBuffer
+                                      BUFFER_SIZE * sizeof(float)             +                   // vResult
+                                      BUFFER_SIZE * crossover_base_metadata::BANDS_MAX +          // band.vResult
                                       crossover_base_metadata::BANDS_MAX * filter_mesh_size * 2   // band.vTr
                                   );
 
@@ -126,16 +128,25 @@ namespace lsp
                 b->vBandOut         = NULL;
                 b->vAllOut          = NULL;
 
-                vTr                 = reinterpret_cast<float *>(ptr);           // Transfer buffer
+                b->vResult          = reinterpret_cast<float *>(ptr);
+                ptr                += BUFFER_SIZE;
+                b->vTr              = reinterpret_cast<float *>(ptr);           // Transfer buffer
                 ptr                += filter_mesh_size * 2;
 
+                b->bSolo            = false;
+                b->bMute            = false;
                 b->fMakeup          = GAIN_AMP_0_DB;
+                b->fOutLevel        = 0.0f;
+                b->bSyncCurve       = false;
 
                 b->pSolo            = NULL;
                 b->pMute            = NULL;
                 b->pMakeup          = NULL;
+                b->pOutLevel        = NULL;
+                b->pInvPhase        = NULL;
                 b->pFreqEnd         = NULL;
                 b->pOut             = NULL;
+                b->pAmpGraph        = NULL;
             }
 
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
@@ -150,12 +161,15 @@ namespace lsp
             c->vOut             = NULL;
             c->vBuffer          = reinterpret_cast<float *>(ptr);
             ptr                += BUFFER_SIZE * sizeof(float);
+            c->vResult          = reinterpret_cast<float *>(ptr);
+            ptr                += BUFFER_SIZE * sizeof(float);
             c->vTr              = NULL;
 
             c->nAnInChannel     = an_cid++;
             c->nAnOutChannel    = an_cid++;
-            c->bInFft           = false;
-            c->bOutFft          = false;
+            c->bSyncCurve       = false;
+            c->fInLevel         = 0.0f;
+            c->fOutLevel        = 0.0f;
 
             c->pIn              = NULL;
             c->pOut             = NULL;
@@ -238,10 +252,7 @@ namespace lsp
             channel_t *c    = &vChannels[i];
 
             if ((i > 0) && (nMode == XOVER_STEREO))
-            {
-                channel_t *sc           = &vChannels[0];
-                c->pAmpGraph            = sc->pAmpGraph;
-            }
+                c->pAmpGraph            = NULL;
             else
             {
                 TRACE_PORT(vPorts[port_id]);
@@ -307,8 +318,16 @@ namespace lsp
                     xover_band_t *sb    = &vChannels[0].vBands[j];
                     b->pSolo            = sb->pSolo;
                     b->pMute            = sb->pMute;
+                    b->pInvPhase        = sb->pInvPhase;
                     b->pMakeup          = sb->pMakeup;
                     b->pFreqEnd         = sb->pFreqEnd;
+                    b->pInvPhase        = sb->pInvPhase;
+                    b->pFreqEnd         = sb->pFreqEnd;
+                    b->pAmpGraph        = NULL;
+
+                    // Bind output level meter
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pOutLevel        = vPorts[port_id++];
                 }
                 else
                 {
@@ -317,11 +336,17 @@ namespace lsp
                     TRACE_PORT(vPorts[port_id]);
                     b->pMute            = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
+                    b->pInvPhase        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
                     b->pMakeup          = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     ++port_id; // Skip hue
                     TRACE_PORT(vPorts[port_id]);
                     b->pFreqEnd         = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pAmpGraph        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pOutLevel        = vPorts[port_id++];
                 }
             }
         }
@@ -370,24 +395,315 @@ namespace lsp
         plugin_t::destroy();
     }
 
+    size_t crossover_base::decode_slope(size_t slope)
+    {
+        // TODO: decode code of slope to the real slope value
+        return slope;
+    }
+
     void crossover_base::update_settings()
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+        size_t fft_channels = 0;
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            Crossover *xc   = &c->sXOver;
+
+            c->sBypass.set_bypass(pBypass->getValue() >= 0.5f);
+
+            // Configure split points
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            {
+                xover_split_t *sp   = &c->vSplit[i];
+
+                xc->set_frequency(i, sp->pFreq->getValue());
+                xc->set_slope(i, decode_slope(sp->pSlope->getValue()));
+            }
+
+            // Configure bands (step 1):
+            bool solo       = false;
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            {
+                xover_band_t *xb    = &c->vBands[i];
+
+                xb->bSolo           = xb->pSolo->getValue() >= 0.5f;
+                xb->bMute           = xb->pMute->getValue() >= 0.5f;
+                xb->fMakeup         = xb->pMakeup->getValue();
+                solo                = solo || xb->bSolo;
+            }
+
+            // Configure bands (step 2):
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            {
+                xover_band_t *xb    = &c->vBands[i];
+                if ((solo) && (!xb->bSolo))
+                    xb->bMute           = true;
+                float gain          = (xb->pInvPhase->getValue() >= 0.5f) ? -xb->fMakeup : xb->fMakeup;
+                xc->set_gain(i, gain);
+            }
+
+            // Reconfigure the crossover
+            bool sync = xc->needs_reconfiguration();
+            xc->reconfigure();
+
+            // Output band parameters and update sync curve flag
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            {
+                xover_band_t *xb    = &c->vBands[i];
+                xb->pFreqEnd->setValue(xc->get_band_end(i));
+                if (sync)
+                    xb->bSyncCurve      = true;
+            }
+
+            if (sync)
+                c->bSyncCurve       = true;
+
+            // Update analyzer settings
+            sAnalyzer.enable_channel(c->nAnInChannel, c->pFftInSw->getValue() >= 0.5f);
+            sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->getValue() >= 0.5f);
+
+            if (sAnalyzer.channel_active(c->nAnInChannel))
+                fft_channels ++;
+            if (sAnalyzer.channel_active(c->nAnOutChannel))
+                fft_channels ++;
+        }
+
+        // Update analyzer parameters
+        sAnalyzer.set_reactivity(pReactivity->getValue());
+        if (pShiftGain != NULL)
+            sAnalyzer.set_shift(pShiftGain->getValue() * 100.0f);
+        sAnalyzer.set_activity(fft_channels > 0);
+
+        // Update analyzer
+        if (sAnalyzer.needs_reconfiguration())
+        {
+            sAnalyzer.reconfigure();
+            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
+        }
+
+        // Global parameters
+        fInGain         = pInGain->getValue();
+        fOutGain        = pOutGain->getValue();
+        fZoom           = pZoom->getValue();
+        bMSOut          = (pMSOut != NULL) ? pMSOut->getValue() >= 0.5f : false;
     }
 
     void crossover_base::update_sample_rate(long sr)
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            Crossover *xc   = &c->sXOver;
+
+            c->sBypass.init(sr);
+            xc->set_sample_rate(sr);
+        }
+
+        sAnalyzer.set_sample_rate(sr);
     }
 
     void crossover_base::ui_activated()
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            c->bSyncCurve   = true;
+
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            {
+                xover_band_t *xb    = &c->vBands[i];
+                xb->bSyncCurve      = true;
+            }
+        }
+    }
+
+    void crossover_base::process_band(void *object, void *subject, size_t band, const float *data, size_t count)
+    {
+        channel_t *c            = static_cast<channel_t *>(subject);
+        xover_band_t *b         = &c->vBands[band];
+
+        // Process signal of the band
+        dsp::copy(b->vBandOut, data, count);
+        if (!b->bMute)
+            dsp::add2(b->vAllOut, data, count);
+
+        b->vBandOut            += count;
+        b->vAllOut             += count;
     }
 
     void crossover_base::process(size_t samples)
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+
+        // Prepare pointers
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+            c->vIn              = c->pIn->getBuffer<float>();
+            c->vOut             = c->pOut->getBuffer<float>();
+
+            c->fInLevel         = 0.0f;
+            c->fOutLevel        = 0.0f;
+
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
+            {
+                xover_band_t *b     = &c->vBands[i];
+                b->vBandOut         = b->pOut->getBuffer<float>();
+                b->fOutLevel        = 0.0f;
+            }
+        }
+
+        // Process samples
+        while (samples > 0)
+        {
+            size_t to_do        = lsp_min(samples, BUFFER_SIZE);
+
+            // Apply input gain and M/S transform (if required)
+            if (nMode == XOVER_MS)
+            {
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
+                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do));
+
+                dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_do);
+                dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_do);
+                dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_do);
+                dsp::fill_zero(vChannels[0].vResult, to_do);
+                dsp::fill_zero(vChannels[1].vResult, to_do);
+            }
+            else if (channels > 1)
+            {
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
+                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do));
+
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
+                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_do);
+                dsp::fill_zero(vChannels[0].vResult, to_do);
+                dsp::fill_zero(vChannels[1].vResult, to_do);
+            }
+            else
+            {
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
+
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
+                dsp::fill_zero(vChannels[0].vResult, to_do);
+            }
+
+            // Process each channel
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                // Bind proper 'AllOut' pointer for each frequency band
+                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+                {
+                    xover_band_t *b     = &c->vBands[j];
+                    b->vAllOut          = c->vResult;
+                    b->vBandOut         = b->vResult;
+                }
+            }
+
+            // Call the crossovers
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+                c->sXOver.process(c->vIn, to_do);
+            }
+
+            // Output signal of each band to output buffers
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+
+                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+                {
+                    xover_band_t *b     = &c->vBands[j];
+                    if (c->sXOver.band_active(j))
+                    {
+                        b->fOutLevel        = lsp_max(b->fOutLevel, dsp::abs_max(b->vResult, to_do));
+                        dsp::copy(b->vBandOut, b->vResult, to_do);
+                    }
+                    else
+                        dsp::fill_zero(b->vBandOut, to_do);
+                }
+            }
+
+            // Post-process and route signal to outputs via bypasses
+            if (bMSOut)
+            {
+                dsp::mul_k2(vChannels[0].vResult, fOutGain, to_do);
+                dsp::mul_k2(vChannels[1].vResult, fOutGain, to_do);
+                dsp::ms_to_lr(vChannels[0].vResult, vChannels[1].vResult, vChannels[0].vResult, vChannels[1].vResult, to_do);
+
+                vChannels[0].fOutLevel  = lsp_max(vChannels[0].fOutLevel, dsp::abs_max(vChannels[0].vResult, to_do));
+                vChannels[1].fOutLevel  = lsp_max(vChannels[1].fOutLevel, dsp::abs_max(vChannels[1].vResult, to_do));
+
+                vChannels[0].sBypass.process(vChannels[0].vOut, vChannels[0].vIn, vChannels[0].vResult, to_do);
+                vChannels[1].sBypass.process(vChannels[1].vOut, vChannels[1].vIn, vChannels[1].vResult, to_do);
+            }
+            else if (channels > 1)
+            {
+                dsp::mul_k2(vChannels[0].vResult, fOutGain, to_do);
+                dsp::mul_k2(vChannels[1].vResult, fOutGain, to_do);
+
+                vChannels[0].fOutLevel  = lsp_max(vChannels[0].fOutLevel, dsp::abs_max(vChannels[0].vResult, to_do));
+                vChannels[1].fOutLevel  = lsp_max(vChannels[1].fOutLevel, dsp::abs_max(vChannels[1].vResult, to_do));
+
+                vChannels[0].sBypass.process(vChannels[0].vOut, vChannels[0].vIn, vChannels[0].vResult, to_do);
+                vChannels[1].sBypass.process(vChannels[1].vOut, vChannels[1].vIn, vChannels[1].vResult, to_do);
+            }
+            else
+            {
+                dsp::mul_k2(vChannels[0].vResult, fOutGain, to_do);
+                vChannels[0].fOutLevel  = lsp_max(vChannels[0].fOutLevel, dsp::abs_max(vChannels[0].vResult, to_do));
+
+                vChannels[0].sBypass.process(vChannels[0].vOut, vChannels[0].vIn, vChannels[0].vResult, to_do);
+            }
+
+            // Update pointers
+            for (size_t i=0; i<channels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+                c->vIn             += to_do;
+                c->vOut            += to_do;
+
+                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+                {
+                    xover_band_t *b     = &c->vBands[j];
+                    b->vBandOut        += to_do;
+                }
+            }
+
+            samples            -= to_do;
+        }
+
+        // Output meters and graphs
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+
+            c->pInLvl->setValue(c->fInLevel);
+            c->pOutLvl->setValue(c->fOutLevel);
+
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+            {
+                xover_band_t *b     = &c->vBands[j];
+                b->pOutLevel->setValue(b->fOutLevel);
+
+                // TODO: pass transfer function of the band
+            }
+
+            // TODO: pass transfer function of the output
+        }
     }
 
     bool crossover_base::inline_display(ICanvas *cv, size_t width, size_t height)

@@ -73,21 +73,37 @@ namespace lsp
     #define XOVER_BAND(id, label, x, total, fe, fs) \
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
+            SWITCH("phi" id, "Band phase invert" label, 0.0f), \
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
-            METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ)
+            METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
+            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS), \
+            \
+            METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB)
+
+    #define XOVER_STEREO_BAND(id, label, x, total, fe, fs) \
+            SWITCH("bs" id, "Solo band" label, 0.0f), \
+            SWITCH("bm" id, "Mute band" label, 0.0f), \
+            SWITCH("phi" id, "Band phase invert" label, 0.0f), \
+            LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
+            HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
+            METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
+            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS), \
+            \
+            METER_GAIN("ilm" id "l", "Input level meter" label " Left", GAIN_AMP_P_24_DB), \
+            METER_GAIN("ilm" id "r", "Input level meter" label " Right", GAIN_AMP_P_24_DB)
 
     static const port_t crossover_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
-        AUDIO_OUTPUT("0", "0"),
-        AUDIO_OUTPUT("1", "1"),
-        AUDIO_OUTPUT("2", "2"),
-        AUDIO_OUTPUT("3", "3"),
-        AUDIO_OUTPUT("4", "4"),
-        AUDIO_OUTPUT("5", "5"),
-        AUDIO_OUTPUT("6", "6"),
-        AUDIO_OUTPUT("7", "7"),
+        AUDIO_OUTPUT("0", "Band Output 0"),
+        AUDIO_OUTPUT("1", "Band Output 1"),
+        AUDIO_OUTPUT("2", "Band Output 2"),
+        AUDIO_OUTPUT("3", "Band Output 3"),
+        AUDIO_OUTPUT("4", "Band Output 4"),
+        AUDIO_OUTPUT("5", "Band Output 5"),
+        AUDIO_OUTPUT("6", "Band Output 6"),
+        AUDIO_OUTPUT("7", "Band Output 7"),
 
         XOVER_COMMON,
         XOVER_CHANNEL("", ""),
@@ -117,22 +133,22 @@ namespace lsp
     static const port_t crossover_stereo_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        AUDIO_OUTPUT("0l", "0 Left"),
-        AUDIO_OUTPUT("0r", "0 Right"),
-        AUDIO_OUTPUT("1l", "1 Left"),
-        AUDIO_OUTPUT("1r", "1 Right"),
-        AUDIO_OUTPUT("2l", "2 Left"),
-        AUDIO_OUTPUT("2r", "2 Right"),
-        AUDIO_OUTPUT("3l", "3 Left"),
-        AUDIO_OUTPUT("3r", "3 Right"),
-        AUDIO_OUTPUT("4l", "4 Left"),
-        AUDIO_OUTPUT("4r", "4 Right"),
-        AUDIO_OUTPUT("5l", "5 Left"),
-        AUDIO_OUTPUT("5r", "5 Right"),
-        AUDIO_OUTPUT("6l", "6 Left"),
-        AUDIO_OUTPUT("6r", "6 Right"),
-        AUDIO_OUTPUT("7l", "7 Left"),
-        AUDIO_OUTPUT("7r", "7 Right"),
+        AUDIO_OUTPUT("0l", "Band Output 0 Left"),
+        AUDIO_OUTPUT("0r", "Band Output 0 Right"),
+        AUDIO_OUTPUT("1l", "Band Output 1 Left"),
+        AUDIO_OUTPUT("1r", "Band Output 1 Right"),
+        AUDIO_OUTPUT("2l", "Band Output 2 Left"),
+        AUDIO_OUTPUT("2r", "Band Output 2 Right"),
+        AUDIO_OUTPUT("3l", "Band Output 3 Left"),
+        AUDIO_OUTPUT("3r", "Band Output 3 Right"),
+        AUDIO_OUTPUT("4l", "Band Output 4 Left"),
+        AUDIO_OUTPUT("4r", "Band Output 4 Right"),
+        AUDIO_OUTPUT("5l", "Band Output 5 Left"),
+        AUDIO_OUTPUT("5r", "Band Output 5 Right"),
+        AUDIO_OUTPUT("6l", "Band Output 6 Left"),
+        AUDIO_OUTPUT("6r", "Band Output 6 Right"),
+        AUDIO_OUTPUT("7l", "Band Output 7 Left"),
+        AUDIO_OUTPUT("7r", "Band Output 7 Right"),
 
         XOVER_COMMON,
         XOVER_CHANNEL("", ""),
@@ -149,14 +165,14 @@ namespace lsp
         XOVER_SPLIT("_6", " 6", 1, 3984.0f),
         XOVER_SPLIT("_7", " 7", 0, 10000.0f),
 
-        XOVER_BAND("_0", " 0", 0, 8, 10.0f, 40.0f),
-        XOVER_BAND("_1", " 1", 1, 8, 40.0f, 100.0f),
-        XOVER_BAND("_2", " 2", 2, 8, 100.0f, 252.0f),
-        XOVER_BAND("_3", " 3", 3, 8, 252.0f, 632.0f),
-        XOVER_BAND("_4", " 4", 4, 8, 632.0f, 1587.0f),
-        XOVER_BAND("_5", " 5", 5, 8, 1587.0f, 3984.0f),
-        XOVER_BAND("_6", " 6", 6, 8, 3984.0f, 10000.0f),
-        XOVER_BAND("_7", " 7", 7, 8, 10000.0f, 20000.0f),
+        XOVER_STEREO_BAND("_0", " 0", 0, 8, 10.0f, 40.0f),
+        XOVER_STEREO_BAND("_1", " 1", 1, 8, 40.0f, 100.0f),
+        XOVER_STEREO_BAND("_2", " 2", 2, 8, 100.0f, 252.0f),
+        XOVER_STEREO_BAND("_3", " 3", 3, 8, 252.0f, 632.0f),
+        XOVER_STEREO_BAND("_4", " 4", 4, 8, 632.0f, 1587.0f),
+        XOVER_STEREO_BAND("_5", " 5", 5, 8, 1587.0f, 3984.0f),
+        XOVER_STEREO_BAND("_6", " 6", 6, 8, 3984.0f, 10000.0f),
+        XOVER_STEREO_BAND("_7", " 7", 7, 8, 10000.0f, 20000.0f),
 
         PORTS_END
     };
@@ -164,22 +180,22 @@ namespace lsp
     static const port_t crossover_lr_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        AUDIO_OUTPUT("0l", "0 Left"),
-        AUDIO_OUTPUT("0r", "0 Right"),
-        AUDIO_OUTPUT("1l", "1 Left"),
-        AUDIO_OUTPUT("1r", "1 Right"),
-        AUDIO_OUTPUT("2l", "2 Left"),
-        AUDIO_OUTPUT("2r", "2 Right"),
-        AUDIO_OUTPUT("3l", "3 Left"),
-        AUDIO_OUTPUT("3r", "3 Right"),
-        AUDIO_OUTPUT("4l", "4 Left"),
-        AUDIO_OUTPUT("4r", "4 Right"),
-        AUDIO_OUTPUT("5l", "5 Left"),
-        AUDIO_OUTPUT("5r", "5 Right"),
-        AUDIO_OUTPUT("6l", "6 Left"),
-        AUDIO_OUTPUT("6r", "6 Right"),
-        AUDIO_OUTPUT("7l", "7 Left"),
-        AUDIO_OUTPUT("7r", "7 Right"),
+        AUDIO_OUTPUT("0l", "Band Output 0 Left"),
+        AUDIO_OUTPUT("0r", "Band Output 0 Right"),
+        AUDIO_OUTPUT("1l", "Band Output 1 Left"),
+        AUDIO_OUTPUT("1r", "Band Output 1 Right"),
+        AUDIO_OUTPUT("2l", "Band Output 2 Left"),
+        AUDIO_OUTPUT("2r", "Band Output 2 Right"),
+        AUDIO_OUTPUT("3l", "Band Output 3 Left"),
+        AUDIO_OUTPUT("3r", "Band Output 3 Right"),
+        AUDIO_OUTPUT("4l", "Band Output 4 Left"),
+        AUDIO_OUTPUT("4r", "Band Output 4 Right"),
+        AUDIO_OUTPUT("5l", "Band Output 5 Left"),
+        AUDIO_OUTPUT("5r", "Band Output 5 Right"),
+        AUDIO_OUTPUT("6l", "Band Output 6 Left"),
+        AUDIO_OUTPUT("6r", "Band Output 6 Right"),
+        AUDIO_OUTPUT("7l", "Band Output 7 Left"),
+        AUDIO_OUTPUT("7r", "Band Output 7 Right"),
 
         XOVER_COMMON,
         XOVER_CHANNEL("", ""),
@@ -228,22 +244,22 @@ namespace lsp
     static const port_t crossover_ms_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        AUDIO_OUTPUT("0m", "0 Left"),
-        AUDIO_OUTPUT("0s", "0 Right"),
-        AUDIO_OUTPUT("1m", "1 Left"),
-        AUDIO_OUTPUT("1s", "1 Right"),
-        AUDIO_OUTPUT("2m", "2 Left"),
-        AUDIO_OUTPUT("2s", "2 Right"),
-        AUDIO_OUTPUT("3m", "3 Left"),
-        AUDIO_OUTPUT("3s", "3 Right"),
-        AUDIO_OUTPUT("4m", "4 Left"),
-        AUDIO_OUTPUT("4s", "4 Right"),
-        AUDIO_OUTPUT("5m", "5 Left"),
-        AUDIO_OUTPUT("5s", "5 Right"),
-        AUDIO_OUTPUT("6m", "6 Left"),
-        AUDIO_OUTPUT("6s", "6 Right"),
-        AUDIO_OUTPUT("7m", "7 Left"),
-        AUDIO_OUTPUT("7s", "7 Right"),
+        AUDIO_OUTPUT("0m", "Band Output 0 Mid"),
+        AUDIO_OUTPUT("0s", "Band Output 0 Side"),
+        AUDIO_OUTPUT("1m", "Band Output 1 Mid"),
+        AUDIO_OUTPUT("1s", "Band Output 1 Side"),
+        AUDIO_OUTPUT("2m", "Band Output 2 Mid"),
+        AUDIO_OUTPUT("2s", "Band Output 2 Side"),
+        AUDIO_OUTPUT("3m", "Band Output 3 Mid"),
+        AUDIO_OUTPUT("3s", "Band Output 3 Side"),
+        AUDIO_OUTPUT("4m", "Band Output 4 Mid"),
+        AUDIO_OUTPUT("4s", "Band Output 4 Side"),
+        AUDIO_OUTPUT("5m", "Band Output 5 Mid"),
+        AUDIO_OUTPUT("5s", "Band Output 5 Side"),
+        AUDIO_OUTPUT("6m", "Band Output 6 Mid"),
+        AUDIO_OUTPUT("6s", "Band Output 6 Side"),
+        AUDIO_OUTPUT("7m", "Band Output 7 Mid"),
+        AUDIO_OUTPUT("7s", "Band Output 7 Side"),
 
         XOVER_COMMON,
         SWITCH("msout", "Mid/Side output", 0.0f),
@@ -302,7 +318,7 @@ namespace lsp
         LSP_CROSSOVER_BASE + 0,
         LSP_VERSION(1, 0, 0),
         crossover_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_mono_ports,
         "equalizer/crossover/mono.xml",
         NULL,
@@ -320,7 +336,7 @@ namespace lsp
         LSP_CROSSOVER_BASE + 1,
         LSP_VERSION(1, 0, 0),
         crossover_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_stereo_ports,
         "equalizer/crossover/stereo.xml",
         NULL,
@@ -338,7 +354,7 @@ namespace lsp
         LSP_CROSSOVER_BASE + 2,
         LSP_VERSION(1, 0, 0),
         crossover_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_lr_ports,
         "equalizer/crossover/lr.xml",
         NULL,
@@ -356,7 +372,7 @@ namespace lsp
         LSP_CROSSOVER_BASE + 3,
         LSP_VERSION(1, 0, 0),
         crossover_classes,
-        E_INLINE_DISPLAY,
+        E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_ms_ports,
         "equalizer/crossover/ms.xml",
         NULL,

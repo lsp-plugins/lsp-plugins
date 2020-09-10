@@ -46,15 +46,23 @@ namespace lsp
             {
                 float          *vBandOut;           // Output buffer for one band
                 float          *vAllOut;            // Summarized output buffer for all buffers
+                float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
 
+                bool            bSolo;              // Soloing
+                bool            bMute;              // Muting
                 float           fMakeup;            // Makeup gain
+                float           fOutLevel;          // Output signal level
+                bool            bSyncCurve;         // Sync frequency response
 
-                IPort          *pOut;               // Output port
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
                 IPort          *pMakeup;            // Makeup gain
+                IPort          *pOutLevel;          // Output level of the band
+                IPort          *pInvPhase;          // Phase invert
                 IPort          *pFreqEnd;           // Frequency range end
+                IPort          *pOut;               // Output port
+                IPort          *pAmpGraph;          // Amplitude graph
             } xover_band_t;
 
             typedef struct xover_split_t
@@ -68,18 +76,20 @@ namespace lsp
                 Bypass          sBypass;            // Bypass
                 Crossover       sXOver;             // Crossover module
 
-                xover_band_t    vBands[crossover_base_metadata::BANDS_MAX];     // Crossover bands
                 xover_split_t   vSplit[crossover_base_metadata::BANDS_MAX-1];   // Split bands
+                xover_band_t    vBands[crossover_base_metadata::BANDS_MAX];     // Crossover bands
 
                 float          *vIn;                // Input buffer
                 float          *vOut;               // Output buffer
                 float          *vBuffer;            // Common data processing buffer
+                float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
 
                 size_t          nAnInChannel;       // Analyzer channel used for input signal analysis
                 size_t          nAnOutChannel;      // Analyzer channel used for output signal analysis
-                bool            bInFft;             // Input signal FFT enabled
-                bool            bOutFft;            // Output signal FFT enabled
+                bool            bSyncCurve;         // Sync frequency response curve
+                float           fInLevel;           // Input level meter
+                float           fOutLevel;          // Output level meter
 
                 IPort          *pIn;                // Input
                 IPort          *pOut;               // Output
@@ -95,11 +105,11 @@ namespace lsp
         protected:
             Analyzer        sAnalyzer;              // Analyzer
             size_t          nMode;                  // Crossover mode
-            bool            bEnvUpdate;             // Envelope filter update
             channel_t      *vChannels;              // Crossover channels
             float           fInGain;                // Input gain
             float           fOutGain;               // Output gain
             float           fZoom;                  // Zoom
+            bool            bMSOut;                 // Mid/Side output
 
             uint8_t        *pData;                  // Aligned data pointer
             float          *vTr;                    // Transfer buffer
@@ -117,22 +127,26 @@ namespace lsp
             IPort          *pZoom;                  // Zoom port
             IPort          *pMSOut;                 // Mid/Side output
 
+        protected:
+            static size_t       decode_slope(size_t slope);
+            static void         process_band(void *object, void *subject, size_t band, const float *data, size_t count);
+
         public:
             explicit crossover_base(const plugin_metadata_t &metadata, size_t mode);
             virtual ~crossover_base();
 
         public:
-            virtual void init(IWrapper *wrapper);
-            virtual void destroy();
+            virtual void        init(IWrapper *wrapper);
+            virtual void        destroy();
 
-            virtual void update_settings();
-            virtual void update_sample_rate(long sr);
-            virtual void ui_activated();
+            virtual void        update_settings();
+            virtual void        update_sample_rate(long sr);
+            virtual void        ui_activated();
 
-            virtual void process(size_t samples);
-            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+            virtual void        process(size_t samples);
+            virtual bool        inline_display(ICanvas *cv, size_t width, size_t height);
 
-            virtual void dump(IStateDumper *v) const;
+            virtual void        dump(IStateDumper *v) const;
     };
 
     class crossover_mono: public crossover_base, public crossover_mono_metadata
