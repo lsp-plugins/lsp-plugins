@@ -489,7 +489,7 @@ namespace lsp
                 dsp::pcomplex_mul2(c, vLpfBuf, to_do);
 
                 // Update pointers
-                c              += to_do;
+                c              += to_do * 2;
                 f              += to_do;
                 count          -= to_do;
             }

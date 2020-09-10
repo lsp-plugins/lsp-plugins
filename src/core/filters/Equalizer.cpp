@@ -368,7 +368,7 @@ namespace lsp
             }
 
             // Update pointers
-            c              += to_do;
+            c              += to_do * 2;
             f              += to_do;
             count          -= to_do;
         }

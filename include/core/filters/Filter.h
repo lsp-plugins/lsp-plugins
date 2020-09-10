@@ -52,7 +52,6 @@ namespace lsp
 
         protected:
 
-            void                complex_transfer_calc(float *re, float *im, float f);
             void                apo_complex_transfer_calc(float *re, float *im, float f);
             f_cascade_t        *add_cascade();
 
