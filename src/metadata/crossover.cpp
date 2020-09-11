@@ -29,7 +29,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Crossover plugin
-    static const int crossover_classes[] = { C_BANDPASS, -1 };
+    static const int crossover_classes[]        =   { C_UTILITY, -1 };
 
     static const port_item_t crossover_slopes[] =
     {
@@ -59,8 +59,8 @@ namespace lsp
     #define XOVER_FFT_METERS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
             SWITCH("ofe" id, "Output FFT graph enable" label, 1.0f), \
-            MESH("ifg" id, "Input FFT graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS), \
-            MESH("ofg" id, "Output FFT graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS)
+            MESH("ifg" id, "Input FFT graph" label, 2, crossover_base_metadata::MESH_POINTS), \
+            MESH("ofg" id, "Output FFT graph" label, 2, crossover_base_metadata::MESH_POINTS)
 
     #define XOVER_CHANNEL_METERS(id, label) \
             METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
@@ -88,7 +88,7 @@ namespace lsp
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS), \
+            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::MESH_POINTS), \
             \
             METER_GAIN("ilm" id "l", "Input level meter" label " Left", GAIN_AMP_P_24_DB), \
             METER_GAIN("ilm" id "r", "Input level meter" label " Right", GAIN_AMP_P_24_DB)
@@ -320,7 +320,7 @@ namespace lsp
         crossover_classes,
         E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_mono_ports,
-        "equalizer/crossover/mono.xml",
+        "util/crossover/mono.xml",
         NULL,
         mono_plugin_port_groups
     };
@@ -338,7 +338,7 @@ namespace lsp
         crossover_classes,
         E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_stereo_ports,
-        "equalizer/crossover/stereo.xml",
+        "util/crossover/stereo.xml",
         NULL,
         stereo_plugin_port_groups
     };
@@ -356,7 +356,7 @@ namespace lsp
         crossover_classes,
         E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_lr_ports,
-        "equalizer/crossover/lr.xml",
+        "util/crossover/lr.xml",
         NULL,
         stereo_plugin_port_groups
     };
@@ -374,7 +374,7 @@ namespace lsp
         crossover_classes,
         E_INLINE_DISPLAY | E_DUMP_STATE,
         crossover_ms_ports,
-        "equalizer/crossover/ms.xml",
+        "util/crossover/ms.xml",
         NULL,
         stereo_plugin_port_groups
     };
