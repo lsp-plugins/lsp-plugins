@@ -532,7 +532,7 @@ namespace lsp
                     }
                     dsp::filter_transfer_calc_pc(c, &vItems[0], buf, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_calc_pc(c, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], buf, to_do);
 
                     // Update pointers
                     c          += to_do*2;
@@ -555,7 +555,7 @@ namespace lsp
                     dsp::mul_k3(buf, f, kf, to_do);
                     dsp::filter_transfer_calc_pc(c, &vItems[0], buf, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_calc_pc(c, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], buf, to_do);
 
                     // Update pointers
                     c          += to_do*2;
