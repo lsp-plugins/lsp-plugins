@@ -39,8 +39,6 @@ namespace lsp
         bMSOut          = false;
 
         pData           = NULL;
-        vTr             = NULL;
-        vBFc            = NULL;
         vFreqs          = NULL;
         vCurve          = NULL;
         vIndexes        = NULL;
@@ -67,18 +65,20 @@ namespace lsp
         // Determine number of channels
         size_t channels         = (nMode == XOVER_MONO) ? 1 : 2;
         size_t sz_channels      = ALIGN_SIZE(channels * sizeof(channel_t), DEFAULT_ALIGN);
-        size_t filter_mesh_size = ALIGN_SIZE(crossover_base_metadata::FFT_MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
+        size_t mesh_size        = ALIGN_SIZE(crossover_base_metadata::MESH_POINTS * sizeof(float), DEFAULT_ALIGN);
+        size_t ind_size         = ALIGN_SIZE(crossover_base_metadata::MESH_POINTS * sizeof(uint32_t), DEFAULT_ALIGN);
 
         size_t to_alloc         = sz_channels +
-                                  2 * filter_mesh_size + // vTr (both complex and real)
-                                  2 * filter_mesh_size + // vBFc (both complex and real)
-                                  crossover_base_metadata::FFT_MESH_POINTS * sizeof(float)    + // vFreqs
-                                  crossover_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes
+                                  mesh_size             + // vFreqs
+                                  ind_size              + // vIndexes
                                   channels * (
+                                      2 * mesh_size                           +                   // vTr (both complex and real)
+                                      mesh_size                               +                   // vFc (real only)
                                       BUFFER_SIZE * sizeof(float)             +                   // vBuffer
                                       BUFFER_SIZE * sizeof(float)             +                   // vResult
                                       BUFFER_SIZE * crossover_base_metadata::BANDS_MAX +          // band.vResult
-                                      crossover_base_metadata::BANDS_MAX * filter_mesh_size * 2   // band.vTr
+                                      crossover_base_metadata::BANDS_MAX * mesh_size * 2 +        // band.vTr
+                                      crossover_base_metadata::BANDS_MAX * mesh_size              // band.vFc
                                   );
 
         // Initialize analyzer
@@ -101,14 +101,10 @@ namespace lsp
         // Assign pointers
         vChannels       = reinterpret_cast<channel_t *>(ptr);       // Audio channels
         ptr            += sz_channels;
-        vTr             = reinterpret_cast<float *>(ptr);           // Transfer buffer
-        ptr            += filter_mesh_size * 2;
-        vBFc            = reinterpret_cast<float *>(ptr);           // Band filter characteristics buffer
-        ptr            += filter_mesh_size * 2;
         vFreqs          = reinterpret_cast<float *>(ptr);           // Graph frequencies
-        ptr            += crossover_base_metadata::FFT_MESH_POINTS * sizeof(float);
+        ptr            += mesh_size;
         vIndexes        = reinterpret_cast<uint32_t *>(ptr);
-        ptr            += crossover_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t);
+        ptr            += ind_size;
 
         // Initialize channels
         for (size_t i=0; i<channels; ++i)
@@ -131,7 +127,9 @@ namespace lsp
                 b->vResult          = reinterpret_cast<float *>(ptr);
                 ptr                += BUFFER_SIZE;
                 b->vTr              = reinterpret_cast<float *>(ptr);           // Transfer buffer
-                ptr                += filter_mesh_size * 2;
+                ptr                += mesh_size * 2;
+                b->vFc              = reinterpret_cast<float *>(ptr);           // Frequency chart
+                ptr                += mesh_size;
 
                 b->bSolo            = false;
                 b->bMute            = false;
@@ -163,7 +161,10 @@ namespace lsp
             ptr                += BUFFER_SIZE * sizeof(float);
             c->vResult          = reinterpret_cast<float *>(ptr);
             ptr                += BUFFER_SIZE * sizeof(float);
-            c->vTr              = NULL;
+            c->vTr              = reinterpret_cast<float *>(ptr);
+            ptr                += mesh_size * 2;
+            c->vFc              = reinterpret_cast<float *>(ptr);
+            ptr                += mesh_size;
 
             c->nAnInChannel     = an_cid++;
             c->nAnOutChannel    = an_cid++;
@@ -406,6 +407,36 @@ namespace lsp
         // Determine number of channels
         size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
         size_t fft_channels = 0;
+        bool sync           = false;
+
+        // Update analyzer settings
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            // Update analyzer settings
+            sAnalyzer.enable_channel(c->nAnInChannel, c->pFftInSw->getValue() >= 0.5f);
+            sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->getValue() >= 0.5f);
+
+            if (sAnalyzer.channel_active(c->nAnInChannel))
+                fft_channels ++;
+            if (sAnalyzer.channel_active(c->nAnOutChannel))
+                fft_channels ++;
+        }
+
+        // Update analyzer parameters
+        sAnalyzer.set_reactivity(pReactivity->getValue());
+        if (pShiftGain != NULL)
+            sAnalyzer.set_shift(pShiftGain->getValue() * 100.0f);
+        sAnalyzer.set_activity(fft_channels > 0);
+
+        // Update analyzer
+        if (sAnalyzer.needs_reconfiguration())
+        {
+            sAnalyzer.reconfigure();
+            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, crossover_base_metadata::MESH_POINTS);
+            sync    = true;
+        }
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -446,42 +477,38 @@ namespace lsp
             }
 
             // Reconfigure the crossover
-            bool sync = xc->needs_reconfiguration();
+            bool csync = (sync) || (xc->needs_reconfiguration());
             xc->reconfigure();
 
             // Output band parameters and update sync curve flag
-            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
             {
                 xover_band_t *xb    = &c->vBands[i];
                 xb->pFreqEnd->setValue(xc->get_band_end(i));
-                if (sync)
+                if (csync)
+                {
+                    // Get frequency response for band
+                    c->sXOver.freq_chart(i, xb->vTr, vFreqs, crossover_base_metadata::MESH_POINTS);
+                    dsp::pcomplex_mod(xb->vFc, xb->vTr, crossover_base_metadata::MESH_POINTS);
+
                     xb->bSyncCurve      = true;
+                }
             }
 
-            if (sync)
+            if (csync)
+            {
+                // Compute frequency response for the whole crossover
+                dsp::copy(c->vTr, c->vBands[0].vTr, crossover_base_metadata::MESH_POINTS);
+                for (size_t i=1; i<crossover_base_metadata::BANDS_MAX; ++i)
+                    dsp::pcomplex_mul2(c->vTr, c->vBands[i].vTr, crossover_base_metadata::MESH_POINTS);
+                dsp::pcomplex_mod(c->vFc, c->vTr, crossover_base_metadata::MESH_POINTS);
+
                 c->bSyncCurve       = true;
+            }
 
-            // Update analyzer settings
-            sAnalyzer.enable_channel(c->nAnInChannel, c->pFftInSw->getValue() >= 0.5f);
-            sAnalyzer.enable_channel(c->nAnOutChannel, c->pFftOutSw->getValue() >= 0.5f);
-
-            if (sAnalyzer.channel_active(c->nAnInChannel))
-                fft_channels ++;
-            if (sAnalyzer.channel_active(c->nAnOutChannel))
-                fft_channels ++;
-        }
-
-        // Update analyzer parameters
-        sAnalyzer.set_reactivity(pReactivity->getValue());
-        if (pShiftGain != NULL)
-            sAnalyzer.set_shift(pShiftGain->getValue() * 100.0f);
-        sAnalyzer.set_activity(fft_channels > 0);
-
-        // Update analyzer
-        if (sAnalyzer.needs_reconfiguration())
-        {
-            sAnalyzer.reconfigure();
-            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
+            // Request for redraw
+            if ((csync) && (pWrapper != NULL))
+                pWrapper->query_display_draw();
         }
 
         // Global parameters
@@ -686,7 +713,10 @@ namespace lsp
             samples            -= to_do;
         }
 
+        //---------------------------------------------------------------------
         // Output meters and graphs
+        mesh_t *mesh;
+
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c        = &vChannels[i];
@@ -694,15 +724,66 @@ namespace lsp
             c->pInLvl->setValue(c->fInLevel);
             c->pOutLvl->setValue(c->fOutLevel);
 
+            // Output transfer function of the mesh
+            mesh        = ((c->bSyncCurve) && (c->pAmpGraph != NULL)) ? c->pAmpGraph->getBuffer<mesh_t>() : NULL;
+            if ((mesh != NULL) && (mesh->isEmpty()))
+            {
+                mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
+                mesh->pvData[0][crossover_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                mesh->pvData[1][0] = 0.0f;
+                mesh->pvData[1][crossover_base_metadata::MESH_POINTS+1] = 0.0f;
+
+                dsp::copy(mesh->pvData[0], vFreqs, crossover_base_metadata::MESH_POINTS);
+                dsp::copy(mesh->pvData[1], c->vFc, crossover_base_metadata::MESH_POINTS);
+                mesh->data(2, crossover_base_metadata::FILTER_MESH_POINTS);
+
+                c->bSyncCurve       = false;
+            }
+
+            // Sync outputf for each band
             for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
             {
                 xover_band_t *b     = &c->vBands[j];
                 b->pOutLevel->setValue(b->fOutLevel);
 
-                // TODO: pass transfer function of the band
+                // Pass transfer function of the band
+                mesh        = ((b->bSyncCurve) && (b->pAmpGraph != NULL)) ? b->pAmpGraph->getBuffer<mesh_t>() : NULL;
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
+                    mesh->pvData[0][crossover_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                    mesh->pvData[1][0] = 0.0f;
+                    mesh->pvData[1][crossover_base_metadata::MESH_POINTS+1] = 0.0f;
+
+                    dsp::copy(mesh->pvData[0], vFreqs, crossover_base_metadata::MESH_POINTS);
+                    dsp::copy(mesh->pvData[1], b->vFc, crossover_base_metadata::MESH_POINTS);
+                    mesh->data(2, crossover_base_metadata::FILTER_MESH_POINTS);
+
+                    b->bSyncCurve       = false;
+                }
             }
 
-            // TODO: pass transfer function of the output
+            // Output spectrum analysis for input channel
+            mesh        = ((sAnalyzer.channel_active(c->nAnInChannel)) && (c->pFftIn != NULL)) ? c->pFftIn->getBuffer<mesh_t>() : NULL;
+            if ((mesh != NULL) && (mesh->isEmpty()))
+            {
+                dsp::copy(mesh->pvData[0], vFreqs, crossover_base_metadata::MESH_POINTS);
+                sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vIndexes, mb_compressor_base_metadata::FFT_MESH_POINTS);
+
+                // Mark mesh containing data
+                mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+            }
+
+            // Output spectrum analysis for output channel
+            mesh        = ((sAnalyzer.channel_active(c->nAnOutChannel)) && (c->pFftOut != NULL)) ? c->pFftOut->getBuffer<mesh_t>() : NULL;
+            if ((mesh != NULL) && (mesh->isEmpty()))
+            {
+                dsp::copy(mesh->pvData[0], vFreqs, crossover_base_metadata::MESH_POINTS);
+                sAnalyzer.get_spectrum(c->nAnInChannel, mesh->pvData[1], vIndexes, mb_compressor_base_metadata::FFT_MESH_POINTS);
+
+                // Mark mesh containing data
+                mesh->data(2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+            }
         }
     }
 

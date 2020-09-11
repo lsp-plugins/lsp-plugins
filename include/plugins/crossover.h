@@ -48,6 +48,7 @@ namespace lsp
                 float          *vAllOut;            // Summarized output buffer for all buffers
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
+                float          *vFc;                // Frequency chart
 
                 bool            bSolo;              // Soloing
                 bool            bMute;              // Muting
@@ -84,6 +85,7 @@ namespace lsp
                 float          *vBuffer;            // Common data processing buffer
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
+                float          *vFc;                // Frequency chart
 
                 size_t          nAnInChannel;       // Analyzer channel used for input signal analysis
                 size_t          nAnOutChannel;      // Analyzer channel used for output signal analysis
@@ -112,8 +114,6 @@ namespace lsp
             bool            bMSOut;                 // Mid/Side output
 
             uint8_t        *pData;                  // Aligned data pointer
-            float          *vTr;                    // Transfer buffer
-            float          *vBFc;                   // Band filter characteristics buffer
             float          *vFreqs;                 // Analyzer FFT frequencies
             float          *vCurve;                 // Curve
             uint32_t       *vIndexes;               // Analyzer FFT indexes

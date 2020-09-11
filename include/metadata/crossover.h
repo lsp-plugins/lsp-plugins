@@ -48,16 +48,15 @@ namespace lsp
         static const float          SPLIT_FREQ_DFL      = 1000.0f;
         static const float          SPLIT_FREQ_STEP     = 0.002f;
 
-        // FFT analysis
+        // Frequency analysis
         static const float          REACT_TIME_MIN      = 0.000;
         static const float          REACT_TIME_MAX      = 1.000;
         static const float          REACT_TIME_DFL      = 0.200;
         static const float          REACT_TIME_STEP     = 0.001;
-        static const size_t         FFT_MESH_POINTS     = 640;
         static const size_t         FFT_RANK            = 13;
         static const size_t         FFT_ITEMS           = 1 << FFT_RANK;
         static const size_t         MESH_POINTS         = 640;
-        static const size_t         FILTER_MESH_POINTS  = FFT_MESH_POINTS + 2;
+        static const size_t         FILTER_MESH_POINTS  = MESH_POINTS + 2;
         static const size_t         FFT_WINDOW          = windows::HANN;
         static const size_t         REFRESH_RATE        = 20;
 

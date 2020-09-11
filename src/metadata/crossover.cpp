@@ -54,7 +54,7 @@ namespace lsp
 
     #define XOVER_CHANNEL(id, label) \
             SWITCH("flt" id, "Band filter curves" label, 1.0f), \
-            MESH("ag" id, "Amplitude graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS)
+            MESH("ag" id, "Amplitude graph" label, 2, crossover_base_metadata::FILTER_MESH_POINTS)
 
     #define XOVER_FFT_METERS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
@@ -77,7 +77,7 @@ namespace lsp
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::FFT_MESH_POINTS), \
+            MESH("bfc" id, "Band frequency chart" label, 2, crossover_base_metadata::FILTER_MESH_POINTS), \
             \
             METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB)
 
