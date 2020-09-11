@@ -430,7 +430,7 @@ namespace lsp
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
     {
         // Temporary buffer to store updated frequency
-        float buf[STACK_BUF_SIZE] __lsp_aligned32;
+        float freqs[STACK_BUF_SIZE] __lsp_aligned32;
         filter_mode_t mode = (nItems > 0) ? nMode : FM_BYPASS;
 
         // Calculate frequency chart
@@ -450,11 +450,11 @@ namespace lsp
                     for (size_t i=0; i<to_do; ++i)
                     {
                         float w     = f[i];
-                        buf[i]      = tanf((w > lf ? lf : w) * nf) * kf;
+                        freqs[i]      = tanf((w > lf ? lf : w) * nf) * kf;
                     }
-                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], buf, to_do);
+                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], freqs, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], freqs, to_do);
 
                     // Update pointers
                     re         += to_do;
@@ -474,10 +474,10 @@ namespace lsp
                     size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
 
                     // Compute transfer function
-                    dsp::mul_k3(buf, f, kf, to_do);
-                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], buf, to_do);
+                    dsp::mul_k3(freqs, f, kf, to_do);
+                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], freqs, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], freqs, to_do);
 
                     // Update pointers
                     re         += to_do;
@@ -508,7 +508,7 @@ namespace lsp
     void Filter::freq_chart(float *c, const float *f, size_t count)
     {
         // Temporary buffer to store updated frequency
-        float buf[STACK_BUF_SIZE] __lsp_aligned32;
+        float freqs[STACK_BUF_SIZE] __lsp_aligned32;
         filter_mode_t mode = (nItems > 0) ? nMode : FM_BYPASS;
 
         // Calculate frequency chart
@@ -528,11 +528,11 @@ namespace lsp
                     for (size_t i=0; i<to_do; ++i)
                     {
                         float w     = f[i];
-                        buf[i]      = tanf((w > lf ? lf : w) * nf) * kf;
+                        freqs[i]      = tanf((w > lf ? lf : w) * nf) * kf;
                     }
-                    dsp::filter_transfer_calc_pc(c, &vItems[0], buf, to_do);
+                    dsp::filter_transfer_calc_pc(c, &vItems[0], freqs, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_apply_pc(c, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], freqs, to_do);
 
                     // Update pointers
                     c          += to_do*2;
@@ -552,10 +552,10 @@ namespace lsp
                     size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
 
                     // Compute transfer function
-                    dsp::mul_k3(buf, f, kf, to_do);
-                    dsp::filter_transfer_calc_pc(c, &vItems[0], buf, to_do);
+                    dsp::mul_k3(freqs, f, kf, to_do);
+                    dsp::filter_transfer_calc_pc(c, &vItems[0], freqs, to_do);
                     for (size_t i=1; i<nItems; ++i)
-                        dsp::filter_transfer_apply_pc(c, &vItems[i], buf, to_do);
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], freqs, to_do);
 
                     // Update pointers
                     c          += to_do*2;

@@ -121,8 +121,11 @@ namespace lsp
             {
                 xover_band_t *b     = &c->vBands[i];
 
-                b->vBandOut         = NULL;
-                b->vAllOut          = NULL;
+                c->sXOver.set_handler(i, process_band, this, c);                // Bind channel as a handler
+
+                b->vOut             = NULL;
+                b->vBandPtr         = NULL;
+                b->vAllPtr          = NULL;
 
                 b->vResult          = reinterpret_cast<float *>(ptr);
                 ptr                += BUFFER_SIZE;
@@ -205,7 +208,7 @@ namespace lsp
         }
 
         // Bind
-        lsp_trace("Binding crossover outputs");
+        lsp_trace("Binding band outputs");
         if (channels < 2)
         {
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
@@ -226,6 +229,7 @@ namespace lsp
         }
 
         // Bind bypass
+        lsp_trace("Binding common ports");
         TRACE_PORT(vPorts[port_id]);
         pBypass         =   vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -310,7 +314,7 @@ namespace lsp
         lsp_trace("Binding band controllers");
         for (size_t i=0; i<channels; ++i)
         {
-            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX-1; ++j)
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
             {
                 xover_band_t *b     = &vChannels[i].vBands[j];
 
@@ -351,6 +355,8 @@ namespace lsp
                 }
             }
         }
+
+        lsp_trace("Initialization done");
     }
 
     void crossover_base::destroy()
@@ -458,21 +464,21 @@ namespace lsp
             bool solo       = false;
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
             {
-                xover_band_t *xb    = &c->vBands[i];
+                xover_band_t *b     = &c->vBands[i];
 
-                xb->bSolo           = xb->pSolo->getValue() >= 0.5f;
-                xb->bMute           = xb->pMute->getValue() >= 0.5f;
-                xb->fMakeup         = xb->pMakeup->getValue();
-                solo                = solo || xb->bSolo;
+                b->bSolo            = b->pSolo->getValue() >= 0.5f;
+                b->bMute            = b->pMute->getValue() >= 0.5f;
+                b->fMakeup          = b->pMakeup->getValue();
+                solo                = solo || b->bSolo;
             }
 
             // Configure bands (step 2):
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
             {
-                xover_band_t *xb    = &c->vBands[i];
-                if ((solo) && (!xb->bSolo))
-                    xb->bMute           = true;
-                float gain          = (xb->pInvPhase->getValue() >= 0.5f) ? -xb->fMakeup : xb->fMakeup;
+                xover_band_t *b     = &c->vBands[i];
+                if ((solo) && (!b->bSolo))
+                    b->bMute            = true;
+                float gain          = (b->pInvPhase->getValue() >= 0.5f) ? -b->fMakeup : b->fMakeup;
                 xc->set_gain(i, gain);
             }
 
@@ -481,26 +487,30 @@ namespace lsp
             xc->reconfigure();
 
             // Output band parameters and update sync curve flag
-            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
             {
-                xover_band_t *xb    = &c->vBands[i];
-                xb->pFreqEnd->setValue(xc->get_band_end(i));
+                xover_band_t *b     = &c->vBands[j];
+                b->pFreqEnd->setValue(xc->get_band_end(j));
                 if (csync)
                 {
                     // Get frequency response for band
-                    c->sXOver.freq_chart(i, xb->vTr, vFreqs, crossover_base_metadata::MESH_POINTS);
-                    dsp::pcomplex_mod(xb->vFc, xb->vTr, crossover_base_metadata::MESH_POINTS);
+                    c->sXOver.freq_chart(j, b->vTr, vFreqs, crossover_base_metadata::MESH_POINTS);
+                    dsp::pcomplex_mod(b->vFc, b->vTr, crossover_base_metadata::MESH_POINTS);
 
-                    xb->bSyncCurve      = true;
+                    b->bSyncCurve       = true;
                 }
             }
 
             if (csync)
             {
                 // Compute frequency response for the whole crossover
-                dsp::copy(c->vTr, c->vBands[0].vTr, crossover_base_metadata::MESH_POINTS);
-                for (size_t i=1; i<crossover_base_metadata::BANDS_MAX; ++i)
-                    dsp::pcomplex_mul2(c->vTr, c->vBands[i].vTr, crossover_base_metadata::MESH_POINTS);
+                dsp::copy(c->vTr, c->vBands[0].vTr, crossover_base_metadata::MESH_POINTS*2);
+                for (size_t j=1; j<crossover_base_metadata::BANDS_MAX; ++j)
+                {
+                    xover_band_t *b     = &c->vBands[j];
+                    if (xc->band_active(j))
+                        dsp::add2(c->vTr, b->vTr, crossover_base_metadata::MESH_POINTS*2); // Sum complex numbers
+                }
                 dsp::pcomplex_mod(c->vFc, c->vTr, crossover_base_metadata::MESH_POINTS);
 
                 c->bSyncCurve       = true;
@@ -559,12 +569,12 @@ namespace lsp
         xover_band_t *b         = &c->vBands[band];
 
         // Process signal of the band
-        dsp::copy(b->vBandOut, data, count);
+        dsp::copy(b->vBandPtr, data, count);
         if (!b->bMute)
-            dsp::add2(b->vAllOut, data, count);
+            dsp::add2(b->vAllPtr, data, count);
 
-        b->vBandOut            += count;
-        b->vAllOut             += count;
+        b->vBandPtr            += count;
+        b->vAllPtr             += count;
     }
 
     void crossover_base::process(size_t samples)
@@ -582,11 +592,11 @@ namespace lsp
             c->fInLevel         = 0.0f;
             c->fOutLevel        = 0.0f;
 
-            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
             {
-                xover_band_t *b     = &c->vBands[i];
-                b->vBandOut         = b->pOut->getBuffer<float>();
+                xover_band_t *b     = &c->vBands[j];
                 b->fOutLevel        = 0.0f;
+                b->vOut             = c->pOut->getBuffer<float>();
             }
         }
 
@@ -630,12 +640,12 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
 
-                // Bind proper 'AllOut' pointer for each frequency band
+                // Bind proper 'AllOut' amd 'BandOut' pointer for each frequency band
                 for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
                 {
                     xover_band_t *b     = &c->vBands[j];
-                    b->vAllOut          = c->vResult;
-                    b->vBandOut         = b->vResult;
+                    b->vAllPtr          = c->vResult;
+                    b->vBandPtr         = b->vResult;
                 }
             }
 
@@ -657,10 +667,10 @@ namespace lsp
                     if (c->sXOver.band_active(j))
                     {
                         b->fOutLevel        = lsp_max(b->fOutLevel, dsp::abs_max(b->vResult, to_do));
-                        dsp::copy(b->vBandOut, b->vResult, to_do);
+                        dsp::copy(b->vOut, b->vResult, to_do);
                     }
                     else
-                        dsp::fill_zero(b->vBandOut, to_do);
+                        dsp::fill_zero(b->vOut, to_do);
                 }
             }
 
@@ -706,7 +716,7 @@ namespace lsp
                 for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
                 {
                     xover_band_t *b     = &c->vBands[j];
-                    b->vBandOut        += to_do;
+                    b->vOut            += to_do;
                 }
             }
 
@@ -755,8 +765,8 @@ namespace lsp
                     mesh->pvData[1][0] = 0.0f;
                     mesh->pvData[1][crossover_base_metadata::MESH_POINTS+1] = 0.0f;
 
-                    dsp::copy(mesh->pvData[0], vFreqs, crossover_base_metadata::MESH_POINTS);
-                    dsp::copy(mesh->pvData[1], b->vFc, crossover_base_metadata::MESH_POINTS);
+                    dsp::copy(&mesh->pvData[0][1], vFreqs, crossover_base_metadata::MESH_POINTS);
+                    dsp::copy(&mesh->pvData[1][1], b->vFc, crossover_base_metadata::MESH_POINTS);
                     mesh->data(2, crossover_base_metadata::FILTER_MESH_POINTS);
 
                     b->bSyncCurve       = false;

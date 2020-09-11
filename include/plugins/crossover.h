@@ -44,8 +44,9 @@ namespace lsp
 
             typedef struct xover_band_t
             {
-                float          *vBandOut;           // Output buffer for one band
-                float          *vAllOut;            // Summarized output buffer for all buffers
+                float          *vOut;               // Output channel pointer
+                float          *vBandPtr;           // Output write pointer for band
+                float          *vAllPtr;            // Output write pointer for summarized result
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
                 float          *vFc;                // Frequency chart

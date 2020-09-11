@@ -76,6 +76,7 @@ namespace lsp
         uint8_t *ptr        = alloc_aligned<uint8_t>(data, to_alloc);
         if (ptr == NULL)
             return false;
+        lsp_guard_assert(uint8_t *save   = ptr);
 
         // Distribute the allocated space
         vBands              = reinterpret_cast<band_t *>(ptr);
@@ -96,7 +97,7 @@ namespace lsp
         nPlanSize           = 0;
 
         // Store allocated data pointer
-        pData               = ptr;
+        pData               = data;
 
         // Construct all splits
         float step          = logf(SPEC_FREQ_MAX / SPEC_FREQ_MIN) / bands;
@@ -109,16 +110,19 @@ namespace lsp
             sp->sLPF.construct();
             sp->sHPF.construct();
 
-            if (!sp->sLPF.init(bands, 0))
+            if (!sp->sLPF.init(bands-1, 0))
             {
                 destroy();
                 return false;
             }
+            sp->sLPF.set_sample_rate(nSampleRate);
+
             if (!sp->sHPF.init(NULL))
             {
                 destroy();
                 return false;
             }
+            sp->sHPF.set_sample_rate(nSampleRate);
 
             // Set IIR mode for each filter
             sp->sLPF.set_mode(EQM_IIR);
@@ -138,14 +142,16 @@ namespace lsp
             sb->fStart          = (i == 0) ? SPEC_FREQ_MIN : vSplit[i-1].fFreq;
             sb->fEnd            = vSplit[i].fFreq;
             sb->bEnabled        = false;
-            sb->pStart           = NULL;
-            sb->pEnd          = NULL;
+            sb->pStart          = NULL;
+            sb->pEnd            = NULL;
 
             sb->pFunc           = NULL;
             sb->pObject         = NULL;
             sb->pSubject        = NULL;
             sb->nId             = i;
         }
+
+        lsp_assert(ptr <= &save[to_alloc]);
 
         return true;
     }
@@ -253,6 +259,12 @@ namespace lsp
             return;
 
         nSampleRate     = sr;
+        for (size_t i=0; i<nSplits; ++i)
+        {
+            vSplit[i].sLPF.set_sample_rate(sr);
+            vSplit[i].sHPF.set_sample_rate(sr);
+        }
+
         nReconfigure   |= R_ALL;
     }
 
@@ -297,18 +309,14 @@ namespace lsp
             // Set LPF parameters
             size_t filter_id    = 0;
             filter_params_t fp;
-            if (nReconfigure & R_SPLIT)
-            {
-                fp.nType            = FLT_BT_LRX_LOPASS;
-                fp.fFreq            = sp->fFreq;
-                fp.fFreq2           = sp->fFreq;
-                fp.nSlope           = sp->nSlope;
-                fp.fQuality         = 0.0f;
-            }
-            else
-                sp->sLPF.get_params(filter_id, &fp);
 
+            fp.nType            = FLT_BT_LRX_LOPASS;
+            fp.fFreq            = sp->fFreq;
+            fp.fFreq2           = sp->fFreq;
             fp.fGain            = left->fGain;
+            fp.nSlope           = sp->nSlope;
+            fp.fQuality         = 0.0f;
+
             sp->sLPF.set_params(filter_id++, &fp);
 
             // Append APF filters
@@ -316,23 +324,18 @@ namespace lsp
             {
                 split_t *xsp        = vPlan[j];
 
-                if (nReconfigure & R_SPLIT)
-                {
-                    fp.nType            = FLT_BT_LRX_ALLPASS;
-                    fp.fFreq            = sp->fFreq;
-                    fp.fFreq2           = sp->fFreq;
-                    fp.nSlope           = xsp->nSlope;
-                    fp.fQuality         = 0.0f;
-                }
-                else
-                    sp->sLPF.get_params(filter_id, &fp);
-
+                fp.nType            = FLT_BT_LRX_ALLPASS;
+                fp.fFreq            = sp->fFreq;
+                fp.fFreq2           = sp->fFreq;
                 fp.fGain            = GAIN_AMP_0_DB;
+                fp.nSlope           = xsp->nSlope;
+                fp.fQuality         = 0.0f;
+
                 sp->sLPF.set_params(filter_id++, &fp);
             }
 
             // Disable all other filters in the chain
-            while (filter_id <= nSplits)
+            while (filter_id < nSplits)
             {
                 fp.nType            = FLT_NONE;
                 fp.fFreq            = 0;
@@ -340,23 +343,20 @@ namespace lsp
                 fp.fGain            = GAIN_AMP_0_DB;
                 fp.nSlope           = 0;
                 fp.fQuality         = 0.0f;
+
                 sp->sLPF.set_params(filter_id++, &fp);
             }
 
             // Set HPF parameters
-            if (nReconfigure & R_SPLIT)
-            {
-                fp.nType            = FLT_BT_LRX_LOPASS;
-                fp.fFreq            = sp->fFreq;
-                fp.fFreq2           = sp->fFreq;
-                fp.nSlope           = sp->nSlope;
-                fp.fQuality         = 0.0f;
-            }
-            else
-                sp->sHPF.get_params(&fp);
-
+            fp.nType            = FLT_BT_LRX_HIPASS;
+            fp.fFreq            = sp->fFreq;
+            fp.fFreq2           = sp->fFreq;
             fp.fGain            = (i < (nPlanSize-1)) ? GAIN_AMP_0_DB : right->fGain;
+            fp.nSlope           = sp->nSlope;
+            fp.fQuality         = 0.0f;
+
             sp->sHPF.update(nSampleRate, &fp);
+            sp->sHPF.rebuild();
 
             // Move to next band
             left                = right;
@@ -365,6 +365,26 @@ namespace lsp
         // Update frequency of the last band
         left->fEnd          = nSampleRate * 0.5f;
         left->pEnd          = NULL;
+
+        // DEBUG BEGIN
+        lsp_trace("Execution plan:");
+        for (size_t i=0; i<nPlanSize; ++i)
+        {
+            split_t *sp         = vPlan[i];
+            lsp_trace("  split point #%d: this=%p, band=%d, freq=%.2f, slope=%d",
+                int(i), sp, int(sp->nBandId), sp->fFreq, int(sp->nSlope)
+            );
+        }
+        lsp_trace("Bands:");
+        for (size_t i=0; i<=nSplits; ++i)
+        {
+            band_t *b           = &vBands[i];
+            lsp_trace("  band #%d: this=%p, enabled=%s, gain=%f, start=%.2f, end=%.2f, start=%p, end=%p",
+                            int(i), b, (b->bEnabled) ? "true " : "false",
+                            b->fGain, b->fStart, b->fEnd, b->pStart, b->pEnd
+                        );
+        }
+        // DEBUG END
 
         // Reset reconfiguration flag
         nReconfigure        = 0;

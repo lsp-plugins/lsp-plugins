@@ -10,7 +10,7 @@
 #include <core/filters/Equalizer.h>
 #include <core/debug.h>
 
-#define BUFFER_SIZE         0x400
+#define BUFFER_SIZE         0x400U
 
 namespace lsp
 {
@@ -69,7 +69,8 @@ namespace lsp
             nConvSize           = 1 << conv_rank;
             nFftRank            = conv_rank;
             size_t conv_size    = nConvSize * 2;
-            size_t allocate     = conv_size * 6; // fft + conv*2 + buffer + tmp*2
+            size_t tmp_size     = lsp_min(conv_size*2, BUFFER_SIZE);
+            size_t allocate     = conv_size * 4 + tmp_size;             // fft + conv*2 + buffer + tmp
             pData               = new float[allocate];
             if (pData == NULL)
             {
@@ -92,7 +93,7 @@ namespace lsp
             vBuffer             = ptr;
             ptr                += conv_size;
             vTmp                = ptr;
-            ptr                += conv_size;
+            ptr                += tmp_size;
         }
         else
         {
@@ -107,7 +108,6 @@ namespace lsp
 
             nConvSize           = 0;
             nFftRank            = 0;
-            pData               = NULL;
             vFftRe              = NULL;
             vFftIm              = NULL;
             vConvRe             = NULL;
@@ -317,6 +317,9 @@ namespace lsp
 
     void Equalizer::freq_chart(float *re, float *im, const float *f, size_t count)
     {
+        if (nFlags != 0)
+            reconfigure();
+
         float *xre      = vTmp;
         float *xim      = &xre[BUFFER_SIZE/2];
 
@@ -349,6 +352,9 @@ namespace lsp
 
     void Equalizer::freq_chart(float *c, const float *f, size_t count)
     {
+        if (nFlags != 0)
+            reconfigure();
+
         // Fill initial values
         dsp::pcomplex_fill_ri(c, 1.0f, 0.0f, count);
 
