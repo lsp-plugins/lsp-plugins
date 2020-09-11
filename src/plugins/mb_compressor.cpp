@@ -707,7 +707,7 @@ namespace lsp
         if (sAnalyzer.needs_reconfiguration())
         {
             sAnalyzer.reconfigure();
-            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
+            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, mb_compressor_base_metadata::MESH_POINTS);
         }
 
         size_t latency = 0;
@@ -1371,9 +1371,9 @@ namespace lsp
                     {
                         // Add extra points
                         mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
-                        mesh->pvData[0][para_equalizer_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[0][mb_compressor_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
                         mesh->pvData[1][0] = 0.0f;
-                        mesh->pvData[1][para_equalizer_base_metadata::MESH_POINTS+1] = 0.0f;
+                        mesh->pvData[1][mb_compressor_base_metadata::MESH_POINTS+1] = 0.0f;
 
                         // Fill mesh
                         dsp::copy(&mesh->pvData[0][1], vFreqs, mb_compressor_base_metadata::MESH_POINTS);
