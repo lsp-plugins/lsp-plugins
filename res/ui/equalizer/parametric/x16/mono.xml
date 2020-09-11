@@ -35,6 +35,19 @@
 				<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
 				<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
 				
+				<!-- temp -->
+				<marker value="2 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="4 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="6 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="8 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="10 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="12 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="14 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="16 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="18 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="20 dB" color="g_gray" basis="1" parallel="0" />
+				<marker value="22 dB" color="g_gray" basis="1" parallel="0" />
+				
 				<!-- Additional markers for zoom -->
 				<marker value="+18 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
 				<marker value="+6 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
