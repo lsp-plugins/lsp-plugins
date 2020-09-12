@@ -45,23 +45,20 @@ namespace lsp
             typedef struct xover_band_t
             {
                 float          *vOut;               // Output channel pointer
-                float          *vBandPtr;           // Output write pointer for band
-                float          *vAllPtr;            // Output write pointer for summarized result
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
                 float          *vFc;                // Frequency chart
 
                 bool            bSolo;              // Soloing
                 bool            bMute;              // Muting
-                float           fMakeup;            // Makeup gain
+                float           fGain;              // Gain
                 float           fOutLevel;          // Output signal level
                 bool            bSyncCurve;         // Sync frequency response
 
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
-                IPort          *pMakeup;            // Makeup gain
+                IPort          *pGain;              // Gain
                 IPort          *pOutLevel;          // Output level of the band
-                IPort          *pInvPhase;          // Phase invert
                 IPort          *pFreqEnd;           // Frequency range end
                 IPort          *pOut;               // Output port
                 IPort          *pAmpGraph;          // Amplitude graph
@@ -130,7 +127,7 @@ namespace lsp
 
         protected:
             static size_t       decode_slope(size_t slope);
-            static void         process_band(void *object, void *subject, size_t band, const float *data, size_t count);
+            static void         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
 
         public:
             explicit crossover_base(const plugin_metadata_t &metadata, size_t mode);

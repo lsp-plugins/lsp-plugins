@@ -196,8 +196,7 @@ namespace lsp
             return;
 
         vBands[band].fGain = gain;
-        if (!vBands[band].bEnabled)
-            nReconfigure       |= R_GAIN;
+        nReconfigure       |= R_GAIN;
     }
 
     float Crossover::get_gain(size_t band) const
@@ -325,8 +324,8 @@ namespace lsp
                 split_t *xsp        = vPlan[j];
 
                 fp.nType            = FLT_BT_LRX_ALLPASS;
-                fp.fFreq            = sp->fFreq;
-                fp.fFreq2           = sp->fFreq;
+                fp.fFreq            = xsp->fFreq;
+                fp.fFreq2           = xsp->fFreq;
                 fp.fGain            = GAIN_AMP_0_DB;
                 fp.nSlope           = xsp->nSlope;
                 fp.fQuality         = 0.0f;
@@ -396,9 +395,9 @@ namespace lsp
     {
         reconfigure();
 
-        while (samples > 0)
+        for (size_t sample=0; sample < samples; )
         {
-            size_t to_do        = lsp_min(samples, nBufSize);
+            size_t to_do        = lsp_min(samples - sample, nBufSize);
             band_t *left        = &vBands[0];
             const float *src    = in;
 
@@ -417,7 +416,7 @@ namespace lsp
 
                     // Now call handlers
                     if (left->pFunc != NULL)
-                        left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
+                        left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, sample, to_do);
 
                     src                 = vHpfBuf;
                     left                = right;
@@ -425,17 +424,17 @@ namespace lsp
 
                 // Process last band
                 if (left->pFunc != NULL)
-                    left->pFunc(left->pObject, left->pSubject, left->nId, vHpfBuf, to_do);
+                    left->pFunc(left->pObject, left->pSubject, left->nId, vHpfBuf, sample, to_do);
             }
             else if (left->pFunc != NULL)
             {
                 dsp::mul_k3(vLpfBuf, src, vBands[0].fGain, to_do);
-                left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, to_do);
+                left->pFunc(left->pObject, left->pSubject, left->nId, vLpfBuf, sample, to_do);
             }
 
             // Update pointers
             in                 += to_do;
-            samples            -= to_do;
+            sample             -= to_do;
         }
     }
 
@@ -455,6 +454,11 @@ namespace lsp
             dsp::fill_zero(re, count);
             dsp::fill_zero(im, count);
         }
+        else if (nPlanSize == 0)
+        {
+            dsp::fill_one(re, count);
+            dsp::fill_zero(im, count);
+        }
         else if (b->pEnd == NULL)
             b->pStart->sHPF.freq_chart(re, im, f, count);
         else if (b->pStart == NULL)
@@ -468,7 +472,7 @@ namespace lsp
 
                 // Apply frequency chart
                 b->pStart->sHPF.freq_chart(re, im, f, to_do);
-                b->pEnd->sLPF.freq_chart(vLpfBuf, vHpfBuf, f, to_do);
+                b->pEnd->sLPF.freq_chart(size_t(0), vLpfBuf, vHpfBuf, f, to_do);
                 dsp::complex_mul2(re, im, vLpfBuf, vHpfBuf, to_do);
 
                 // Update pointers
@@ -495,6 +499,8 @@ namespace lsp
         band_t *b       = &vBands[band];
         if (!b->bEnabled)
             dsp::pcomplex_fill_ri(c, 0.0f, 0.0f, count);
+        else if (nPlanSize == 0)
+            dsp::pcomplex_fill_ri(c, 1.0f, 0.0f, count);
         else if (b->pEnd == NULL)
             b->pStart->sHPF.freq_chart(c, f, count);
         else if (b->pStart == NULL)
@@ -509,7 +515,7 @@ namespace lsp
 
                 // Apply frequency chart
                 b->pStart->sHPF.freq_chart(c, f, to_do);
-                b->pEnd->sLPF.freq_chart(vLpfBuf, f, to_do);
+                b->pEnd->sLPF.freq_chart(size_t(0), vLpfBuf, f, to_do);
                 dsp::pcomplex_mul2(c, vLpfBuf, to_do);
 
                 // Update pointers

@@ -34,13 +34,10 @@ namespace lsp
     static const port_item_t crossover_slopes[] =
     {
         { "off",            "crossover.slope.off"           },
-        { "6 dB/oct",       "crossover.slope.6dbo"          },
-        { "12 dB/oct",      "crossover.slope.12dbo"         },
         { "24 dB/oct",      "crossover.slope.24dbo"         },
-        { "36 dB/oct",      "crossover.slope.36dbo"         },
         { "48 dB/oct",      "crossover.slope.48dbo"         },
-        { "60 dB/oct",      "crossover.slope.60dbo"         },
         { "72 dB/oct",      "crossover.slope.72dbo"         },
+        { "96 dB/oct",      "crossover.slope.96dbo"         },
         { NULL, NULL }
     };
 
@@ -49,12 +46,13 @@ namespace lsp
             AMP_GAIN("g_in", "Input gain", crossover_base_metadata::IN_GAIN_DFL, 10.0f), \
             AMP_GAIN("g_out", "Output gain", crossover_base_metadata::OUT_GAIN_DFL, 10.0f), \
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, crossover_base_metadata::REACT_TIME), \
-            AMP_GAIN("shift", "Shift gain", GAIN_AMP_M_48_DB, GAIN_AMP_P_48_DB), \
+            AMP_GAIN("shift", "Shift gain", GAIN_AMP_0_DB, GAIN_AMP_P_60_DB), \
             LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, crossover_base_metadata::ZOOM)
 
     #define XOVER_CHANNEL(id, label) \
             SWITCH("flt" id, "Band filter curves" label, 1.0f), \
-            MESH("ag" id, "Amplitude graph" label, 2, crossover_base_metadata::FILTER_MESH_POINTS)
+            SWITCH("crv" id, "Overall filter curve" label, 1.0f), \
+            MESH("ag" id, "Amplitude graph" label, 2, crossover_base_metadata::MESH_POINTS)
 
     #define XOVER_FFT_METERS(id, label) \
             SWITCH("ife" id, "Input FFT graph enable" label, 1.0f), \
@@ -73,39 +71,37 @@ namespace lsp
     #define XOVER_BAND(id, label, x, total, fe, fs) \
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
-            SWITCH("phi" id, "Band phase invert" label, 0.0f), \
-            LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
+            LOG_CONTROL("bg" id, "Band gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
             MESH("bfc" id, "Band frequency chart" label, 2, crossover_base_metadata::FILTER_MESH_POINTS), \
             \
-            METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB)
+            METER_GAIN("blm" id, "Band level meter" label, GAIN_AMP_P_24_DB)
 
     #define XOVER_STEREO_BAND(id, label, x, total, fe, fs) \
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
-            SWITCH("phi" id, "Band phase invert" label, 0.0f), \
-            LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
+            LOG_CONTROL("bg" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("bag" id, "Band amplitude graph" label, 2, crossover_base_metadata::MESH_POINTS), \
+            MESH("bfc" id, "Band amplitude graph" label, 2, crossover_base_metadata::MESH_POINTS), \
             \
-            METER_GAIN("ilm" id "l", "Input level meter" label " Left", GAIN_AMP_P_24_DB), \
-            METER_GAIN("ilm" id "r", "Input level meter" label " Right", GAIN_AMP_P_24_DB)
+            METER_GAIN("blm" id "l", "Band level meter" label " Left", GAIN_AMP_P_24_DB), \
+            METER_GAIN("blm" id "r", "Band level meter" label " Right", GAIN_AMP_P_24_DB)
 
     #define XOVER_GROUP_PORTS(i) \
-        MONO_PORT_GROUP_PORT(xover_pg_mono_ ## i, "band" #i); \
-        STEREO_PORT_GROUP_PORTS(xover_pg_stereo_ ## i, "band" #i "l", "band" #i "r"); \
-        MS_PORT_GROUP_PORTS(xover_pg_ms_ ## i, "band" #i "m", "band" #i "s");
+            MONO_PORT_GROUP_PORT(xover_pg_mono_ ## i, "band" #i); \
+            STEREO_PORT_GROUP_PORTS(xover_pg_stereo_ ## i, "band" #i "l", "band" #i "r"); \
+            MS_PORT_GROUP_PORTS(xover_pg_ms_ ## i, "band" #i "m", "band" #i "s");
 
     #define XOVER_MONO_GROUP(i) \
-        { "mono_band" #i, "Mono band " #i " output",        GRP_MONO,       PGF_OUT,    xover_pg_mono_ ## i ##_ports        }
+            { "mono_band" #i, "Mono band " #i " output",        GRP_MONO,       PGF_OUT,    xover_pg_mono_ ## i ##_ports        }
 
     #define XOVER_STEREO_GROUP(i) \
-        { "stereo_band" #i, "Stereo band " #i " output",    GRP_STEREO,     PGF_OUT,    xover_pg_stereo_ ## i ##_ports      }
+            { "stereo_band" #i, "Stereo band " #i " output",    GRP_STEREO,     PGF_OUT,    xover_pg_stereo_ ## i ##_ports      }
 
     #define XOVER_MS_GROUP(i) \
-        { "ms_band" #i, "Mid/side band " #i " output",      GRP_MS,         PGF_OUT,    xover_pg_ms_ ## i ##_ports          }
+            { "ms_band" #i, "Mid/side band " #i " output",      GRP_MS,         PGF_OUT,    xover_pg_ms_ ## i ##_ports          }
 
     XOVER_GROUP_PORTS(0);
     XOVER_GROUP_PORTS(1);

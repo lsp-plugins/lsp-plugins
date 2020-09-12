@@ -52,9 +52,10 @@ namespace lsp
      * @param band number of the band
      * @param data the output band signal produced by crossover,
      *        is valid only until the function returns
-     * @param count number of samples in the data buffer
+     * @param first index of the first sample in input buffer
+     * @param count number of processed samples in the data buffer
      */
-    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, const float *data, size_t count);
+    typedef void (* crossover_func_t)(void *object, void *subject, size_t band, const float *data, size_t first, size_t count);
 
     /** Crossover, splits signal into bands, calls processing handler (if present)
      * and mixes processed bands back after adjusting the post-processing amplification gain
@@ -256,7 +257,8 @@ namespace lsp
              */
             inline size_t   get_sample_rate()                   { return nSampleRate;           }
 
-            /** Get frequency chart of the crossover
+            /** Get frequency chart of the crossover band. This method returns frequency chart
+             * without applied all-pass filters
              *
              * @param band number of the band
              * @param re real part of the frequency chart
@@ -267,7 +269,8 @@ namespace lsp
              */
             bool            freq_chart(size_t band,  float *re, float *im, const float *f, size_t count);
 
-            /** Get frequency chart of the crossover
+            /** Get frequency chart of the crossover. This method returns frequency chart
+             * without applied all-pass filters
              *
              * @param band number of the band
              * @param c transfer function (packed complex numbers)
