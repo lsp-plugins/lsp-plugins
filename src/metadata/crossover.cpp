@@ -93,6 +93,71 @@ namespace lsp
             METER_GAIN("ilm" id "l", "Input level meter" label " Left", GAIN_AMP_P_24_DB), \
             METER_GAIN("ilm" id "r", "Input level meter" label " Right", GAIN_AMP_P_24_DB)
 
+    #define XOVER_GROUP_PORTS(i) \
+        MONO_PORT_GROUP_PORT(xover_pg_mono_ ## i, "band" #i); \
+        STEREO_PORT_GROUP_PORTS(xover_pg_stereo_ ## i, "band" #i "l", "band" #i "r"); \
+        MS_PORT_GROUP_PORTS(xover_pg_ms_ ## i, "band" #i "m", "band" #i "s");
+
+    #define XOVER_MONO_GROUP(i) \
+        { "mono_band" #i, "Mono band " #i " output",        GRP_MONO,       PGF_OUT,    xover_pg_mono_ ## i ##_ports        }
+
+    #define XOVER_STEREO_GROUP(i) \
+        { "stereo_band" #i, "Stereo band " #i " output",    GRP_STEREO,     PGF_OUT,    xover_pg_stereo_ ## i ##_ports      }
+
+    #define XOVER_MS_GROUP(i) \
+        { "ms_band" #i, "Mid/side band " #i " output",      GRP_MS,         PGF_OUT,    xover_pg_ms_ ## i ##_ports          }
+
+    XOVER_GROUP_PORTS(0);
+    XOVER_GROUP_PORTS(1);
+    XOVER_GROUP_PORTS(2);
+    XOVER_GROUP_PORTS(3);
+    XOVER_GROUP_PORTS(4);
+    XOVER_GROUP_PORTS(5);
+    XOVER_GROUP_PORTS(6);
+    XOVER_GROUP_PORTS(7);
+
+    static const port_group_t xover_mono_port_groups[] =
+    {
+        MAIN_MONO_PORT_GROUPS,
+        XOVER_MONO_GROUP(0),
+        XOVER_MONO_GROUP(1),
+        XOVER_MONO_GROUP(2),
+        XOVER_MONO_GROUP(3),
+        XOVER_MONO_GROUP(4),
+        XOVER_MONO_GROUP(5),
+        XOVER_MONO_GROUP(6),
+        XOVER_MONO_GROUP(7),
+        PORT_GROUPS_END
+    };
+
+    static const port_group_t xover_stereo_port_groups[] =
+    {
+        MAIN_STEREO_PORT_GROUPS,
+        XOVER_STEREO_GROUP(0),
+        XOVER_STEREO_GROUP(1),
+        XOVER_STEREO_GROUP(2),
+        XOVER_STEREO_GROUP(3),
+        XOVER_STEREO_GROUP(4),
+        XOVER_STEREO_GROUP(5),
+        XOVER_STEREO_GROUP(6),
+        XOVER_STEREO_GROUP(7),
+        PORT_GROUPS_END
+    };
+
+    static const port_group_t xover_ms_port_groups[] =
+    {
+        MAIN_STEREO_PORT_GROUPS,
+        XOVER_MS_GROUP(0),
+        XOVER_MS_GROUP(1),
+        XOVER_MS_GROUP(2),
+        XOVER_MS_GROUP(3),
+        XOVER_MS_GROUP(4),
+        XOVER_MS_GROUP(5),
+        XOVER_MS_GROUP(6),
+        XOVER_MS_GROUP(7),
+        PORT_GROUPS_END
+    };
+
     static const port_t crossover_mono_ports[] =
     {
         PORTS_MONO_PLUGIN,
@@ -322,7 +387,7 @@ namespace lsp
         crossover_mono_ports,
         "util/crossover/mono.xml",
         NULL,
-        mono_plugin_port_groups
+        xover_mono_port_groups
     };
 
     const plugin_metadata_t  crossover_stereo_metadata::metadata =
@@ -340,7 +405,7 @@ namespace lsp
         crossover_stereo_ports,
         "util/crossover/stereo.xml",
         NULL,
-        stereo_plugin_port_groups
+        xover_stereo_port_groups
     };
 
     const plugin_metadata_t  crossover_lr_metadata::metadata =
@@ -358,7 +423,7 @@ namespace lsp
         crossover_lr_ports,
         "util/crossover/lr.xml",
         NULL,
-        stereo_plugin_port_groups
+        xover_stereo_port_groups
     };
 
     const plugin_metadata_t  crossover_ms_metadata::metadata =
@@ -376,7 +441,7 @@ namespace lsp
         crossover_ms_ports,
         "util/crossover/ms.xml",
         NULL,
-        stereo_plugin_port_groups
+        xover_ms_port_groups
     };
 }
 

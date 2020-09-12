@@ -320,9 +320,10 @@ namespace lsp
                         case PGR_REAR_LEFT:     role = "rearLeft"; break;
                         case PGR_REAR_RIGHT:    role = "rearRight"; break;
                         case PGR_RIGHT:         role = "right"; break;
-                        case PGR_SIDE:          role = "side"; break;
+                        case PGR_MS_SIDE:       role = "side"; break;
                         case PGR_SIDE_LEFT:     role = "sideLeft"; break;
                         case PGR_SIDE_RIGHT:    role = "sideRight"; break;
+                        case PGR_MS_MIDDLE:     role = "center"; break;
                         default:
                             break;
                     }

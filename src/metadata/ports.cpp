@@ -71,39 +71,32 @@ namespace lsp
 
     const port_group_t mono_plugin_port_groups[] =
     {
-        { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN,     mono_in_group_ports         },
-        { "mono_out",       "Mono Output",      GRP_MONO,       PGF_OUT,    mono_out_group_ports        },
-        { NULL, NULL }
+        MAIN_MONO_PORT_GROUPS,
+        PORT_GROUPS_END
     };
 
     const port_group_t mono_plugin_sidechain_port_groups[] =
     {
-        { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN,     mono_in_group_ports         },
-        { "mono_out",       "Mono Output",      GRP_MONO,       PGF_OUT,    mono_out_group_ports        },
-        { "sidechain_in",   "Sidechain Input",  GRP_MONO,       PGF_IN | PGF_SIDECHAIN,     mono_sidechain_group_ports, "mono_in"  },
-        { NULL, NULL }
+        MAIN_SC_MONO_PORT_GROUPS,
+        PORT_GROUPS_END
     };
 
     const port_group_t mono_to_stereo_plugin_port_groups[] =
     {
-        { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN,     mono_in_group_ports         },
-        { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT,    stereo_out_group_ports      },
-        { NULL, NULL }
+        MAIN_MONO2STEREO_PORT_GROUPS,
+        PORT_GROUPS_END
     };
 
     const port_group_t stereo_plugin_port_groups[] =
     {
-        { "stereo_in",      "Stereo Input",     GRP_STEREO,     PGF_IN,     stereo_in_group_ports       },
-        { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT,    stereo_out_group_ports      },
-        { NULL, NULL }
+        MAIN_STEREO_PORT_GROUPS,
+        PORT_GROUPS_END
     };
 
     const port_group_t stereo_plugin_sidechain_port_groups[] =
     {
-        { "stereo_in",      "Stereo Input",     GRP_STEREO,     PGF_IN,     stereo_in_group_ports       },
-        { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT,    stereo_out_group_ports      },
-        { "sidechain_in",   "Sidechain Input",  GRP_STEREO,     PGF_IN | PGF_SIDECHAIN,     stereo_sidechain_group_portss, "stereo_in" },
-        { NULL, NULL }
+        MAIN_SC_STEREO_PORT_GROUPS,
+        PORT_GROUPS_END
     };
 
     //-------------------------------------------------------------------------

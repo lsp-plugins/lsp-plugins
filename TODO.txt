@@ -30,6 +30,7 @@
 * Fixed small memory leakage in multiband plugins (Compressor, Gate, Expander) related to usage of
   Inline Display feature.
 - Implemented Crossover Plugin.
+- Added support of pg:mainInput and pg:mainOutput in TTL files.
 
 *******************************************************************************
 * New plugin check list before release

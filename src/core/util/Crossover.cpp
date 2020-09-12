@@ -367,6 +367,7 @@ namespace lsp
         left->pEnd          = NULL;
 
         // DEBUG BEGIN
+    #ifdef LSP_TRACE
         lsp_trace("Execution plan:");
         for (size_t i=0; i<nPlanSize; ++i)
         {
@@ -384,6 +385,7 @@ namespace lsp
                             b->fGain, b->fStart, b->fEnd, b->pStart, b->pEnd
                         );
         }
+    #endif
         // DEBUG END
 
         // Reset reconfiguration flag

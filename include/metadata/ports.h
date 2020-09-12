@@ -162,13 +162,52 @@
     OSC_OUTPUT
 
 // Port groups
+#define MAIN_MONO_PORT_GROUPS \
+    { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN | PGF_MAIN,          mono_in_group_ports         }, \
+    { "mono_out",       "Mono Output",      GRP_MONO,       PGF_OUT | PGF_MAIN,         mono_out_group_ports        }
+
+#define MAIN_SC_MONO_PORT_GROUPS \
+    { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN | PGF_MAIN,          mono_in_group_ports         }, \
+    { "mono_out",       "Mono Output",      GRP_MONO,       PGF_OUT | PGF_MAIN,         mono_out_group_ports        }, \
+    { "sidechain_in",   "Sidechain Input",  GRP_MONO,       PGF_IN | PGF_SIDECHAIN,     mono_sidechain_group_ports, "mono_in"  }
+
+#define MAIN_MONO2STEREO_PORT_GROUPS \
+    { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN | PGF_MAIN,          mono_in_group_ports         }, \
+    { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT | PGF_MAIN,         stereo_out_group_ports      }
+
+#define MAIN_STEREO_PORT_GROUPS \
+    { "stereo_in",      "Stereo Input",     GRP_STEREO,     PGF_IN | PGF_MAIN,          stereo_in_group_ports       }, \
+    { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT | PGF_MAIN,         stereo_out_group_ports      }
+
+#define MAIN_SC_STEREO_PORT_GROUPS \
+    { "stereo_in",      "Stereo Input",     GRP_STEREO,     PGF_IN | PGF_MAIN,          stereo_in_group_ports       }, \
+    { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT | PGF_MAIN,         stereo_out_group_ports      }, \
+    { "sidechain_in",   "Sidechain Input",  GRP_STEREO,     PGF_IN | PGF_SIDECHAIN,     stereo_sidechain_group_portss, "stereo_in" }
+
+#define MONO_PORT_GROUP_PORT(id, a) \
+    static const port_group_item_t id ## _ports[] = \
+    { \
+        { a, PGR_CENTER     }, \
+        { NULL              } \
+    }
+
 #define STEREO_PORT_GROUP_PORTS(id, a, b) \
     static const port_group_item_t id ## _ports[] = \
     { \
-        { a, PGR_LEFT  }, \
-        { b, PGR_RIGHT }, \
+        { a, PGR_LEFT       }, \
+        { b, PGR_RIGHT      }, \
         { NULL } \
     }
+
+#define MS_PORT_GROUP_PORTS(id, a, b) \
+    static const port_group_item_t id ## _ports[] = \
+    { \
+        { a, PGR_MS_MIDDLE  }, \
+        { b, PGR_MS_SIDE    }, \
+        { NULL } \
+    }
+
+#define PORT_GROUPS_END     { NULL, NULL }
 
 namespace lsp
 {
