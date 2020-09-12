@@ -477,6 +477,8 @@ namespace lsp
         fprintf(out, "\n\t.\n\n");
 
         // Output port groups
+        const port_group_t *pg_main_in = NULL, *pg_main_out = NULL;
+
         if (requirements & REQ_PORT_GROUPS)
         {
             for (const port_group_t *pg = m.port_groups; (pg != NULL) && (pg->id != NULL); pg++)
@@ -505,9 +507,16 @@ namespace lsp
                     fprintf(out, "\ta pg:%s ;\n", grp_dir);
 
                 if (pg->flags & PGF_SIDECHAIN)
-                    fprintf(out, "\tpg:sideChainOf lsp_pg:%s;\n", pg->parent_id);
+                    fprintf(out, "\tpg:sideChainOf lsp_pg:%s ;\n", pg->parent_id);
+                if (pg->flags & PGF_MAIN)
+                {
+                    if (pg->flags & PGF_OUT)
+                        pg_main_out     = pg;
+                    else
+                        pg_main_in      = pg;
+                }
 
-                fprintf(out, "\tlv2:symbol \"%s\";\n", pg->id);
+                fprintf(out, "\tlv2:symbol \"%s\" ;\n", pg->id);
                 fprintf(out, "\trdfs:label \"%s\"\n", pg->name);
                 fprintf(out, "\t.\n\n");
             }
@@ -564,11 +573,18 @@ namespace lsp
 
         // Different supported options
         if (requirements & REQ_LV2UI)
-            fprintf(out, "\topts:supportedOption ui:updateRate ;\n");
+            fprintf(out, "\topts:supportedOption ui:updateRate ;\n\n");
+
+        if (pg_main_in != NULL)
+            fprintf(out, "\tpg:mainInput lsp_pg:%s ;\n", pg_main_in->id);
+        if (pg_main_out != NULL)
+            fprintf(out, "\tpg:mainOutput lsp_pg:%s ;\n", pg_main_out->id);
 
         // Replacement for LADSPA plugin
         if (m.ladspa_id > 0)
-            fprintf(out, "\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
+            fprintf(out, "\n\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
+
+        // Separator
         fprintf(out, "\n");
 
         size_t port_id = 0;
