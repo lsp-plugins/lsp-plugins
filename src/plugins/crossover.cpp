@@ -973,7 +973,119 @@ namespace lsp
 
     void crossover_base::dump(IStateDumper *v) const
     {
-        // TODO
+        // Determine number of channels
+        size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+
+        v->write_object("sAnalyzer", &sAnalyzer);
+        v->write("nMode", &nMode);
+
+        v->begin_array("vChannels", vChannels, channels);
+        {
+            for (size_t i=0; i<channels; ++i)
+            {
+                const channel_t *c = &vChannels[i];
+
+                v->begin_object(c, sizeof(channel_t));
+                {
+                    v->write_object("sBypasss", &c->sBypass);
+                    v->write_object("sXOver", &c->sXOver);
+
+                    v->begin_array("vSplit", c->vSplit, crossover_base_metadata::BANDS_MAX-1);
+                    {
+                        for (size_t i=0; i<(crossover_base_metadata::BANDS_MAX-1); ++i)
+                        {
+                            const xover_split_t *sp = &c->vSplit[i];
+
+                            v->begin_object(sp, sizeof(xover_split_t));
+                            {
+                                v->write("pSlope", sp->pSlope);
+                                v->write("pFreq", sp->pFreq);
+                            }
+                            v->end_object();
+                        }
+                    }
+                    v->end_array();
+
+                    v->begin_array("vBands", c->vBands, crossover_base_metadata::BANDS_MAX);
+                    {
+                        for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
+                        {
+                            const xover_band_t *b = &c->vBands[i];
+
+                            v->begin_object(v, sizeof(xover_band_t));
+                            {
+                                v->write("vOut", b->vOut);
+                                v->write("vResult", b->vResult);
+                                v->write("vTr", b->vTr);
+                                v->write("vFc", b->vFc);
+
+                                v->write("bSolo", b->bSolo);
+                                v->write("bMute", b->bMute);
+                                v->write("fGain", b->fGain);
+                                v->write("fOutLevel", b->fOutLevel);
+                                v->write("bSyncCurve", b->bSyncCurve);
+                                v->write("fHue", b->fHue);
+
+                                v->write("pSolo", b->pSolo);
+                                v->write("pMute", b->pMute);
+                                v->write("pGain", b->pGain);
+                                v->write("pOutLevel", b->pOutLevel);
+                                v->write("pFreqEnd", b->pFreqEnd);
+                                v->write("pOut", b->pOut);
+                                v->write("pAmpGraph", b->pAmpGraph);
+                                v->write("pHue", b->pHue);
+                            }
+                            v->end_object();
+                        }
+                    }
+                    v->end_array();
+
+                    v->write("vIn", c->vIn);
+                    v->write("vOut", c->vOut);
+                    v->write("vBuffer", c->vBuffer);
+                    v->write("vResult", c->vResult);
+                    v->write("vTr", c->vTr);
+                    v->write("vFc", c->vFc);
+
+                    v->write("nAnInChannel", c->nAnInChannel);
+                    v->write("nAnOutChannel", c->nAnOutChannel);
+                    v->write("bSyncCurve", c->bSyncCurve);
+                    v->write("fInLevel", c->fInLevel);
+                    v->write("fOutLevel", c->fOutLevel);
+
+                    v->write("pIn", c->pIn);
+                    v->write("pOut", c->pOut);
+                    v->write("pFftIn", c->pFftIn);
+                    v->write("pFftInSw", c->pFftInSw);
+                    v->write("pFftOut", c->pFftOut);
+                    v->write("pFftOutSw", c->pFftOutSw);
+                    v->write("pAmpGraph", c->pAmpGraph);
+                    v->write("pInLvl", c->pInLvl);
+                    v->write("pOutLvl", c->pOutLvl);
+                }
+                v->end_object();
+            }
+        }
+        v->end_array();
+
+        v->write("fInGain", fInGain);
+        v->write("fOutGain", fOutGain);
+        v->write("fZoom", fZoom);
+        v->write("bMSOut", bMSOut);
+
+        v->write("pData", pData);
+        v->write("vFreqs", vFreqs);
+        v->write("vCurve", vCurve);
+        v->write("vIndexes", vIndexes);
+        v->write("pIDisplay", pIDisplay);
+
+        v->write("pBypass", pBypass);
+        v->write("pInGain", pInGain);
+        v->write("pOutGain", pOutGain);
+        v->write("pReactivity", pReactivity);
+        v->write("pShiftGain", pShiftGain);
+        v->write("pZoom", pZoom);
+        v->write("pMSOut", pMSOut);
     }
 
     //-------------------------------------------------------------------------

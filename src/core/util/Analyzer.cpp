@@ -297,4 +297,44 @@ namespace lsp
         }
     }
 
+    void Analyzer::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->write("nMaxRank", nMaxRank);
+        v->write("nRank", nRank);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nBufSize", nBufSize);
+        v->write("nFftPeriod", nFftPeriod);
+        v->write("fReactivity", fReactivity);
+        v->write("fTau", fTau);
+        v->write("fRate", fRate);
+        v->write("fShift", fShift);
+        v->write("nReconfigure", nReconfigure);
+        v->write("nEnvelope", nEnvelope);
+        v->write("nWindow", nWindow);
+        v->write("bActive", bActive);
+
+        v->begin_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            const channel_t *c = &vChannels[i];
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write("vBuffer", c->vBuffer);
+                v->write("vAmp", c->vAmp);
+                v->write("nCounter", c->nCounter);
+                v->write("bFreeze", c->bFreeze);
+                v->write("bActive", c->bActive);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("vData", vData);
+        v->write("vSigRe", vSigRe);
+        v->write("vFftReIm", vFftReIm);
+        v->write("vWindow", vWindow);
+        v->write("vEnvelope", vEnvelope);
+    }
+
 } /* namespace lsp */
