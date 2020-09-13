@@ -41,6 +41,12 @@
 * Ensure that there are menu items present for all new plugins in res/xdg
 * Ensure that plugin provides internal state dump.
 * Ensure that lsp-plugins.menu contains reference to the new plugin
+* Check that there are no additional warnings/errors for the following script after plugin installation:
+  
+  export LV2_PATH=/usr/local/lib/lv2
+  for uri in $(lv2ls |grep lsp); do
+    lv2lint -Mpack "$uri"
+  done
 
 *******************************************************************************
 * Release steps
