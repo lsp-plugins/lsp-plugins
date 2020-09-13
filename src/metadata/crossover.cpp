@@ -31,6 +31,22 @@ namespace lsp
     // Crossover plugin
     static const int crossover_classes[]        =   { C_UTILITY, -1 };
 
+    static const port_item_t crossover_selector_lr[] =
+    {
+        { "Left",           "crossover.sel.left"            },
+        { "Right",          "crossover.sel.right"           },
+
+        { NULL, NULL }
+    };
+
+    static const port_item_t crossover_selector_ms[] =
+    {
+        { "Middle",         "crossover.sel.mid"             },
+        { "Side",           "crossover.sel.side"            },
+
+        { NULL, NULL }
+    };
+
     static const port_item_t crossover_slopes[] =
     {
         { "off",            "crossover.slope.off"           },
@@ -275,7 +291,9 @@ namespace lsp
         AUDIO_OUTPUT("band7r", "Band Output 7 Right"),
 
         XOVER_COMMON,
-        XOVER_CHANNEL("", ""),
+        COMBO("sel", "Processor selector", 0.0f, crossover_selector_lr),
+        XOVER_CHANNEL("_l", " Left"),
+        XOVER_CHANNEL("_r", " Right"),
         XOVER_FFT_METERS("_l", " Left"),
         XOVER_CHANNEL_METERS("_l", " Left"),
         XOVER_FFT_METERS("_r", " Right"),
@@ -348,12 +366,14 @@ namespace lsp
         AUDIO_OUTPUT("band7s", "Band Output 7 Side"),
 
         XOVER_COMMON,
+        COMBO("sel", "Processor selector", 0.0f, crossover_selector_ms),
         SWITCH("msout", "Mid/Side output", 0.0f),
-        XOVER_CHANNEL("", ""),
-        XOVER_FFT_METERS("_l", " Left"),
-        XOVER_CHANNEL_METERS("_l", " Left"),
-        XOVER_FFT_METERS("_r", " Right"),
-        XOVER_CHANNEL_METERS("_r", " Right"),
+        XOVER_CHANNEL("_m", " Mid"),
+        XOVER_CHANNEL("_s", " Side"),
+        XOVER_FFT_METERS("_l", " Mid"),
+        XOVER_CHANNEL_METERS("_l", " Side"),
+        XOVER_FFT_METERS("_r", " Mid"),
+        XOVER_CHANNEL_METERS("_r", " Side"),
 
         XOVER_SPLIT("_1m", " 1 Mid", 0, 40.0f),
         XOVER_SPLIT("_2m", " 2 Mid", 1, 100.0f),

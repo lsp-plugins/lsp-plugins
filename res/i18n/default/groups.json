@@ -2,11 +2,11 @@
 	"alr": "ALR",
 	"analysis": "Analysis",
 	"audio_channel": "Audio Channel",
-	"audio_channels": "Audio Channel",
+	"audio_channels": "Audio Channels",
 	"audio_output": "Audio Output",
 	
 	"bands": "Bands",
-	
+
 	"controls": "Controls",
 	
 	"chan": {
@@ -59,9 +59,9 @@
 	"processor": "Processor",
 	"processors": "Processors",
 	
-	"results": "Results",
-	
 	"rendering": "Rendering",
+	
+	"results": "Results",
 	
 	"rchan": {
 		"distance": "Distance (right)",

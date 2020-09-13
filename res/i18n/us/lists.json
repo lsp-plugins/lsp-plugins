@@ -18,6 +18,12 @@
 	},
 	
 	"crossover": {
+		"sel": {
+			"left": "Processor Left",
+			"mid": "Processor Middle",
+			"right": "Processor Right",
+			"side": "Processor Side"
+		},
 		"slope": {
 			"off": "Off",
 			"24dbo": "24 dB/oct",

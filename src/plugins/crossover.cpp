@@ -242,6 +242,12 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pZoom           = vPorts[port_id++];
 
+        if ((nMode == XOVER_LR) || (nMode == XOVER_MS))
+        {
+            TRACE_PORT(vPorts[port_id]);
+            port_id++;
+        }
+
         if (nMode == XOVER_MS)
         {
             TRACE_PORT(vPorts[port_id]);
@@ -614,8 +620,8 @@ namespace lsp
             // Apply input gain and M/S transform (if required)
             if (nMode == XOVER_MS)
             {
-                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
-                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do));
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
+                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do) * fInGain);
 
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_do);
 
@@ -631,25 +637,25 @@ namespace lsp
             }
             else if (channels > 1)
             {
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
+                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do) * fInGain);
+
                 if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
                     sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vIn, to_do);
                 if (sAnalyzer.channel_active(vChannels[1].nAnInChannel))
                     sAnalyzer.process(vChannels[1].nAnInChannel, vChannels[1].vIn, to_do);
 
-                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
-                vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do));
-
                 dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
                 dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_do);
+
                 dsp::fill_zero(vChannels[0].vResult, to_do);
                 dsp::fill_zero(vChannels[1].vResult, to_do);
             }
             else
             {
+                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
                 if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
                     sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vIn, to_do);
-
-                vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do));
 
                 dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
                 dsp::fill_zero(vChannels[0].vResult, to_do);
@@ -659,7 +665,7 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c        = &vChannels[i];
-                c->sXOver.process(c->vIn, to_do);
+                c->sXOver.process(c->vBuffer, to_do);
             }
 
             // Output signal of each band to output buffers
@@ -899,36 +905,32 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            // Don't draw the second channel of the stereo crossover
-            if ((i > 0) && (nMode != XOVER_STEREO))
+            // Draw the filter curve for each band
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
             {
-                // Draw the filter curve for each band
-                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+                if (!c->sXOver.band_active(j))
+                    continue;
+
+                xover_band_t *xb    = &c->vBands[j];
+                for (size_t k=0; k<width; ++k)
                 {
-                    if (!c->sXOver.band_active(j))
-                        continue;
-
-                    xover_band_t *xb    = &c->vBands[j];
-                    for (size_t k=0; k<width; ++k)
-                    {
-                        size_t idx      = k * delta;
-                        b->v[3][k+2]    = xb->vFc[idx];
-                    }
-                    b->v[3][0]          = 0.0f;
-                    b->v[3][1]          = b->v[3][2];
-                    b->v[3][width+2]    = b->v[3][width+1];
-                    b->v[3][width+3]    = 0.0f;
-
-                    dsp::fill(b->v[1], 0.0f, xwidth);
-                    dsp::fill(b->v[2], height, xwidth);
-                    dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
-                    dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
-
-                    col.hue(xb->fHue);
-                    color = (bypassing || !(active())) ? CV_SILVER : col.rgb24();
-                    Color stroke(color), fill(color, 0.75f);
-                    cv->draw_poly(b->v[1], b->v[2], xwidth, stroke, fill);
+                    size_t idx      = k * delta;
+                    b->v[3][k+2]    = xb->vFc[idx];
                 }
+                b->v[3][0]          = 0.0f;
+                b->v[3][1]          = b->v[3][2];
+                b->v[3][width+2]    = b->v[3][width+1];
+                b->v[3][width+3]    = 0.0f;
+
+                dsp::fill(b->v[1], 0.0f, xwidth);
+                dsp::fill(b->v[2], height, xwidth);
+                dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
+                dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
+
+                col.hue(xb->fHue);
+                color = (bypassing || !(active())) ? CV_SILVER : col.rgb24();
+                Color stroke(color), fill(color, 0.75f);
+                cv->draw_poly(b->v[1], b->v[2], xwidth, stroke, fill);
             }
 
             // Draw overall curve for each channel
