@@ -190,7 +190,7 @@ namespace lsp
 
     void Crossover::set_gain(size_t band, float gain)
     {
-        if (band >= nSplits)
+        if (band > nSplits)
             return;
         if (gain == vBands[band].fGain)
             return;

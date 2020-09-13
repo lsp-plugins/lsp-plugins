@@ -74,20 +74,18 @@ namespace lsp
             LOG_CONTROL("bg" id, "Band gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("bfc" id, "Band frequency chart" label, 2, crossover_base_metadata::FILTER_MESH_POINTS), \
-            \
+            MESH("bfc" id, "Band frequency chart" label, 2, crossover_base_metadata::FILTER_MESH_POINTS)
+
+    #define XOVER_BAND_METER_MONO(id, label) \
             METER_GAIN("blm" id, "Band level meter" label, GAIN_AMP_P_24_DB)
 
-    #define XOVER_STEREO_BAND(id, label, x, total, fe, fs) \
-            SWITCH("bs" id, "Solo band" label, 0.0f), \
-            SWITCH("bm" id, "Mute band" label, 0.0f), \
-            LOG_CONTROL("bg" id, "Makeup gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
-            HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
-            METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
-            MESH("bfc" id, "Band amplitude graph" label, 2, crossover_base_metadata::MESH_POINTS), \
-            \
+    #define XOVER_BAND_METER_STEREO(id, label) \
             METER_GAIN("blm" id "l", "Band level meter" label " Left", GAIN_AMP_P_24_DB), \
             METER_GAIN("blm" id "r", "Band level meter" label " Right", GAIN_AMP_P_24_DB)
+
+    #define XOVER_BAND_METER_MS(id, label) \
+            METER_GAIN("blm" id "m", "Band level meter" label " Mid", GAIN_AMP_P_24_DB), \
+            METER_GAIN("blm" id "s", "Band level meter" label " Side", GAIN_AMP_P_24_DB)
 
     #define XOVER_GROUP_PORTS(i) \
             MONO_PORT_GROUP_PORT(xover_pg_mono_ ## i, "band" #i); \
@@ -188,6 +186,15 @@ namespace lsp
         XOVER_BAND("_6", " 6", 6, 8, 3984.0f, 10000.0f),
         XOVER_BAND("_7", " 7", 7, 8, 10000.0f, 20000.0f),
 
+        XOVER_BAND_METER_MONO("_0", " 0"),
+        XOVER_BAND_METER_MONO("_1", " 1"),
+        XOVER_BAND_METER_MONO("_2", " 2"),
+        XOVER_BAND_METER_MONO("_3", " 3"),
+        XOVER_BAND_METER_MONO("_4", " 4"),
+        XOVER_BAND_METER_MONO("_5", " 5"),
+        XOVER_BAND_METER_MONO("_6", " 6"),
+        XOVER_BAND_METER_MONO("_7", " 7"),
+
         PORTS_END
     };
 
@@ -226,14 +233,23 @@ namespace lsp
         XOVER_SPLIT("_6", " 6", 1, 3984.0f),
         XOVER_SPLIT("_7", " 7", 0, 10000.0f),
 
-        XOVER_STEREO_BAND("_0", " 0", 0, 8, 10.0f, 40.0f),
-        XOVER_STEREO_BAND("_1", " 1", 1, 8, 40.0f, 100.0f),
-        XOVER_STEREO_BAND("_2", " 2", 2, 8, 100.0f, 252.0f),
-        XOVER_STEREO_BAND("_3", " 3", 3, 8, 252.0f, 632.0f),
-        XOVER_STEREO_BAND("_4", " 4", 4, 8, 632.0f, 1587.0f),
-        XOVER_STEREO_BAND("_5", " 5", 5, 8, 1587.0f, 3984.0f),
-        XOVER_STEREO_BAND("_6", " 6", 6, 8, 3984.0f, 10000.0f),
-        XOVER_STEREO_BAND("_7", " 7", 7, 8, 10000.0f, 20000.0f),
+        XOVER_BAND("_0", " 0", 0, 8, 10.0f, 40.0f),
+        XOVER_BAND("_1", " 1", 1, 8, 40.0f, 100.0f),
+        XOVER_BAND("_2", " 2", 2, 8, 100.0f, 252.0f),
+        XOVER_BAND("_3", " 3", 3, 8, 252.0f, 632.0f),
+        XOVER_BAND("_4", " 4", 4, 8, 632.0f, 1587.0f),
+        XOVER_BAND("_5", " 5", 5, 8, 1587.0f, 3984.0f),
+        XOVER_BAND("_6", " 6", 6, 8, 3984.0f, 10000.0f),
+        XOVER_BAND("_7", " 7", 7, 8, 10000.0f, 20000.0f),
+
+        XOVER_BAND_METER_STEREO("_0", " 0"),
+        XOVER_BAND_METER_STEREO("_1", " 1"),
+        XOVER_BAND_METER_STEREO("_2", " 2"),
+        XOVER_BAND_METER_STEREO("_3", " 3"),
+        XOVER_BAND_METER_STEREO("_4", " 4"),
+        XOVER_BAND_METER_STEREO("_5", " 5"),
+        XOVER_BAND_METER_STEREO("_6", " 6"),
+        XOVER_BAND_METER_STEREO("_7", " 7"),
 
         PORTS_END
     };
@@ -299,6 +315,15 @@ namespace lsp
         XOVER_BAND("_6r", " 6 Right", 6, 8, 3984.0f, 10000.0f),
         XOVER_BAND("_7r", " 7 Right", 7, 8, 10000.0f, 20000.0f),
 
+        XOVER_BAND_METER_STEREO("_0", " 0"),
+        XOVER_BAND_METER_STEREO("_1", " 1"),
+        XOVER_BAND_METER_STEREO("_2", " 2"),
+        XOVER_BAND_METER_STEREO("_3", " 3"),
+        XOVER_BAND_METER_STEREO("_4", " 4"),
+        XOVER_BAND_METER_STEREO("_5", " 5"),
+        XOVER_BAND_METER_STEREO("_6", " 6"),
+        XOVER_BAND_METER_STEREO("_7", " 7"),
+
         PORTS_END
     };
 
@@ -363,6 +388,15 @@ namespace lsp
         XOVER_BAND("_5s", " 5 Side", 5, 8, 1587.0f, 3984.0f),
         XOVER_BAND("_6s", " 6 Side", 6, 8, 3984.0f, 10000.0f),
         XOVER_BAND("_7s", " 7 Side", 7, 8, 10000.0f, 20000.0f),
+
+        XOVER_BAND_METER_MS("_0", " 0"),
+        XOVER_BAND_METER_MS("_1", " 1"),
+        XOVER_BAND_METER_MS("_2", " 2"),
+        XOVER_BAND_METER_MS("_3", " 3"),
+        XOVER_BAND_METER_MS("_4", " 4"),
+        XOVER_BAND_METER_MS("_5", " 5"),
+        XOVER_BAND_METER_MS("_6", " 6"),
+        XOVER_BAND_METER_MS("_7", " 7"),
 
         PORTS_END
     };

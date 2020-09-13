@@ -31,7 +31,7 @@ namespace lsp
 {
     crossover_base::crossover_base(const plugin_metadata_t &metadata, size_t mode): plugin_t(metadata)
     {
-        nMode           = 0;
+        nMode           = mode;
         vChannels       = NULL;
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
@@ -218,7 +218,7 @@ namespace lsp
         }
         else
         {
-            for (size_t i=0; i<channels; ++i)
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
             {
                 TRACE_PORT(vPorts[port_id]);
                 vChannels[0].vBands[i].pOut     =   vPorts[port_id++];
@@ -325,13 +325,9 @@ namespace lsp
                     b->pSolo            = sb->pSolo;
                     b->pMute            = sb->pMute;
                     b->pGain            = sb->pGain;
-                    b->pFreqEnd         = sb->pFreqEnd;
+                    b->pHue             = sb->pHue;
                     b->pFreqEnd         = sb->pFreqEnd;
                     b->pAmpGraph        = NULL;
-
-                    // Bind output level meter
-                    TRACE_PORT(vPorts[port_id]);
-                    b->pOutLevel        = vPorts[port_id++];
                 }
                 else
                 {
@@ -347,9 +343,20 @@ namespace lsp
                     b->pFreqEnd         = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pAmpGraph        = vPorts[port_id++];
-                    TRACE_PORT(vPorts[port_id]);
-                    b->pOutLevel        = vPorts[port_id++];
                 }
+            }
+        }
+
+        // Band meters
+        lsp_trace("Binding band meters");
+        for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
+        {
+            for (size_t j=0; j<channels; ++j)
+            {
+                xover_band_t *b     = &vChannels[j].vBands[i];
+
+                TRACE_PORT(vPorts[port_id]);
+                b->pOutLevel        = vPorts[port_id++];
             }
         }
 
@@ -454,7 +461,7 @@ namespace lsp
 
             // Configure bands (step 1):
             bool solo       = false;
-            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
             {
                 xover_band_t *b     = &c->vBands[i];
                 float hue           = b->pHue->getValue();
@@ -463,7 +470,7 @@ namespace lsp
                 if ((i > 0) && (c->vSplit[i-1].pSlope->getValue() <= 0))
                     b->bSolo            = false;
                 b->bMute            = b->pMute->getValue() >= 0.5f;
-                b->fGain            = b->pGain->getValue();\
+                b->fGain            = b->pGain->getValue();
                 if (b->fHue != hue)
                 {
                     b->fHue             = hue;
@@ -475,7 +482,7 @@ namespace lsp
             }
 
             // Configure bands (step 2):
-            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
+            for (size_t i=0; i<crossover_base_metadata::BANDS_MAX; ++i)
             {
                 xover_band_t *b     = &c->vBands[i];
                 if ((solo) && (!b->bSolo))
@@ -892,32 +899,36 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            // Draw the filter curve for each band
-            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+            // Don't draw the second channel of the stereo crossover
+            if ((i > 0) && (nMode != XOVER_STEREO))
             {
-                if (!c->sXOver.band_active(j))
-                    continue;
-
-                xover_band_t *xb    = &c->vBands[j];
-                for (size_t k=0; k<width; ++k)
+                // Draw the filter curve for each band
+                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
                 {
-                    size_t idx      = k * delta;
-                    b->v[3][k+2]    = xb->vFc[idx];
+                    if (!c->sXOver.band_active(j))
+                        continue;
+
+                    xover_band_t *xb    = &c->vBands[j];
+                    for (size_t k=0; k<width; ++k)
+                    {
+                        size_t idx      = k * delta;
+                        b->v[3][k+2]    = xb->vFc[idx];
+                    }
+                    b->v[3][0]          = 0.0f;
+                    b->v[3][1]          = b->v[3][2];
+                    b->v[3][width+2]    = b->v[3][width+1];
+                    b->v[3][width+3]    = 0.0f;
+
+                    dsp::fill(b->v[1], 0.0f, xwidth);
+                    dsp::fill(b->v[2], height, xwidth);
+                    dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
+                    dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
+
+                    col.hue(xb->fHue);
+                    color = (bypassing || !(active())) ? CV_SILVER : col.rgb24();
+                    Color stroke(color), fill(color, 0.75f);
+                    cv->draw_poly(b->v[1], b->v[2], xwidth, stroke, fill);
                 }
-                b->v[3][0]          = 0.0f;
-                b->v[3][1]          = b->v[3][2];
-                b->v[3][width+2]    = b->v[3][width+1];
-                b->v[3][width+3]    = 0.0f;
-
-                dsp::fill(b->v[1], 0.0f, xwidth);
-                dsp::fill(b->v[2], height, xwidth);
-                dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
-                dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
-
-                col.hue(xb->fHue);
-                color = (bypassing || !(active())) ? CV_SILVER : col.rgb24();
-                Color stroke(color), fill(color, 0.75f);
-                cv->draw_poly(b->v[1], b->v[2], xwidth, stroke, fill);
             }
 
             // Draw overall curve for each channel

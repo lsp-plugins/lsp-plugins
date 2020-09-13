@@ -71,25 +71,30 @@
 * PLUGIN LIST
 *******************************************************************************
 
+* Compensation Delay
 * Compressor
 * Convolver
+* Crossover
 * Dynamic Processor
 * Expander
 * Gate
 * Graphic Equalizer
 * Impulse Reverb
+* Latency Meter
 * Limiter
 * Linear Audio Profiler
+* Loudness Compensator
 * Multi-Sampler
 * Multiband Compressor
 * Multiband Expander
 * Multiband Gate
 * Parametric Equalizer
-* Phase Compensator
 * Phase Detector
+* Room Builder
 * Sampler
-* Slap-back delay
+* Slap-back Delay
 * Spectrum Analyzer
+* Surge filter
 * Trigger
 
 - Multiband Dynamic Processor
@@ -112,7 +117,7 @@
 - Decapitator
 - HeadCrusher
 - Dynamic Equalizer
-- Dynamic panner
+- Dynamic Panner
 - Distortion
 - Real sampler (with sample recording option) 
 
