@@ -530,7 +530,56 @@ namespace lsp
 
     void Crossover::dump(IStateDumper *v) const
     {
-        // TODO
+        v->write("nReconfigure", nReconfigure);
+        v->write("nSplits", nSplits);
+        v->write("nBufSize", nBufSize);
+        v->write("nSampleRate", nSampleRate);
+
+        v->begin_array("vBands", vBands, nSplits+1);
+        for (size_t i=0; i<=nSplits; ++i)
+        {
+            band_t *b   = &vBands[i];
+            v->begin_object(b, sizeof(band_t));
+            {
+                v->write("fGain", b->fGain);
+                v->write("fStart", b->fStart);
+                v->write("fEnd", b->fEnd);
+                v->write("bEnabled", b->bEnabled);
+                v->write("pStart", b->pStart);
+                v->write("pEnd", b->pEnd);
+
+                v->write("pFunc", b->pFunc);
+                v->write("pOpbject", b->pObject);
+                v->write("pSubject", b->pSubject);
+                v->write("nId", b->nId);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->begin_array("vSplit", vSplit, nSplits);
+        for (size_t i=0; i < nSplits; ++i)
+        {
+            split_t *s  = &vSplit[i];
+            v->begin_object(s, sizeof(split_t));
+            {
+                v->write_object("sLPF", &s->sLPF);
+                v->write_object("sHPF", &s->sHPF);
+
+                v->write("nBandId", s->nBandId);
+                v->write("nSlopw", s->nSlope);
+                v->write("fFreq", s->fFreq);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->writev("vPlan", vPlan, nPlanSize);
+        v->write("nPlanSize", nPlanSize);
+
+        v->write("vLpfBuf", vLpfBuf);
+        v->write("vHpfBuf", vHpfBuf);
+        v->write("pData", pData);
     }
 
 } /* namespace lsp */
