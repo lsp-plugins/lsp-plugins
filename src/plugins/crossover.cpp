@@ -137,6 +137,7 @@ namespace lsp
                 b->fGain            = GAIN_AMP_0_DB;
                 b->fOutLevel        = 0.0f;
                 b->bSyncCurve       = false;
+                b->fHue             = 0.0f;
 
                 b->pSolo            = NULL;
                 b->pMute            = NULL;
@@ -145,6 +146,7 @@ namespace lsp
                 b->pFreqEnd         = NULL;
                 b->pOut             = NULL;
                 b->pAmpGraph        = NULL;
+                b->pHue             = NULL;
             }
 
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
@@ -340,7 +342,7 @@ namespace lsp
                     TRACE_PORT(vPorts[port_id]);
                     b->pGain            = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
-                    ++port_id; // Skip hue
+                    b->pHue             = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pFreqEnd         = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
@@ -397,18 +399,13 @@ namespace lsp
         plugin_t::destroy();
     }
 
-    size_t crossover_base::decode_slope(size_t slope)
-    {
-        // TODO: decode code of slope to the real slope value
-        return slope;
-    }
-
     void crossover_base::update_settings()
     {
         // Determine number of channels
         size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
         size_t fft_channels = 0;
         bool sync           = false;
+        bool redraw         = false;
 
         // Update analyzer settings
         for (size_t i=0; i<channels; ++i)
@@ -452,7 +449,7 @@ namespace lsp
                 xover_split_t *sp   = &c->vSplit[i];
 
                 xc->set_frequency(i, sp->pFreq->getValue());
-                xc->set_slope(i, decode_slope(sp->pSlope->getValue()));
+                xc->set_slope(i, sp->pSlope->getValue());
             }
 
             // Configure bands (step 1):
@@ -460,12 +457,18 @@ namespace lsp
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
             {
                 xover_band_t *b     = &c->vBands[i];
+                float hue           = b->pHue->getValue();
 
                 b->bSolo            = b->pSolo->getValue() >= 0.5f;
                 if ((i > 0) && (c->vSplit[i-1].pSlope->getValue() <= 0))
                     b->bSolo            = false;
                 b->bMute            = b->pMute->getValue() >= 0.5f;
-                b->fGain            = b->pGain->getValue();
+                b->fGain            = b->pGain->getValue();\
+                if (b->fHue != hue)
+                {
+                    b->fHue             = hue;
+                    redraw              = true;
+                }
                 solo                = solo || b->bSolo;
 
                 xc->set_gain(i, b->fGain);
@@ -514,7 +517,7 @@ namespace lsp
 
             // Request for redraw
             if ((csync) && (pWrapper != NULL))
-                pWrapper->query_display_draw();
+                redraw              = true;
         }
 
         // Global parameters
@@ -522,6 +525,9 @@ namespace lsp
         fOutGain        = pOutGain->getValue();
         fZoom           = pZoom->getValue();
         bMSOut          = (pMSOut != NULL) ? pMSOut->getValue() >= 0.5f : false;
+
+        if (redraw)
+            pWrapper->query_display_draw();
     }
 
     void crossover_base::update_sample_rate(long sr)
@@ -802,8 +808,141 @@ namespace lsp
 
     bool crossover_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
-        // TODO
-        return false;
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+
+        // Clear background
+        bool bypassing = vChannels[0].sBypass.bypassing();
+        cv->set_color_rgb((bypassing) ? CV_DISABLED : CV_BACKGROUND);
+        cv->paint();
+
+        // Draw axis
+        cv->set_line_width(1.0);
+
+        // "-72 db / (:zoom ** 3)" max="24 db * :zoom"
+
+        float miny  = logf(GAIN_AMP_M_72_DB / dsp::ipowf(fZoom, 3));
+        float maxy  = logf(GAIN_AMP_P_24_DB * fZoom);
+
+        float zx    = 1.0f/SPEC_FREQ_MIN;
+        float zy    = dsp::ipowf(fZoom, 3)/GAIN_AMP_M_72_DB;
+        float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
+        float dy    = height/(miny-maxy);
+
+        // Draw vertical lines
+        cv->set_color_rgb(CV_YELLOW, 0.5f);
+        for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+        {
+            float ax = dx*(logf(i*zx));
+            cv->line(ax, 0, ax, height);
+        }
+
+        // Draw horizontal lines
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        for (float i=GAIN_AMP_M_72_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_12_DB)
+        {
+            float ay = height + dy*(logf(i*zy));
+            cv->line(0, ay, width, ay);
+        }
+
+        // Allocate buffer: f, x, y, tr
+        size_t xwidth       = width + 4;
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, xwidth);
+        float_buffer_t *b   = pIDisplay;
+        if (b == NULL)
+            return false;
+
+        // Initialize mesh
+        size_t channels = ((nMode == XOVER_MONO) || (nMode == XOVER_STEREO)) ? 1 : 2;
+        static uint32_t c_colors[] = {
+                CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL,
+                CV_MIDDLE_CHANNEL, CV_SIDE_CHANNEL
+               };
+
+        bool aa = cv->set_anti_aliasing(true);
+        cv->set_line_width(2);
+
+        // Initialize frequency list
+        float delta     = crossover_base_metadata::MESH_POINTS / width;
+        for (size_t i=0; i<width; ++i)
+        {
+            size_t idx      = i * delta;
+            b->v[0][i+2]    = vFreqs[idx];
+        }
+
+        b->v[0][0]          = SPEC_FREQ_MIN*0.5f;
+        b->v[0][1]          = SPEC_FREQ_MIN*0.5f;
+        b->v[0][width+2]    = SPEC_FREQ_MAX*2.0f;
+        b->v[0][width+3]    = SPEC_FREQ_MAX*2.0f;
+
+        // Draw curves
+        uint32_t color;
+        Color col(CV_MESH);
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            // Draw the filter curve for each band
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+            {
+                if (!c->sXOver.band_active(j))
+                    continue;
+
+                xover_band_t *xb    = &c->vBands[j];
+                for (size_t k=0; k<width; ++k)
+                {
+                    size_t idx      = k * delta;
+                    b->v[3][k+2]    = xb->vFc[idx];
+                }
+                b->v[3][0]          = 0.0f;
+                b->v[3][1]          = b->v[3][2];
+                b->v[3][width+2]    = b->v[3][width+1];
+                b->v[3][width+3]    = 0.0f;
+
+                dsp::fill(b->v[1], 0.0f, xwidth);
+                dsp::fill(b->v[2], height, xwidth);
+                dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
+                dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
+
+                col.hue(xb->fHue);
+                color = (bypassing || !(active())) ? CV_SILVER : col.rgb24();
+                Color stroke(color), fill(color, 0.75f);
+                cv->draw_poly(b->v[1], b->v[2], xwidth, stroke, fill);
+            }
+
+            // Draw overall curve for each channel
+            for (size_t k=0; k<width; ++k)
+            {
+                size_t idx      = k * delta;
+                b->v[3][k+2]    = c->vFc[idx];
+            }
+            b->v[3][0]          = 0.0f;
+            b->v[3][1]          = b->v[3][2];
+            b->v[3][width+2]    = b->v[3][width+1];
+            b->v[3][width+3]    = 0.0f;
+
+            dsp::fill(b->v[1], 0.0f, xwidth);
+            dsp::fill(b->v[2], height, xwidth);
+            dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, xwidth);
+            dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, xwidth);
+
+            uint32_t color = (bypassing || !(active())) ? CV_SILVER : c_colors[nMode*2 + i];
+            cv->set_color(color);
+            cv->draw_lines(b->v[1], b->v[2], xwidth);
+        }
+        cv->set_anti_aliasing(aa);
+
+        return true;
     }
 
     void crossover_base::dump(IStateDumper *v) const

@@ -54,6 +54,7 @@ namespace lsp
                 float           fGain;              // Gain
                 float           fOutLevel;          // Output signal level
                 bool            bSyncCurve;         // Sync frequency response
+                float           fHue;               // Hue color
 
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
@@ -62,6 +63,7 @@ namespace lsp
                 IPort          *pFreqEnd;           // Frequency range end
                 IPort          *pOut;               // Output port
                 IPort          *pAmpGraph;          // Amplitude graph
+                IPort          *pHue;               // Hue color
             } xover_band_t;
 
             typedef struct xover_split_t
@@ -126,7 +128,6 @@ namespace lsp
             IPort          *pMSOut;                 // Mid/Side output
 
         protected:
-            static size_t       decode_slope(size_t slope);
             static void         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
 
         public:
