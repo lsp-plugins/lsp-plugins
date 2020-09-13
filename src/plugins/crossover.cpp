@@ -412,6 +412,16 @@ namespace lsp
         plugin_t::destroy();
     }
 
+    inline crossover_mode_t crossover_base::crossover_mode(size_t slope)
+    {
+        return CROSS_MODE_BT;
+    }
+
+    inline size_t crossover_base::crossover_slope(size_t slope)
+    {
+        return slope;
+    }
+
     void crossover_base::update_settings()
     {
         // Determine number of channels
@@ -460,9 +470,12 @@ namespace lsp
             for (size_t i=0; i<crossover_base_metadata::BANDS_MAX-1; ++i)
             {
                 xover_split_t *sp   = &c->vSplit[i];
+                size_t slope        = sp->pSlope->getValue();
 
                 xc->set_frequency(i, sp->pFreq->getValue());
-                xc->set_slope(i, sp->pSlope->getValue());
+
+                xc->set_slope(i, crossover_slope(slope));
+                xc->set_mode(i, crossover_mode(slope));
             }
 
             // Configure bands (step 1):

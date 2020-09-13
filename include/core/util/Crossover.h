@@ -57,6 +57,15 @@ namespace lsp
      */
     typedef void (* crossover_func_t)(void *object, void *subject, size_t band, const float *data, size_t first, size_t count);
 
+    /**
+     * Crossover filter type
+     */
+    enum crossover_mode_t
+    {
+        CROSS_MODE_BT,     //!< CROSS_MODE_BT bilinear transform
+        CROSS_MODE_MT      //!< CROSS_MODE_MT matched transform
+    };
+
     /** Crossover, splits signal into bands, calls processing handler (if present)
      * and mixes processed bands back after adjusting the post-processing amplification gain
      *
@@ -67,6 +76,13 @@ namespace lsp
             Crossover & operator = (const Crossover &);
 
         protected:
+            enum xover_type_t
+            {
+                FILTER_LPF,                         // Low-pass filter
+                FILTER_HPF,                         // High-pass filter
+                FILTER_APF                          // All-pass filter
+            };
+
             typedef struct split_t
             {
                 Equalizer           sLPF;           // Lo-pass filter
@@ -75,6 +91,7 @@ namespace lsp
                 size_t              nBandId;        // Number of split point
                 size_t              nSlope;         // Filter slope (0 = off)
                 float               fFreq;          // Frequency
+                crossover_mode_t    nMode;          // Filter type
             } split_t;
 
             typedef struct band_t
@@ -116,8 +133,7 @@ namespace lsp
             uint8_t        *pData;          // Unaligned data
 
         protected:
-            // count is guaranteed to be not greater than nBufSize
-            bool            freq_chart_internal(float *tf, const float *f, size_t band, size_t count);
+            inline filter_type_t    select_filter(xover_type_t type, crossover_mode_t mode);
 
         public:
             explicit Crossover();
@@ -192,6 +208,20 @@ namespace lsp
              *         means invalid index
              */
             float           get_frequency(size_t sp) const;
+
+            /**
+             * Set filter mode for the split point
+             * @param sp split point
+             * @param mode mode for the split point
+             */
+            void            set_mode(size_t sp, crossover_mode_t mode);
+
+            /**
+             * Get filter mode of the split point
+             * @param sp split point
+             * @param mode mode for the split point or negative value on invalid index
+             */
+            ssize_t         get_mode(size_t sp) const;
 
             /**
              * Set gain of the specific output band

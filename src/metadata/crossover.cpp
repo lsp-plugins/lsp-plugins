@@ -49,7 +49,7 @@ namespace lsp
 
     static const port_item_t crossover_slopes[] =
     {
-        { "off",            "crossover.slope.off"           },
+        { "Off",            "crossover.slope.off"           },
         { "24 dB/oct",      "crossover.slope.24dbo"         },
         { "48 dB/oct",      "crossover.slope.48dbo"         },
         { "72 dB/oct",      "crossover.slope.72dbo"         },

@@ -129,6 +129,8 @@ namespace lsp
 
         protected:
             static void         process_band(void *object, void *subject, size_t band, const float *data, size_t sample, size_t count);
+            static inline crossover_mode_t  crossover_mode(size_t slope);
+            static inline size_t            crossover_slope(size_t slope);
 
         public:
             explicit crossover_base(const plugin_metadata_t &metadata, size_t mode);

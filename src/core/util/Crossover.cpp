@@ -131,6 +131,7 @@ namespace lsp
             sp->nBandId         = i + 1; // Band N+1 is attached to split point N
             sp->nSlope          = 0;
             sp->fFreq           = SPEC_FREQ_MIN * expf((i+1) * step);
+            sp->nMode           = CROSS_MODE_BT;
         }
 
         // Construct all bands
@@ -154,6 +155,18 @@ namespace lsp
         lsp_assert(ptr <= &save[to_alloc]);
 
         return true;
+    }
+
+    filter_type_t Crossover::select_filter(xover_type_t type, crossover_mode_t mode)
+    {
+        switch (type)
+        {
+            case FILTER_LPF: return (mode == CROSS_MODE_BT) ? FLT_BT_LRX_LOPASS  : FLT_MT_LRX_LOPASS;
+            case FILTER_HPF: return (mode == CROSS_MODE_BT) ? FLT_BT_LRX_HIPASS  : FLT_MT_LRX_HIPASS;
+            case FILTER_APF: return (mode == CROSS_MODE_BT) ? FLT_BT_LRX_ALLPASS : FLT_MT_LRX_ALLPASS;
+            default:
+                return FLT_NONE;
+        }
     }
 
     void Crossover::set_slope(size_t sp, size_t slope)
@@ -186,6 +199,22 @@ namespace lsp
     float Crossover::get_frequency(size_t sp) const
     {
         return (sp < nSplits) ? vSplit[sp].fFreq : -1.0f;
+    }
+
+    void Crossover::set_mode(size_t sp, crossover_mode_t mode)
+    {
+        if (sp >= nSplits)
+            return;
+        if (mode == vSplit[sp].nMode)
+            return;
+
+        vSplit[sp].nMode    = mode;
+        nReconfigure       |= R_SPLIT;
+    }
+
+    ssize_t Crossover::get_mode(size_t sp) const
+    {
+        return (sp < nSplits) ? vSplit[sp].nMode : -1.0f;
     }
 
     void Crossover::set_gain(size_t band, float gain)
@@ -309,7 +338,7 @@ namespace lsp
             size_t filter_id    = 0;
             filter_params_t fp;
 
-            fp.nType            = FLT_BT_LRX_LOPASS;
+            fp.nType            = select_filter(FILTER_LPF, sp->nMode);
             fp.fFreq            = sp->fFreq;
             fp.fFreq2           = sp->fFreq;
             fp.fGain            = left->fGain;
@@ -323,7 +352,7 @@ namespace lsp
             {
                 split_t *xsp        = vPlan[j];
 
-                fp.nType            = FLT_BT_LRX_ALLPASS;
+                fp.nType            = select_filter(FILTER_APF, xsp->nMode);
                 fp.fFreq            = xsp->fFreq;
                 fp.fFreq2           = xsp->fFreq;
                 fp.fGain            = GAIN_AMP_0_DB;
@@ -347,7 +376,7 @@ namespace lsp
             }
 
             // Set HPF parameters
-            fp.nType            = FLT_BT_LRX_HIPASS;
+            fp.nType            = select_filter(FILTER_HPF, sp->nMode);
             fp.fFreq            = sp->fFreq;
             fp.fFreq2           = sp->fFreq;
             fp.fGain            = (i < (nPlanSize-1)) ? GAIN_AMP_0_DB : right->fGain;
@@ -569,6 +598,7 @@ namespace lsp
                 v->write("nBandId", s->nBandId);
                 v->write("nSlopw", s->nSlope);
                 v->write("fFreq", s->fFreq);
+                v->write("nMode", s->nMode);
             }
             v->end_object();
         }

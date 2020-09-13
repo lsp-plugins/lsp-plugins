@@ -25,11 +25,11 @@
 			"side": "Processor Side"
 		},
 		"slope": {
-			"off": "Off",
 			"24dbo": "24 dB/oct",
 			"48dbo": "48 dB/oct",
 			"72dbo": "72 dB/oct",
-			"96dbo": "96 dB/oct"
+			"96dbo": "96 dB/oct",
+			"off": "Off"
 		}
 	},
 	
