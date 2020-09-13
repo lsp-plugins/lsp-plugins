@@ -859,7 +859,7 @@ namespace lsp
 
         float zx    = 1.0f/SPEC_FREQ_MIN;
         float zy    = dsp::ipowf(fZoom, 3)/GAIN_AMP_M_72_DB;
-        float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
+        float dx    = width/logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN);
         float dy    = height/(miny-maxy);
 
         // Draw vertical lines
@@ -898,7 +898,7 @@ namespace lsp
         cv->set_line_width(2);
 
         // Initialize frequency list
-        float delta     = crossover_base_metadata::MESH_POINTS / width;
+        float delta     = float(crossover_base_metadata::MESH_POINTS) / float(width);
         for (size_t i=0; i<width; ++i)
         {
             size_t idx      = i * delta;
