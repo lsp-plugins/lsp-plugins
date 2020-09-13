@@ -19,6 +19,15 @@
 					angle="0"
 					min="-36 db" max="+6 db" 
 					color="left_channel" color2="right_channel"
+					visibility=":msout ieq 0"
+				/>
+				<meter expand="true"
+					id="olm_l" id2="olm_r"
+					stereo="true" type="rms_peak"
+					angle="0"
+					min="-36 db" max="+6 db" 
+					color="middle_channel" color2="side_channel"
+					visibility=":msout ine 0"
 				/>
 			</hbox>
 		
@@ -60,32 +69,32 @@
 				<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 				
 				<!-- Band markers -->
-				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0l" width="2" border="-16" />
-				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0r" width="2" border="-16" />
-				<marker id="fre_0l" basis="0" parallel="1" color="g_red" hue_id="hue_0l" width="2" border="16" />
-				<marker id="fre_0r" basis="0" parallel="1" color="g_red" hue_id="hue_0r" width="2" border="16" />
+				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0m" width="2" border="-16" />
+				<marker value="10" basis="0" parallel="1" color="g_red" hue_id="hue_0s" width="2" border="-16" />
+				<marker id="fre_0m" basis="0" parallel="1" color="g_red" hue_id="hue_0m" width="2" border="16" />
+				<marker id="fre_0s" basis="0" parallel="1" color="g_red" hue_id="hue_0s" width="2" border="16" />
 				<ui:for id="i" first="1" last="7">
-					<marker id="sf_${i}l" editable="true" basis="0" parallel="1" color="g_red" hue_id="hue_${i}l" visibility=":frs_${i}l igt 0" width="2" border="-16" />
-					<marker id="fre_${i}l" basis="0" parallel="1" color="g_red" hue_id="hue_${i}l" visibility=":frs_${i}l igt 0" width="2" border="16" />
-					<marker id="sf_${i}r" editable="true" basis="0" parallel="1" color="g_red" hue_id="hue_${i}r" visibility=":frs_${i}r igt 0" width="2" border="-16" />
-					<marker id="fre_${i}r" basis="0" parallel="1" color="g_red" hue_id="hue_${i}r" visibility=":frs_${i}r igt 0" width="2" border="16" />
+					<marker id="sf_${i}m" editable="true" basis="0" parallel="1" color="g_red" hue_id="hue_${i}m" visibility=":frs_${i}m igt 0" width="2" border="-16" />
+					<marker id="fre_${i}m" basis="0" parallel="1" color="g_red" hue_id="hue_${i}m" visibility=":frs_${i}m igt 0" width="2" border="16" />
+					<marker id="sf_${i}s" editable="true" basis="0" parallel="1" color="g_red" hue_id="hue_${i}s" visibility=":frs_${i}s igt 0" width="2" border="-16" />
+					<marker id="fre_${i}s" basis="0" parallel="1" color="g_red" hue_id="hue_${i}s" visibility=":frs_${i}s igt 0" width="2" border="16" />
 				</ui:for>
 	
 				<!-- Meshes -->
-				<mesh id="bfc_0l" color="eq_base" width="2" hue_id="hue_0l" fill="0.8" smooth="true" visibility=":flt_l" />
-				<mesh id="bfc_0r" color="eq_base" width="2" hue_id="hue_0r" fill="0.8" smooth="true" visibility=":flt_r" />
+				<mesh id="bfc_0m" color="eq_base" width="2" hue_id="hue_0m" fill="0.8" smooth="true" visibility=":flt_m" />
+				<mesh id="bfc_0s" color="eq_base" width="2" hue_id="hue_0s" fill="0.8" smooth="true" visibility=":flt_s" />
 				<ui:for id="i" first="1" last="7">
-					<mesh id="bfc_${i}l" color="eq_base" width="2" hue_id="hue_${i}l" visibility=":flt_l and (:frs_${i}l igt 0)" fill="0.8" smooth="true" />
-					<mesh id="bfc_${i}r" color="eq_base" width="2" hue_id="hue_${i}r" visibility=":flt_r and (:frs_${i}r igt 0)" fill="0.8" smooth="true" />
+					<mesh id="bfc_${i}m" color="eq_base" width="2" hue_id="hue_${i}m" visibility=":flt_m and (:frs_${i}m igt 0)" fill="0.8" smooth="true" />
+					<mesh id="bfc_${i}s" color="eq_base" width="2" hue_id="hue_${i}s" visibility=":flt_s and (:frs_${i}s igt 0)" fill="0.8" smooth="true" />
 				</ui:for>
 				
-				<mesh id="ifg_l" width="3" color="left_channel_in" visibility=":ife_l" />
-				<mesh id="ifg_r" width="3" color="right_channel_in" visibility=":ife_r" />
-				<mesh id="ofg_l" width="3" color="left_channel"  visibility=":ofe_l" />
-				<mesh id="ofg_r" width="3" color="right_channel"  visibility=":ofe_r" />
+				<mesh id="ifg_m" width="3" color="middle_channel_in" visibility=":ife_m" />
+				<mesh id="ifg_s" width="3" color="side_channel_in" visibility=":ife_s" />
+				<mesh id="ofg_m" width="3" color="middle_channel"  visibility=":ofe_m" />
+				<mesh id="ofg_s" width="3" color="side_channel"  visibility=":ofe_s" />
 				
-				<mesh id="ag_l" color="left_channel" width="3" smooth="true" visibility=":crv_l" />
-				<mesh id="ag_r" color="right_channel" width="3" smooth="true" visibility=":crv_r" />
+				<mesh id="ag_m" color="middle_channel" width="3" smooth="true" visibility=":crv_m" />
+				<mesh id="ag_s" color="side_channel" width="3" smooth="true" visibility=":crv_s" />
 				
 				<!-- Boundaries -->
 				<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
@@ -132,26 +141,29 @@
 			<hbox spacing="4">
 				<label text="labels.fft.fft:" />
 				<hbox>
-					<button id="ife_l" size="16" color="left_channel" text="labels.chan.L_eft" font_size="8" led="true" />
-					<button id="ife_r" size="16" color="right_channel" text="labels.chan.R_ight" font_size="8"  led="true" />
+					<button id="ife_m" size="16" color="middle_channel" text="labels.chan.M_id" font_size="8" led="true" />
+					<button id="ife_s" size="16" color="side_channel" text="labels.chan.S_ide" font_size="8"  led="true" />
 				</hbox>
 				<label text="labels.chan.in" />
 				<hbox>
-					<button id="ofe_l" size="16" color="left_channel" text="labels.chan.L_eft" font_size="8" led="true" />
-					<button id="ofe_r" size="16" color="right_channel" text="labels.chan.R_ight" font_size="8" led="true" />
+					<button id="ofe_m" size="16" color="middle_channel" text="labels.chan.M_id" font_size="8" led="true" />
+					<button id="ofe_s" size="16" color="side_channel" text="labels.chan.S_ide" font_size="8" led="true" />
 				</hbox>
 				<label text="labels.chan.out" />
 				<vsep />
 				<hbox>
-					<button id="flt_l" size="16" color="left_channel" text="labels.chan.L_eft" font_size="8" led="true" />
-					<button id="flt_r" size="16" color="right_channel" text="labels.chan.R_ight" font_size="8" led="true" />
+					<button id="flt_m" size="16" color="middle_channel" text="labels.chan.M_id" font_size="8" led="true" />
+					<button id="flt_s" size="16" color="side_channel" text="labels.chan.S_ide" font_size="8" led="true" />
 				</hbox>
 				<label text="labels.filters" />
 				<hbox>
-					<button id="crv_l" size="16" color="left_channel" text="labels.chan.L_eft" font_size="8" led="true" />
-					<button id="crv_r" size="16" color="right_channel" text="labels.chan.R_ight" font_size="8" led="true" />
+					<button id="crv_m" size="16" color="middle_channel" text="labels.chan.M_id" font_size="8" led="true" />
+					<button id="crv_s" size="16" color="side_channel" text="labels.chan.S_ide" font_size="8" led="true" />
 				</hbox>
 				<label text="labels.curve" />
+				<vsep />
+				<button id="msout" size="16" color="green" led="true" />
+				<label text="labels.ms_listen" />	
 				<align pad_right="4" hpos="1" expand="true">
 					<label text="labels.graphs.spectrum" />
 				</align>
@@ -170,9 +182,9 @@
 			<hbox spacing="2">
 				<cgroup id="sel">
 					<ui:for id="blk" first="0" last="1">
-						<ui:set id="chc" value="${(:blk mod 2) ? 'right_channel' : 'left_channel'}" />
-						<ui:set id="chl" value="${(:blk mod 2) ? 'labels.chan.id_R_ight' : 'labels.chan.id_L_eft'}" />
-						<ui:set id="chp" value="${(:blk mod 2) ? 'r' : 'l'}" />
+						<ui:set id="chc" value="${(:blk mod 2) ? 'side_channel' : 'middle_channel'}" />
+						<ui:set id="chl" value="${(:blk mod 2) ? 'labels.chan.id_S_ide' : 'labels.chan.id_M_id'}" />
+						<ui:set id="chp" value="${(:blk mod 2) ? 's' : 'm'}" />
 					
 						<grid rows="9" cols="24" spacing="2" transpose="true">
 							<label text="labels.band" />

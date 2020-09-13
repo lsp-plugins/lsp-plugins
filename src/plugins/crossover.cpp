@@ -639,9 +639,9 @@ namespace lsp
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_do);
 
                 if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
-                    sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vIn, to_do);
+                    sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vBuffer, to_do);
                 if (sAnalyzer.channel_active(vChannels[1].nAnInChannel))
-                    sAnalyzer.process(vChannels[1].nAnInChannel, vChannels[1].vIn, to_do);
+                    sAnalyzer.process(vChannels[1].nAnInChannel, vChannels[1].vBuffer, to_do);
 
                 dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_do);
                 dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_do);
