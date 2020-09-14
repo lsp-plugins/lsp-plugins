@@ -11,6 +11,7 @@
 #include <core/types.h>
 #include <core/envelope.h>
 #include <core/windows.h>
+#include <core/IStateDumper.h>
 
 namespace lsp
 {
@@ -37,6 +38,9 @@ namespace lsp
 
     class Analyzer
     {
+        private:
+            Analyzer & operator = (const Analyzer &);
+
         protected:
             enum reconfigure_flags
             {
@@ -82,7 +86,7 @@ namespace lsp
             float      *vEnvelope;          // FFT envelope
 
         public:
-            Analyzer();
+            explicit Analyzer();
             ~Analyzer();
 
         public:
@@ -311,6 +315,12 @@ namespace lsp
             {
                 return nReconfigure;
             }
+
+            /**
+             * Dump the state
+             * @param dumper dumper
+             */
+            void            dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

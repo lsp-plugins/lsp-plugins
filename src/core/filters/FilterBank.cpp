@@ -15,6 +15,16 @@ namespace lsp
 {
     FilterBank::FilterBank()
     {
+        construct();
+    }
+
+    FilterBank::~FilterBank()
+    {
+        destroy();
+    }
+
+    void FilterBank::construct()
+    {
         vFilters    = NULL;
         vChains     = NULL;
         nItems      = 0;
@@ -24,25 +34,12 @@ namespace lsp
         vBackup     = NULL;
     }
 
-    FilterBank::~FilterBank()
-    {
-        destroy();
-    }
-
     void FilterBank::destroy()
     {
         if (vData != NULL)
-        {
             lsp_free(vData);
-            vData       = NULL;
-        }
 
-        vFilters    = NULL;
-        vChains     = NULL;
-        vBackup     = NULL;
-        nItems      = 0;
-        nMaxItems   = 0;
-        nLastItems  = -1;
+        construct();
     }
 
     bool FilterBank::init(size_t filters)

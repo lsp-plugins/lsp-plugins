@@ -249,16 +249,18 @@ namespace lsp
         PGR_REAR_LEFT,
         PGR_REAR_RIGHT,
         PGR_RIGHT,
-        PGR_SIDE,
         PGR_SIDE_LEFT,
-        PGR_SIDE_RIGHT
+        PGR_SIDE_RIGHT,
+        PGR_MS_SIDE,
+        PGR_MS_MIDDLE
     };
 
     enum port_group_flags_t
     {
         PGF_IN          = (0 << 0),     // Input group
         PGF_OUT         = (1 << 0),     // Output group
-        PGF_SIDECHAIN   = (1 << 1)      // Sidechain
+        PGF_SIDECHAIN   = (1 << 1),     // Sidechain
+        PGF_MAIN        = (1 << 2),     // Main input/output group
     };
 
     typedef struct port_group_item_t

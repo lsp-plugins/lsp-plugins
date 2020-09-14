@@ -10,10 +10,24 @@
 #include <core/filters/Equalizer.h>
 #include <core/debug.h>
 
+#define BUFFER_SIZE         0x400U
+
 namespace lsp
 {
     Equalizer::Equalizer()
     {
+        construct();
+    }
+
+    Equalizer::~Equalizer()
+    {
+        destroy();
+    }
+
+    void Equalizer::construct()
+    {
+        sBank.construct();
+
         vFilters        = NULL;
         nFilters        = 0;
         nSampleRate     = 0;
@@ -30,11 +44,6 @@ namespace lsp
         vTmp            = NULL;
         pData           = NULL;
         nFlags          = EF_REBUILD | EF_CLEAR;
-    }
-
-    Equalizer::~Equalizer()
-    {
-        destroy();
     }
 
     bool Equalizer::init(size_t filters, size_t conv_rank)
@@ -54,34 +63,58 @@ namespace lsp
         }
         nFilters        = filters;
 
-        // Allocate buffers
-        nConvSize           = 1 << conv_rank;
-        nFftRank            = conv_rank;
-        size_t conv_size    = nConvSize * 2;
-        size_t allocate     = conv_size * 6; // fft + conv*2 + buffer + tmp*2
-        pData               = new float[allocate];
-        if (pData == NULL)
+        // Allocate buffers for convolution
+        if (conv_rank > 0)
         {
-            destroy();
-            return false;
+            nConvSize           = 1 << conv_rank;
+            nFftRank            = conv_rank;
+            size_t conv_size    = nConvSize * 2;
+            size_t tmp_size     = lsp_max(conv_size*2, BUFFER_SIZE);
+            size_t allocate     = conv_size * 4 + tmp_size;             // fft + conv*2 + buffer + tmp
+            pData               = new float[allocate];
+            if (pData == NULL)
+            {
+                destroy();
+                return false;
+            }
+
+            dsp::fill_zero(pData, allocate);
+
+            // Assign pointers
+            float *ptr          = pData;
+            vFftRe              = ptr;
+            ptr                += conv_size;
+            vFftIm              = ptr;
+            ptr                += conv_size;
+            vConvRe             = ptr;
+            ptr                += conv_size;
+            vConvIm             = ptr;
+            ptr                += conv_size;
+            vBuffer             = ptr;
+            ptr                += conv_size;
+            vTmp                = ptr;
+            ptr                += tmp_size;
         }
+        else
+        {
+            pData               = new float[BUFFER_SIZE];
+            if (pData == NULL)
+            {
+                destroy();
+                return false;
+            }
 
-        dsp::fill_zero(pData, allocate);
+            dsp::fill_zero(pData, BUFFER_SIZE);
 
-        // Assign pointers
-        float *ptr          = pData;
-        vFftRe              = ptr;
-        ptr                += conv_size;
-        vFftIm              = ptr;
-        ptr                += conv_size;
-        vConvRe             = ptr;
-        ptr                += conv_size;
-        vConvIm             = ptr;
-        ptr                += conv_size;
-        vBuffer             = ptr;
-        ptr                += conv_size;
-        vTmp                = ptr;
-        ptr                += conv_size;
+            nConvSize           = 0;
+            nFftRank            = 0;
+            vFftRe              = NULL;
+            vFftIm              = NULL;
+            vConvRe             = NULL;
+            vConvIm             = NULL;
+            vBuffer             = NULL;
+            vTmp                = pData;
+        }
 
         // Initialize filters
         for (size_t i=0; i<filters; ++i)
@@ -280,6 +313,71 @@ namespace lsp
 
         vFilters[id].freq_chart(c, f, count);
         return true;
+    }
+
+    void Equalizer::freq_chart(float *re, float *im, const float *f, size_t count)
+    {
+        if (nFlags != 0)
+            reconfigure();
+
+        float *xre      = vTmp;
+        float *xim      = &xre[BUFFER_SIZE/2];
+
+        // Fill initial values
+        dsp::fill_one(re, count);
+        dsp::fill_zero(im, count);
+
+        while (count > 0)
+        {
+            // Estimate number of frequencies to process
+            size_t to_do    = lsp_min(count, size_t(BUFFER_SIZE/2));
+
+            for (size_t i=0; i<nFilters; ++i)
+            {
+                Filter *xf      = &vFilters[i];
+                if (!xf->active())
+                    continue;
+
+                xf->freq_chart(xre, xim, f, to_do);
+                dsp::complex_mul2(re, im, xre, xim, to_do);
+            }
+
+            // Update pointers
+            re             += to_do;
+            im             += to_do;
+            f              += to_do;
+            count          -= to_do;
+        }
+    }
+
+    void Equalizer::freq_chart(float *c, const float *f, size_t count)
+    {
+        if (nFlags != 0)
+            reconfigure();
+
+        // Fill initial values
+        dsp::pcomplex_fill_ri(c, 1.0f, 0.0f, count);
+
+        while (count > 0)
+        {
+            // Estimate number of frequencies to process
+            size_t to_do    = lsp_min(count, size_t(BUFFER_SIZE/2));
+
+            for (size_t i=0; i<nFilters; ++i)
+            {
+                Filter *xf      = &vFilters[i];
+                if (!xf->active())
+                    continue;
+
+                xf->freq_chart(vTmp, f, to_do);
+                dsp::pcomplex_mul2(c, vTmp, to_do);
+            }
+
+            // Update pointers
+            c              += to_do * 2;
+            f              += to_do;
+            count          -= to_do;
+        }
     }
 
     void Equalizer::process(float *out, const float *in, size_t samples)

@@ -171,6 +171,10 @@ namespace lsp
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_editable(__));
                     break;
+                case A_FONT_SIZE:
+                    if (btn != NULL)
+                        PARSE_INT(value, btn->font()->set_size(__));
+                    break;
                 default:
                 {
                     sColor.set(att, value);

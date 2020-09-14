@@ -584,6 +584,12 @@ namespace lsp
         if (pData != NULL)
             free_aligned(pData);
 
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
+
         // Destroy analyzer
         sAnalyzer.destroy();
 
@@ -701,7 +707,7 @@ namespace lsp
         if (sAnalyzer.needs_reconfiguration())
         {
             sAnalyzer.reconfigure();
-            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
+            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, mb_compressor_base_metadata::MESH_POINTS);
         }
 
         size_t latency = 0;
@@ -905,8 +911,8 @@ namespace lsp
                     }
 
                     // Update transfer function for equalizer
-                    b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(0), b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(1), vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul2(b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
@@ -1365,9 +1371,9 @@ namespace lsp
                     {
                         // Add extra points
                         mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
-                        mesh->pvData[0][para_equalizer_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[0][mb_compressor_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
                         mesh->pvData[1][0] = 0.0f;
-                        mesh->pvData[1][para_equalizer_base_metadata::MESH_POINTS+1] = 0.0f;
+                        mesh->pvData[1][mb_compressor_base_metadata::MESH_POINTS+1] = 0.0f;
 
                         // Fill mesh
                         dsp::copy(&mesh->pvData[0][1], vFreqs, mb_compressor_base_metadata::MESH_POINTS);

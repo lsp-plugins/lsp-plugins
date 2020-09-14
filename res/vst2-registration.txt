@@ -2841,5 +2841,106 @@ Description:	This plugin is designed mostly as a workaround for systems which do
 
 -----------------------------------------------------
 
+Your Registration form was successfully submitted.
 
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Crossover Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs split of input signal into multiple (up to 8) frequency bands.
+		
+	Registration:	
+		
+	*Plugin ID:	rmnv
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Crossover Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs split of input signal into multiple (up to 8) frequency bands.
+		
+	Registration:	
+		
+	*Plugin ID:	ooqb
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Crossover LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs split of input signal into multiple (up to 8) frequency bands.
+		
+	Registration:	
+		
+	*Plugin ID:	wvbr
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Crossover MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs split of input signal into multiple (up to 8) frequency bands with mid/side transformation.
+		
+	Registration:	
+		
+	*Plugin ID:	vlqv
+
+-----------------------------------------------------
+-----------------------------------------------------
+-----------------------------------------------------
+-----------------------------------------------------
 
