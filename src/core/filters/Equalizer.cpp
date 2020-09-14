@@ -69,7 +69,7 @@ namespace lsp
             nConvSize           = 1 << conv_rank;
             nFftRank            = conv_rank;
             size_t conv_size    = nConvSize * 2;
-            size_t tmp_size     = lsp_min(conv_size*2, BUFFER_SIZE);
+            size_t tmp_size     = lsp_max(conv_size*2, BUFFER_SIZE);
             size_t allocate     = conv_size * 4 + tmp_size;             // fft + conv*2 + buffer + tmp
             pData               = new float[allocate];
             if (pData == NULL)
