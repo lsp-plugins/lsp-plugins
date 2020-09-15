@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ *
+ * This file is part of lsp-plugins
+ * Created on: 15 июл. 2019 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -213,7 +234,7 @@ namespace lsp
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_INSTANCE, "lv2ext:instance-access");
             fprintf(out, " ;\n");
         }
-        fprintf(out, "\tlv2:extensionData ui:idleInterface ;\n");
+        fprintf(out, "\tlv2:extensionData ui:idleInterface, ui:resize ;\n");
         fprintf(out, "\tui:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         fprintf(out, "\n");
 
@@ -320,9 +341,10 @@ namespace lsp
                         case PGR_REAR_LEFT:     role = "rearLeft"; break;
                         case PGR_REAR_RIGHT:    role = "rearRight"; break;
                         case PGR_RIGHT:         role = "right"; break;
-                        case PGR_SIDE:          role = "side"; break;
+                        case PGR_MS_SIDE:       role = "side"; break;
                         case PGR_SIDE_LEFT:     role = "sideLeft"; break;
                         case PGR_SIDE_RIGHT:    role = "sideRight"; break;
+                        case PGR_MS_MIDDLE:     role = "center"; break;
                         default:
                             break;
                     }
@@ -426,19 +448,16 @@ namespace lsp
         fprintf(out, "@prefix atom:      <" LV2_ATOM_PREFIX "> .\n");
         fprintf(out, "@prefix urid:      <" LV2_URID_PREFIX "> .\n");
         fprintf(out, "@prefix opts:      <" LV2_OPTIONS_PREFIX "> .\n");
-        if (requirements & REQ_WORKER)
-            fprintf(out, "@prefix work:      <" LV2_WORKER_PREFIX "> .\n");
+        fprintf(out, "@prefix work:      <" LV2_WORKER_PREFIX "> .\n");
         fprintf(out, "@prefix rsz:       <" LV2_RESIZE_PORT_PREFIX "> .\n");
         if (requirements & REQ_PATCH)
             fprintf(out, "@prefix patch:     <" LV2_PATCH_PREFIX "> .\n");
-        if (requirements & (REQ_STATE | REQ_MAP_PATH))
-            fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
+        fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
         if (requirements & REQ_MIDI)
             fprintf(out, "@prefix midi:      <" LV2_MIDI_PREFIX "> .\n");
         if (requirements & REQ_TIME)
             fprintf(out, "@prefix time:      <" LV2_TIME_URI "#> .\n");
-        if (requirements & REQ_IDISPLAY)
-            fprintf(out, "@prefix hcid:      <" LV2_INLINEDISPLAY_PREFIX "> .\n");
+        fprintf(out, "@prefix hcid:      <" LV2_INLINEDISPLAY_PREFIX "> .\n");
 
         fprintf(out, "@prefix " LSP_PREFIX ":       <" LSP_URI(lv2) "> .\n");
         if (requirements & REQ_PORT_GROUPS)
@@ -450,6 +469,9 @@ namespace lsp
             fprintf(out, "@prefix lsp_p:     <%s%s/ports#> .\n", LSP_URI(lv2), m.lv2_uid);
 
         fprintf(out, "\n\n");
+
+        fprintf(out, "hcid:queue_draw\n\ta lv2:Feature\n\t.\n");
+        fprintf(out, "hcid:interface\n\ta lv2:ExtensionData\n\t.\n\n");
 
         // Output developer and maintainer objects
         const person_t *dev = m.developer;
@@ -471,10 +493,13 @@ namespace lsp
         fprintf(out, LSP_PREFIX "_dev:lsp\n");
         fprintf(out, "\ta foaf:Person");
         fprintf(out, " ;\n\tfoaf:name \"" LSP_ACRONYM " LV2\"");
+        fprintf(out, " ;\n\tfoaf:mbox <mailto:%s>", LSP_PLUGINS_MAILBOX);
         fprintf(out, " ;\n\tfoaf:homepage <" LSP_BASE_URI "#lsp>");
         fprintf(out, "\n\t.\n\n");
 
         // Output port groups
+        const port_group_t *pg_main_in = NULL, *pg_main_out = NULL;
+
         if (requirements & REQ_PORT_GROUPS)
         {
             for (const port_group_t *pg = m.port_groups; (pg != NULL) && (pg->id != NULL); pg++)
@@ -503,9 +528,16 @@ namespace lsp
                     fprintf(out, "\ta pg:%s ;\n", grp_dir);
 
                 if (pg->flags & PGF_SIDECHAIN)
-                    fprintf(out, "\tpg:sideChainOf lsp_pg:%s;\n", pg->parent_id);
+                    fprintf(out, "\tpg:sideChainOf lsp_pg:%s ;\n", pg->parent_id);
+                if (pg->flags & PGF_MAIN)
+                {
+                    if (pg->flags & PGF_OUT)
+                        pg_main_out     = pg;
+                    else
+                        pg_main_in      = pg;
+                }
 
-                fprintf(out, "\tlv2:symbol \"%s\";\n", pg->id);
+                fprintf(out, "\tlv2:symbol \"%s\" ;\n", pg->id);
                 fprintf(out, "\trdfs:label \"%s\"\n", pg->name);
                 fprintf(out, "\t.\n\n");
             }
@@ -544,43 +576,36 @@ namespace lsp
         if ((dev != NULL) && (dev->uid != NULL))
             fprintf(out, "\tdoap:developer " LSP_PREFIX "_dev:%s ;\n", m.developer->uid);
         fprintf(out, "\tdoap:maintainer " LSP_PREFIX "_dev:lsp ;\n");
-        fprintf(out, "\tdoap:license \"" LSP_COPYRIGHT "\" ;\n");
+        fprintf(out, "\tdoap:license <http://usefulinc.com/doap/licenses/lgpl> ;\n");
         fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         if (requirements & REQ_LV2UI)
             fprintf(out, "\tui:ui " LSP_PREFIX "_ui:%s ;\n", m.lv2_uid);
 
         fprintf(out, "\n");
 
+        // Emit required features
         fprintf(out, "\tlv2:requiredFeature urid:map ;\n");
 
         // Emit optional features
-        {
-            size_t count = 1;
-            fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:schedule");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_IDISPLAY, "hcid:queue_draw");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_MAP_PATH, "state:mapPath");
-            fprintf(out, " ;\n");
-        }
+        fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable, hcid:queue_draw, work:schedule, opts:options, state:mapPath ;\n");
 
         // Emit extension data
-        if (requirements & (REQ_STATE | REQ_WORKER | REQ_IDISPLAY))
-        {
-            size_t count = 0;
-            fprintf(out, "\tlv2:extensionData ");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_STATE, "state:interface");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:interface");
-            LSP_LV2_EMIT_OPTION(count, requirements & REQ_IDISPLAY, "hcid:interface");
-            fprintf(out, " ;\n");
-        }
+        fprintf(out, "\tlv2:extensionData state:interface, work:interface, hcid:interface ;\n");
 
         // Different supported options
         if (requirements & REQ_LV2UI)
-            fprintf(out, "\topts:supportedOption ui:updateRate ;\n");
+            fprintf(out, "\topts:supportedOption ui:updateRate ;\n\n");
+
+        if (pg_main_in != NULL)
+            fprintf(out, "\tpg:mainInput lsp_pg:%s ;\n", pg_main_in->id);
+        if (pg_main_out != NULL)
+            fprintf(out, "\tpg:mainOutput lsp_pg:%s ;\n", pg_main_out->id);
 
         // Replacement for LADSPA plugin
         if (m.ladspa_id > 0)
-            fprintf(out, "\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
+            fprintf(out, "\n\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
+
+        // Separator
         fprintf(out, "\n");
 
         size_t port_id = 0;

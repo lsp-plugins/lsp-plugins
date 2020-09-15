@@ -1,51 +1,74 @@
 /*
- * Convolver.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 29 янв. 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 29 янв. 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/util/Convolver.h>
+#include <core/sugar.h>
 #include <stdarg.h>
 
-#define CONVOLVER_RANK_FRM_SMALL    (CONVOLVER_RANK_FFT_SMALL - 1)
-#define CONVOLVER_SMALL_FFT_SIZE    (1 << CONVOLVER_RANK_FFT_SMALL)
-#define CONVOLVER_SMALL_FRM_SIZE    (1 << CONVOLVER_RANK_FRM_SMALL)
-#define CONVOLVER_SMALL_FFT_MASK    (CONVOLVER_SMALL_FFT_SIZE - 1)
-#define CONVOLVER_SMALL_FRM_MASK    (CONVOLVER_SMALL_FRM_SIZE - 1)
+#define CONVOLVER_MIN_CONV_BUF_SIZE         (1 << (CONVOLVER_RANK_MIN))
+#define CONVOLVER_MIN_DATA_BUF_SIZE         (1 << (CONVOLVER_RANK_MIN - 1))
+#define CONVOLVER_MIN_FFT_BUF_SIZE          (1 << (CONVOLVER_RANK_MIN + 1))
+
+#define CONVOLVER_DATA_ALIGN                0x40
 
 namespace lsp
 {
     Convolver::Convolver()
     {
-        nFrameSize      = 0;
-        nFrameMax       = 0;
-
-        vFrame          = NULL;
-        vTempBuf        = NULL;
-        vConv           = NULL;
-        vBufferHead     = NULL;
-        vBufferTail     = NULL;
-        vBufferPtr      = NULL;
-        vBufferEnd      = NULL;
-        vConvFirst      = NULL;
-        vTask           = NULL;
-
-        nRank           = 0;
-        nSteps          = 0;
-        nBlocks         = 0;
-        nBlocksDone     = 0;
-        nDirectSize     = CONVOLVER_SMALL_FRM_SIZE;
-        pConv           = NULL;
-        pTargetPtr      = NULL;
-        vData           = NULL;
+        construct();
     }
 
     Convolver::~Convolver()
     {
         destroy();
+    }
+
+    void Convolver::construct()
+    {
+        vDataBuffer         = NULL;
+        vFrame              = NULL;
+        vConvBuffer         = NULL;
+        vTaskData           = NULL;
+        vDirectData         = NULL;
+        vConvData           = NULL;
+
+        nDataBufferSize     = 0;
+        nDirectSize         = 0;
+        nFrameSize          = 0;
+        nFrameOff           = 0;
+        nConvSize           = 0;
+        nLevels             = 0;
+        nBlocks             = 0;
+        nBlocksDone         = 0;
+        nRank               = 0;
+
+        vData               = NULL;
+    }
+
+    void Convolver::destroy()
+    {
+        free_aligned(vData);
+        construct();
     }
 
 //    static void dump(const float *buf, size_t count, const char *fmt, ...)
@@ -93,207 +116,141 @@ namespace lsp
             return true;
         }
 
-//        lsp_trace("Initializing convolver this=%p", this);
-
         // Determine number of buffers
-        if (rank < CONVOLVER_RANK_MIN)
-            rank    = CONVOLVER_RANK_MIN;
-        else if (rank >= CONVOLVER_RANK_MAX)
-            rank    = CONVOLVER_RANK_MAX;
+        rank                    = lsp_limit(ssize_t(rank), CONVOLVER_RANK_MIN, CONVOLVER_RANK_MAX);
 
         // Determine size of buffer
-        size_t fft_buf_size     = 1 << rank;
-        size_t data_buf_size    = fft_buf_size >> 1;
+        size_t data_buf_size    = 1 << (rank - 1);
+        size_t fft_buf_size     = 1 << (rank + 1);
+        size_t direct_buf_size  = lsp_max(CONVOLVER_MIN_DATA_BUF_SIZE, int(CONVOLVER_DATA_ALIGN/sizeof(float)));
         size_t bins             = (count + data_buf_size - 1) >> (rank - 1);
 
-//        lsp_trace("count = 0x%x, rank=%d, phase=%.3f, bins=%d",
-//                int(count), int(rank), phase, int(bins));
+        size_t allocate         = (bins + 1) * data_buf_size;       // Size of data buffer (convolutio tail)
+        allocate               += data_buf_size * 2;                // Input data frame
+        allocate               += fft_buf_size;                     // Convolution buffer
+        allocate               += fft_buf_size;                     // Task data for tail convolution
+        allocate               += bins * fft_buf_size;              // FFT convolution data
+        allocate               += direct_buf_size;                  // Direct convolution data
 
-        size_t allocate         = CONVOLVER_SMALL_FRM_SIZE; // Non-FFT first frame
-        allocate               += bins * fft_buf_size * 2; // FFT of the convolution
-        allocate               += fft_buf_size * 2; // Temporary buffer (real and imaginary)
-        allocate               += fft_buf_size * 2; // Frame buffer (real only, two frames)
-        allocate               += fft_buf_size * 2; // Task buffer (real and imaginary)
-        allocate               += bins * data_buf_size * 9 + data_buf_size * 6; // Buffer for convolution tail
-
+        // Allocate buffer and clear
         uint8_t *pdata          = NULL;
-        float *fptr             = alloc_aligned<float>(pdata, allocate);
+        float *fptr             = alloc_aligned<float>(pdata, allocate, CONVOLVER_DATA_ALIGN);
         lsp_guard_assert(float *save = fptr);
         if (fptr == NULL)
             return false;
-//        lsp_trace("Allocated %x floats (%x bytes) at: %p, pdata: %p",
-//                int(allocate), int(allocate * sizeof(float)), fptr, pdata);
 
-        // Replace previously used data by new allocated data
         destroy();
-        vData               = pdata;
-//        lsp_trace("vData    = %p x 0x%x", vData, int(allocate));
+        vData                   = pdata;
+        dsp::fill_zero(fptr, allocate);                             // Cleanup all buffer data
 
-        dsp::fill_zero(fptr, allocate); // Drop all previously used data
+        // Perform initialization
+        vDataBuffer             = fptr;
+        fptr                   += (bins + 1) * data_buf_size;
 
-        vBufferHead         = fptr;
-        fptr               += bins * data_buf_size * 8;
-//        lsp_trace("vBufferHead = %p x 0x%x", vBufferHead, int(bins * data_buf_size * 8));
+        // Input data frame
+        fptr                   += data_buf_size;
+        vFrame                  = fptr;
+        fptr                   += data_buf_size;
 
-        vBufferTail         = fptr;
-        fptr               += bins * data_buf_size + data_buf_size * 6;
-//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 6));
+        // Convolution buffer
+        vConvBuffer             = fptr;
+        fptr                   += fft_buf_size;
 
-        vBufferEnd          = fptr;
-//        lsp_trace("vBufferEnd = %p", vBufferEnd);
+        // Task data for tail convolution
+        vTaskData               = fptr;
+        fptr                   += fft_buf_size;
 
-        vBufferPtr          = vBufferHead;
-//        lsp_trace("vBufferPtr = %p", vBufferPtr);
+        // FFT convolution data
+        vConvData               = fptr;
+        fptr                   += bins * fft_buf_size;
 
-        vConvFirst          = fptr;
-        fptr               += CONVOLVER_SMALL_FRM_SIZE;
-//        lsp_trace("vConvFirst = %p x 0x%x", vConvFirst, CONVOLVER_SMALL_FRM_SIZE);
+        // Direct convolution data
+        vDirectData             = fptr;
+        fptr                   += direct_buf_size;
 
-        vTask               = fptr;
-        fptr               += fft_buf_size * 2;
+        // Validate allocation
+        lsp_assert(fptr == &save[allocate]);
 
-//        lsp_trace("vTask = %p x 0x%x", vTask, int(fft_buf_size * 2));
-
-//        lsp_trace("vFrame(prev) = %p x 0x%x", fptr, int(fft_buf_size));
-        fptr               += fft_buf_size; // previous frame (re)
-        vFrame              = fptr;
-        fptr               += fft_buf_size;
-//        lsp_trace("vFrame(curr) = %p x 0x%x", vFrame, int(fft_buf_size));
-
-        vTempBuf            = fptr;
-        fptr               += fft_buf_size * 2;
-//        lsp_trace("vTempBuf = %p x 0x%x", vTempBuf, int(fft_buf_size * 2));
-
-        vConv               = fptr;
-        fptr               += bins * fft_buf_size * 2;
-//        lsp_trace("vConv = %p x 0x%x", vConv, int(bins * fft_buf_size * 2));
-
-        lsp_assert(fptr <= &save[allocate]);
+        // Initialize simple values
+        nDataBufferSize         = (bins + 1) * data_buf_size;
+        nFrameSize              = data_buf_size;
+        nFrameOff               = size_t(phase * nFrameSize) % nFrameSize;
+        nDirectSize             = lsp_min(count, size_t(CONVOLVER_MIN_DATA_BUF_SIZE));
+        nConvSize               = count;
 
         /* Calculate convolutions
 
             Conv buffer layout:
             +---+---+------+------------+------------------------+
-            |FFT|FFT|FFT x2|   FFT x4   |       FFT x5           |  . . .
+            |FFT|FFT|FFT x2|   FFT x4   |       FFT x8           |  . . .
             +---+---+------+------------+------------------------+
          */
-        float *conv_re      = vConv;
-        size_t bin_rank     = CONVOLVER_RANK_FFT_SMALL;
-        size_t bin_size     = 1 << bin_rank;
-        size_t frame_size   = bin_size >> 1;
-        nRank               = rank;
-        nSteps              = 0;
-        nBlocks             = 0;
-        nFrameMax           = frame_size;
-        nDirectSize         = (count > frame_size) ? frame_size : count;
-        nConvSize           = count;
 
-//        dump(data, count, "DATA");
+        float *conv             = vConvData;
+        size_t brank            = CONVOLVER_RANK_MIN;
 
-        // Prepare first frame
-        dsp::copy(vConvFirst, data, nDirectSize);
-//        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vConvFirst, data, int(nDirectSize));
-//        dump(vConvFirst, CONVOLVER_SMALL_FRM_SIZE, "vConvFirst");
+        // Process direct convolution data
+        dsp::copy(vDirectData, data, nDirectSize);
+        dsp::fill_zero(vConvBuffer, fft_buf_size);
+        dsp::copy(vConvBuffer, data, nDirectSize);
+        dsp::fastconv_parse(conv, vConvBuffer, brank);
 
-        // Calculate FFT of first bin
-        dsp::fill_zero(vTempBuf, bin_size*2);
-//        lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
+        data                   += nDirectSize;
+        conv                   += (1 << (brank + 1));
+        count                  -= nDirectSize;
 
-        dsp::copy(vTempBuf, data, nDirectSize);
-//        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(nDirectSize));
-
-//        dump(vTempBuf, 1 << bin_rank, "conv_tmp[0] (%p)", vTempBuf); // dbg
-        dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
-//        lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
-//        dump(conv_re, 1 << bin_rank, "conv_fft[0] (%p)", conv_re); // dbg
-//        dump_fastconv(conv_re, bin_rank, "conv_img[0] (%p)", conv_re); // dbg
-//        dump_fastconv(conv_re, bin_rank, "conv[0x%x] (%p)", (conv_re - vConv) / CONVOLVER_SMALL_FFT_SIZE, conv_re); // dbg
-
-        // Move pointers
-        data               += frame_size;
-        count              -= nDirectSize;
-        conv_re            += bin_size * 2;
-
-        size_t i_dbg        = 1;
-        while (count > 0)
+        // Prepare raising levels
+        nLevels                 = 0;
+        for (; (count > 0) && (brank < rank); ++brank)
         {
-            size_t to_do        = (count > frame_size) ? frame_size : count;
-            nFrameMax           = frame_size;
+            size_t n                = lsp_min(count, size_t(1 << (brank - 1)));
 
-            // Calculate FFT
-            dsp::fill_zero(vTempBuf, bin_size*2);
-//            lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
-            dsp::copy(vTempBuf, data, to_do);
-//            lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(to_do));
-//            dump(vTempBuf, 1 << bin_rank, "conv_tmp[%d] (%p)", int(i_dbg), vTempBuf); // dbg
-            dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
-//            lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
-//            dump(conv_re, 1 << bin_rank, "conv_fft[%d] (%p)", int(i_dbg), conv_re);
-//            dump_fastconv(conv_re, bin_rank, "conv[0x%x] (%p)", (conv_re - vConv) / CONVOLVER_SMALL_FFT_SIZE, conv_re); // dbg
+            // Prepare raising convolution
+            dsp::fill_zero(vConvBuffer, fft_buf_size);
+            dsp::copy(vConvBuffer, data, n);
+            dsp::fastconv_parse(conv, vConvBuffer, brank);
 
-            // Move pointers
-            data               += frame_size;
-            count              -= to_do;
-            conv_re            += bin_size * 2;
-
-            // Update size of bin
-            if (bin_rank < rank)
-            {
-                nSteps         ++;
-                bin_rank       ++;
-                bin_size      <<= 1;
-                frame_size    <<= 1;
-            }
-            else
-                nBlocks        ++;
-            i_dbg++;
+            data                   += n;
+            conv                   += (1 << (brank + 1));
+            count                  -= n;
+            nLevels                 ++;             // Increment number of raising levels
         }
 
-//        lsp_assert_msg((conv_re <= &cptr[allocate]),
-//                "conv_re (%p) is after end of allocated data (%p)",
-//                conv_re, &cptr[allocate]);
+        // Prepare constant part
+        nBlocks                 = 0;
+        while (count > 0)
+        {
+            size_t n            = lsp_min(count, data_buf_size);
 
-        // Initialize frame size
-        nFrameSize          = size_t(phase * nFrameMax) & (~CONVOLVER_SMALL_FRM_MASK);
-        if (nFrameSize >= nFrameMax)
-            nFrameSize          = 0;
-        nBlocksDone         = nBlocks;
+            // Prepare raising convolution
+            dsp::fill_zero(vConvBuffer, fft_buf_size);
+            dsp::copy(vConvBuffer, data, n);
+            dsp::fastconv_parse(conv, vConvBuffer, rank);
 
-//        lsp_trace("nSteps   = 0x%x", int(nSteps));
-//        lsp_trace("nBlocks  = 0x%x", int(nBlocks));
-//        lsp_trace("nFrameSize = 0x%x", int(nFrameSize));
-//        lsp_trace("nBlocksDone = 0x%x", int(nBlocksDone));
+            data                   += n;
+            conv                   += fft_buf_size;
+            count                  -= n;
+            nBlocks                 ++;             // Increment number of constant-size blocks
+        }
+
+        lsp_assert(conv <= vDirectData);
+
+        nBlocksDone             = nBlocks;
+        ssize_t steps           = data_buf_size >> (CONVOLVER_RANK_MIN - 1);
+        if (steps <= 1)
+        {
+            nBlkInit                = nBlocks;
+            fBlkCoef                = 0.0f;
+        }
+        else
+        {
+            nBlkInit                = 1;
+            fBlkCoef                = (float(nBlocks) + 1e-3f) / (float(steps) - 1.0f);
+        }
+
+        nRank                   = rank;
 
         return true;
-    }
-
-    void Convolver::destroy()
-    {
-//        lsp_trace("Convolver::destroy this=%p", this);
-//        lsp_trace("free_aligned vData=%p", vData);
-
-        free_aligned(vData);
-
-        nFrameSize      = 0;
-        nFrameMax       = 0;
-
-        vFrame          = NULL;
-        vTempBuf        = NULL;
-        vConv           = NULL;
-        vBufferHead     = NULL;
-        vBufferTail     = NULL;
-        vBufferPtr      = NULL;
-        vBufferEnd      = NULL;
-        vConvFirst      = NULL;
-        vTask           = NULL;
-        pConv           = NULL;
-        pTargetPtr      = NULL;
-
-        nRank           = 0;
-        nSteps          = 0;
-        nBlocks         = 0;
-        nBlocksDone     = 0;
-        nDirectSize     = 0;
     }
 
     void Convolver::process(float *dst, const float *src, size_t count)
@@ -304,16 +261,12 @@ namespace lsp
             return;
         }
 
-//        lsp_trace("Start process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
-//                this, dst, src, int(count), vData);
-
         while (count > 0)
         {
-            // Determine current offset relative to frame
-            size_t frame_off    = nFrameSize & CONVOLVER_SMALL_FRM_MASK;
+            size_t sub_off      = nFrameOff & (CONVOLVER_MIN_DATA_BUF_SIZE - 1);        // Determine sub-offset in the frame
 
-            // Check that frame part is full
-            if (!frame_off)
+            // We are strictly at the boundary of the frame?
+            if (sub_off == 0)
             {
                 /*
                      Calculate convolution mask:
@@ -328,154 +281,98 @@ namespace lsp
 
                  */
 
-                // Apply higher-order convolutions
-                size_t frame_id     = nFrameSize >> CONVOLVER_RANK_FRM_SMALL;
-                size_t frm_mask     = ((frame_id-1) ^ frame_id);
-                float *conv_re      = &vConv[CONVOLVER_SMALL_FFT_SIZE*2];
-                size_t rank         = CONVOLVER_RANK_FFT_SMALL;
+                size_t sub_id       = nFrameOff >> (CONVOLVER_RANK_MIN - 1);
+                size_t mask         = ((sub_id-1) ^ sub_id);
+                size_t rank         = CONVOLVER_RANK_MIN;
+                const float *conv   = &vConvData[CONVOLVER_MIN_FFT_BUF_SIZE];
 
-                for (size_t i=0; i<nSteps; ++i)
+                // Apply convolution with raising level
+                for (size_t i=0; i<nLevels; ++i)
                 {
-                    float *fptr     = vFrame + nFrameSize - (1 << (rank - 1));
-                    if (frm_mask & 1)
+                    if (mask & 1)
                     {
-//                        lsp_trace("fastconv_parse_apply dst=0x%x, conv=0x%x, fptr=-0x%x, n=%d",
-//                                (vBufferPtr-vBufferHead)/CONVOLVER_SMALL_FRM_SIZE,
-//                                (conv_re-vConv)/CONVOLVER_SMALL_FFT_SIZE,
-//                                (1 << (rank - 1))/CONVOLVER_SMALL_FRM_SIZE,
-//                                1 << (rank - CONVOLVER_RANK_FFT_SMALL));
-
-//                        lsp_trace("dsp::fastconv_parse_apply dst=%p, tmp=%p, conv=%p, src=%p, rank=0x%x",
-//                                vBufferPtr, vTempBuf, conv_re, fptr, int(rank));
-//                        lsp_assert(vBufferEnd >= &vBufferPtr[1 << rank]);
-                        dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, conv_re, fptr, rank);
+                        const float *fptr   = vFrame + nFrameOff - (1 << (rank - 1));
+                        dsp::fastconv_parse_apply(&vDataBuffer[nFrameOff], vConvBuffer, conv, fptr, rank);
                     }
-                    conv_re        += 1 << (rank+1); // Move pointer to next convolution
-                    frm_mask      >>= 1;
-                    rank           ++;
+
+                    ++rank;
+                    conv               += (1 << rank);
+                    mask              >>= 1;
                 }
 
-                // Start of frame and need to perform tail convolution?
-                if ((nFrameSize == 0) && (nBlocks > 0))
+                // Need to apply long tail?
+                if (nBlocks > 0)
                 {
-                    // Apply convolution
-//                    lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x",
-//                            vTask, vFrame - nFrameMax, int(nRank));
-                    dsp::fastconv_parse(vTask, vFrame - nFrameMax, nRank);
-
-                    // Set number of blocks done
-                    nBlocksDone     = 0;
-                    pConv           = conv_re;
-                    pTargetPtr      = vBufferPtr;
-                }
-
-                // Do tail convolution
-                if (nBlocksDone < nBlocks)
-                {
-                    size_t tgt_block    = ((nFrameSize + CONVOLVER_SMALL_FRM_SIZE) * nBlocks) / nFrameMax;
-                    if (tgt_block > nBlocks)
-                        tgt_block           = nBlocks;
-
-                    while (nBlocksDone < tgt_block)
+                    // Need to reset tasks?
+                    if (mask & 1)
                     {
-                        // Do multiplication in frequency domain, reverse FFT and apply it to the history buffer
-//                        lsp_trace("fastconv_apply_block dst=0x%x, conv=0x%x, fptr=-0x%x, n=%d %d/%d",
-//                                    (pTargetPtr-vBufferHead)/CONVOLVER_SMALL_FRM_SIZE,
-//                                    (pConv-vConv)/CONVOLVER_SMALL_FFT_SIZE,
-//                                    0, 1 << (nRank - CONVOLVER_RANK_FFT_SMALL),
-//                                    nBlocksDone, nBlocks
-//                                    );
-//                        lsp_trace("dsp::fastconv_apply dst=%p, tmp=%p, conv1=%p, conv2=%p, rank=0x%x",
-//                                pTargetPtr, vTempBuf, vTask, pConv, int(nRank));
-//                        if (vBufferEnd < &pTargetPtr[1 << nRank])
-//                        {
-//                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
-//                        }
-                        dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
+                        dsp::fastconv_parse(vTaskData, vFrame - nFrameSize, nRank);
+                        nBlocksDone         = 0;
+                    }
 
-                        // Update pointers
-                        pConv              += nFrameMax << 2;
-                        pTargetPtr         += nFrameMax;
-                        nBlocksDone        ++;
+                    // Need to execute tasks?
+                    size_t target_blk   = lsp_min(nBlocks, size_t(nBlkInit + fBlkCoef * sub_id));
+                    size_t fft_step     = 1 << (nRank + 1);
+                    conv                = &vConvData[(nBlocksDone + 1) * fft_step];     // Source convolution
+                    float *xdst         = &vDataBuffer[nBlocksDone << (nRank - 1)];     // Offset to store the block
 
-//                        if (pTargetPtr >= vBufferEnd)
-//                            lsp_trace("pTargetPtr(%p) >= vBufferEnd(%p)", pTargetPtr, vBufferEnd);
+                    for ( ; nBlocksDone < target_blk; ++nBlocksDone)
+                    {
+                        dsp::fastconv_apply(xdst, vConvBuffer, conv, vTaskData, rank);
+                        xdst               += (fft_step >> 2);
+                        conv               += fft_step;
                     }
                 }
             }
 
-            // Apply real-time part
-            size_t to_do        = CONVOLVER_SMALL_FRM_SIZE - frame_off;
-            if (to_do > count)
-                to_do               = count;
+            // Apply direct convolution
+            size_t to_do        = lsp_min(count, size_t(CONVOLVER_MIN_DATA_BUF_SIZE - sub_off));
+            dsp::copy(&vFrame[nFrameOff], src, to_do);      // Store data to frame
+            if (to_do == CONVOLVER_MIN_DATA_BUF_SIZE)
+                dsp::fastconv_parse_apply(&vDataBuffer[nFrameOff], vConvBuffer, vConvData, src, CONVOLVER_RANK_MIN);
+            else
+                dsp::convolve(&vDataBuffer[nFrameOff], src, vDirectData, nDirectSize, to_do);
+            dsp::copy(dst, &vDataBuffer[nFrameOff], to_do); // Output result
 
-            // Store input data into the frame
-//            lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", &vFrame[nFrameSize], src, int(to_do));
-            dsp::copy(&vFrame[nFrameSize], src, to_do);
-
-            // Check that we are available to apply convolution via FFT
-            if (to_do == CONVOLVER_SMALL_FRM_SIZE)
-            {
-//                lsp_trace("dsp::fastconv_parse_apply dst=%p, temp=%p, conv=%p, src=%p, count=0x%x",
-//                        vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
-//                lsp_assert(vBufferEnd >= &vBufferPtr[1 << CONVOLVER_RANK_FFT_SMALL]);
-                dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
-            }
-            else // We need to do direct convolution
-            {
-//                lsp_trace("dsp::convolve dst=%p, src=%p, conv=%p, conv_size=0x%x, count=0x%x",
-//                        vBufferPtr, src, vConvFirst, int(nDirectSize), int(to_do));
-//                lsp_assert(vBufferEnd >= &vBufferPtr[nDirectSize + to_do]);
-                dsp::convolve(vBufferPtr, src, vConvFirst, nDirectSize, to_do);
-            }
-
-            // Update frame pointer
-            nFrameSize         += to_do;
-            if (nFrameSize >= nFrameMax)
-            {
-                // Update frame
-//                lsp_trace("switch_frame");
-//                lsp_trace("dsp::copy dst=%p src=%p, count=0x%x", vFrame-nFrameMax, vFrame, int(nFrameMax));
-                dsp::copy(vFrame-nFrameMax, vFrame, nFrameMax);
-//                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vFrame, int(nFrameMax));
-                dsp::fill_zero(vFrame, nFrameMax);
-                nFrameSize -= nFrameMax;
-            }
-
-            // Copy data to output and update buffer pointers
-//            lsp_trace("dsp::copy dst=%p src=%p, count=0x%x", dst, vBufferPtr, int(to_do));
-            dsp::copy(dst, vBufferPtr, to_do);
-            vBufferPtr         += to_do;
+            // Update counters/pointers
+            nFrameOff          += to_do;
             src                += to_do;
             dst                += to_do;
             count              -= to_do;
 
-            // Check that buffer head is required to be moved
-            if (vBufferPtr >= vBufferTail)
+            // Check that we are out of the frame and need to shift the data and convolution tail
+            if (nFrameOff >= nFrameSize)
             {
-                float *sptr = ((pTargetPtr == NULL) || (pTargetPtr >= vBufferPtr)) ?
-                        vBufferPtr : pTargetPtr;
-
-                size_t hist_size    = vBufferEnd - sptr;
-                size_t free_size    = sptr - vBufferHead;
-
-//                lsp_trace("dsp::move dst=%p src=%p, count=0x%x", vBufferHead, vBufferPtr, int(hist_size));
-                dsp::move(vBufferHead, sptr, hist_size);
-//                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
-                dsp::fill_zero(&vBufferHead[hist_size], free_size);
-                if (pTargetPtr != NULL)
-                    pTargetPtr         -= free_size;
-                vBufferPtr         -= free_size;
-
-//                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
-//                {
-//                    lsp_error("Failed assertion: (vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead)");
-//                }
+                nFrameOff          -= nFrameSize;
+                dsp::move(vFrame - nFrameSize, vFrame, nFrameSize);
+                dsp::move(vDataBuffer, &vDataBuffer[nFrameSize], nDataBufferSize - nFrameSize);
+                dsp::fill_zero(&vDataBuffer[nDataBufferSize - nFrameSize], nFrameSize);
             }
         }
+    }
 
-//        lsp_trace("End process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
-//                        this, dst, src, int(count), vData);
+    void Convolver::dump(IStateDumper *v) const
+    {
+        v->write("pDataBuffer", vDataBuffer);
+        v->write("vFrame", vFrame);
+        v->write("vConvBuffer", vConvBuffer);
+        v->write("vTaskData", vTaskData);
+        v->write("vConvData", vConvData);
+        v->write("vDirectData", vDirectData);
+
+        v->write("nDataBufferSize", nDataBufferSize);
+        v->write("nDirectSize", nDirectSize);
+        v->write("nFrameSize", nFrameSize);
+        v->write("nFrameOff", nFrameOff);
+        v->write("nConvSize", nConvSize);
+        v->write("nLevels", nLevels);
+        v->write("nBlocks", nBlocks);
+        v->write("nBlocksDone", nBlocksDone);
+        v->write("nRank", nRank);
+        v->write("nBlkInit", nBlkInit);
+        v->write("fBlkCoef", fBlkCoef);
+
+        v->write("vData", vData);
     }
 
 } /* namespace lsp */

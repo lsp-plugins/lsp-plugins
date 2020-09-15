@@ -16,14 +16,10 @@
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
-- Implemented Multiband gate plugin series.
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
-- Implemented equal loudness compensation plugin according to ISO 226:2003
-  details: https://ledgernote.com/columns/mixing-mastering/fletcher-munson-curve/
-  topic: https://linuxmusicians.com/viewtopic.php?p=113835
-- Review internal convolver module.
+- Implemented Multiband Dynamic Processor plugin series.
 
 *******************************************************************************
 * New plugin check list before release
@@ -33,8 +29,14 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
-* Ensure that plugin provides internal state dump.
 * Ensure that lsp-plugins.menu contains reference to the new plugin
+* Ensure that plugin provides internal state dump.
+* Check that there are no additional warnings/errors for the following script after plugin installation:
+  
+  export LV2_PATH=/usr/local/lib/lv2
+  for uri in $(lv2ls |grep lsp-plug.in); do
+    lv2lint -Mpack "$uri"
+  done
 
 *******************************************************************************
 * Release steps
@@ -65,25 +67,30 @@
 * PLUGIN LIST
 *******************************************************************************
 
+* Compensation Delay
 * Compressor
 * Convolver
+* Crossover
 * Dynamic Processor
 * Expander
 * Gate
 * Graphic Equalizer
 * Impulse Reverb
+* Latency Meter
 * Limiter
 * Linear Audio Profiler
+* Loudness Compensator
 * Multi-Sampler
 * Multiband Compressor
 * Multiband Expander
 * Multiband Gate
 * Parametric Equalizer
-* Phase Compensator
 * Phase Detector
+* Room Builder
 * Sampler
-* Slap-back delay
+* Slap-back Delay
 * Spectrum Analyzer
+* Surge filter
 * Trigger
 
 - Multiband Dynamic Processor
@@ -106,7 +113,7 @@
 - Decapitator
 - HeadCrusher
 - Dynamic Equalizer
-- Dynamic panner
+- Dynamic Panner
 - Distortion
 - Real sampler (with sample recording option) 
 

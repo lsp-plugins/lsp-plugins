@@ -1,8 +1,22 @@
 /*
- * helpers.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 30 авг. 2018 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 30 авг. 2018 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 
@@ -45,13 +59,13 @@ namespace test
             (float_equals_relative(v1->dw, v2->dw));
     }
 
-    bool vector3d_ack(const vector3d_t *v1, const vector3d_t *v2)
+    bool vector3d_ack(const vector3d_t *v1, const vector3d_t *v2, float tolerance)
     {
         return
-            (float_equals_adaptive(v1->dx, v2->dx, DSP_3D_TOLERANCE)) &&
-            (float_equals_adaptive(v1->dy, v2->dy, DSP_3D_TOLERANCE)) &&
-            (float_equals_adaptive(v1->dz, v2->dz, DSP_3D_TOLERANCE)) &&
-            (float_equals_adaptive(v1->dw, v2->dw, DSP_3D_TOLERANCE));
+            (float_equals_adaptive(v1->dx, v2->dx, tolerance)) &&
+            (float_equals_adaptive(v1->dy, v2->dy, tolerance)) &&
+            (float_equals_adaptive(v1->dz, v2->dz, tolerance)) &&
+            (float_equals_adaptive(v1->dw, v2->dw, tolerance));
     }
 
     bool matrix3d_ck(const matrix3d_t *m1, const matrix3d_t *m2)

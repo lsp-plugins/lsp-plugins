@@ -1,13 +1,29 @@
 /*
- * plane.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 29 мар. 2019 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 29 мар. 2019 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <dsp/dsp.h>
 #include <test/utest.h>
 #include <testing/utest/dsp/3d/helpers.h>
+
+#define TOLERANCE           1e-4
 
 namespace native
 {
@@ -56,7 +72,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, &pv[0], &pv[1], &pv[2]);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);
@@ -94,7 +110,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, pv);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);
@@ -130,7 +146,7 @@ UTEST_BEGIN("dsp.3d", plane)
             float w2  = f(&v2, &sv, &pv[0], &pv[1]);
 
             if ((!float_equals_adaptive(w1, w2, DSP_3D_TOLERANCE)) ||
-                (!vector3d_ack(&v1, &v2)))
+                (!vector3d_ack(&v1, &v2, TOLERANCE)))
             {
                 dump_point("pv[0]", &pv[0]);
                 dump_point("pv[1]", &pv[1]);

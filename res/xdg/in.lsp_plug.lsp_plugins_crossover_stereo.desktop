@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Stereo Crossover
+GenericName=Crossover
+GenericName[ru]=Кроссовер
+Comment=Performs split of input stereo signal into up to 8 separate frequency bands.
+Comment[ru]=Осуществляет разделение входного стереосигнала на раздельные частотные полосы (до 8 штук).
+Exec=lsp-plugins-crossover-stereo
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;

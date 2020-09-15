@@ -1,21 +1,31 @@
 /*
- * Convolver.h
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 29 янв. 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 29 янв. 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef CORE_UTIL_CONVOLVER_H_
 #define CORE_UTIL_CONVOLVER_H_
 
 #include <core/types.h>
-#include <core/util/ShiftBuffer.h>
+#include <core/IStateDumper.h>
 
-
-//#define CONVOLVER_RANK_FFT_SMALL    5                               /* for test purposes                        */
-#define CONVOLVER_RANK_FFT_SMALL    8                                 /* buffer of 256 samples (128 effective)    */
-//#define CONVOLVER_RANK_FFT_SMALL    4                               /* buffer of 16 samples (8 effective)      */
-#define CONVOLVER_RANK_MIN          (CONVOLVER_RANK_FFT_SMALL+1)    /* buffer of 512 samples (256 effective)    */
+#define CONVOLVER_RANK_MIN          8                               /* buffer of 256 samples (128 effective)    */
 #define CONVOLVER_RANK_MAX          16                              /* buffer of 8192 samples (4096 effective)  */
 
 namespace lsp
@@ -26,34 +36,43 @@ namespace lsp
             Convolver & operator = (const Convolver &);
 
         private:
-            size_t      nConvSize;              // Size of convolution
-            size_t      nFrameSize;             // Current frame size
-            size_t      nFrameMax;              // Maximum frame size
+            float          *vDataBuffer;            // Buffer for storing convolution tail data
+            float          *vFrame;                 // Pointer to the beginning of the input data frame
+            float          *vConvBuffer;            // Convolution buffer to perform convolution
+            float          *vTaskData;              // Task data for tail convolution
+            float          *vConvData;              // FFT convolution data
+            float          *vDirectData;            // Direct convolution data
 
-            float      *vFrame;                 // Input signal frame
-            float      *vTempBuf;               // Temporary buffer (real + imaginary)
-            float      *vConv;                  // Convolution (real + imaginary)
-            float      *vBufferHead;            // Buffer Head
-            float      *vBufferTail;            // Buffer Tail
-            float      *vBufferPtr;             // Current pointer
-            float      *vBufferEnd;             // Buffer End
-            float      *vConvFirst;             // First part of convolution in non-FFT mode
-            float      *vTask;                  // Task for post-processing (real + imaginary)
+            size_t          nDataBufferSize;        // Size of data buffer
+            size_t          nDirectSize;            // Size of direct convolution data
+            size_t          nFrameSize;             // Size of input data frame
+            size_t          nFrameOff;              // Offset from the beginning of the input data frame
+            size_t          nConvSize;              // The actual convolution size in samples
+            size_t          nLevels;                // Number of raising convolution levels
+            size_t          nBlocks;                // Number of constant-size blocks
+            size_t          nBlocksDone;            // Number of applied constant-size blocks
+            size_t          nRank;                  // The actual rank of the convolution
+            size_t          nBlkInit;               // Initial number of blocks to apply at step # 0
+            float           fBlkCoef;               // The actual coefficient to compute proper block number per formula
 
-            size_t      nRank;                  // FFT rank for convolution
-            size_t      nSteps;                 // Number of raising steps
-            size_t      nBlocks;                // Number of blocks
-            size_t      nBlocksDone;            // Number of blocks done
-            size_t      nDirectSize;            // Direct convolution size
-            float      *pConv;                  // Task convolution (real + imaginary)
-            float      *pTargetPtr;             // Target pointer for task
-            uint8_t    *vData;
+            uint8_t        *vData;                  // Non-aligned pointer to the whole allocated data
 
         public:
             explicit Convolver();
             ~Convolver();
 
+            /** Construct the convolver
+             *
+             */
+            void construct();
+
+            /** Destroy convolver
+             *
+             */
+            void destroy();
+
         public:
+
             /** Initialize convolver
              *
              * @param data convolution data
@@ -62,11 +81,6 @@ namespace lsp
              * @return true on success
              */
             bool init(const float *data, size_t count, size_t rank, float phase);
-
-            /** Destroy convolver
-             *
-             */
-            void destroy();
 
             /** Process samples
              *
@@ -80,7 +94,19 @@ namespace lsp
              *
              * @return actual convolution size in samples
              */
-            inline size_t data_size()       { return nConvSize; }
+            inline size_t data_size() const             { return nConvSize;     }
+
+            /**
+             * Get actual convolution rank of the convolver
+             * @return convolution rank
+             */
+            inline size_t rank() const                  { return nRank;         }
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void dump(IStateDumper *v) const;
     };
 
 } /* namespace lsp */

@@ -14,6 +14,10 @@
         <Filename>in.lsp_plug.lsp_plugins_compressor_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_compressor_ms.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_compressor_stereo.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_crossover_lr.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_crossover_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_crossover_ms.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_crossover_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_dyna_processor_lr.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_dyna_processor_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_dyna_processor_ms.desktop</Filename>
