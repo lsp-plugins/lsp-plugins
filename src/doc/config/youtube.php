@@ -19,7 +19,8 @@ $YOUTUBE = array(
     'J-ruYw9TwCE' => 'Room Builder',
     'TR_Ox7U_a84' => 'Multiband Expander',
     '7GOAM1O_RdY' => 'Multiband Gate',
-    'CuySiF1VSj8' => 'Surge Filter & Loudness Compensator'
+    'CuySiF1VSj8' => 'Surge Filter & Loudness Compensator',
+    'g8cShrKtmKo' => 'Crossover'
 );
 
 ?>

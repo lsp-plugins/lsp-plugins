@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Mid-Side Crossover
+Name=Stereo Crossover
 GenericName=Crossover
 GenericName[ru]=Кроссовер
 Comment=Performs split of input stereo signal into up to 8 separate frequency bands.

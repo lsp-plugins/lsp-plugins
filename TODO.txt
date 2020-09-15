@@ -21,17 +21,6 @@
 - Additional code updates to get compatibility with WindowsNT platform.
 - Implemented Multiband Dynamic Processor plugin series.
 
-=== 1.1.26 ===
-
-* Implemented Crossover Plugin series.
-* Fixed phase mismatch between channels in the oversampling mode of limiter (contributed by Hector Martin).
-* Fixed bug in convolver module which could perform improper tail convolution (reported by Robin Gareus).
-  Affected plugins: Impulse Responses, Impulse Reverb, Room Builder.
-* Fixed small memory leakage in multiband plugins (Compressor, Gate, Expander) related to usage of
-  Inline Display feature.
-* Added support of pg:mainInput and pg:mainOutput LV2 properties in TTL files for all plugins.
-* Updated all C++ heades and source files to match the LGPL3+ license headers.
-
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************
