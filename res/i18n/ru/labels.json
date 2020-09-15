@@ -294,7 +294,7 @@
 		"midi_num": "№ MIDI",
 		"note_off": "Нота выкл",
 		"note_on": "Нота вкл",
-		"velocity": "Быстрота"
+		"velocity": "Сила"
 	},
 	"mix": "Микс",
 	"mix_gain": "Громкость",
