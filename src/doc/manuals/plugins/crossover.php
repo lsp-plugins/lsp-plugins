@@ -13,7 +13,7 @@
     	This plugin performs split of mono input signal into separate frequency bands passed to individual mono output channels.
     	Additinally it provides output monitoring channel to control individual channels or result of summing signals passed
     	to individual mono output channels.
-    <?php } elseif ($m == 'stereo') { ?>
+    <?php } elseif ($m == 's') { ?>
 		This plugin performs split of stereo input signal into separate frequency bands passed to individual stereo output channels.
 		Additinally it provides output monitoring channel to control individual channels or result of summing signals
 		passed to individual stereo output channels.
