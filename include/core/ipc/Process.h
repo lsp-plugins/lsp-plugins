@@ -93,7 +93,7 @@ namespace lsp
                 status_t        spawn_process(const char *cmd, char * const *argv, char * const *envp);
                 status_t        vfork_process(const char *cmd, char * const *argv, char * const *envp);
                 status_t        fork_process(const char *cmd, char * const *argv, char * const *envp);
-                void            execve_process(const char *cmd, char * const *argv, char * const *envp);
+                void            execve_process(const char *cmd, char * const *argv, char * const *envp, bool soft_exit);
 #endif /* PLATFORM_WINDOWS */
 
             public:

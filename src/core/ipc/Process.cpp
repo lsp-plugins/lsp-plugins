@@ -483,14 +483,14 @@ namespace lsp
             for (size_t i=0, n=vEnv.size(); i<n; ++i)
             {
                 envvar_t *var = vEnv.at(i);
-                if (var->name.equals(&k))
-                {
-                    if (value != NULL)
-                        value->swap(&var->value);
-                    delete var;
-                    vEnv.remove(i, true);
-                    return STATUS_OK;
-                }
+                if (!var->name.equals(&k))
+                    continue;
+
+                if (value != NULL)
+                    value->swap(&var->value);
+                delete var;
+                vEnv.remove(i, true);
+                return STATUS_OK;
             }
 
             return STATUS_NOT_FOUND;
@@ -509,15 +509,15 @@ namespace lsp
             for (size_t i=0, n=vEnv.size(); i<n; ++i)
             {
                 envvar_t *var = vEnv.at(i);
-                if (var->name.equals(key))
+                if (!var->name.equals(key))
+                    continue;
+
+                if (value != NULL)
                 {
-                    if (value != NULL)
-                    {
-                        if (!value->set(&var->value))
-                            return STATUS_NO_MEM;
-                    }
-                    return STATUS_OK;
+                    if (!value->set(&var->value))
+                        return STATUS_NO_MEM;
                 }
+                return STATUS_OK;
             }
 
             return STATUS_NOT_FOUND;
@@ -535,15 +535,15 @@ namespace lsp
             for (size_t i=0, n=vEnv.size(); i<n; ++i)
             {
                 envvar_t *var = vEnv.at(i);
-                if (var->name.equals(&k))
+                if (!var->name.equals(&k))
+                    continue;
+
+                if (value != NULL)
                 {
-                    if (value != NULL)
-                    {
-                        if (!value->set(&var->value))
-                            return STATUS_NO_MEM;
-                    }
-                    return STATUS_OK;
+                    if (!value->set(&var->value))
+                        return STATUS_NO_MEM;
                 }
+                return STATUS_OK;
             }
 
             return STATUS_NOT_FOUND;
@@ -561,17 +561,17 @@ namespace lsp
             for (size_t i=0, n=vEnv.size(); i<n; ++i)
             {
                 envvar_t *var = vEnv.at(i);
-                if (var->name.equals(&k))
+                if (!var->name.equals(&k))
+                    continue;
+
+                if (value != NULL)
                 {
-                    if (value != NULL)
-                    {
-                        char *dup       = var->value.clone_utf8();
-                        if (dup == NULL)
-                            return STATUS_NO_MEM;
-                        *value          = dup;
-                    }
-                    return STATUS_OK;
+                    char *dup       = var->value.clone_utf8();
+                    if (dup == NULL)
+                        return STATUS_NO_MEM;
+                    *value          = dup;
                 }
+                return STATUS_OK;
             }
 
             return STATUS_NOT_FOUND;
@@ -1053,7 +1053,7 @@ namespace lsp
             }
 
             // Add terminator
-            return (dst->add(NULL)) ? STATUS_OK : STATUS_NO_MEM;
+            return (dst->add(static_cast<char *>(NULL))) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t Process::build_envp(cvector<char> *dst)
@@ -1082,7 +1082,7 @@ namespace lsp
                     return STATUS_NO_MEM;
                 }
             }
-            return (dst->add(NULL)) ? STATUS_OK : STATUS_NO_MEM;
+            return (dst->add(static_cast<char *>(NULL))) ? STATUS_OK : STATUS_NO_MEM;
         }
 
         status_t Process::spawn_process(const char *cmd, char * const *argv, char * const *envp)
@@ -1182,7 +1182,7 @@ namespace lsp
             return res;
         }
 
-        void Process::execve_process(const char *cmd, char * const *argv, char * const *envp)
+        void Process::execve_process(const char *cmd, char * const *argv, char * const *envp, bool soft_exit)
         {
             // Override STDIN, STDOUT, STDERR
             if (hStdIn >= 0)
@@ -1209,8 +1209,13 @@ namespace lsp
             // Launch the process
             ::execve(cmd, argv, envp);
 
+            lsp_trace("execve failed for pid=%d\n", int(getpid()));
+
             // Return error only if ::execvpe failed
-            ::exit(STATUS_UNKNOWN_ERR);
+            if (soft_exit)
+                ::_exit(STATUS_UNKNOWN_ERR);
+            else
+                ::exit(STATUS_UNKNOWN_ERR);
         }
 
         status_t Process::vfork_process(const char *cmd, char * const *argv, char * const *envp)
@@ -1233,7 +1238,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execve_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp, true);
 
             // The parent process stuff
             nPID        = pid;
@@ -1262,7 +1267,7 @@ namespace lsp
 
             // The child process stuff
             if (pid == 0)
-                execve_process(cmd, argv, envp);
+                execve_process(cmd, argv, envp, false);
 
             // The parent process stuff
             nPID        = pid;
