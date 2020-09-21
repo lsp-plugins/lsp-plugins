@@ -650,6 +650,7 @@ namespace lsp
 
     void oscilloscope_base::process(size_t samples)
     {
+        // Prepare channels
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
@@ -661,10 +662,7 @@ namespace lsp
             c->vOut_x = c->pOut_x->getBuffer<float>();
             c->vOut_y = c->pOut_y->getBuffer<float>();
 
-            if ((c->vIn_x == NULL) || (c->vOut_x == NULL))
-                return;
-
-            if ((c->vIn_y == NULL) || (c->vOut_y == NULL))
+            if ((c->vIn_x == NULL) || (c->vIn_y == NULL))
                 return;
 
             if ((c->vIn_ext == NULL))
@@ -673,14 +671,18 @@ namespace lsp
             c->nSamplesCounter = samples;
         }
 
+        // Bypass signal
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
 
-            dsp::copy(c->vOut_x, c->vIn_x, samples);
-            dsp::copy(c->vOut_y, c->vIn_y, samples);
+            if (c->vOut_x != NULL)
+                dsp::copy(c->vOut_x, c->vIn_x, samples);
+            if (c->vOut_y != NULL)
+                dsp::copy(c->vOut_y, c->vIn_y, samples);
         }
 
+        // Process each channel
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
