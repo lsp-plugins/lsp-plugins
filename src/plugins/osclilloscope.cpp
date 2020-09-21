@@ -19,6 +19,10 @@
 #define AC_BLOCK_CUTOFF_HZ  5.0
 #define AC_BLOCK_DFL_ALPHA  0.999f
 
+// Debug - Remove for production.
+#define DEBUG_BUF_SIZE      2985984
+//
+
 namespace lsp
 {
     over_mode_t oscilloscope_base::get_oversampler_mode(size_t portValue)
@@ -189,6 +193,14 @@ namespace lsp
         }
     }
 
+    void oscilloscope_base::do_sweep_step(channel_t *c)
+    {
+        c->sSweepGenerator.process_overwrite(&c->vDisplay_x[c->nDisplayHead], 1);
+        c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead];
+        ++c->nDataHead;
+        ++c->nDisplayHead;
+    }
+
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
         // fill_zero is for DEBUG
@@ -332,6 +344,10 @@ namespace lsp
         // For each channel: 1X temp buffer + 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
         size_t samples = nChannels * BUF_LIM_SIZE * 7;
 
+        // Debug - Remove for production.
+        samples += 3 * DEBUG_BUF_SIZE;
+        //
+
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
             return;
@@ -397,6 +413,21 @@ namespace lsp
 
             c->vDisplay_y       = ptr;
             ptr                += BUF_LIM_SIZE;
+
+            // Debug - Remove for production.
+            c->vDebug_vIn_y             = ptr;
+            ptr                        += DEBUG_BUF_SIZE;
+
+            c->vDebug_vData_y           = ptr;
+            ptr                        += DEBUG_BUF_SIZE;
+
+            c->vDebug_vData_y_delay     = ptr;
+            ptr                        += DEBUG_BUF_SIZE;
+
+            c->nDebug_vIn_y_head            = 0;
+            c->nDebug_vData_y_head          = 0;
+            c->nDebug_vData_y_delay_head    = 0;
+            //
 
             c->enState          = CH_STATE_LISTENING;
 
@@ -725,6 +756,33 @@ namespace lsp
                             c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
                         }
 
+                        // Debug - Remove for production.
+                        size_t dbg_vIn_y_available = DEBUG_BUF_SIZE - c->nDebug_vIn_y_head;
+                        size_t dbg_vIn_y_copy = (dbg_vIn_y_available >= to_do) ? to_do : dbg_vIn_y_available;
+                        dsp::copy(&c->vDebug_vIn_y[c->nDebug_vIn_y_head], c->vIn_y, dbg_vIn_y_copy);
+
+                        size_t dbg_vData_y_available = DEBUG_BUF_SIZE - c->nDebug_vData_y_head;
+                        size_t dbg_vData_y_copy = (dbg_vData_y_available >= to_do_upsample) ? to_do_upsample : dbg_vData_y_available;
+                        dsp::copy(&c->vDebug_vData_y[c->nDebug_vData_y_head], c->vData_y, dbg_vData_y_copy);
+
+                        size_t dbg_vData_y_delay_available = DEBUG_BUF_SIZE - c->nDebug_vData_y_delay_head;
+                        size_t dbg_vData_y_delay_copy = (dbg_vData_y_delay_available >= to_do_upsample) ? to_do_upsample : dbg_vData_y_delay_available;
+                        dsp::copy(&c->vDebug_vData_y_delay[c->nDebug_vData_y_delay_head], c->vData_y_delay, dbg_vData_y_delay_copy);
+
+                        c->nDebug_vIn_y_head += dbg_vIn_y_copy;
+                        c->nDebug_vData_y_head += dbg_vData_y_copy;
+                        c->nDebug_vData_y_delay_head += dbg_vData_y_delay_copy;
+
+                        if (c->nDebug_vIn_y_head >= DEBUG_BUF_SIZE)
+                            c->nDebug_vIn_y_head = 0;
+
+                        if (c->nDebug_vData_y_head >= DEBUG_BUF_SIZE)
+                            c->nDebug_vData_y_head = 0;
+
+                        if (c->nDebug_vData_y_delay_head >= DEBUG_BUF_SIZE)
+                            c->nDebug_vData_y_delay_head = 0;
+                        //
+
                         c->nDataHead = 0;
 
                         float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
@@ -742,16 +800,14 @@ namespace lsp
                                         c->sSweepGenerator.reset_phase_accumulator();
                                         c->nDataHead = n;
                                         c->enState = CH_STATE_SWEEPING;
+                                        do_sweep_step(c);
                                     }
                                 }
                                 break;
 
                                 case CH_STATE_SWEEPING:
                                 {
-                                    c->sSweepGenerator.process_overwrite(&c->vDisplay_x[c->nDisplayHead], 1);
-                                    c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead];
-                                    ++c->nDataHead;
-                                    ++c->nDisplayHead;
+                                    do_sweep_step(c);
 
                                     if (c->nDisplayHead >= c->nSweepSize)
                                     {

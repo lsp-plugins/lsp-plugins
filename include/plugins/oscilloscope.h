@@ -103,6 +103,16 @@ namespace lsp
                 float              *vDisplay_x;
                 float              *vDisplay_y;
 
+                // Debug - Remove for production.
+                float              *vDebug_vIn_y;
+                float              *vDebug_vData_y;
+                float              *vDebug_vData_y_delay;
+
+                size_t              nDebug_vIn_y_head;
+                size_t              nDebug_vData_y_head;
+                size_t              nDebug_vData_y_delay_head;
+                //
+
                 size_t              nDataHead;
                 size_t              nDisplayHead;
                 size_t              nSamplesCounter;
@@ -174,6 +184,7 @@ namespace lsp
         protected:
             void update_dc_block_filter(FilterBank &rFilterBank);
             void reconfigure_dc_block_filters();
+            void do_sweep_step(channel_t *c);
             void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
