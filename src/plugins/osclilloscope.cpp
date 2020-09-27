@@ -608,6 +608,8 @@ namespace lsp
             size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->pTrgHold->getValue());
             trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
 
+            c->sTrigger.set_trigger_mode(get_trigger_mode(c->pTrgMode->getValue()));
+
             if (c->pTrgReset->getValue() >= 0.5f)
             {
                 c->sTrigger.reset_single_trigger();
@@ -716,20 +718,35 @@ namespace lsp
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
                         }
 
-                        size_t remaining = c->nSweepSize - c->nDisplayHead;
-                        size_t to_copy = (to_do_upsample < remaining) ? to_do_upsample : remaining;
-
-                        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
-                        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
-
-                        c->nDisplayHead += to_copy;
-
-                        if (c->nDisplayHead >= c->nSweepSize)
+                        for (size_t n; n < to_do_upsample; ++n)
                         {
-                            // Plot stuff happens here
+                            if (c->nDisplayHead >= c->nSweepSize)
+                            {
+                                // Plot stuff happens here
 
-                            reset_display_buffers(c);
+                                reset_display_buffers(c);
+                            }
+
+                            c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
+                            c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
+
+                            ++c->nDisplayHead;
                         }
+
+//                        size_t remaining = c->nSweepSize - c->nDisplayHead;
+//                        size_t to_copy = (to_do_upsample < remaining) ? to_do_upsample : remaining;
+//
+//                        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
+//                        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
+//
+//                        c->nDisplayHead += to_copy;
+//
+//                        if (c->nDisplayHead >= c->nSweepSize)
+//                        {
+//                            // Plot stuff happens here
+//
+//                            reset_display_buffers(c);
+//                        }
                     }
                     break;
 

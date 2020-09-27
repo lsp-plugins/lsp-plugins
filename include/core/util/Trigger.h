@@ -141,7 +141,7 @@ namespace lsp
              */
             inline void reset_single_trigger()
             {
-                sLocks.bSingleLock = true;
+                sLocks.bSingleLock = false;
                 bSync = true;
             }
 
