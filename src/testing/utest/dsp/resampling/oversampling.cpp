@@ -97,8 +97,8 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 100, 999)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 31,
+                32, 63, 64, 127, 100, 999)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -106,10 +106,8 @@ UTEST_BEGIN("dsp.resampling", oversampling)
 
                 FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count*times + RESAMPLING_RESERVED_SAMPLES, align, mask & 0x02);
+                dst1.randomize_sign();
                 FloatBuffer dst2(dst1);
-
-                dst1.fill_zero();
-                dst2.fill_zero();
 
                 // Call functions
                 func1(dst1, src, count);
