@@ -73,7 +73,7 @@
 		},
 		"pos": {
 		    "post_eq": "Post-eq",
-			"pre_eq": "Pre-eq"
+			"pre_eq": "Pré-eq"
 		},
 		"slope": {
 			"6dbo": "6 dB/oct",
@@ -193,10 +193,10 @@
         "herm_thin": "Herm mince",
         "herm_wide": "Herm large",
 
-        "line_duck": "Line duck",
-        "line_tail": "Line queue",
-        "line_thin": "Line mince",
-        "line_wide": "Line large"
+        "line_duck": "Ligne duck",
+        "line_tail": "Ligne queue",
+        "line_thin": "Ligne mince",
+        "line_wide": "Ligne large"
 	},
 	
 	"mb_comp": {
