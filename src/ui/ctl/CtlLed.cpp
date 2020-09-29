@@ -108,7 +108,9 @@ namespace lsp
             else if (pPort != NULL)
             {
                 float value = pPort->get_value();
-                on = value >= 0.5f;
+                const port_t *meta = pPort->metadata();
+
+                on = (meta->unit == U_ENUM) ? (abs(value - fKey) <= CMP_TOLERANCE) : (value >= 0.5f);
             }
             else
                 on = abs(fValue - fKey) <= CMP_TOLERANCE;
