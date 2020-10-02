@@ -3423,7 +3423,7 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            status_t X11Display::acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
+            status_t X11Display::accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r)
             {
                 /**
                 XdndStatus

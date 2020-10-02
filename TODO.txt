@@ -31,6 +31,7 @@
 * MIDI octave numbering now starts with "-1", previously it started with "-2".
 * Refactored ipc::Process for better work with vfork() system call.
 * Fixed regression in led indication for the Compensation Delay plugin series.
+* Fixed drag&drop regression after code refactoring.
 
 *******************************************************************************
 * New plugin check list before release
