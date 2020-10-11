@@ -54,13 +54,14 @@ namespace lsp
             typedef struct simple_trg_t
             {
                 float   fThreshold;
-                float   fPrevious;
             } simple_trg_t;
 
             typedef struct advanced_trg_t
             {
                 float   fThreshold;
                 float   fHysteresis;
+                float   fLowerThreshold;
+                float   fUpperThreshold;
                 bool    bDisarm;
             } advanced_trg_t;
 
@@ -68,6 +69,7 @@ namespace lsp
             Trigger & operator = (const Trigger &);
 
         private:
+            float           fPrevious;
 
             trg_mode_t      enTriggerMode;
             trg_type_t      enTriggerType;
@@ -93,9 +95,17 @@ namespace lsp
                 sSimpleTrg.fThreshold = threshold;
             }
 
+            inline void update_advanced_trg()
+            {
+                sAdvancedTrg.fLowerThreshold = sAdvancedTrg.fThreshold - sAdvancedTrg.fHysteresis;
+                sAdvancedTrg.fUpperThreshold = sAdvancedTrg.fThreshold + sAdvancedTrg.fHysteresis;
+            }
+
             inline void set_advanced_trg_threshold(float threshold)
             {
                 sAdvancedTrg.fThreshold = threshold;
+
+                update_advanced_trg();
             }
 
             inline void set_advanced_trg_hysteresis(float hysteresis)
@@ -104,6 +114,8 @@ namespace lsp
                     hysteresis = -hysteresis;
 
                 sAdvancedTrg.fHysteresis = hysteresis;
+
+                update_advanced_trg();
             }
 
         public:

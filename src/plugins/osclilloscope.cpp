@@ -602,7 +602,7 @@ namespace lsp
 
             c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
             c->sPreTrgDelay.set_delay(c->nPreTrigger);
-            c->sPreTrgDelay.clear();
+            c->sPreTrgDelay.clear(); // This should happen only if the delay changes.
 
             float trgLevel = c->pTrgLev->getValue();
             size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->pTrgHold->getValue());
