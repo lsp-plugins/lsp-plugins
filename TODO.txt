@@ -27,6 +27,7 @@
 - Added delay and phase inversion controls to the crossover plugin.
 - Added possibility to change the note number in the sampler.
 - Added sample reversal feature to the Sampler and Multisampler plugin series.
+* Fixed bug in improper RGB -> HSL conversion for UI.
 * Added 'Plugin Manual' menu item to show the documentation to plugin in the browser.
 * Added 'UI Manual' menu item to show the documentation to UI in the browser.
 * MIDI octave numbering now starts with "-1", previously it started with "-2".
