@@ -11,6 +11,8 @@
 		"yes": "Oui"
 	},
 	
+	"debug_dump": "Dump pour le débogage",
+	
 	"edit": {
 		"clear": "Effacer",
 		"copy": "Copier",
@@ -30,6 +32,7 @@
 	"freeze": "Geler",
 	
 	"import": "Importer",
+	"import_hydrogen_drumkit_file": "Fichier de kit de batterie Hydrogen...",
 	"import_settings_from_clipboard": "Importer les paramètres depuis le presse-papiers",
 	"import_settings_from_file": "Importer les paramètres depuis un fichier...",
 	"import_rew_filter_file": "Fichier filtre REW...",
@@ -56,7 +59,7 @@
 	"postprocess": "Post-traitement",
 	"profile": "Profil",
 	
-	"reset": "Remettre",
+	"reset": "Réinitialiser",
 	
 	"save": "Sauvegarder",
 	
