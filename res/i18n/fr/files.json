@@ -13,6 +13,9 @@
 		"lsp": "Fichier de configuration LSP plugin (*.cfg)",
 		"lspc": "Format de fichier de données de morceaux LSP (*.lspc)"
 	},
+	"hydrogen": {
+		"xml": "Fichier de description de kit de batterie Hydrogen (*.xml)"
+	},
 	"roomeqwizard": {
 		"all": "Tous les paramètres du filtre REW (*.req, *.txt)",
 		"req": "Paramètres du filtre binaire REW (*.req)",
