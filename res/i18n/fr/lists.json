@@ -17,6 +17,22 @@
 		"upward": "À la hausse"
 	},
 	
+	"crossover": {
+		"sel": {
+			"left": "Processeur gauche",
+			"mid": "Processeur centre",
+			"right": "Processeur droit",
+			"side": "Processeur côté"
+		},
+		"slope": {
+			"24dbo": "24 dB/oct",
+			"48dbo": "48 dB/oct",
+			"72dbo": "72 dB/oct",
+			"96dbo": "96 dB/oct",
+			"off": "Off"
+		}
+	},
+	
 	"dither": {
         "none": "Aucun",
         "bits": {
@@ -112,6 +128,7 @@
 			"blackman_harris": "Blackman-Harris",
 			"blackman_nuttall": "Blackman-Nuttall",
 			"cosine": "Cosinus",
+			"cubic": "Spline d'Hermite cubique",
 			"flat_top": "Plateau",
 			"gauss": "Gaussien",
 			"hamming": "Hamming",
@@ -122,6 +139,7 @@
 			"parzen": "Parzen",
 			"poisson": "Poisson",
 			"rectangular": "Rectangulaire",
+			"sqr_cosine": "Cosinus carré",
 			"triangular": "Triangulaire",
 			"tukey": "Tukey",
 			"welch": "Welch"
@@ -179,6 +197,15 @@
 			"mt48": "MT48",
 			"mt72": "MT72",
 			"mt96": "MT96"
+		}
+	},
+	
+	"lcomp": {
+		"curve": {
+			"flat": "Plat",
+			"fm": "Fletcher-Munson",
+			"iso226": "ISO 226:2003",
+			"rd": "Robinson-Dadson"
 		}
 	},
 	
@@ -605,9 +632,16 @@
 		"spectralizer_s": "Spectraliseur stéréo"
 	},
 	
+	"surge": {
+		"cubic": "Cubique",
+		"gaussian": "Gaussien",
+		"linear": "Linéaire",
+		"parabolic": "Parabolique",
+		"sine": "Sinusoïdal"
+	},
+	
 	"trigger": {
 		"inst": "Instrument",
 		"trig": "Déclencheur"
 	}
 }
-
