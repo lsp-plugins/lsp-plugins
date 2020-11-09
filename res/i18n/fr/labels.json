@@ -348,7 +348,7 @@
 		"gate": "Porte (gate)",
 		"latency_detector": "Détecteur de latence",
 		"limiter": "Limiteur",
-		"surge_filter": "Filtre de surtension",
+		"surge_filter": "Filtre anti-coupure",
 		"trigger": "Déclencheur"
 	},
 	
