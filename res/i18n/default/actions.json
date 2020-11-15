@@ -56,6 +56,7 @@
 	"ok": "OK",
 	"open": "Open",
 	
+	"plugin_manual": "Plugin manual",
 	"postprocess": "Post-process",
 	"profile": "Profile",
 	
@@ -64,8 +65,10 @@
 	"save": "Save",
 	
 	"select_language": "Select language",
-	
+
 	"tap": "Tap",
 	"to_bookmarks": "+Bookmarks",
-	"toggle_rack_mount": "Toggle rack mount"
+	"toggle_rack_mount": "Toggle rack mount",
+	
+	"ui_manual": "UI manual"
 }

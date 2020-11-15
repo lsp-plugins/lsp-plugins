@@ -51,6 +51,7 @@
 	
 	"balance": "Balance",
 	
+	"band": "Band",
 	"band_hue": "Band, Hue",
 	
 	"bool": {
@@ -79,6 +80,7 @@
 		"M_ute": "M",
 		"OFF": "OFF",
 		"ON": "ON",
+		"P_hase": "P",
 		"R_ight": "R",
 		"R_ight:": "R:",
 		"S_ide": "S",
@@ -110,6 +112,7 @@
 		"on": "On",
 		"out": "Out",
 		"output": "Output",
+		"phase": "Phase",
 		"pitch": "Pitch",
 		"pitch_left": "Pitch Left",
 		"pitch_mid": "Pitch Mid",
@@ -402,7 +405,7 @@
 	"save": "Save",
 	"save_": "Save",
 	"save_mode": "Save Mode",
-	
+
 	"sc": {
 		"Ext_ernal": "Ext",
 		"SC": "SC",
@@ -470,10 +473,10 @@
 		"peak": "Peak",
 		"phase": "Phase",
 		"positive_width": "Positive Width",
+		"raise": "Raise",
 		"reference": "Reference",
 		"relative": "Relative",
 		"rms": "RMS",
-		"raise": "Raise",
 		"stereo": "Stereo",
 		"width": "Width",
 		"wet": "Wet",

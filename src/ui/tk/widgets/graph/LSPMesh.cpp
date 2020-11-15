@@ -1,8 +1,22 @@
 /*
- * LSPMesh.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 19 июл. 2017 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 19 июл. 2017 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <ui/tk/tk.h>
@@ -51,7 +65,6 @@ namespace lsp
                 vBuffer     = NULL;
             }
             nBufSize    = 0;
-            sBasis.flush();
         }
 
         void LSPMesh::destroy()
@@ -181,7 +194,7 @@ namespace lsp
             color.scale_lightness(brightness());
 
             // Determine number of dimensions
-            size_t basis    = (sBasis.size() > 0) ? sBasis.size() : cv->basis_axes();
+            size_t basis    = cv->basis_axes();
             size_t n_vecs   = (nDimensions > basis) ? basis : nDimensions;
             if (n_vecs <= 0)
             {
@@ -202,50 +215,24 @@ namespace lsp
             dsp::fill(y_vec, cy, nPoints);
 
             // Calculate dot coordinates
-            if (sBasis.size() > 0)
+            const float *src = vBuffer;
+            for (size_t i=0; i<n_vecs; ++i)
             {
-                const float *src = vBuffer;
-                for (size_t i=0; i<sBasis.size(); ++i)
+                // Try to get new axis
+                LSPAxis *axis   = cv->basis_axis(i);
+                if (axis == NULL) // There is no axis, leave cycle
                 {
-                    // Try to get new axis
-                    ssize_t *idx    = sBasis.at(i);
-                    LSPAxis *axis   = cv->basis_axis(*idx);
-                    if (axis == NULL)
-                    {
-                        lsp_trace("axis == null");
-                        return;
-                    }
-
-                    // Try to apply axis
-                    if (!axis->apply(x_vec, y_vec, src, nPoints))
-                    {
-                        lsp_trace("!axis->apply");
-                        return;
-                    }
-                    src += vec_size;
+                    lsp_trace("axis == null");
+                    break;
                 }
-            }
-            else
-            {
-                const float *src = vBuffer;
-                for (size_t i=0; i<n_vecs; ++i)
+
+                // Try to apply axis
+                if (!axis->apply(x_vec, y_vec, src, nPoints))
                 {
-                    // Try to get new axis
-                    LSPAxis *axis   = cv->basis_axis(i);
-                    if (axis == NULL) // There is no axis, leave cycle
-                    {
-                        lsp_trace("axis == null");
-                        break;
-                    }
-
-                    // Try to apply axis
-                    if (!axis->apply(x_vec, y_vec, src, nPoints))
-                    {
-                        lsp_trace("!axis->apply");
-                        return;
-                    }
-                    src += vec_size;
+                    lsp_trace("!axis->apply");
+                    return;
                 }
+                src += vec_size;
             }
 
             // Now we have dots in x_vec[] and y_vec[]
@@ -260,11 +247,5 @@ namespace lsp
             s->set_antialiasing(aa);
         }
 
-        void LSPMesh::add(LSPWidget *widget)
-        {
-            LSPBasis *basis = widget_cast<LSPBasis>(widget);
-            if (basis != NULL)
-                sBasis.add(basis->get_id());
-        }
     } /* namespace tk */
 } /* namespace lsp */

@@ -1,8 +1,22 @@
 /*
- * SpectralProcessor.h
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 1 июл. 2020 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 1 июл. 2020 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef CORE_UTIL_SPECTRALPROCESSOR_H_
@@ -13,6 +27,13 @@
 
 namespace lsp
 {
+    /**
+     * Spectral processor callback function
+     * @param object the object that handles callback
+     * @param subject the subject that is used to handle callback
+     * @param spectrum spectral data for processing (packed complex numbers)
+     * @param rank the overall rank of the FFT transform (log2(size))
+     */
     typedef void (* spectral_processor_func_t)(void *object, void *subject, float *spectrum, size_t rank);
     
     /**

@@ -19,13 +19,22 @@
 - Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
-- Review internal convolver module.
 - Implemented Multiband Dynamic Processor plugin series.
 
-=== 1.1.26 ===
+=== 1.1.28 ===
 
-* Fixed phase mismatch between channels in the oversampling mode of limiter (contributed by Hector Martin).
-- Implemented Crossover Plugin.
+- Implemented Long Delay plugin.
+- Added delay and phase inversion controls to the crossover plugin.
+- Added possibility to change the note number in the sampler.
+- Added sample reversal feature to the Sampler and Multisampler plugin series.
+- Added possibility to use relative paths in file configurations.
+* Fixed bug in improper RGB -> HSL conversion for UI.
+* Added 'Plugin Manual' menu item to show the documentation to plugin in the browser.
+* Added 'UI Manual' menu item to show the documentation to UI in the browser.
+* MIDI octave numbering now starts with "-1", previously it started with "-2".
+* Refactored ipc::Process for better work with vfork() system call.
+* Fixed regression in led indication for the Compensation Delay plugin series.
+* Fixed drag&drop regression after code refactoring.
 
 *******************************************************************************
 * New plugin check list before release
@@ -35,8 +44,14 @@
 * Plugin translations are valid
 * Plugin has registered VST2 IDs on Steinberg site: http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
 * Ensure that there are menu items present for all new plugins in res/xdg
-* Ensure that plugin provides internal state dump.
 * Ensure that lsp-plugins.menu contains reference to the new plugin
+* Ensure that plugin provides internal state dump.
+* Check that there are no additional warnings/errors for the following script after plugin installation:
+  
+  export LV2_PATH=/usr/local/lib/lv2
+  for uri in $(lv2ls |grep lsp-plug.in); do
+    lv2lint -Mpack "$uri"
+  done
 
 *******************************************************************************
 * Release steps
@@ -67,25 +82,30 @@
 * PLUGIN LIST
 *******************************************************************************
 
+* Compensation Delay
 * Compressor
 * Convolver
+* Crossover
 * Dynamic Processor
 * Expander
 * Gate
 * Graphic Equalizer
 * Impulse Reverb
+* Latency Meter
 * Limiter
 * Linear Audio Profiler
+* Loudness Compensator
 * Multi-Sampler
 * Multiband Compressor
 * Multiband Expander
 * Multiband Gate
 * Parametric Equalizer
-* Phase Compensator
 * Phase Detector
+* Room Builder
 * Sampler
-* Slap-back delay
+* Slap-back Delay
 * Spectrum Analyzer
+* Surge filter
 * Trigger
 
 - Multiband Dynamic Processor
@@ -108,7 +128,7 @@
 - Decapitator
 - HeadCrusher
 - Dynamic Equalizer
-- Dynamic panner
+- Dynamic Panner
 - Distortion
 - Real sampler (with sample recording option) 
 

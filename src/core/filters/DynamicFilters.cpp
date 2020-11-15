@@ -1,8 +1,22 @@
 /*
- * DynamicFilters.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 1 февр. 2018 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 1 февр. 2018 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <core/filters/DynamicFilters.h>
@@ -23,6 +37,16 @@ namespace lsp
 
     DynamicFilters::DynamicFilters()
     {
+        construct();
+    }
+
+    DynamicFilters::~DynamicFilters()
+    {
+        destroy();
+    }
+
+    void DynamicFilters::construct()
+    {
         vFilters        = NULL;
         vMemory         = NULL;
         vCascades       = NULL;
@@ -31,11 +55,6 @@ namespace lsp
         nSampleRate     = 0;
         pData           = NULL;
         bClearMem       = false;
-    }
-
-    DynamicFilters::~DynamicFilters()
-    {
-        destroy();
     }
 
     status_t DynamicFilters::init(size_t filters)
@@ -84,22 +103,17 @@ namespace lsp
         return STATUS_OK;
     }
 
-    void DynamicFilters::set_sample_rate(size_t sr)
-    {
-        nSampleRate         = sr;
-    }
-
     void DynamicFilters::destroy()
     {
         if (pData != NULL)
             free_aligned(pData);
 
-        vFilters        = NULL;
-        vCascades       = NULL;
-        vMemory         = NULL;
-        vBiquads.ptr    = NULL;
-        nFilters        = 0;
-        nSampleRate     = 0;
+        construct();
+    }
+
+    void DynamicFilters::set_sample_rate(size_t sr)
+    {
+        nSampleRate         = sr;
     }
 
     bool DynamicFilters::set_params(size_t id, const filter_params_t *params)

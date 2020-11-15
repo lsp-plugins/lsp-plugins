@@ -1,8 +1,22 @@
 /*
- * mb_expander.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 27 дек. 2019 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 27 дек. 2019 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <core/debug.h>
@@ -578,6 +592,12 @@ namespace lsp
         if (pData != NULL)
             free_aligned(pData);
 
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
+
         // Destroy analyzer
         sAnalyzer.destroy();
 
@@ -695,7 +715,7 @@ namespace lsp
         if (sAnalyzer.needs_reconfiguration())
         {
             sAnalyzer.reconfigure();
-            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
+            sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, mb_expander_base_metadata::MESH_POINTS);
         }
 
         size_t latency = 0;
@@ -894,8 +914,8 @@ namespace lsp
                     }
 
                     // Update transfer function for equalizer
-                    b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
-                    b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(0), b->vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
+                    b->sEQ[0].freq_chart(size_t(1), vTr, vFreqs, mb_expander_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mul2(b->vTr, vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
                     dsp::pcomplex_mod(b->vTr, b->vTr, mb_expander_base_metadata::FFT_MESH_POINTS);
 
@@ -1314,9 +1334,9 @@ namespace lsp
                     {
                         // Add extra points
                         mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
-                        mesh->pvData[0][para_equalizer_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
+                        mesh->pvData[0][mb_expander_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX * 2.0f;
                         mesh->pvData[1][0] = 0.0f;
-                        mesh->pvData[1][para_equalizer_base_metadata::MESH_POINTS+1] = 0.0f;
+                        mesh->pvData[1][mb_expander_base_metadata::MESH_POINTS+1] = 0.0f;
 
                         // Fill mesh
                         dsp::copy(&mesh->pvData[0][1], vFreqs, mb_expander_base_metadata::MESH_POINTS);

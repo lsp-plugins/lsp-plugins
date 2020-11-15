@@ -1,8 +1,22 @@
 /*
- * UICore.h
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 10 окт. 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 10 окт. 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef UI_X11_X11DISPLAY_H_
@@ -242,7 +256,7 @@ namespace lsp
                     virtual const char * const *get_drag_ctypes();
 
                     virtual status_t    reject_drag();
-                    virtual status_t    acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+                    virtual status_t    accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
 

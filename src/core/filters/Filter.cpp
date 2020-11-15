@@ -1,8 +1,22 @@
 /*
- * filter.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 28 июня 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 28 июня 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <math.h>
@@ -10,11 +24,23 @@
 #include <core/debug.h>
 #include <core/filters/Filter.h>
 
-#define MIN_APO_Q   0.1f // Minimum Q for APO cannot be 0
+#define MIN_APO_Q           0.1f // Minimum Q for APO cannot be 0
+
+#define STACK_BUF_SIZE      0x100U
 
 namespace lsp
 {
     Filter::Filter()
+    {
+        construct();
+    }
+
+    Filter::~Filter()
+    {
+        destroy();
+    }
+
+    void Filter::construct()
     {
         pBank               = NULL;
         sParams.nType       = FLT_NONE;
@@ -32,11 +58,6 @@ namespace lsp
         vItems              = NULL;
         vData               = NULL;
         nFlags              = FF_REBUILD | FF_CLEAR;
-    }
-
-    Filter::~Filter()
-    {
-        destroy();
     }
 
     bool Filter::init(FilterBank *fb)
@@ -373,40 +394,6 @@ namespace lsp
         nFlags     &= FF_OWN_BANK; // Clear all flags except FF_OWN_BANK
     }
 
-    void Filter::complex_transfer_calc(float *re, float *im, float f)
-    {
-        float f2        = f * f; // f ^ 2
-        float r_re      = 1.0;
-        float r_im      = 0.0;
-
-        for (size_t i=0; i<nItems; ++i)
-        {
-            f_cascade_t *c  = &vItems[i];
-
-            // Calculate top and bottom transfer parts
-            float t_re      = c->t[0] - f2 * c->t[2];
-            float t_im      = c->t[1]*f;
-            float b_re      = c->b[0] - f2 * c->b[2];
-            float b_im      = c->b[1]*f;
-
-            // Calculate top / bottom
-            float w         = 1.0 / (b_re * b_re + b_im * b_im);
-            float w_re      = (t_re * b_re + t_im * b_im) * w;
-            float w_im      = (t_im * b_re - t_re * b_im) * w;
-
-            // Update transfer function
-            b_re            = r_re*w_re - r_im*w_im;
-            b_im            = r_re*w_im + r_im*w_re;
-
-            // Commit result
-            r_re            = b_re;
-            r_im            = b_im;
-        }
-
-        *re             = r_re;
-        *im             = r_im;
-    }
-
     void Filter::apo_complex_transfer_calc(float *re, float *im, float f)
     {
         // Calculating normalized frequency, wrapped for maximal accuracy:
@@ -456,9 +443,12 @@ namespace lsp
 
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
     {
-        // Calculate frequency chart
+        // Temporary buffer to store updated frequency
+        float freqs[STACK_BUF_SIZE] __lsp_aligned32;
+        filter_mode_t mode = (nItems > 0) ? nMode : FM_BYPASS;
 
-        switch (nMode)
+        // Calculate frequency chart
+        switch (mode)
         {
             case FM_BILINEAR:
             {
@@ -466,13 +456,25 @@ namespace lsp
                 float kf    = 1.0/tanf(sParams.fFreq * nf);
                 float lf    = nSampleRate * 0.499;
 
-                while (count--)
+                while (count > 0)
                 {
-                    // Cyclic frequency
-                    float w     = *(f++);
-                    w           = tanf((w > lf ? lf : w) * nf) * kf;
+                    size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
 
-                    complex_transfer_calc(re++, im++, w);
+                    // Compute transfer function
+                    for (size_t i=0; i<to_do; ++i)
+                    {
+                        float w     = f[i];
+                        freqs[i]      = tanf((w > lf ? lf : w) * nf) * kf;
+                    }
+                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], freqs, to_do);
+                    for (size_t i=1; i<nItems; ++i)
+                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], freqs, to_do);
+
+                    // Update pointers
+                    re         += to_do;
+                    im         += to_do;
+                    f          += to_do;
+                    count      -= to_do;
                 }
                 break;
             }
@@ -481,12 +483,21 @@ namespace lsp
             {
                 float kf    = 1.0 / sParams.fFreq;
 
-                while (count--)
+                while (count > 0)
                 {
-                    // Cyclic frequency
-                    float w    = *(f++) * kf;
+                    size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
 
-                    complex_transfer_calc(re++, im++, w);
+                    // Compute transfer function
+                    dsp::mul_k3(freqs, f, kf, to_do);
+                    dsp::filter_transfer_calc_ri(re, im, &vItems[0], freqs, to_do);
+                    for (size_t i=1; i<nItems; ++i)
+                        dsp::filter_transfer_apply_ri(re, im, &vItems[i], freqs, to_do);
+
+                    // Update pointers
+                    re         += to_do;
+                    im         += to_do;
+                    f          += to_do;
+                    count      -= to_do;
                 }
                 break;
             }
@@ -510,9 +521,12 @@ namespace lsp
 
     void Filter::freq_chart(float *c, const float *f, size_t count)
     {
-        // Calculate frequency chart
+        // Temporary buffer to store updated frequency
+        float freqs[STACK_BUF_SIZE] __lsp_aligned32;
+        filter_mode_t mode = (nItems > 0) ? nMode : FM_BYPASS;
 
-        switch (nMode)
+        // Calculate frequency chart
+        switch (mode)
         {
             case FM_BILINEAR:
             {
@@ -520,15 +534,26 @@ namespace lsp
                 float kf    = 1.0/tanf(sParams.fFreq * nf);
                 float lf    = nSampleRate * 0.499;
 
-                while (count--)
+                while (count > 0)
                 {
-                    // Cyclic frequency
-                    float w     = *(f++);
-                    w           = tanf((w > lf ? lf : w) * nf) * kf;
+                    size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
 
-                    complex_transfer_calc(c, &c[1], w);
-                    c += 2;
+                    // Compute transfer function
+                    for (size_t i=0; i<to_do; ++i)
+                    {
+                        float w     = f[i];
+                        freqs[i]      = tanf((w > lf ? lf : w) * nf) * kf;
+                    }
+                    dsp::filter_transfer_calc_pc(c, &vItems[0], freqs, to_do);
+                    for (size_t i=1; i<nItems; ++i)
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], freqs, to_do);
+
+                    // Update pointers
+                    c          += to_do*2;
+                    f          += to_do;
+                    count      -= to_do;
                 }
+
                 break;
             }
 
@@ -536,13 +561,22 @@ namespace lsp
             {
                 float kf    = 1.0 / sParams.fFreq;
 
-                while (count--)
+                while (count > 0)
                 {
-                    // Cyclic frequency
-                    float w     = *(f++) * kf;
-                    complex_transfer_calc(c, &c[1], w);
-                    c += 2;
+                    size_t to_do    = lsp_min(count, STACK_BUF_SIZE);
+
+                    // Compute transfer function
+                    dsp::mul_k3(freqs, f, kf, to_do);
+                    dsp::filter_transfer_calc_pc(c, &vItems[0], freqs, to_do);
+                    for (size_t i=1; i<nItems; ++i)
+                        dsp::filter_transfer_apply_pc(c, &vItems[i], freqs, to_do);
+
+                    // Update pointers
+                    c          += to_do*2;
+                    f          += to_do;
+                    count      -= to_do;
                 }
+
                 break;
             }
 

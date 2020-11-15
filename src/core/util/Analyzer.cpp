@@ -1,8 +1,22 @@
 /*
- * Analyzer.cpp
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 14 авг. 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 14 авг. 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #include <core/types.h>
@@ -295,6 +309,46 @@ namespace lsp
             frq[i]          = f;
             idx[i]          = ix;
         }
+    }
+
+    void Analyzer::dump(IStateDumper *v) const
+    {
+        v->write("nChannels", nChannels);
+        v->write("nMaxRank", nMaxRank);
+        v->write("nRank", nRank);
+        v->write("nSampleRate", nSampleRate);
+        v->write("nBufSize", nBufSize);
+        v->write("nFftPeriod", nFftPeriod);
+        v->write("fReactivity", fReactivity);
+        v->write("fTau", fTau);
+        v->write("fRate", fRate);
+        v->write("fShift", fShift);
+        v->write("nReconfigure", nReconfigure);
+        v->write("nEnvelope", nEnvelope);
+        v->write("nWindow", nWindow);
+        v->write("bActive", bActive);
+
+        v->begin_array("vChannels", vChannels, nChannels);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            const channel_t *c = &vChannels[i];
+            v->begin_object(c, sizeof(channel_t));
+            {
+                v->write("vBuffer", c->vBuffer);
+                v->write("vAmp", c->vAmp);
+                v->write("nCounter", c->nCounter);
+                v->write("bFreeze", c->bFreeze);
+                v->write("bActive", c->bActive);
+            }
+            v->end_object();
+        }
+        v->end_array();
+
+        v->write("vData", vData);
+        v->write("vSigRe", vSigRe);
+        v->write("vFftReIm", vFftReIm);
+        v->write("vWindow", vWindow);
+        v->write("vEnvelope", vEnvelope);
     }
 
 } /* namespace lsp */

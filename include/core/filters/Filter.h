@@ -1,8 +1,22 @@
 /*
- * filter.h
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 28 июня 2016 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 28 июня 2016 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #ifndef CORE_FILTERS_FILTER_H_
@@ -15,6 +29,9 @@
 
 namespace lsp
 {
+    /**
+     * Single filter implementation
+     */
     class Filter
     {
         private:
@@ -49,52 +66,56 @@ namespace lsp
 
         protected:
 
-            void complex_transfer_calc(float *re, float *im, float f);
-            void apo_complex_transfer_calc(float *re, float *im, float f);
-            f_cascade_t *add_cascade();
+            void                apo_complex_transfer_calc(float *re, float *im, float f);
+            f_cascade_t        *add_cascade();
 
-            void calc_rlc_filter(size_t type, const filter_params_t *fp);
-            void calc_bwc_filter(size_t type, const filter_params_t *fp);
-            void calc_lrx_filter(size_t type, const filter_params_t *fp);
-            void calc_apo_filter(size_t type, const filter_params_t *fp);
-            float bilinear_relative(float f1, float f2);
-            void bilinear_transform();
-            void matched_transform();
+            void                calc_rlc_filter(size_t type, const filter_params_t *fp);
+            void                calc_bwc_filter(size_t type, const filter_params_t *fp);
+            void                calc_lrx_filter(size_t type, const filter_params_t *fp);
+            void                calc_apo_filter(size_t type, const filter_params_t *fp);
+            float               bilinear_relative(float f1, float f2);
+            void                bilinear_transform();
+            void                matched_transform();
 
         public:
             explicit Filter();
             ~Filter();
 
-        public:
+            /**
+             * Construct the object being the chunk of memory
+             */
+            void                construct();
+
             /**  Initialize filter
              *
-             * @param fb filter bank to use
+             * @param fb filter bank to use, NULL for using internal filter bank
              * @return true on success
              */
-            bool init(FilterBank *fb);
+            bool                init(FilterBank *fb);
 
             /** Destroy filter data
              *
              */
-            void destroy();
+            void                destroy();
 
+        public:
             /** Update filter parameters
              *
              * @param params filter parameters
              */
-            void update(size_t sr, const filter_params_t *params);
+            void                update(size_t sr, const filter_params_t *params);
 
             /**
              * Update sample rate
              * @param sr sample rate
              */
-            void set_sample_rate(size_t sr);
+            void                set_sample_rate(size_t sr);
 
             /** Get current filter parameters
              *
              * @param params pointer to filter parameters to store
              */
-            void get_params(filter_params_t *params);
+            void                get_params(filter_params_t *params);
 
             /** Process signal
              *
@@ -102,7 +123,7 @@ namespace lsp
              * @param in input signal
              * @param samples number of samples to process
              */
-            void process(float *out, const float *in, size_t samples);
+            void                process(float *out, const float *in, size_t samples);
 
             /** Get the impulse response of the filter
              *
@@ -110,7 +131,7 @@ namespace lsp
              * @param length length of the impulse response
              * @return true if impulse response can be taken, false if need to take it from bank
              */
-            bool impulse_response(float *out, size_t length);
+            bool                impulse_response(float *out, size_t length);
 
             /** Get frequency chart
              *
@@ -119,7 +140,7 @@ namespace lsp
              * @param f frequencies to calculate value
              * @param count number of dots for the chart
              */
-            void freq_chart(float *re, float *im, const float *f, size_t count);
+            void                freq_chart(float *re, float *im, const float *f, size_t count);
 
             /** Get frequency chart
              *
@@ -127,41 +148,41 @@ namespace lsp
              * @param f frequencies to calculate value
              * @param count number of dots for the chart
              */
-            void freq_chart(float *c, const float *f, size_t count);
+            void                freq_chart(float *c, const float *f, size_t count);
 
             /** Mark filter to be cleared
              *
              */
-            inline void clear()             { nFlags     |= FF_CLEAR;       }
+            inline void         clear()             { nFlags     |= FF_CLEAR;       }
 
             /** Rebuild filter
              * Forces the filter to rebuild into bank of filters
              */
-            void rebuild();
+            void                rebuild();
 
             /** Get filter latency
              *
              * @return filter latency in samples
              */
-            inline size_t latency() const   { return nLatency;  };
+            inline size_t       latency() const     { return nLatency;  };
 
             /** Check if the filter is bypassed
              *
              * @return true if the filter is bypassed
              */
-            inline bool inactive() const    { return nMode == FM_BYPASS; }
+            inline bool         inactive() const    { return nMode == FM_BYPASS; }
 
             /** Check if the filter is active
              *
              * @return true if the filter is active
              */
-            inline bool active() const      { return nMode != FM_BYPASS; }
+            inline bool         active() const      { return nMode != FM_BYPASS; }
 
             /**
              * Dump the state
              * @param dumper dumper
              */
-            void dump(IStateDumper *v) const;
+            void                dump(IStateDumper *v) const;
     };
 }
 

@@ -1,8 +1,22 @@
 /*
- * modules.h
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
- *  Created on: 06 окт. 2015 г.
- *      Author: sadko
+ * This file is part of lsp-plugins
+ * Created on: 06 окт. 2015 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
  */
 
 // Define capabilities
@@ -174,9 +188,16 @@ MOD_PLUGIN(oscilloscope_x2, plugin_ui)
 MOD_PLUGIN(loud_comp_mono, plugin_ui)
 MOD_PLUGIN(loud_comp_stereo, plugin_ui)
 
-// Pop destroyer
+// Surge filter
 MOD_PLUGIN(surge_filter_mono, plugin_ui)
 MOD_PLUGIN(surge_filter_stereo, plugin_ui)
+
+// Crossover plugin
+MOD_PLUGIN(crossover_mono, plugin_ui)
+MOD_PLUGIN(crossover_stereo, plugin_ui)
+MOD_PLUGIN(crossover_ms, plugin_ui)
+MOD_PLUGIN(crossover_lr, plugin_ui)
+
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver
