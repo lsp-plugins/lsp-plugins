@@ -134,6 +134,8 @@ else
   export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
   export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
   export XLIB_LIBS        = $(shell pkg-config --libs x11)
+  export LV2_HEADERS      = $(shell pkg-config --cflags lv2)
+  export LV2_LIBS         = $(shell pkg-config --libs lv2)
   export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
   export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
   export JACK_HEADERS     = $(shell pkg-config --cflags jack)
