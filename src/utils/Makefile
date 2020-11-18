@@ -4,7 +4,7 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 OBJ_FILES               = $(OBJ_CORE) $(OBJ_METADATA)
 OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS)
-OBJ_EXTRA				= 
+OBJ_EXTRA               =
 INCLUDE_EXTRA           =
 
 ifeq ($(BUILD_PLATFORM),BSD)
@@ -26,11 +26,11 @@ ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
 endif
 ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
   MODULES                += $(UTL_JACKMAKE)
-  FILELIST               += jack_genmake.o 
+  FILELIST               += jack_genmake.o
 endif
 ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
   MODULES                += $(UTL_GENPHP)
-  FILELIST               += gen_php.o 
+  FILELIST               += gen_php.o
 endif
 
 FILES                   = $(addprefix $(OBJDIR)/, $(FILELIST))
