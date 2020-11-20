@@ -28,6 +28,7 @@
 - Added possibility to change the note number in the sampler.
 - Added sample reversal feature to the Sampler and Multisampler plugin series.
 - Added possibility to use relative paths in file configurations.
+* Plugins now can be built with Clang C++ compiler version 10+.
 * Fixed bug in improper RGB -> HSL conversion for UI.
 * Added 'Plugin Manual' menu item to show the documentation to plugin in the browser.
 * Added 'UI Manual' menu item to show the documentation to UI in the browser.
