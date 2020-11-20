@@ -4,7 +4,8 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 OBJ_FILES               = $(OBJ_CORE) $(OBJ_METADATA)
 OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS)
-OBJ_EXTRA				= 
+OBJ_EXTRA               =
+INCLUDE_EXTRA           =
 
 ifeq ($(BUILD_PLATFORM),BSD)
   OBJ_LIBS               += $(ICONV_LIBS)
@@ -17,6 +18,7 @@ endif
 ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
   MODULES                += $(UTL_GENTTL)
   FILELIST               += lv2_genttl.o
+  INCLUDE_EXTRA          += $(LV2_HEADERS)
 endif
 ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
   MODULES                += $(UTL_VSTMAKE)
@@ -24,11 +26,11 @@ ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
 endif
 ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
   MODULES                += $(UTL_JACKMAKE)
-  FILELIST               += jack_genmake.o 
+  FILELIST               += jack_genmake.o
 endif
 ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
   MODULES                += $(UTL_GENPHP)
-  FILELIST               += gen_php.o 
+  FILELIST               += gen_php.o
 endif
 
 FILES                   = $(addprefix $(OBJDIR)/, $(FILELIST))
@@ -47,12 +49,12 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"
-	@$(CXX) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CXXFLAGS) $(INCLUDE)
+	@$(CXX) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CXXFLAGS) $(INCLUDE) $(INCLUDE_EXTRA)
 
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)
 	@echo "  $(CXX) $(notdir $(UTL_GENTTL))"
-	@$(CXX) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
+	@$(CXX) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS) $(LV2_LIBS)
 	
 $(UTL_JACKMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CXX) $(notdir $(UTL_JACKMAKE))"
