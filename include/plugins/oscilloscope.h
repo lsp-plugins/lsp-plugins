@@ -23,6 +23,27 @@ namespace lsp
     {
         protected:
 
+            enum ch_update_t
+            {
+                UPD_SCPMODE             = 1 << 0,
+
+                UPD_ACBLOCK_X           = 1 << 1,
+                UPD_ACBLOCK_Y           = 1 << 2,
+                UPD_ACBLOCK_EXT         = 1 << 3,
+
+                UPD_OVERSAMPLER_X       = 1 << 4,
+                UPD_OVERSAMPLER_Y       = 1 << 5,
+                UPD_OVERSAMPLER_EXT     = 1 << 6,
+
+                UPD_PRETRG_DELAY        = 1 << 8,
+
+                UPD_SWEEP_GENERATOR     = 1 << 8,
+
+                UPD_TRIGGER_INPUT       = 1 << 9,
+                UPD_TRIGGER_HOLD        = 1 << 10,
+                UPD_TRIGGER             = 1 << 11
+            };
+
             enum ch_mode_t
             {
                 CH_MODE_XY,
@@ -67,6 +88,31 @@ namespace lsp
                 float               fAlpha;
                 float               fGain;
             } ac_block_t;
+
+            typedef struct ch_state_stage_t
+            {
+                size_t  nPV_pScpMode;
+
+                size_t  nPV_pCoupling_x;
+                size_t  nPV_pCoupling_y;
+                size_t  nPV_pCoupling_ext;
+                size_t  nPV_pOvsMode;
+
+                size_t  nPV_pTrgInput;
+                float   fPV_pVerDiv;
+                float   fPV_pVerPos;
+                float   fPV_pTrgLevel;
+                float   fPV_pTrgHys;
+                size_t  nPV_pTrgMode;
+                float   fPV_pTrgHold;
+                size_t  nPV_pTrgType;
+                bool    bTrgReset;
+
+                float   fPV_pHorDiv;
+                float   fPV_pHorPos;
+
+                size_t  nPV_pSweepType;
+            } ch_state_stage_t;
 
             typedef struct channel_t
             {
@@ -124,6 +170,9 @@ namespace lsp
                 float               fOffset;
 
                 ch_state_t          enState;
+
+                size_t              nUpdate;
+                ch_state_stage_t    sStateStage;
 
                 float              *vIn_x;
                 float              *vIn_y;
@@ -190,6 +239,7 @@ namespace lsp
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
             inline void set_sweep_generator(channel_t *c);
             inline void configure_oversamplers(channel_t *c);
+            void commit_staged_state_change(channel_t *c);
 
         public:
             explicit oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);

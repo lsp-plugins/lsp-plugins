@@ -569,58 +569,205 @@ namespace lsp
         }
     }
 
+    void oscilloscope_base::commit_staged_state_change(channel_t *c)
+    {
+        if (c->nUpdate & UPD_SCPMODE)
+            c->enMode = get_scope_mode(c->sStateStage.nPV_pScpMode);
+
+        if (c->nUpdate & UPD_ACBLOCK_X)
+            c->enCoupling_x = get_coupling_type(c->sStateStage.nPV_pCoupling_x);
+
+        if (c->nUpdate & UPD_ACBLOCK_Y)
+            c->enCoupling_y = get_coupling_type(c->sStateStage.nPV_pCoupling_y);
+
+        if (c->nUpdate & UPD_ACBLOCK_EXT)
+            c->enCoupling_ext = get_coupling_type(c->sStateStage.nPV_pCoupling_ext);
+
+        if (
+                (c->nUpdate & UPD_OVERSAMPLER_X) ||
+                (c->nUpdate & UPD_OVERSAMPLER_Y) ||
+                (c->nUpdate & UPD_OVERSAMPLER_EXT)
+                )
+        {
+            c->enOverMode = get_oversampler_mode(c->sStateStage.nPV_pOvsMode);
+            configure_oversamplers(c);
+        }
+
+        if (c->nUpdate & UPD_SWEEP_GENERATOR)
+        {
+             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pHorDiv);
+             c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
+        }
+
+        if (c->nUpdate & UPD_PRETRG_DELAY)
+        {
+             c->nPreTrigger = (0.01f * c->sStateStage.fPV_pHorPos  + 1) * (c->nSweepSize - 1) / 2;
+             c->sPreTrgDelay.set_delay(c->nPreTrigger);
+             c->sPreTrgDelay.clear();
+        }
+
+        if (c->nUpdate & UPD_SWEEP_GENERATOR)
+        {
+            c->enSweepType = get_sweep_type(c->sStateStage.nPV_pSweepType);
+            set_sweep_generator(c);
+        }
+
+        if (c->nUpdate & UPD_TRIGGER_INPUT)
+            c->enTrgInput = get_trigger_input(c->sStateStage.nPV_pTrgInput);
+
+        if (c->nUpdate & UPD_TRIGGER_HOLD)
+        {
+            size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pTrgHold);
+            trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
+            c->sTrigger.set_trigger_hold_samples(trgHold);
+        }
+
+        if (c->nUpdate & UPD_TRIGGER)
+        {
+            c->fScale = VER_FULL_SCALE_AMP / (c->sStateStage.fPV_pVerDiv * N_VER_DIVISIONS);
+            c->fOffset = 0.01f * c->sStateStage.fPV_pVerPos * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv;
+
+            c->sTrigger.set_trigger_mode(get_trigger_mode(c->sStateStage.nPV_pTrgMode));
+            c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv);
+            c->sTrigger.set_trigger_type(get_trigger_type(c->sStateStage.nPV_pTrgType));
+            c->sTrigger.set_trigger_threshold(0.01f * c->sStateStage.fPV_pTrgLevel * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv);
+            c->sTrigger.update_settings();
+        }
+
+        if (c->sStateStage.bTrgReset)
+        {
+            c->sTrigger.reset_single_trigger();
+            c->sTrigger.activate_manual_trigger();
+        }
+
+        // Clear the update flag
+        c->nUpdate = 0;
+    }
+
     void oscilloscope_base::update_settings()
     {
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
 
-            c->enOverMode = get_oversampler_mode(c->pOvsMode->getValue());
-            configure_oversamplers(c);
+            size_t scpmode = c->pScpMode->getValue();
+            if (scpmode != c->sStateStage.nPV_pScpMode)
+            {
+                c->sStateStage.nPV_pScpMode = scpmode;
 
-            c->enMode = get_scope_mode(c->pScpMode->getValue());
+                c->nUpdate |= UPD_SCPMODE;
+            }
 
-            c->enTrgInput = get_trigger_input(c->pTrgInput->getValue());
+            size_t coupling_x = c->pCoupling_x->getValue();
+            if (coupling_x != c->sStateStage.nPV_pCoupling_x)
+            {
+                c->sStateStage.nPV_pCoupling_x = coupling_x;
+                c->nUpdate |= UPD_ACBLOCK_X;
+            }
 
-            c->enCoupling_x = get_coupling_type(c->pCoupling_x->getValue());
-            c->enCoupling_y = get_coupling_type(c->pCoupling_y->getValue());
-            c->enCoupling_ext = get_coupling_type(c->pCoupling_ext->getValue());
+            size_t coupling_y = c->pCoupling_y->getValue();
+            if (coupling_y != c->sStateStage.nPV_pCoupling_y)
+            {
+                c->sStateStage.nPV_pCoupling_y = coupling_y;
+                c->nUpdate |= UPD_ACBLOCK_Y;
+            }
+
+            size_t coupling_ext = c->pCoupling_ext->getValue();
+            if (coupling_ext != c->sStateStage.nPV_pCoupling_ext)
+            {
+                c->sStateStage.nPV_pCoupling_ext = coupling_ext;
+                c->nUpdate |= UPD_ACBLOCK_EXT;
+            }
+
+            size_t overmode = c->pOvsMode->getValue();
+            if (overmode != c->sStateStage.nPV_pOvsMode)
+            {
+                c->sStateStage.nPV_pOvsMode = overmode;
+
+                c->nUpdate |= UPD_OVERSAMPLER_X;
+                c->nUpdate |= UPD_OVERSAMPLER_Y;
+                c->nUpdate |= UPD_OVERSAMPLER_EXT;
+            }
+
+            size_t trginput = c->pTrgInput->getValue();
+            if (trginput != c->sStateStage.nPV_pTrgInput)
+            {
+                c->sStateStage.nPV_pTrgInput = trginput;
+
+                c->nUpdate |= UPD_TRIGGER_INPUT;
+            }
 
             float verDiv = c->pVerDiv->getValue();
             float verPos = c->pVerPos->getValue();
-
-            c->fScale = VER_FULL_SCALE_AMP / (verDiv * N_VER_DIVISIONS);
-            c->fOffset = 0.01f * verPos * N_VER_DIVISIONS * verDiv;
-
-            float horDiv = c->pHorDiv->getValue();
-            float horPos = c->pHorPos->getValue();
-
-            c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, horDiv);
-            c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
-            c->enSweepType = get_sweep_type(c->pSweepType->getValue());
-            set_sweep_generator(c);
-
-            c->nPreTrigger = (0.01f * horPos  + 1) * (c->nSweepSize - 1) / 2;
-            c->sPreTrgDelay.set_delay(c->nPreTrigger);
-            c->sPreTrgDelay.clear(); // This should happen only if the delay changes.
-
-            float trgLevel = c->pTrgLev->getValue();
-            size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->pTrgHold->getValue());
-            trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
-
-            c->sTrigger.set_trigger_mode(get_trigger_mode(c->pTrgMode->getValue()));
-
-            if (c->pTrgReset->getValue() >= 0.5f)
+            if ((verDiv != c->sStateStage.fPV_pVerDiv) || (verPos != c->sStateStage.fPV_pVerPos))
             {
-                c->sTrigger.reset_single_trigger();
-                c->sTrigger.activate_manual_trigger();
+                c->sStateStage.fPV_pVerDiv = verDiv;
+                c->sStateStage.fPV_pVerPos = verPos;
+
+                c->nUpdate |= UPD_TRIGGER;
             }
 
-            c->sTrigger.set_trigger_hysteresis(0.01f * c->pTrgHys->getValue() * N_VER_DIVISIONS * verDiv);
-            c->sTrigger.set_trigger_type(get_trigger_type(c->pTrgType->getValue()));
-            c->sTrigger.set_trigger_threshold(0.01f * trgLevel * N_VER_DIVISIONS * verDiv);
-            c->sTrigger.set_trigger_hold_samples(trgHold);
-            c->sTrigger.update_settings();
+            float trgHys = c->pTrgHys->getValue();
+            if (trgHys != c->sStateStage.fPV_pTrgHys)
+            {
+                c->sStateStage.fPV_pTrgHys = trgHys;
+
+                c->nUpdate |= UPD_TRIGGER;
+            }
+
+            float trgLevel = c->pTrgLev->getValue();
+            if (trgLevel != c->sStateStage.fPV_pTrgLevel)
+            {
+                c->sStateStage.fPV_pTrgLevel = trgLevel;
+
+                c->nUpdate |= UPD_TRIGGER;
+            }
+
+            size_t trgmode = c->pTrgMode->getValue();
+            if (trgmode != c->sStateStage.nPV_pTrgMode)
+            {
+                c->sStateStage.nPV_pTrgMode = trgmode;
+
+                c->nUpdate |= UPD_TRIGGER;
+            }
+
+            float trghold = c->pTrgHold->getValue();
+            if (trghold != c->sStateStage.fPV_pTrgHold)
+            {
+                c->sStateStage.fPV_pTrgHold = trghold;
+
+                c->nUpdate |= UPD_TRIGGER_HOLD;
+            }
+
+            size_t trgtype = c->pTrgType->getValue();
+            if (trgtype != c->sStateStage.nPV_pTrgType)
+            {
+                c->sStateStage.nPV_pTrgType = trgtype;
+
+                c->nUpdate |= UPD_TRIGGER;
+            }
+
+            c->sStateStage.bTrgReset = c->pTrgReset->getValue() >= 0.5f;
+
+            float horDiv = c->pHorDiv->getValue();
+            if (horDiv != c->sStateStage.fPV_pHorDiv)
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
+
+            float horPos = c->pHorPos->getValue();
+            if (horPos != c->sStateStage.fPV_pHorPos)
+            {
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_PRETRG_DELAY;
+            }
+
+            size_t sweeptype = c->pSweepType->getValue();
+            if (sweeptype != c->sStateStage.nPV_pSweepType)
+            {
+                c->sStateStage.nPV_pSweepType = sweeptype;
+
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
+            }
+
         }
     }
 
@@ -688,6 +835,8 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
+
+            commit_staged_state_change(c);
 
             while (c->nSamplesCounter > 0)
             {
