@@ -41,7 +41,8 @@ namespace lsp
 
                 UPD_TRIGGER_INPUT       = 1 << 9,
                 UPD_TRIGGER_HOLD        = 1 << 10,
-                UPD_TRIGGER             = 1 << 11
+                UPD_TRIGGER             = 1 << 11,
+                UPD_TRGGER_RESET        = 1 << 12
             };
 
             enum ch_mode_t
@@ -106,7 +107,6 @@ namespace lsp
                 size_t  nPV_pTrgMode;
                 float   fPV_pTrgHold;
                 size_t  nPV_pTrgType;
-                bool    bTrgReset;
 
                 float   fPV_pHorDiv;
                 float   fPV_pHorPos;
@@ -171,6 +171,7 @@ namespace lsp
 
                 ch_state_t          enState;
 
+                bool                bIsStageInit;
                 size_t              nUpdate;
                 ch_state_stage_t    sStateStage;
 
@@ -238,7 +239,8 @@ namespace lsp
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
             inline void set_sweep_generator(channel_t *c);
-            inline void configure_oversamplers(channel_t *c);
+            inline void configure_oversamplers(channel_t *c, over_mode_t mode);
+            void init_state_stage(channel_t *c);
             void commit_staged_state_change(channel_t *c);
 
         public:

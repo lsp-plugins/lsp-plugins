@@ -271,8 +271,10 @@ namespace lsp
         c->sSweepGenerator.update_settings();
     }
 
-    void oscilloscope_base::configure_oversamplers(channel_t *c)
+    void oscilloscope_base::configure_oversamplers(channel_t *c, over_mode_t mode)
     {
+        c->enOverMode = mode;
+
         set_oversampler(c->sOversampler_x, c->enOverMode);
         set_oversampler(c->sOversampler_y, c->enOverMode);
         set_oversampler(c->sOversampler_ext, c->enOverMode);
@@ -383,10 +385,6 @@ namespace lsp
             if (!c->sPreTrgDelay.init(PRE_TRG_MAX_SIZE))
                 return;
 
-            // Test settings for oversampler before proper implementation
-            c->enOverMode = OM_LANCZOS_8X3;
-            configure_oversamplers(c);
-
             // Settings for the Sweep Generator
             c->sSweepGenerator.init();
             c->sSweepGenerator.set_phase_accumulator_bits(SWEEP_GEN_N_BITS);
@@ -430,6 +428,8 @@ namespace lsp
             //
 
             c->enState          = CH_STATE_LISTENING;
+
+            c->bIsStageInit     = false;
 
             c->vIn_x            = NULL;
             c->vIn_y            = NULL;
@@ -569,8 +569,65 @@ namespace lsp
         }
     }
 
+    void oscilloscope_base::init_state_stage(channel_t *c)
+    {
+        c->nUpdate = 0;
+
+        c->sStateStage.nPV_pScpMode = c->pScpMode->getValue();
+        c->nUpdate |= UPD_SCPMODE;
+
+        c->sStateStage.nPV_pCoupling_x = c->pCoupling_x->getValue();
+        c->nUpdate |= UPD_ACBLOCK_X;
+
+        c->sStateStage.nPV_pCoupling_y = c->pCoupling_y->getValue();
+        c->nUpdate |= UPD_ACBLOCK_Y;
+
+        c->sStateStage.nPV_pCoupling_ext = c->pCoupling_ext->getValue();
+        c->nUpdate |= UPD_ACBLOCK_EXT;
+
+        c->sStateStage.nPV_pOvsMode = c->pOvsMode->getValue();
+        c->nUpdate |= UPD_OVERSAMPLER_X;
+        c->nUpdate |= UPD_OVERSAMPLER_Y;
+        c->nUpdate |= UPD_OVERSAMPLER_EXT;
+
+        c->sStateStage.nPV_pTrgInput = c->pTrgInput->getValue();
+        c->nUpdate |= UPD_TRIGGER_INPUT;
+
+        c->sStateStage.fPV_pVerDiv = c->pVerDiv->getValue();
+        c->sStateStage.fPV_pVerPos = c->pVerPos->getValue();
+        c->nUpdate |= UPD_TRIGGER;
+
+        c->sStateStage.fPV_pTrgHys = c->pTrgHys->getValue();
+        c->nUpdate |= UPD_TRIGGER;
+
+        c->sStateStage.fPV_pTrgLevel = c->pTrgLev->getValue();
+        c->nUpdate |= UPD_TRIGGER;
+
+        c->sStateStage.nPV_pTrgMode = c->pTrgMode->getValue();
+        c->nUpdate |= UPD_TRIGGER;
+
+        c->sStateStage.fPV_pTrgHold = c->pTrgHold->getValue();
+        c->nUpdate |= UPD_TRIGGER_HOLD;
+
+        c->sStateStage.nPV_pTrgType = c->pTrgType->getValue();
+        c->nUpdate |= UPD_TRIGGER;
+
+        c->sStateStage.fPV_pHorDiv = c->pHorDiv->getValue();
+        c->nUpdate |= UPD_SWEEP_GENERATOR;
+
+        c->sStateStage.fPV_pHorPos = c->pHorPos->getValue();
+        c->nUpdate |= UPD_SWEEP_GENERATOR;
+        c->nUpdate |= UPD_PRETRG_DELAY;
+
+        c->sStateStage.nPV_pSweepType = c->pSweepType->getValue();
+        c->nUpdate |= UPD_SWEEP_GENERATOR;
+    }
+
     void oscilloscope_base::commit_staged_state_change(channel_t *c)
     {
+        if (c->nUpdate == 0)
+            return;
+
         if (c->nUpdate & UPD_SCPMODE)
             c->enMode = get_scope_mode(c->sStateStage.nPV_pScpMode);
 
@@ -589,8 +646,7 @@ namespace lsp
                 (c->nUpdate & UPD_OVERSAMPLER_EXT)
                 )
         {
-            c->enOverMode = get_oversampler_mode(c->sStateStage.nPV_pOvsMode);
-            configure_oversamplers(c);
+            configure_oversamplers(c, get_oversampler_mode(c->sStateStage.nPV_pOvsMode));
         }
 
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
@@ -634,7 +690,7 @@ namespace lsp
             c->sTrigger.update_settings();
         }
 
-        if (c->sStateStage.bTrgReset)
+        if (c->nUpdate & UPD_TRGGER_RESET)
         {
             c->sTrigger.reset_single_trigger();
             c->sTrigger.activate_manual_trigger();
@@ -650,11 +706,17 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
+            if (!c->bIsStageInit)
+            {
+                init_state_stage(c);
+                c->bIsStageInit = true;
+                continue;
+            }
+
             size_t scpmode = c->pScpMode->getValue();
             if (scpmode != c->sStateStage.nPV_pScpMode)
             {
                 c->sStateStage.nPV_pScpMode = scpmode;
-
                 c->nUpdate |= UPD_SCPMODE;
             }
 
@@ -683,7 +745,6 @@ namespace lsp
             if (overmode != c->sStateStage.nPV_pOvsMode)
             {
                 c->sStateStage.nPV_pOvsMode = overmode;
-
                 c->nUpdate |= UPD_OVERSAMPLER_X;
                 c->nUpdate |= UPD_OVERSAMPLER_Y;
                 c->nUpdate |= UPD_OVERSAMPLER_EXT;
@@ -693,7 +754,6 @@ namespace lsp
             if (trginput != c->sStateStage.nPV_pTrgInput)
             {
                 c->sStateStage.nPV_pTrgInput = trginput;
-
                 c->nUpdate |= UPD_TRIGGER_INPUT;
             }
 
@@ -703,7 +763,6 @@ namespace lsp
             {
                 c->sStateStage.fPV_pVerDiv = verDiv;
                 c->sStateStage.fPV_pVerPos = verPos;
-
                 c->nUpdate |= UPD_TRIGGER;
             }
 
@@ -711,7 +770,6 @@ namespace lsp
             if (trgHys != c->sStateStage.fPV_pTrgHys)
             {
                 c->sStateStage.fPV_pTrgHys = trgHys;
-
                 c->nUpdate |= UPD_TRIGGER;
             }
 
@@ -719,7 +777,6 @@ namespace lsp
             if (trgLevel != c->sStateStage.fPV_pTrgLevel)
             {
                 c->sStateStage.fPV_pTrgLevel = trgLevel;
-
                 c->nUpdate |= UPD_TRIGGER;
             }
 
@@ -727,7 +784,6 @@ namespace lsp
             if (trgmode != c->sStateStage.nPV_pTrgMode)
             {
                 c->sStateStage.nPV_pTrgMode = trgmode;
-
                 c->nUpdate |= UPD_TRIGGER;
             }
 
@@ -735,7 +791,6 @@ namespace lsp
             if (trghold != c->sStateStage.fPV_pTrgHold)
             {
                 c->sStateStage.fPV_pTrgHold = trghold;
-
                 c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
@@ -743,19 +798,23 @@ namespace lsp
             if (trgtype != c->sStateStage.nPV_pTrgType)
             {
                 c->sStateStage.nPV_pTrgType = trgtype;
-
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            c->sStateStage.bTrgReset = c->pTrgReset->getValue() >= 0.5f;
+            if (c->pTrgReset->getValue() >= 0.5f)
+                c->nUpdate |= UPD_TRGGER_RESET;
 
             float horDiv = c->pHorDiv->getValue();
             if (horDiv != c->sStateStage.fPV_pHorDiv)
+            {
+                c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
+            }
 
             float horPos = c->pHorPos->getValue();
             if (horPos != c->sStateStage.fPV_pHorPos)
             {
+                c->sStateStage.fPV_pHorPos = horPos;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
                 c->nUpdate |= UPD_PRETRG_DELAY;
             }
@@ -764,7 +823,6 @@ namespace lsp
             if (sweeptype != c->sStateStage.nPV_pSweepType)
             {
                 c->sStateStage.nPV_pSweepType = sweeptype;
-
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
             }
 
