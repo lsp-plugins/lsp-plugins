@@ -39,8 +39,6 @@ namespace lsp
 
     void DynamicDelay::construct()
     {
-        vIdx        = NULL;
-        vBuffer     = NULL;
         vDelay      = NULL;
         nHead       = 0;
         nCapacity   = 0;
@@ -53,8 +51,6 @@ namespace lsp
         if (pData != NULL)
         {
             free_aligned(pData);
-            vIdx        = NULL;
-            vBuffer     = NULL;
             vDelay      = NULL;
             nHead       = 0;
             nCapacity   = 0;
@@ -66,9 +62,7 @@ namespace lsp
     status_t DynamicDelay::init(size_t max_size)
     {
         size_t buf_sz       = max_size - (max_size % BUF_SIZE) + BUF_SIZE * 2;
-        size_t alloc        = BUF_SIZE * sizeof(int32_t) +
-                              BUF_SIZE * sizeof(float) +
-                              buf_sz * sizeof(float);
+        size_t alloc        = buf_sz * sizeof(float);
 
         uint8_t *data       = NULL;
         uint8_t *ptr        = alloc_aligned<uint8_t>(data, alloc);
@@ -78,10 +72,6 @@ namespace lsp
         if (pData != NULL)
             free_aligned(pData);
 
-        vIdx                = reinterpret_cast<int32_t *>(ptr);
-        ptr                += BUF_SIZE * sizeof(int32_t);
-        vBuffer             = reinterpret_cast<float *>(ptr);
-        ptr                += BUF_SIZE * sizeof(float);
         vDelay              = reinterpret_cast<float *>(ptr);
         ptr                += buf_sz * sizeof(float);
 
@@ -95,7 +85,7 @@ namespace lsp
 
     void DynamicDelay::clear()
     {
-        dsp::fill_zero(vBuffer, nCapacity);
+        dsp::fill_zero(vDelay, nCapacity);
         nHead               = 0;
     }
 
@@ -116,6 +106,54 @@ namespace lsp
             if ((++nHead) >= nCapacity)
                 nHead = 0;
         }
+    }
+
+    /**
+     * Copy the contents of the dynamic delay
+     * @param s delay to copy contents from
+     */
+    void DynamicDelay::copy(DynamicDelay *s)
+    {
+        // Estimate the amount of samples to copy
+        size_t count    = lsp_min(nCapacity, s->nCapacity);
+        ssize_t dt      = nCapacity - count;    // Position of destination tail
+        ssize_t st      = s->nHead - count;     // Position of source tail
+        if (st < 0)
+            st         += s->nCapacity;
+
+        // Perform data copy
+        size_t tail     = s->nCapacity - st;
+        if (tail < count)
+        {
+            dsp::copy(&vDelay[dt], &s->vDelay[st], tail);
+            dsp::copy(&vDelay[dt + tail], s->vDelay, count - tail);
+        }
+        else
+            dsp::copy(&vDelay[dt], &s->vDelay[st], count);
+
+        // Clear the rest samples
+        dsp::fill_zero(vDelay, dt);
+
+        // Reset head to first sample
+        nHead           = 0;
+    }
+
+    void DynamicDelay::swap(DynamicDelay *d)
+    {
+        ::swap(vDelay, d->vDelay);
+        ::swap(nHead, d->nHead);
+        ::swap(nCapacity, d->nCapacity);
+        ::swap(nMaxDelay, d->nMaxDelay);
+        ::swap(pData, d->pData);
+    }
+
+    void DynamicDelay::dump(IStateDumper *v) const
+    {
+        v->write("vDelay", vDelay);
+        v->write("nHead", nHead);
+        v->write("nCapacity", nCapacity);
+        v->write("nMaxDelay", nMaxDelay);
+        v->write("pData", pData);
     }
 }
 

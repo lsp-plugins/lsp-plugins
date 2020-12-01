@@ -33,8 +33,6 @@ namespace lsp
             DynamicDelay & operator = (const DynamicDelay &);
 
         protected:
-            int32_t    *vIdx;
-            float      *vBuffer;
             float      *vDelay;
             size_t      nHead;
             size_t      nCapacity;
@@ -70,6 +68,18 @@ namespace lsp
              * Clear delay state
              */
             void        clear();
+
+            /**
+             * Copy the contents of the dynamic delay
+             * @param s delay to copy contents from
+             */
+            void        copy(DynamicDelay *s);
+
+            /**
+             * Swap contents with some another delay
+             * @param d delay to swap contents
+             */
+            void        swap(DynamicDelay *d);
 
             /**
              * Dump internal state
