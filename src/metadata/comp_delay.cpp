@@ -37,13 +37,7 @@ namespace lsp
 
     static const port_t comp_delay_mono_ports[] =
     {
-        // Input audio ports
-        AUDIO_INPUT_MONO,
-
-        // Output audio ports
-        AUDIO_OUTPUT_MONO,
-
-        // Input controls
+        PORTS_MONO_PLUGIN,
         BYPASS,
 
         COMBO("mode", "Mode", 0, comp_delay_modes),
@@ -68,15 +62,7 @@ namespace lsp
 
     static const port_t comp_delay_stereo_ports[] =
     {
-        // Input audio ports
-        AUDIO_INPUT_LEFT,
-        AUDIO_INPUT_RIGHT,
-
-        // Output audio ports
-        AUDIO_OUTPUT_LEFT,
-        AUDIO_OUTPUT_RIGHT,
-
-        // Input controls
+        PORTS_STEREO_PLUGIN,
         BYPASS,
 
         COMBO("mode", "Mode", 0, comp_delay_modes),
@@ -101,15 +87,7 @@ namespace lsp
 
     static const port_t comp_delay_x2_stereo_ports[] =
     {
-        // Input audio ports
-        AUDIO_INPUT_LEFT,
-        AUDIO_INPUT_RIGHT,
-
-        // Output audio ports
-        AUDIO_OUTPUT_LEFT,
-        AUDIO_OUTPUT_RIGHT,
-
-        // Input controls
+        PORTS_STEREO_PLUGIN,
         BYPASS,
 
         COMBO("mode_l", "Mode L", 0, comp_delay_modes),
@@ -159,7 +137,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 0,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
-        E_NONE,
+        E_DUMP_STATE,
         comp_delay_mono_ports,
         "delay/comp/mono.xml",
         NULL,
@@ -177,7 +155,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 1,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
-        E_NONE,
+        E_DUMP_STATE,
         comp_delay_stereo_ports,
         "delay/comp/stereo.xml",
         NULL,
@@ -195,7 +173,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 2,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
-        E_NONE,
+        E_DUMP_STATE,
         comp_delay_x2_stereo_ports,
         "delay/comp/x2_stereo.xml",
         NULL,
