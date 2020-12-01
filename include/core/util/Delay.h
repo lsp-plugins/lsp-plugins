@@ -53,17 +53,18 @@ namespace lsp
              */
             void construct();
 
+            /** Destroy delay
+             *
+             */
+            void destroy();
+
+        public:
             /** Initialize delay
              *
              * @param max_size maximum delay in samples
              * @return status of operation
              */
             bool init(size_t max_size);
-
-            /** Destroy delay
-             *
-             */
-            void destroy();
 
             /** Process data
              *

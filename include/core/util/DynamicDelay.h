@@ -1,0 +1,83 @@
+/*
+ * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ *
+ * This file is part of lsp-plugins
+ * Created on: 1 дек. 2020 г.
+ *
+ * lsp-plugins is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ *
+ * lsp-plugins is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with lsp-plugins. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef CORE_UTIL_DYNAMICDELAY_H_
+#define CORE_UTIL_DYNAMICDELAY_H_
+
+#include <core/types.h>
+#include <core/IStateDumper.h>
+
+namespace lsp
+{
+    class DynamicDelay
+    {
+        private:
+            DynamicDelay & operator = (const DynamicDelay &);
+
+        protected:
+            int32_t    *vIdx;
+            float      *vBuffer;
+            float      *vDelay;
+            size_t      nHead;
+            size_t      nCapacity;
+            ssize_t     nMaxDelay;
+            uint8_t    *pData;
+
+        public:
+            explicit DynamicDelay();
+            ~DynamicDelay();
+
+            void        construct();
+            void        destroy();
+
+        public:
+            /**
+             * Initialize delay
+             * @param max_size maximum delay size
+             * @return status of operation
+             */
+            status_t    init(size_t max_size);
+
+            /**
+             *
+             * @param out output buffer
+             * @param in input buffer
+             * @param delay the delay values
+             * @param fback feedback values
+             * @param samples number of samples to process
+             */
+            void        process(float *out, const float *in, const float *delay, const float *fback, size_t samples);
+
+            /**
+             * Clear delay state
+             */
+            void        clear();
+
+            /**
+             * Dump internal state
+             * @param v state dumper
+             */
+            void        dump(IStateDumper *v) const;
+    };
+}
+
+
+#endif /* CORE_UTIL_DYNAMICDELAY_H_ */
