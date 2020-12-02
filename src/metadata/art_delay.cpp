@@ -105,11 +105,9 @@ namespace lsp
         COMBO("dmax", "Maximum possible delay", 0, art_delay_maxlen), \
         pan("_in", "Input"), \
         DRY_GAIN(GAIN_AMP_0_DB), \
-        SWITCH("dm", "Dry mute", 0.0f), \
         WET_GAIN(GAIN_AMP_0_DB), \
-        SWITCH("wm", "Wet mute", 0.0f), \
         SWITCH("mono", "Mono output", 0.0f), \
-        SWITCH("fb", "Feedback", 0.0f), \
+        SWITCH("fb", "Feedback", 1.0f), \
         OUT_GAIN
 
     #define ART_DELAY_TEMPO(id) \
@@ -122,19 +120,18 @@ namespace lsp
         pan(#id, "Delay " #id), \
         SWITCH("s" #id, "Delay " #id " solo", 0.0f), \
         SWITCH("m" #id, "Delay " #id " mute", 0.0f), \
-        SWITCH("ph" #id, "Delay " #id " phase", 0.0f), \
         COMBO("dr" #id, "Delay " #id " reference", 0, art_delay_references), \
         CONTROL("drm" #id, "Delay " #id " reference multiplier", U_NONE, art_delay_base_metadata::DELAY_MULT), \
-        CONTROL("dt" #id, "Delay " #id " time", U_SEC, art_delay_base_metadata::TIME), \
         CONTROL("dbf" #id, "Delay " #id " bar fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("dbd" #id, "Delay " #id " bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
         INT_CONTROL("dbm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
         CONTROL("df" #id, "Delay " #id " fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("dd" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
+        CONTROL("dt" #id, "Delay " #id " time", U_SEC, art_delay_base_metadata::TIME), \
         SWITCH("eq" #id, "Equalizer " #id " on", 0.0f), \
-        SWITCH("lfc" #id, "Delay " #id " low-cut", 0.0f), \
+        SWITCH("lfc" #id, "Delay " #id " low-cut filter", 0.0f), \
         LOG_CONTROL("flc" #id, "Delay " #id " low-cut frequency", U_HZ, art_delay_base_metadata::LOW_CUT), \
-        SWITCH("hfc" #id, "Delay " #id " high-cut", 0.0f), \
+        SWITCH("hfc" #id, "Delay " #id " high-cut filter", 0.0f), \
         LOG_CONTROL("fhc" #id, "Delay " #id " high-cut frequency", U_HZ, art_delay_base_metadata::HIGH_CUT), \
         LOG_CONTROL("fbs" #id, "Delay " #id " sub-bass", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbb" #id, "Delay " #id " bass", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
