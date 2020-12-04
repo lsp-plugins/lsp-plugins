@@ -31,7 +31,7 @@
 
 namespace lsp
 {
-    class art_delay_base: public plugin_t
+    class art_delay_base: public plugin_t, public art_delay_base_metadata
     {
         protected:
             typedef struct art_settings_t
@@ -48,7 +48,7 @@ namespace lsp
             {
                 private:
                     art_delay_t    *pDelay;         // Delay pointer
-                    size_t          nSize;          // Requested delay size
+                    ssize_t         nSize;          // Requested delay size
 
                 public:
                     explicit DelayAllocator(art_delay_t *delay);
@@ -58,6 +58,17 @@ namespace lsp
                     virtual status_t run();
             };
 
+            typedef struct art_tempo_t
+            {
+                float               fTempo;         // The actual tempo
+                float               fRatio;         // Tempo ratio
+                bool                bSync;          // Sync flag
+
+                IPort              *pTempo;         // Tempo port
+                IPort              *pRatio;         // Ratio port
+                IPort              *pSync;          // Sync flag
+            };
+
             typedef struct art_delay_t
             {
                 DynamicDelay       *pPDelay[2];     // Pending delay (waiting for replace)
@@ -65,7 +76,7 @@ namespace lsp
                 DynamicDelay       *pGDelay[2];     // Garbage
                 Equalizer           sEq[2];         // Equalizers for each channel
                 Bypass              sBypass[2];     // Bypass
-                DelayAllocator      sAllocator;     // Delay allocator task
+                DelayAllocator     *pAllocator;     // Allocator
 
                 bool                bStereo;        // Mode: Mono/stereo
                 bool                bOn;            // Delay is enabled
@@ -93,7 +104,7 @@ namespace lsp
                 IPort              *pLcfFreq;       // Low-cut filter frequency
                 IPort              *pHcfOn;         // High-cut filter on
                 IPort              *pHcfFreq;       // High-cut filter frequency
-                IPort              *pBandGain[5];   // Band gain for each filter
+                IPort              *pBandGain[EQ_BANDS];    // Band gain for each filter
                 IPort              *pFeedback;      // Feedback control
                 IPort              *pGain;          // Output gain
 
@@ -104,12 +115,15 @@ namespace lsp
 
         protected:
             bool                    bStereo;
-            float                  *vBuffer;        // Temporary buffer
-            art_delay_t            *vDelays;
+            float                  *vDataBuf[2];    // Temporary data buffer
+            float                  *vOutBuf[2];     // Output buffer
+            art_tempo_t            *vTempo;         // Tempo settings
+            art_delay_t            *vDelays;        // Delay lines
             ipc::IExecutor         *pExecutor;
 
             IPort                  *pIn[2];         // Input ports
             IPort                  *pOut[2];        // Output ports
+            IPort                  *pBypass;        // Bypass
             IPort                  *pMaxDelay;      // Maximum possible delay
             IPort                  *pPan[2];        // Panning
             IPort                  *pDryGain;       // Dry gain

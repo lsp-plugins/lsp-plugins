@@ -76,7 +76,7 @@ namespace lsp
         static const size_t EQ_BANDS            = 5;
 
         static const size_t MAX_PROCESSORS      = 16;
-        static const size_t MAX_TAPS            = 8;
+        static const size_t MAX_TEMPOS          = 8;
 
         enum op_modes_t
         {
@@ -87,12 +87,12 @@ namespace lsp
         };
     };
 
-    struct art_delay_mono_metadata: public art_delay_base_metadata
+    struct art_delay_mono_metadata
     {
         static const plugin_metadata_t metadata;
     };
 
-    struct art_delay_stereo_metadata: public art_delay_base_metadata
+    struct art_delay_stereo_metadata
     {
         static const plugin_metadata_t metadata;
     };

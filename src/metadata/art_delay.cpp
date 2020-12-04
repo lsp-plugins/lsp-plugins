@@ -92,6 +92,19 @@ namespace lsp
         { NULL, NULL }
     };
 
+    static port_item_t art_delay_tempo_ratio[] =
+    {
+        { "1:1",            NULL    },
+        { "1:2",            NULL    },
+        { "1:3",            NULL    },
+        { "2:1",            NULL    },
+        { "2:3",            NULL    },
+        { "3:1",            NULL    },
+        { "3:2",            NULL    },
+
+        { NULL, NULL }
+    };
+
     #define ART_PAN_MONO(id, label) \
         PAN_CTL("p" id, label " panorama", 0.0f)
 
@@ -111,8 +124,9 @@ namespace lsp
         OUT_GAIN
 
     #define ART_DELAY_TEMPO(id) \
-        CONTROL("tempo", "Tempo", U_BPM, art_delay_base_metadata::TEMPO), \
-        SWITCH("sync", "Tempo sync", 0.0f)
+        CONTROL("tempo" #id, "Tempo " #id, U_BPM, art_delay_base_metadata::TEMPO), \
+        COMBO("ratio" #id, "Tempo " #id " ratio", 0, art_delay_tempo_ratio), \
+        SWITCH("sync" #id, "Tempo" #id " sync", 0.0f)
 
     #define ART_DELAY_PROCESSOR(id, pan) \
         SWITCH("on" #id, "Delay " #id " on", 0.0f), \
