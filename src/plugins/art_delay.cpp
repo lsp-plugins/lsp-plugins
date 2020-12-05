@@ -22,14 +22,62 @@
 #include <plugins/art_delay.h>
 
 #define BUFFER_SIZE             0x1000
+#define DELAY_REF_NONE          -1
 
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
 {
+    static float art_delay_ratio[] =
+    {
+        1.0f / 1.0f,
+        1.0f / 2.0f,
+        1.0f / 3.0f,
+        2.0f / 1.0f,
+        2.0f / 3.0f,
+        3.0f / 1.0f,
+        3.0f / 2.0f
+    };
+
+    static const float band_freqs[] =
+    {
+        60.0f,
+        300.0f,
+        1000.0f,
+        6000.0f
+    };
+
+    static uint8_t art_delay_max[] =
+    {
+        1, 2, 4, 8,
+        16, 24, 32, 40, 48, 56, 64
+    };
+
+    art_delay_base::DelayAllocator::DelayAllocator(art_delay_t *delay)
+    {
+        pDelay      = delay;
+        nSize       = 0;
+    }
+
+    art_delay_base::DelayAllocator::~DelayAllocator()
+    {
+    }
+
+    status_t art_delay_base::DelayAllocator::run()
+    {
+        // TODO
+        return STATUS_OK;
+    }
+
     art_delay_base::art_delay_base(const plugin_metadata_t &mdata, bool stereo_in): plugin_t(mdata)
     {
         bStereo         = stereo_in;
+        nMaxDelay       = 0;
+        fDryGain        = 0.0f;
+        fOldPan[0]      = 1.0f;
+        fOldPan[1]      = 1.0f;
+        fNewPan[0]      = 1.0f;
+        fNewPan[1]      = 1.0f;
         vDataBuf[0]     = NULL;
         vDataBuf[1]     = NULL;
         vOutBuf[0]      = NULL;
@@ -81,18 +129,17 @@ namespace lsp
             ptr                    += sz_buf;
         }
 
-        vTempo                  = reinterpret_cast<art_delay_t *>(ptr);
+        vTempo                  = reinterpret_cast<art_tempo_t *>(ptr);
         ptr                    += sz_tempo;
         vDelays                 = reinterpret_cast<art_delay_t *>(ptr);
         ptr                    += sz_proc;
 
         // Initialize tempos
-        for (size_t i=0; i<MAX_PROCESSORS; ++i)
+        for (size_t i=0; i<MAX_TEMPOS; ++i)
         {
             art_tempo_t *at         = &vTempo[i];
 
             at->fTempo              = BPM_DEFAULT;
-            at->fRatio              = 1.0f;
             at->bSync               = false;
         }
 
@@ -120,13 +167,17 @@ namespace lsp
             ad->bStereo             = bStereo;
             ad->bOn                 = false;
             ad->bSolo               = false;
-            ad->bValid              = false;
+            ad->bMute               = false;
+            ad->bUpdated            = false;
+            ad->bValidRef           = true;
+            ad->nDelayRef           = DELAY_REF_NONE;
 
             ad->sOld.fDelay         = 0.0f;
+            ad->sOld.fGain          = 0.0f;
             ad->sOld.fFeedback      = 0.0f;
             if (bStereo)
             {
-                ad->sOld.fPan[0]        = 0.0f;
+                ad->sOld.fPan[0]        = 1.0f;
                 ad->sOld.fPan[1]        = 1.0f;
             }
             else
@@ -134,11 +185,12 @@ namespace lsp
                 ad->sOld.fPan[0]        = 0.5f;
                 ad->sOld.fPan[1]        = 0.5f;
             }
+            ad->sOld.nMaxDelay      = 0;
 
             ad->sNew                = ad->sOld;
 
             ad->pOn                 = NULL;
-            ad->pTempo              = NULL;
+            ad->pTempoRef           = NULL;
             ad->pPan[0]             = NULL;
             ad->pPan[1]             = NULL;
             ad->pSolo               = NULL;
@@ -158,7 +210,8 @@ namespace lsp
             ad->pHcfFreq            = NULL;
             for (size_t j=0; j<EQ_BANDS; ++j)
                 ad->pBandGain[j]        = NULL;
-            ad->pFeedback           = NULL;
+            ad->pFeedOn             = NULL;
+            ad->pFeedGain           = NULL;
             ad->pGain               = NULL;
             ad->pOutDelay           = NULL;
             ad->pOutOfRange         = NULL;
@@ -228,7 +281,7 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             ad->pOn                 = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
-            ad->pTempo              = vPorts[port_id++];
+            ad->pTempoRef           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pPan[0]             = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -269,7 +322,9 @@ namespace lsp
                 ad->pBandGain[j]        = vPorts[port_id++];
             }
             TRACE_PORT(vPorts[port_id]);
-            ad->pFeedback           = vPorts[port_id++];
+            ad->pFeedOn             = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedGain           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pGain               = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -332,12 +387,214 @@ namespace lsp
         return false;
     }
 
-    void art_delay_base::update_settings()
-    {
-    }
-
     void art_delay_base::update_sample_rate(long sr)
     {
+        for (size_t i=0; i<MAX_PROCESSORS; ++i)
+        {
+            art_delay_t *ad         = &vDelays[i];
+
+            // The length of each delay will be changed in offline mode
+            ad->sEq[0].set_sample_rate(sr);
+            ad->sEq[1].set_sample_rate(sr);
+            ad->sBypass[0].init(sr);
+            ad->sBypass[1].init(sr);
+        }
+    }
+
+    float art_delay_base::decode_ratio(size_t v)
+    {
+        return (v < sizeof(art_delay_ratio)/sizeof(float)) ? art_delay_ratio[v] : 1.0f;
+    }
+
+    size_t art_delay_base::decode_max_delay_value(size_t v)
+    {
+        return (v < sizeof(art_delay_max)/sizeof(uint8_t)) ? art_delay_max[v] : 1.0f;
+    }
+
+    bool art_delay_base::check_delay_ref(art_delay_t *ad)
+    {
+        art_delay_t *list[MAX_PROCESSORS];
+        size_t n = 0;
+        list[n++] = ad;
+
+        while (ad->nDelayRef >= 0)
+        {
+            // Get referenced delay
+            ad  = &vDelays[ad->nDelayRef];
+
+            // Check that there is no reference already
+            for (size_t i=0; i<n; ++i)
+                if (list[i] == ad)
+                    return false;
+        }
+
+        return true;
+    }
+
+    void art_delay_base::update_settings()
+    {
+        bool bypass         = pBypass->getValue() >= 0.5f;
+        float wet           = pWetGain->getValue();
+        bool fback          = pFeedback->getValue();
+
+        fDryGain            = pDryGain->getValue();
+        nMaxDelay           = decode_max_delay_value(pMaxDelay->getValue());
+
+        if (pMono->getValue() >= 0.5f)
+        {
+            fNewPan[0]          = 0.5f * wet;
+            fNewPan[1]          = 0.5f * wet;
+        }
+        else
+        {
+            fNewPan[0]          = (100.0f - pPan[0]->getValue()) * 0.005f * wet;
+            fNewPan[1]          = (100.0f - pPan[1]->getValue()) * 0.005f * wet;
+        }
+
+        // Sync state of tempos
+        for (size_t i=0; i<MAX_TEMPOS; ++i)
+        {
+            art_tempo_t *at         = &vTempo[i];
+
+            bool sync               = at->pSync->getValue() >= 0.5f;
+            float ratio             = decode_ratio(at->pRatio->getValue());
+            float tempo             = (sync) ? pWrapper->position()->beatsPerMinute : at->pTempo->getValue();
+
+            at->bSync               = sync;
+            at->fTempo              = ratio * tempo;
+        }
+
+        // Sync state of each delay
+        for (size_t i=0; i<MAX_PROCESSORS; ++i)
+        {
+            art_delay_t *ad         = &vDelays[i];
+
+            ad->bOn                 = ad->pOn->getValue() >= 0.5f;
+            ad->bSolo               = ad->pSolo->getValue() >= 0.5f;
+            ad->bMute               = ad->pMute->getValue() >= 0.5f;
+            ad->bUpdated            = false;
+            ad->nDelayRef           = ad->pDelayRef->getValue() - 1.0f;
+        }
+
+        // Validate state of delay
+        bool has_solo           = false;
+        for (size_t i=0; i<MAX_PROCESSORS; ++i)
+        {
+            art_delay_t *ad         = &vDelays[i];
+            ad->bValidRef           = check_delay_ref(ad);
+            if ((ad->bOn) && (ad->bSolo))
+                has_solo                = true;
+        }
+
+        // Apply recursive settings to delays
+        for (size_t i=0, nupd=0; nupd < MAX_PROCESSORS; i = (i % MAX_PROCESSORS))
+        {
+            // Get the delay
+            art_delay_t *ad         = &vDelays[i];
+            if (ad->bUpdated)
+                continue;
+
+            // Get parent delay reference and check that it is updated
+            art_delay_t *p_ad       = ((ad->bValidRef) && (ad->nDelayRef >= 0)) ? &vDelays[ad->nDelayRef] : NULL;
+            if ((p_ad != NULL) && (!p_ad->bUpdated))
+                continue;
+
+            bool pfback             = (fback) && (ad->pFeedOn->getValue() >= 0.5f);
+            float delay             = ad->pDelay->getValue();
+
+            // Tempo reference
+            ssize_t tempo_ref       = ad->pTempoRef->getValue() - 1.0f;
+            if (tempo_ref >= 0)
+            {
+                // Compute bar * multiplier + fraction
+                art_tempo_t *at         = &vTempo[tempo_ref];
+                float bdelay            = ad->pBarFrac->getValue() * ad->pBarMul->getValue() + ad->pFrac->getValue();
+                delay                  += seconds_to_samples(fSampleRate, (240.0f * bdelay) / at->fTempo);
+            }
+
+            // Parent delay reference
+            if (p_ad != NULL)
+                delay                  += p_ad->sNew.fDelay * ad->pDelayMul->getValue();
+
+            // Update delay settings
+            ad->sNew.fDelay         = delay;
+            ad->sNew.fGain          = ad->pGain->getValue();
+            ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
+            ad->sNew.fPan[0]        = (100.0f - pPan[0]->getValue()) * 0.005f;
+            ad->sNew.fPan[1]        = (100.0f - pPan[1]->getValue()) * 0.005f;
+
+            // Determine mode
+            bool eq_on          = ad->pEqOn->getValue() >= 0.5f;
+            bool low_on         = ad->pLcfOn->getValue() >= 0.5f;
+            bool high_on        = ad->pHcfOn->getValue() >= 0.5f;
+            bool xbypass        = (bypass) || (ad->bMute) || ((has_solo) && (!ad->bSolo));
+            equalizer_mode_t eq_mode = (eq_on || low_on || high_on) ? EQM_IIR : EQM_BYPASS;
+
+            // Update processor settings
+            for (size_t j=0; j<2; ++j)
+            {
+                // Update bypass
+                ad->sBypass[j].set_bypass(xbypass);
+
+                // Update equalizer
+                Equalizer *eq   = &ad->sEq[j];
+                eq->set_mode(eq_mode);
+
+                if (eq_mode == EQM_BYPASS)
+                    continue;
+
+                filter_params_t fp;
+                size_t band     = 0;
+
+                // Set-up parametric equalizer
+                while (band < EQ_BANDS)
+                {
+                    if (band == 0)
+                    {
+                        fp.fFreq        = band_freqs[band];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = (eq_on) ? FLT_MT_LRX_LOSHELF : FLT_NONE;
+                    }
+                    else if (band == (EQ_BANDS - 1))
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = (eq_on) ? FLT_MT_LRX_HISHELF : FLT_NONE;
+                    }
+                    else
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = band_freqs[band];
+                        fp.nType        = (eq_on) ? FLT_MT_LRX_LADDERPASS : FLT_NONE;
+                    }
+
+                    fp.fGain        = ad->pBandGain[band]->getValue();
+                    fp.nSlope       = 2;
+                    fp.fQuality     = 0.0f;
+
+                    // Update filter parameters
+                    eq->set_params(band++, &fp);
+                }
+
+                // Setup hi-pass filter
+                fp.nType        = (low_on) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+                fp.fFreq        = ad->pLcfFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = 4;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+
+                // Setup low-pass filter
+                fp.nType        = (high_on) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+                fp.fFreq        = ad->pHcfFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = 4;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+            }
+        }
     }
 
     void art_delay_base::process(size_t samples)

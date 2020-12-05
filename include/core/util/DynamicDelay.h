@@ -48,6 +48,18 @@ namespace lsp
 
         public:
             /**
+             * Obtain the maximum possible value for the delay
+             * @return the maximum possible value for the delay in samples
+             */
+            inline size_t max_delay() const     { return nMaxDelay;     }
+
+            /**
+             * Obtain the overall delay capacity
+             * @return the overall delay capacity in samples
+             */
+            inline size_t capacity() const      { return nMaxDelay;     }
+
+            /**
              * Initialize delay
              * @param max_size maximum delay size
              * @return status of operation
@@ -55,7 +67,7 @@ namespace lsp
             status_t    init(size_t max_size);
 
             /**
-             *
+             * Process the signal using dynamic settings of delay and feedback
              * @param out output buffer
              * @param in input buffer
              * @param delay the delay values

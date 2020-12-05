@@ -152,7 +152,8 @@ namespace lsp
         LOG_CONTROL("fbm" #id, "Delay " #id " middle", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbp" #id, "Delay " #id " presence", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbt" #id, "Delay " #id " treble", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
-        AMP_GAIN1("fb" #id, "Feedback " #id, GAIN_AMP_M_INF_DB), \
+        SWITCH("fbe" #id, "Delay " #id " feedback enable", 0.0f), \
+        AMP_GAIN1("fb" #id, "Delay " #id " feedback", GAIN_AMP_M_INF_DB), \
         AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB), \
         METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::TIME), \
         BLINK("oor" #id, "Delay " #id " out of range"), \

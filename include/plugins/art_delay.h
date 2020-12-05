@@ -37,6 +37,7 @@ namespace lsp
             typedef struct art_settings_t
             {
                 float               fDelay;         // Delay value
+                float               fGain;          // Output gain value
                 float               fFeedback;      // Feedback value
                 float               fPan[2];        // Pan value
                 size_t              nMaxDelay;      // Maximum possible delay
@@ -61,13 +62,12 @@ namespace lsp
             typedef struct art_tempo_t
             {
                 float               fTempo;         // The actual tempo
-                float               fRatio;         // Tempo ratio
                 bool                bSync;          // Sync flag
 
                 IPort              *pTempo;         // Tempo port
                 IPort              *pRatio;         // Ratio port
                 IPort              *pSync;          // Sync flag
-            };
+            } art_tempo_t;
 
             typedef struct art_delay_t
             {
@@ -81,13 +81,16 @@ namespace lsp
                 bool                bStereo;        // Mode: Mono/stereo
                 bool                bOn;            // Delay is enabled
                 bool                bSolo;          // Soloing flag
-                bool                bValid;         // Delay is in valid state
+                bool                bMute;          // Muting flag
+                bool                bUpdated;       // Update flag
+                bool                bValidRef;      // Valid reference flag
+                ssize_t             nDelayRef;      // Reference to delay
 
                 art_settings_t      sOld;           // Old settings
                 art_settings_t      sNew;           // New settings
 
                 IPort              *pOn;            // On
-                IPort              *pTempo;         // Tempo
+                IPort              *pTempoRef;      // Tempo reference
                 IPort              *pPan[2];        // Panning
                 IPort              *pSolo;          // Solo flag
                 IPort              *pMute;          // Mute flag
@@ -105,7 +108,8 @@ namespace lsp
                 IPort              *pHcfOn;         // High-cut filter on
                 IPort              *pHcfFreq;       // High-cut filter frequency
                 IPort              *pBandGain[EQ_BANDS];    // Band gain for each filter
-                IPort              *pFeedback;      // Feedback control
+                IPort              *pFeedOn;        // Feedback on
+                IPort              *pFeedGain;      // Feedback gain
                 IPort              *pGain;          // Output gain
 
                 IPort              *pOutDelay;      // Output delay
@@ -115,6 +119,10 @@ namespace lsp
 
         protected:
             bool                    bStereo;
+            size_t                  nMaxDelay;      // Maximum delay
+            float                   fDryGain;       // Dry gain
+            float                   fOldPan[2];     // Old panning
+            float                   fNewPan[2];     // New panning
             float                  *vDataBuf[2];    // Temporary data buffer
             float                  *vOutBuf[2];     // Output buffer
             art_tempo_t            *vTempo;         // Tempo settings
@@ -132,6 +140,11 @@ namespace lsp
             IPort                  *pFeedback;      // Enable feedback for all delays
 
             uint8_t                *pData;
+
+        protected:
+            static inline float         decode_ratio(size_t v);
+            static inline size_t        decode_max_delay_value(size_t v);
+            bool                        check_delay_ref(art_delay_t *ad);
 
         public:
             explicit art_delay_base(const plugin_metadata_t &mdata, bool stereo_in);
