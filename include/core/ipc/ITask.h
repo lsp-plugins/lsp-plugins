@@ -103,7 +103,7 @@ namespace lsp
                  */
                 inline task_state_t state() const {return nState;                   };
 
-                /** Reset task state
+                /** Reset task state from COMPLETED to IDLE
                  *
                  * @return task state
                  */

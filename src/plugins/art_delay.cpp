@@ -65,13 +65,62 @@ namespace lsp
 
     status_t art_delay_base::DelayAllocator::run()
     {
-        // TODO
+        DynamicDelay *d;
+        size_t channels = (pDelay->bStereo) ? 2 : 1;
+
+        // Drop garbage
+        for (size_t i=0; i<channels; ++i)
+        {
+            if ((d = pDelay->pGDelay[i]) != NULL)
+            {
+                pDelay->pGDelay[i] = NULL;
+                d->destroy();
+                delete d;
+            }
+
+            if ((d = pDelay->pPDelay[i]) != NULL)
+            {
+                pDelay->pPDelay[i] = NULL;
+                d->destroy();
+                delete d;
+            }
+        }
+
+        if (nSize < 0)
+            return STATUS_OK;
+
+        // Allocate delays
+        for (size_t i=0; i<channels; ++i)
+        {
+            d = pDelay->pCDelay[i];
+            if ((d != NULL) && (d->max_delay() == size_t(nSize)))
+                continue;
+
+            // Allocate delay
+            d = new DynamicDelay();
+            if (d == NULL)
+                return STATUS_NO_MEM;
+
+            // Reserve space for delay
+            status_t res = d->init(nSize);
+            if (res != STATUS_OK)
+            {
+                d->destroy();
+                delete d;
+                return res;
+            }
+
+            // Add delay to list of pending
+            pDelay->pPDelay[i]  = d;
+        }
+
         return STATUS_OK;
     }
 
     art_delay_base::art_delay_base(const plugin_metadata_t &mdata, bool stereo_in): plugin_t(mdata)
     {
         bStereoIn       = stereo_in;
+        bMono           = false;
         nMaxDelay       = 0;
         fOldDryGain     = 1.0f;
         fNewDryGain     = 1.0f;
@@ -610,7 +659,85 @@ namespace lsp
 
     void art_delay_base::sync_delay(art_delay_t *ad)
     {
-        // TODO
+        DelayAllocator *da = ad->pAllocator;
+        size_t channels    = (ad->bStereo) ? 2 : 1;
+
+        if (da->idle())
+        {
+            if (ad->bOn)
+            {
+                bool resize     = false;
+
+                // Check that delay has to be resized
+                for (size_t i=0; i < channels; ++i)
+                {
+                    if ((ad->pCDelay[i] == NULL) || (ad->pCDelay[i]->max_delay() != nMaxDelay))
+                        resize      = true;
+                }
+
+                // Need to issue resize?
+                if (resize)
+                {
+                    da->set_size(nMaxDelay);
+                    pExecutor->submit(da);
+                }
+            }
+            else
+            {
+                // Estimate the garbage cleanup flag
+                bool gc = false;
+                for (size_t i=0; i < channels; ++i)
+                {
+                    if ((ad->pGDelay[i] == NULL) && (ad->pCDelay[i] != NULL))
+                    {
+                        ad->pGDelay[i] = ad->pCDelay[i];
+                        ad->pCDelay[i] = NULL;
+                    }
+
+                    gc = gc || (ad->pGDelay[i] != NULL) || (ad->pPDelay[i] != NULL);
+                }
+
+                // Need to clean the whole garbage ?
+                if (gc)
+                {
+                    da->set_size(-1);
+                    pExecutor->submit(da);
+                }
+            }
+        }
+        else if (da->completed())
+        {
+            // Update delay
+            bool gc = false;
+
+            for (size_t i=0; i < channels; ++i)
+            {
+                // There is data to commit?
+                if (ad->pPDelay[i] == NULL)
+                    continue;
+
+                // Copy delay data
+                ad->pPDelay[i]->copy(ad->pCDelay[i]);
+
+                // Swap pointers
+                ad->pGDelay[i] = ad->pCDelay[i];
+                ad->pCDelay[i] = ad->pPDelay[i];
+                ad->pPDelay[i] = NULL;
+
+                // Update garbage flag
+                gc = gc || (ad->pGDelay[i] != NULL);
+            }
+
+            // Reset task state
+            da->reset();
+
+            // Need to clean garbage?
+            if (gc)
+            {
+                da->set_size(nMaxDelay);
+                pExecutor->submit(da);
+            }
+        }
     }
 
     void art_delay_base::process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count)
@@ -672,7 +799,8 @@ namespace lsp
             for (size_t j=0; j<MAX_PROCESSORS; ++j)
             {
                 art_delay_t *ad     = &vDelays[j];
-                process_delay(ad, vDataBuf, in, samples, i, count);
+                if (ad->bOn)
+                    process_delay(ad, vDataBuf, in, samples, i, count);
             }
 
             // Apply panning and add wet sound to output buffers

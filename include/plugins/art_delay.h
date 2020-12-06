@@ -56,7 +56,10 @@ namespace lsp
                     virtual ~DelayAllocator();
 
                 public:
-                    virtual status_t run();
+                    virtual status_t    run();
+
+                public:
+                    void set_size(ssize_t size)     { nSize = size; }
             };
 
             typedef struct art_tempo_t
