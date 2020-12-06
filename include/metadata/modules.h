@@ -194,6 +194,9 @@ MOD_PLUGIN(crossover_stereo, plugin_ui)
 MOD_PLUGIN(crossover_ms, plugin_ui)
 MOD_PLUGIN(crossover_lr, plugin_ui)
 
+// Artistic delay plugin
+MOD_PLUGIN(art_delay_mono, plugin_ui)
+MOD_PLUGIN(art_delay_stereo, plugin_ui)
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Nonlinear Convolver

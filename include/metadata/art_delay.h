@@ -43,6 +43,11 @@ namespace lsp
         static const float  FRACTION_STEP       = 1.0f / 64.0f;
         static const float  FRACTION_DFL        = 0.0f;
 
+        static const float  DFRACTION_MIN       = 0.0f;
+        static const float  DFRACTION_MAX       = 2.0f;
+        static const float  DFRACTION_STEP      = 1.0f / 64.0f;
+        static const float  DFRACTION_DFL       = 1.0f;
+
         static const float  BAR_MULT_MIN        = 0.0f;
         static const float  BAR_MULT_MAX        = 1000.0f;
         static const float  BAR_MULT_STEP       = 1.0f;

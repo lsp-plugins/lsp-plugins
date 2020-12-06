@@ -1,0 +1,78 @@
+<plugin resizable="true">
+	<vbox spacing="4">
+		<!-- Master channel -->
+		<group text="groups.chan.master">
+		</group>
+
+		<!-- Tempo settings -->
+		<group text="groups.chan.tempo">
+		</group>
+				
+		<!-- Delay lines -->
+		<cgroup id="lsel">
+			<ui:for id="g" first="0" last="3">
+				<grid rows="9" cols="17" hspacing="2">
+					<label text="labels.specials.num" />
+					<cell cols="5">
+						<label text="labels.delay_reference" />
+					</cell>
+					<void />
+					<cell cols="8">
+						<label text="labels.tempo_based_delay" />
+					</cell>
+					<void />
+					<label text="labels.delay" />
+				
+					<!-- Delay objects -->
+					<ui:for id="i" first="${:g*4}" last="${:g*4+3}">
+						<label text="${i}" />
+					
+						<label text="[" font_size="24" />
+						<combo id="dref${i}" />
+						<label text="x" font_size="24" color="knob_scale" />
+						<knob id="drefm${i}" />
+						<label text="]" font_size="24" />
+						
+						<label text="+" font_size="24" color="yellow" />
+						
+						<label text="[" font_size="24" />
+						<combo id="tref${i}" />
+						<frac id="treff${i}" id2="trefd${i}" color="green" />
+						<label text="x" font_size="24" color="knob_scale" />
+						<knob id="trefm${i}" />
+						<label text="+" font_size="24" color="knob_scale" />
+						<frac id="frac${i}" id2="den${i}" color="green" />
+						<label text="]" font_size="24" />
+						
+						<label text="+" font_size="24" color="yellow" />
+						
+						<knob id="dtim${i}" />
+						
+						<void />
+						
+						<void />
+						<void />
+						<void />
+						<value id="drefm${i}" same_line="true" />
+						<void />
+						
+						<void />
+						
+						<void />
+						<void />
+						<void />
+						<void />
+						<value id="trefm${i}" same_line="true" />
+						<void />
+						<void />
+						<void />
+						
+						<void />
+						
+						<value id="dtim${i}" same_line="true" />
+					</ui:for>
+				</grid>
+			</ui:for>
+		</cgroup>
+	</vbox>
+</plugin>

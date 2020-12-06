@@ -148,6 +148,7 @@
 	
 	"delay": "Delay",
 	"delay:ms": "Delay (ms)",
+	"delay_reference": "Delay Reference",
 	
 	"direct_out": "Direct out",
 	"direct_output": "Direct output",
@@ -511,6 +512,7 @@
 	
 	"temperature": "Temperature",
 	"tempo": "Tempo",
+	"tempo_based_delay": "Tempo-Based Delay",
 	
 	"thr_eshold": "Thr",
 	"threads": "Threads",

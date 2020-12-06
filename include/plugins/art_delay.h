@@ -34,14 +34,6 @@ namespace lsp
     class art_delay_base: public plugin_t, public art_delay_base_metadata
     {
         protected:
-            typedef struct art_settings_t
-            {
-                float               fDelay;         // Delay value
-                float               fFeedback;      // Feedback value
-                float               fPan[2];        // Pan value
-                size_t              nMaxDelay;      // Maximum possible delay
-            } art_settings_t;
-
             struct art_delay_t;
 
             class DelayAllocator: public ipc::ITask
@@ -70,6 +62,20 @@ namespace lsp
                 IPort              *pRatio;         // Ratio port
                 IPort              *pSync;          // Sync flag
             } art_tempo_t;
+
+            typedef struct pan_t
+            {
+                float               l;              // Gain of left channel
+                float               r;              // Gain of right channel
+            } pan_t;
+
+            typedef struct art_settings_t
+            {
+                float               fDelay;         // Delay value
+                float               fFeedback;      // Feedback value
+                pan_t               sPan[2];        // Pan value + gain for each channel
+                size_t              nMaxDelay;      // Maximum possible delay
+            } art_settings_t;
 
             typedef struct art_delay_t
             {
@@ -123,10 +129,8 @@ namespace lsp
             bool                    bStereoIn;
             bool                    bMono;          // Mono switch
             size_t                  nMaxDelay;      // Maximum delay
-            float                   fOldDryGain;    // Old dry gain
-            float                   fNewDryGain;    // New dry gain
-            float                   fOldPan[2];     // Old panning
-            float                   fNewPan[2];     // New panning
+            pan_t                   sOldDryPan[2];  // Old panning + gain
+            pan_t                   sNewDryPan[2];  // New panning + gain
             float                  *vDataBuf[2];    // Temporary data buffer
             float                  *vOutBuf[2];     // Output buffer
             float                  *vGainBuf;       // Gain control buffer
@@ -147,6 +151,7 @@ namespace lsp
             IPort                  *pWetGain;       // Wet gain
             IPort                  *pMono;          // Mono/Stereo switch
             IPort                  *pFeedback;      // Enable feedback for all delays
+            IPort                  *pOutGain;       // Overall output gain
 
             uint8_t                *pData;
 

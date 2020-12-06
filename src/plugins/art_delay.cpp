@@ -122,12 +122,14 @@ namespace lsp
         bStereoIn       = stereo_in;
         bMono           = false;
         nMaxDelay       = 0;
-        fOldDryGain     = 1.0f;
-        fNewDryGain     = 1.0f;
-        fOldPan[0]      = 1.0f;
-        fOldPan[1]      = 1.0f;
-        fNewPan[0]      = 1.0f;
-        fNewPan[1]      = 1.0f;
+        sOldDryPan[0].l = 0.0f;
+        sOldDryPan[0].r = 0.0f;
+        sOldDryPan[1].l = 0.0f;
+        sOldDryPan[1].r = 0.0f;
+        sNewDryPan[0].l = 0.0f;
+        sNewDryPan[0].r = 0.0f;
+        sNewDryPan[1].l = 0.0f;
+        sNewDryPan[1].r = 0.0f;
         vDataBuf[0]     = NULL;
         vDataBuf[1]     = NULL;
         vOutBuf[0]      = NULL;
@@ -151,6 +153,7 @@ namespace lsp
         pWetGain        = NULL;
         pMono           = NULL;
         pFeedback       = NULL;
+        pOutGain        = NULL;
 
         pData           = NULL;
     }
@@ -166,7 +169,7 @@ namespace lsp
 
         size_t sz_buf           = BUFFER_SIZE * sizeof(float);
         size_t sz_tempo         = ALIGN_SIZE(sizeof(art_tempo_t) * MAX_TEMPOS, ALIGN64);
-        size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t), ALIGN64);
+        size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t) * MAX_PROCESSORS, ALIGN64);
         size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 7;
 
         uint8_t *ptr            = alloc_aligned<uint8_t>(pData, sz_alloc, ALIGN64);
@@ -236,13 +239,17 @@ namespace lsp
             ad->sOld.fFeedback      = 0.0f;
             if (bStereoIn)
             {
-                ad->sOld.fPan[0]        = 1.0f;
-                ad->sOld.fPan[1]        = 1.0f;
+                ad->sOld.sPan[0].l      = 1.0f;
+                ad->sOld.sPan[0].r      = 0.0f;
+                ad->sOld.sPan[1].l      = 0.0f;
+                ad->sOld.sPan[1].r      = 1.0f;
             }
             else
             {
-                ad->sOld.fPan[0]        = 0.5f;
-                ad->sOld.fPan[1]        = 0.5f;
+                ad->sOld.sPan[0].l      = 0.5f;
+                ad->sOld.sPan[0].r      = 0.5f;
+                ad->sOld.sPan[1].l      = 0.5f;
+                ad->sOld.sPan[1].r      = 0.5f;
             }
             ad->sOld.nMaxDelay      = 0;
 
@@ -311,8 +318,11 @@ namespace lsp
         pMaxDelay       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pPan[0]         = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pPan[1]         = vPorts[port_id++];
+        if (bStereoIn)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            pPan[1]         = vPorts[port_id++];
+        }
         TRACE_PORT(vPorts[port_id]);
         pDryGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -321,6 +331,8 @@ namespace lsp
         pMono           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pFeedback       = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pOutGain        = vPorts[port_id++];
 
         // Bind delay ports
         lsp_trace("Binding tempo ports");
@@ -344,12 +356,6 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             ad->pOn                 = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
-            ad->pTempoRef           = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
-            ad->pPan[0]             = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
-            ad->pPan[1]             = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
             ad->pSolo               = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pMute               = vPorts[port_id++];
@@ -357,6 +363,8 @@ namespace lsp
             ad->pDelayRef           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pDelayMul           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pTempoRef           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pBarFrac            = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -388,6 +396,13 @@ namespace lsp
             ad->pFeedOn             = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pFeedGain           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pPan[0]             = vPorts[port_id++];
+            if (ad->bStereo)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                ad->pPan[1]             = vPorts[port_id++];
+            }
             TRACE_PORT(vPorts[port_id]);
             ad->pGain               = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -499,16 +514,22 @@ namespace lsp
 
     void art_delay_base::update_settings()
     {
+        size_t channels     = (bStereoIn) ? 2 : 1;
+
         bool bypass         = pBypass->getValue() >= 0.5f;
-        float wet           = pWetGain->getValue();
+        float g_out         = pOutGain->getValue();
+        float dry           = pDryGain->getValue() * g_out;
+        float wet           = pWetGain->getValue() * g_out;
         bool fback          = pFeedback->getValue();
 
         bMono               = pMono->getValue() >= 0.5f;
-        fNewDryGain         = pDryGain->getValue();
         nMaxDelay           = decode_max_delay_value(pMaxDelay->getValue());
 
-        fNewPan[0]          = (100.0f - pPan[0]->getValue()) * 0.005f * wet;
-        fNewPan[1]          = (100.0f - pPan[1]->getValue()) * 0.005f * wet;
+        for (size_t i=0; i<channels; ++i)
+        {
+            sNewDryPan[i].l     = (100.0f - pPan[i]->getValue()) * 0.005f * dry;
+            sNewDryPan[i].r     = (pPan[i]->getValue() + 100.0f) * 0.005f * dry;
+        }
 
         sBypass[0].set_bypass(bypass);
         sBypass[1].set_bypass(bypass);
@@ -580,10 +601,14 @@ namespace lsp
 
             // Update delay settings
             ad->sNew.fDelay         = delay;
-            float gain              = ad->pGain->getValue();
+            float gain              = ad->pGain->getValue() * wet;
             ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
-            ad->sNew.fPan[0]        = (100.0f - pPan[0]->getValue()) * 0.005f * gain;
-            ad->sNew.fPan[1]        = (100.0f - pPan[1]->getValue()) * 0.005f * gain;
+
+            for (size_t j=0; j<channels; ++j)
+            {
+                ad->sNew.sPan[j].l      = (100.0f - ad->pPan[j]->getValue()) * 0.005f * gain;
+                ad->sNew.sPan[j].r      = (ad->pPan[j]->getValue() + 100.0f) * 0.005f * gain;
+            }
 
             // Determine mode
             bool eq_on          = ad->pEqOn->getValue() >= 0.5f;
@@ -593,7 +618,7 @@ namespace lsp
             equalizer_mode_t eq_mode = (eq_on || low_on || high_on) ? EQM_IIR : EQM_BYPASS;
 
             // Update processor settings
-            for (size_t j=0; j<2; ++j)
+            for (size_t j=0; j<channels; ++j)
             {
                 // Update bypass
                 ad->sBypass[j].set_bypass(xbypass);
@@ -761,15 +786,15 @@ namespace lsp
             ad->sBypass[i].process(vTempBuf, NULL, vTempBuf, count);
 
             // Pan the output
-            if (ad->sOld.fPan[i] != ad->sNew.fPan[i])
+            if (ad->sOld.sPan[i].l != ad->sNew.sPan[i].l)
             {
-                dsp::lin_inter_fmadd2(out[0], vTempBuf, 0, ad->sOld.fPan[i], samples, ad->sNew.fPan[i], off, count);
-                dsp::lin_inter_fmadd2(out[1], vTempBuf, 0, 1.0f - ad->sOld.fPan[i], samples, 1.0f - ad->sNew.fPan[i], off, count);
+                dsp::lin_inter_fmadd2(out[0], vTempBuf, 0, ad->sOld.sPan[i].l, samples, ad->sNew.sPan[i].l, off, count);
+                dsp::lin_inter_fmadd2(out[1], vTempBuf, 0, ad->sOld.sPan[i].r, samples, ad->sNew.sPan[i].r, off, count);
             }
             else
             {
-                dsp::fmadd_k3(out[0], vTempBuf, ad->sOld.fPan[i], count);
-                dsp::fmadd_k3(out[1], vTempBuf, 1.0f - ad->sOld.fPan[i], count);
+                dsp::fmadd_k3(out[0], vTempBuf, ad->sOld.sPan[i].l, count);
+                dsp::fmadd_k3(out[1], vTempBuf, ad->sOld.sPan[i].r, count);
             }
         }
     }
@@ -798,30 +823,22 @@ namespace lsp
             // How many samples we can process at one time?
             size_t count        = lsp_min(samples - i, BUFFER_SIZE);
 
-            // Fill output buffer with dry sound
-            if (bStereoIn)
+            // Process the dry sound (gain + pan)
+            for (size_t j=0; j<2; ++j)
             {
-                if (fOldDryGain == fNewDryGain)
+                if (sOldDryPan[j].l != sNewDryPan[j].l)
                 {
-                    dsp::mul_k3(vOutBuf[0], in[0], fNewDryGain, count);
-                    dsp::mul_k3(vOutBuf[1], in[1], fNewDryGain, count);
+                    dsp::lin_inter_fmadd2(vOutBuf[0], in[j], 0, sOldDryPan[j].l, samples, sNewDryPan[j].l, i, count);
+                    dsp::lin_inter_fmadd2(vOutBuf[1], in[j], 0, sOldDryPan[j].r, samples, sNewDryPan[j].r, i, count);
                 }
                 else
                 {
-                    dsp::lin_inter_mul3(vOutBuf[0], in[0], 0, fOldDryGain, samples, fNewDryGain, i, count);
-                    dsp::lin_inter_mul3(vOutBuf[1], in[1], 0, fOldDryGain, samples, fNewDryGain, i, count);
+                    dsp::fmadd_k3(vOutBuf[0], in[j], sOldDryPan[j].l, count);
+                    dsp::fmadd_k3(vOutBuf[1], in[j], sOldDryPan[j].r, count);
                 }
-            }
-            else
-            {
-                if (fOldDryGain == fNewDryGain)
-                    dsp::mul_k3(vOutBuf[0], in[0], fNewDryGain, count);
-                else
-                    dsp::lin_inter_mul3(vOutBuf[0], in[0], 0, fOldDryGain, samples, fNewDryGain, i, count);
-                dsp::copy(vOutBuf[1], vOutBuf[0], count);
             }
 
-            // Process delay channels and store result to vDataBuf
+            // Process all delay channels and store result to vDataBuf
             dsp::fill_zero(vDataBuf[0], count);
             dsp::fill_zero(vDataBuf[1], count);
 
@@ -832,52 +849,17 @@ namespace lsp
                     process_delay(ad, vDataBuf, in, samples, i, count);
             }
 
-            // Apply panning and add wet sound to output buffers
-            for (size_t j=0; j<2; ++j)
-            {
-                float pan   = fOldPan[j];
-                float npan  = fNewPan[j];
-
-                if (pan != npan)
-                {
-                    dsp::lin_inter_fmadd2(vOutBuf[0], vDataBuf[j], 0, pan, samples, npan, i, count);
-                    dsp::lin_inter_fmadd2(vOutBuf[1], vDataBuf[j], 0, 1.0f - pan, samples, 1.0f - npan, i, count);
-                }
-                else
-                {
-                    dsp::fmadd_k3(vOutBuf[0], vDataBuf[j], pan, count);
-                    dsp::fmadd_k3(vOutBuf[1], vDataBuf[j], 1.0f - pan, count);
-                }
-            }
-
             // Output internal buffer data to external outputs via applied bypass
-            if (bStereoIn)
+            if (bMono)
             {
-                if (bMono)
-                {
-                    dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
-                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                    sBypass[0].process(out[1], in[1], vOutBuf[0], count);
-                }
-                else
-                {
-                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                    sBypass[0].process(out[1], in[1], vOutBuf[1], count);
-                }
+                dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
+                sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                sBypass[1].process(out[1], in[0], vOutBuf[0], count);
             }
             else
             {
-                if (bMono)
-                {
-                    dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
-                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                    sBypass[0].process(out[1], in[0], vOutBuf[0], count);
-                }
-                else
-                {
-                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                    sBypass[0].process(out[1], in[0], vOutBuf[1], count);
-                }
+                sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                sBypass[1].process(out[1], in[0], vOutBuf[1], count);
             }
 
             // Update positions
@@ -890,9 +872,8 @@ namespace lsp
         }
 
         // Commit dynamic settings
-        fOldDryGain         = fNewDryGain;
-        fOldPan[0]          = fNewPan[0];
-        fOldPan[1]          = fNewPan[1];
+        sOldDryPan[0]       = sNewDryPan[0];
+        sOldDryPan[1]       = sNewDryPan[1];
 
         for (size_t j=0; j<MAX_PROCESSORS; ++j)
         {

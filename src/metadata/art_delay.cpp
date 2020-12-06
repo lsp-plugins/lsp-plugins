@@ -130,18 +130,17 @@ namespace lsp
 
     #define ART_DELAY_PROCESSOR(id, pan) \
         SWITCH("on" #id, "Delay " #id " on", 0.0f), \
-        COMBO("dt" #id, "Delay " #id " tempo", 0, art_delay_tempo), \
-        pan(#id, "Delay " #id), \
         SWITCH("s" #id, "Delay " #id " solo", 0.0f), \
         SWITCH("m" #id, "Delay " #id " mute", 0.0f), \
-        COMBO("dr" #id, "Delay " #id " reference", 0, art_delay_references), \
-        CONTROL("drm" #id, "Delay " #id " reference multiplier", U_NONE, art_delay_base_metadata::DELAY_MULT), \
-        CONTROL("dbf" #id, "Delay " #id " bar fraction", U_BAR, art_delay_base_metadata::FRACTION), \
-        INT_CONTROL("dbd" #id, "Delay " #id " bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        INT_CONTROL("dbm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
-        CONTROL("df" #id, "Delay " #id " fraction", U_BAR, art_delay_base_metadata::FRACTION), \
-        INT_CONTROL("dd" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        CONTROL("dt" #id, "Delay " #id " time", U_SEC, art_delay_base_metadata::TIME), \
+        COMBO("dref" #id, "Delay " #id " reference", 0, art_delay_references), \
+        CONTROL("drefm" #id, "Delay " #id " reference multiplier", U_NONE, art_delay_base_metadata::DELAY_MULT), \
+        COMBO("tref" #id, "Delay " #id " tempo reference", 0, art_delay_tempo), \
+        CONTROL("treff" #id, "Delay " #id " bar fraction", U_BAR, art_delay_base_metadata::DFRACTION), \
+        INT_CONTROL("trefd" #id, "Delay " #id " bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
+        INT_CONTROL("trefm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
+        CONTROL("frac" #id, "Delay " #id " fraction", U_BAR, art_delay_base_metadata::FRACTION), \
+        INT_CONTROL("den" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
+        CONTROL("dtim" #id, "Delay " #id " time", U_SEC, art_delay_base_metadata::TIME), \
         SWITCH("eq" #id, "Equalizer " #id " on", 0.0f), \
         SWITCH("lfc" #id, "Delay " #id " low-cut filter", 0.0f), \
         LOG_CONTROL("flc" #id, "Delay " #id " low-cut frequency", U_HZ, art_delay_base_metadata::LOW_CUT), \
@@ -154,6 +153,7 @@ namespace lsp
         LOG_CONTROL("fbt" #id, "Delay " #id " treble", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
         SWITCH("fbe" #id, "Delay " #id " feedback enable", 0.0f), \
         AMP_GAIN1("fb" #id, "Delay " #id " feedback", GAIN_AMP_M_INF_DB), \
+        pan(#id, "Delay " #id), \
         AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB), \
         METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::TIME), \
         BLINK("oor" #id, "Delay " #id " out of range"), \
