@@ -134,6 +134,7 @@ namespace lsp
         vOutBuf[1]      = NULL;
         vGainBuf        = NULL;
         vDelayBuf       = NULL;
+        vTempBuf        = NULL;
         vTempo          = NULL;
         vDelays         = NULL;
         pExecutor       = NULL;
@@ -166,7 +167,7 @@ namespace lsp
         size_t sz_buf           = BUFFER_SIZE * sizeof(float);
         size_t sz_tempo         = ALIGN_SIZE(sizeof(art_tempo_t) * MAX_TEMPOS, ALIGN64);
         size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t), ALIGN64);
-        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 6;
+        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 7;
 
         uint8_t *ptr            = alloc_aligned<uint8_t>(pData, sz_alloc, ALIGN64);
         if (ptr == NULL)
@@ -184,6 +185,8 @@ namespace lsp
         vGainBuf                = reinterpret_cast<float *>(ptr);
         ptr                    += sz_buf;
         vDelayBuf               = reinterpret_cast<float *>(ptr);
+        ptr                    += sz_buf;
+        vTempBuf                = reinterpret_cast<float *>(ptr);
         ptr                    += sz_buf;
 
         vTempo                  = reinterpret_cast<art_tempo_t *>(ptr);
@@ -230,7 +233,6 @@ namespace lsp
             ad->nDelayRef           = DELAY_REF_NONE;
 
             ad->sOld.fDelay         = 0.0f;
-            ad->sOld.fGain          = 0.0f;
             ad->sOld.fFeedback      = 0.0f;
             if (bStereoIn)
             {
@@ -578,10 +580,10 @@ namespace lsp
 
             // Update delay settings
             ad->sNew.fDelay         = delay;
-            ad->sNew.fGain          = ad->pGain->getValue();
+            float gain              = ad->pGain->getValue();
             ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
-            ad->sNew.fPan[0]        = (100.0f - pPan[0]->getValue()) * 0.005f;
-            ad->sNew.fPan[1]        = (100.0f - pPan[1]->getValue()) * 0.005f;
+            ad->sNew.fPan[0]        = (100.0f - pPan[0]->getValue()) * 0.005f * gain;
+            ad->sNew.fPan[1]        = (100.0f - pPan[1]->getValue()) * 0.005f * gain;
 
             // Determine mode
             bool eq_on          = ad->pEqOn->getValue() >= 0.5f;
@@ -740,9 +742,36 @@ namespace lsp
         }
     }
 
-    void art_delay_base::process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count)
+    void art_delay_base::process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t off, size_t count)
     {
-        // TODO
+        size_t channels = (ad->bStereo) ? 2 : 1;
+        for (size_t i=0; i<channels; ++i)
+            if (ad->pCDelay[i] == NULL)
+                return;
+
+        // Create delay and feedback control signals
+        dsp::lin_inter_set(vDelayBuf, 0, ad->sOld.fDelay, samples, ad->sNew.fDelay, off, count);
+        dsp::lin_inter_set(vGainBuf, 0, ad->sOld.fFeedback, samples, ad->sNew.fFeedback, off, count);
+
+        for (size_t i=0; i<channels; ++i)
+        {
+            // Process the delay -> eq -> bypass chain
+            ad->pCDelay[i]->process(vTempBuf, in[i], vDelayBuf, vGainBuf, count);
+            ad->sEq[i].process(vTempBuf, vTempBuf, count);
+            ad->sBypass[i].process(vTempBuf, NULL, vTempBuf, count);
+
+            // Pan the output
+            if (ad->sOld.fPan[i] != ad->sNew.fPan[i])
+            {
+                dsp::lin_inter_fmadd2(out[0], vTempBuf, 0, ad->sOld.fPan[i], samples, ad->sNew.fPan[i], off, count);
+                dsp::lin_inter_fmadd2(out[1], vTempBuf, 0, 1.0f - ad->sOld.fPan[i], samples, 1.0f - ad->sNew.fPan[i], off, count);
+            }
+            else
+            {
+                dsp::fmadd_k3(out[0], vTempBuf, ad->sOld.fPan[i], count);
+                dsp::fmadd_k3(out[1], vTempBuf, 1.0f - ad->sOld.fPan[i], count);
+            }
+        }
     }
 
     void art_delay_base::process(size_t samples)
@@ -806,17 +835,19 @@ namespace lsp
             // Apply panning and add wet sound to output buffers
             for (size_t j=0; j<2; ++j)
             {
-                size_t c1   = j, c2 = (j + 1) & 1;
                 float pan   = fOldPan[j];
                 float npan  = fNewPan[j];
 
                 if (pan != npan)
                 {
-                    dsp::lin_inter_fmadd2(vOutBuf[j], vDataBuf[c1], 0, pan, samples, npan, i, count);
-                    dsp::lin_inter_fmadd2(vOutBuf[j], vDataBuf[c2], 0, 1.0f - pan, samples, 1.0f - npan, i, count);
+                    dsp::lin_inter_fmadd2(vOutBuf[0], vDataBuf[j], 0, pan, samples, npan, i, count);
+                    dsp::lin_inter_fmadd2(vOutBuf[1], vDataBuf[j], 0, 1.0f - pan, samples, 1.0f - npan, i, count);
                 }
                 else
-                    dsp::mix_add2(vOutBuf[j], vDataBuf[c1], vDataBuf[c2], pan, 1.0f - pan, count);
+                {
+                    dsp::fmadd_k3(vOutBuf[0], vDataBuf[j], pan, count);
+                    dsp::fmadd_k3(vOutBuf[1], vDataBuf[j], 1.0f - pan, count);
+                }
             }
 
             // Output internal buffer data to external outputs via applied bypass

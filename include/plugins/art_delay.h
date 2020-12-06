@@ -37,7 +37,6 @@ namespace lsp
             typedef struct art_settings_t
             {
                 float               fDelay;         // Delay value
-                float               fGain;          // Output gain value
                 float               fFeedback;      // Feedback value
                 float               fPan[2];        // Pan value
                 size_t              nMaxDelay;      // Maximum possible delay
@@ -132,6 +131,7 @@ namespace lsp
             float                  *vOutBuf[2];     // Output buffer
             float                  *vGainBuf;       // Gain control buffer
             float                  *vDelayBuf;      // Delay control buffer
+            float                  *vTempBuf;       // Temporary buffer for delay processing
             art_tempo_t            *vTempo;         // Tempo settings
             art_delay_t            *vDelays;        // Delay lines
 
