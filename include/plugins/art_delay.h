@@ -118,15 +118,21 @@ namespace lsp
             } art_delay_t;
 
         protected:
-            bool                    bStereo;
+            bool                    bStereoIn;
+            bool                    bMono;          // Mono switch
             size_t                  nMaxDelay;      // Maximum delay
-            float                   fDryGain;       // Dry gain
+            float                   fOldDryGain;    // Old dry gain
+            float                   fNewDryGain;    // New dry gain
             float                   fOldPan[2];     // Old panning
             float                   fNewPan[2];     // New panning
             float                  *vDataBuf[2];    // Temporary data buffer
             float                  *vOutBuf[2];     // Output buffer
+            float                  *vGainBuf;       // Gain control buffer
+            float                  *vDelayBuf;      // Delay control buffer
             art_tempo_t            *vTempo;         // Tempo settings
             art_delay_t            *vDelays;        // Delay lines
+
+            Bypass                  sBypass[2];     // Bypasses
             ipc::IExecutor         *pExecutor;
 
             IPort                  *pIn[2];         // Input ports
@@ -145,6 +151,8 @@ namespace lsp
             static inline float         decode_ratio(size_t v);
             static inline size_t        decode_max_delay_value(size_t v);
             bool                        check_delay_ref(art_delay_t *ad);
+            void                        sync_delay(art_delay_t *ad);
+            void                        process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count);
 
         public:
             explicit art_delay_base(const plugin_metadata_t &mdata, bool stereo_in);

@@ -21,7 +21,7 @@
 
 #include <plugins/art_delay.h>
 
-#define BUFFER_SIZE             0x1000
+#define BUFFER_SIZE             0x1000U
 #define DELAY_REF_NONE          -1
 
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
@@ -71,9 +71,10 @@ namespace lsp
 
     art_delay_base::art_delay_base(const plugin_metadata_t &mdata, bool stereo_in): plugin_t(mdata)
     {
-        bStereo         = stereo_in;
+        bStereoIn       = stereo_in;
         nMaxDelay       = 0;
-        fDryGain        = 0.0f;
+        fOldDryGain     = 1.0f;
+        fNewDryGain     = 1.0f;
         fOldPan[0]      = 1.0f;
         fOldPan[1]      = 1.0f;
         fNewPan[0]      = 1.0f;
@@ -82,6 +83,8 @@ namespace lsp
         vDataBuf[1]     = NULL;
         vOutBuf[0]      = NULL;
         vOutBuf[1]      = NULL;
+        vGainBuf        = NULL;
+        vDelayBuf       = NULL;
         vTempo          = NULL;
         vDelays         = NULL;
         pExecutor       = NULL;
@@ -114,7 +117,7 @@ namespace lsp
         size_t sz_buf           = BUFFER_SIZE * sizeof(float);
         size_t sz_tempo         = ALIGN_SIZE(sizeof(art_tempo_t) * MAX_TEMPOS, ALIGN64);
         size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t), ALIGN64);
-        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 4;
+        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 6;
 
         uint8_t *ptr            = alloc_aligned<uint8_t>(pData, sz_alloc, ALIGN64);
         if (ptr == NULL)
@@ -128,6 +131,11 @@ namespace lsp
             vOutBuf[i]              = reinterpret_cast<float *>(ptr);
             ptr                    += sz_buf;
         }
+
+        vGainBuf                = reinterpret_cast<float *>(ptr);
+        ptr                    += sz_buf;
+        vDelayBuf               = reinterpret_cast<float *>(ptr);
+        ptr                    += sz_buf;
 
         vTempo                  = reinterpret_cast<art_tempo_t *>(ptr);
         ptr                    += sz_tempo;
@@ -164,7 +172,7 @@ namespace lsp
             if (ad->pAllocator == NULL)
                 return;
 
-            ad->bStereo             = bStereo;
+            ad->bStereo             = bStereoIn;
             ad->bOn                 = false;
             ad->bSolo               = false;
             ad->bMute               = false;
@@ -175,7 +183,7 @@ namespace lsp
             ad->sOld.fDelay         = 0.0f;
             ad->sOld.fGain          = 0.0f;
             ad->sOld.fFeedback      = 0.0f;
-            if (bStereo)
+            if (bStereoIn)
             {
                 ad->sOld.fPan[0]        = 1.0f;
                 ad->sOld.fPan[1]        = 1.0f;
@@ -218,6 +226,10 @@ namespace lsp
             ad->pOutLoop            = NULL;
         }
 
+        // Initialize bypasses
+        sBypass[0].construct();
+        sBypass[1].construct();
+
         // Get executor service
         pExecutor               = wrapper->get_executor();
         size_t port_id          = 0;
@@ -227,7 +239,7 @@ namespace lsp
 
         TRACE_PORT(vPorts[port_id]);
         pIn[0]          = vPorts[port_id++];
-        if (bStereo)
+        if (bStereoIn)
         {
             TRACE_PORT(vPorts[port_id]);
             pIn[1]          = vPorts[port_id++];
@@ -389,6 +401,9 @@ namespace lsp
 
     void art_delay_base::update_sample_rate(long sr)
     {
+        sBypass[0].init(sr);
+        sBypass[1].init(sr);
+
         for (size_t i=0; i<MAX_PROCESSORS; ++i)
         {
             art_delay_t *ad         = &vDelays[i];
@@ -437,19 +452,15 @@ namespace lsp
         float wet           = pWetGain->getValue();
         bool fback          = pFeedback->getValue();
 
-        fDryGain            = pDryGain->getValue();
+        bMono               = pMono->getValue() >= 0.5f;
+        fNewDryGain         = pDryGain->getValue();
         nMaxDelay           = decode_max_delay_value(pMaxDelay->getValue());
 
-        if (pMono->getValue() >= 0.5f)
-        {
-            fNewPan[0]          = 0.5f * wet;
-            fNewPan[1]          = 0.5f * wet;
-        }
-        else
-        {
-            fNewPan[0]          = (100.0f - pPan[0]->getValue()) * 0.005f * wet;
-            fNewPan[1]          = (100.0f - pPan[1]->getValue()) * 0.005f * wet;
-        }
+        fNewPan[0]          = (100.0f - pPan[0]->getValue()) * 0.005f * wet;
+        fNewPan[1]          = (100.0f - pPan[1]->getValue()) * 0.005f * wet;
+
+        sBypass[0].set_bypass(bypass);
+        sBypass[1].set_bypass(bypass);
 
         // Sync state of tempos
         for (size_t i=0; i<MAX_TEMPOS; ++i)
@@ -597,8 +608,138 @@ namespace lsp
         }
     }
 
+    void art_delay_base::sync_delay(art_delay_t *ad)
+    {
+        // TODO
+    }
+
+    void art_delay_base::process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count)
+    {
+        // TODO
+    }
+
     void art_delay_base::process(size_t samples)
     {
+        // Sync delay lines
+        for (size_t j=0; j<MAX_PROCESSORS; ++j)
+        {
+            art_delay_t *ad     = &vDelays[j];
+            sync_delay(ad);
+        }
+
+        // Bind ports
+        float *in[2], *out[2];
+
+        in[0]   = pIn[0]->getBuffer<float>();
+        in[1]   = (bStereoIn) ? pIn[1]->getBuffer<float>() : NULL;
+
+        out[0]  = pOut[0]->getBuffer<float>();
+        out[1]  = pOut[1]->getBuffer<float>();
+
+        // Process audio signal
+        for (size_t i=0; i<samples; )
+        {
+            // How many samples we can process at one time?
+            size_t count        = lsp_min(samples - i, BUFFER_SIZE);
+
+            // Fill output buffer with dry sound
+            if (bStereoIn)
+            {
+                if (fOldDryGain == fNewDryGain)
+                {
+                    dsp::mul_k3(vOutBuf[0], in[0], fNewDryGain, count);
+                    dsp::mul_k3(vOutBuf[1], in[1], fNewDryGain, count);
+                }
+                else
+                {
+                    dsp::lin_inter_mul3(vOutBuf[0], in[0], 0, fOldDryGain, samples, fNewDryGain, i, count);
+                    dsp::lin_inter_mul3(vOutBuf[1], in[1], 0, fOldDryGain, samples, fNewDryGain, i, count);
+                }
+            }
+            else
+            {
+                if (fOldDryGain == fNewDryGain)
+                    dsp::mul_k3(vOutBuf[0], in[0], fNewDryGain, count);
+                else
+                    dsp::lin_inter_mul3(vOutBuf[0], in[0], 0, fOldDryGain, samples, fNewDryGain, i, count);
+                dsp::copy(vOutBuf[1], vOutBuf[0], count);
+            }
+
+            // Process delay channels and store result to vDataBuf
+            dsp::fill_zero(vDataBuf[0], count);
+            dsp::fill_zero(vDataBuf[1], count);
+
+            for (size_t j=0; j<MAX_PROCESSORS; ++j)
+            {
+                art_delay_t *ad     = &vDelays[j];
+                process_delay(ad, vDataBuf, in, samples, i, count);
+            }
+
+            // Apply panning and add wet sound to output buffers
+            for (size_t j=0; j<2; ++j)
+            {
+                size_t c1   = j, c2 = (j + 1) & 1;
+                float pan   = fOldPan[j];
+                float npan  = fNewPan[j];
+
+                if (pan != npan)
+                {
+                    dsp::lin_inter_fmadd2(vOutBuf[j], vDataBuf[c1], 0, pan, samples, npan, i, count);
+                    dsp::lin_inter_fmadd2(vOutBuf[j], vDataBuf[c2], 0, 1.0f - pan, samples, 1.0f - npan, i, count);
+                }
+                else
+                    dsp::mix_add2(vOutBuf[j], vDataBuf[c1], vDataBuf[c2], pan, 1.0f - pan, count);
+            }
+
+            // Output internal buffer data to external outputs via applied bypass
+            if (bStereoIn)
+            {
+                if (bMono)
+                {
+                    dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
+                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                    sBypass[0].process(out[1], in[1], vOutBuf[0], count);
+                }
+                else
+                {
+                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                    sBypass[0].process(out[1], in[1], vOutBuf[1], count);
+                }
+            }
+            else
+            {
+                if (bMono)
+                {
+                    dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
+                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                    sBypass[0].process(out[1], in[0], vOutBuf[0], count);
+                }
+                else
+                {
+                    sBypass[0].process(out[0], in[0], vOutBuf[0], count);
+                    sBypass[0].process(out[1], in[0], vOutBuf[1], count);
+                }
+            }
+
+            // Update positions
+            in[0]              += count;
+            if (bStereoIn)
+                in[1]              += count;
+            out[0]             += count;
+            out[1]             += count;
+            i                  += count;
+        }
+
+        // Commit dynamic settings
+        fOldDryGain         = fNewDryGain;
+        fOldPan[0]          = fNewPan[0];
+        fOldPan[1]          = fNewPan[1];
+
+        for (size_t j=0; j<MAX_PROCESSORS; ++j)
+        {
+            art_delay_t *ad     = &vDelays[j];
+            ad->sOld            = ad->sNew;
+        }
     }
 
     void art_delay_base::dump(IStateDumper *v) const

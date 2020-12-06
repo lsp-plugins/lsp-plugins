@@ -69,6 +69,8 @@
 #include <dsp/arch/native/3dmath.h>
 
 #include <dsp/arch/native/coding.h>
+#include <dsp/arch/native/interpolate.h>
+#include <dsp/arch/native/crossfade.h>
 
 #undef __DSP_NATIVE_IMPL
 
@@ -525,6 +527,17 @@ namespace native
 
         EXPORT1(base64_enc);
         EXPORT1(base64_dec);
+
+        EXPORT1(lin_inter_set);
+        EXPORT1(lin_inter_mul2);
+        EXPORT1(lin_inter_mul3);
+        EXPORT1(lin_inter_fmadd2);
+        EXPORT1(lin_inter_frmadd2);
+        EXPORT1(lin_inter_fmadd3);
+
+        EXPORT1(lin_xfade2);
+        EXPORT1(lin_xfade3);
+        EXPORT1(lin_xfade_add3);
     }
 
     #undef EXPORT1
