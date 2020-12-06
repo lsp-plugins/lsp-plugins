@@ -23,7 +23,7 @@
 
 === 1.1.28 ===
 
-- Implemented Long Delay plugin.
+- Implemented Atristic Delay plugin.
 - Added delay and phase inversion controls to the crossover plugin.
 - Added possibility to change the note number in the sampler.
 - Added sample reversal feature to the Sampler and Multisampler plugin series.
@@ -36,6 +36,7 @@
 * Refactored ipc::Process for better work with vfork() system call.
 * Fixed regression in led indication for the Compensation Delay plugin series.
 * Fixed drag&drop regression after code refactoring.
+* Fixed bug in Fraction widget related to nominator drop-down list values.
 
 *******************************************************************************
 * New plugin check list before release
