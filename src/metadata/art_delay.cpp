@@ -87,7 +87,6 @@ namespace lsp
         { "5",              NULL    },
         { "6",              NULL    },
         { "7",              NULL    },
-        { "8",              NULL    },
 
         { NULL, NULL }
     };
@@ -126,7 +125,8 @@ namespace lsp
     #define ART_DELAY_TEMPO(id) \
         CONTROL("tempo" #id, "Tempo " #id, U_BPM, art_delay_base_metadata::TEMPO), \
         COMBO("ratio" #id, "Tempo " #id " ratio", 0, art_delay_tempo_ratio), \
-        SWITCH("sync" #id, "Tempo" #id " sync", 0.0f)
+        SWITCH("sync" #id, "Tempo" #id " sync", 0.0f), \
+        METER("atempo" #id, "Delay " #id " actual tempo", U_BPM, art_delay_base_metadata::ATEMPO)
 
     #define ART_DELAY_PROCESSOR(id, pan) \
         SWITCH("on" #id, "Delay " #id " on", 0.0f), \
@@ -155,9 +155,11 @@ namespace lsp
         AMP_GAIN1("fb" #id, "Delay " #id " feedback", GAIN_AMP_M_INF_DB), \
         pan(#id, "Delay " #id), \
         AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB), \
-        METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::TIME), \
-        BLINK("oor" #id, "Delay " #id " out of range"), \
-        BLINK("loop" #id, "Delay " #id " dependency loop")
+        METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::DSEL), \
+        BLINK("door" #id, "Delay " #id " out of range"), \
+        BLINK("loop" #id, "Delay " #id " dependency loop"), \
+        METER("tval" #id, "Delay " #id " selected tempo", U_BPM, art_delay_base_metadata::ATEMPO), \
+        METER("dval" #id, "Delay " #id " reference selected delay", U_SEC, art_delay_base_metadata::DSEL)
 
     #define ART_DELAY_TEMPOS \
         ART_DELAY_TEMPO(0), \

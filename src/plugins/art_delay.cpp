@@ -204,6 +204,11 @@ namespace lsp
 
             at->fTempo              = BPM_DEFAULT;
             at->bSync               = false;
+
+            at->pTempo              = NULL;
+            at->pRatio              = NULL;
+            at->pSync               = NULL;
+            at->pOutTempo           = NULL;
         }
 
         // Initialize delays
@@ -222,6 +227,7 @@ namespace lsp
             ad->sEq[1].construct();
             ad->sBypass[0].construct();
             ad->sBypass[1].construct();
+            ad->sOutOfRange.construct();
 
             ad->pAllocator          = new DelayAllocator(ad);
             if (ad->pAllocator == NULL)
@@ -234,6 +240,9 @@ namespace lsp
             ad->bUpdated            = false;
             ad->bValidRef           = true;
             ad->nDelayRef           = DELAY_REF_NONE;
+            ad->fOutDelay           = 0.0f;
+            ad->fOutTempo           = 0.0f;
+            ad->fOutDelayRef        = 0.0f;
 
             ad->sOld.fDelay         = 0.0f;
             ad->sOld.fFeedback      = 0.0f;
@@ -279,9 +288,12 @@ namespace lsp
             ad->pFeedOn             = NULL;
             ad->pFeedGain           = NULL;
             ad->pGain               = NULL;
+
             ad->pOutDelay           = NULL;
             ad->pOutOfRange         = NULL;
             ad->pOutLoop            = NULL;
+            ad->pOutTempo           = NULL;
+            ad->pOutDelayRef        = NULL;
         }
 
         // Initialize bypasses
@@ -345,6 +357,8 @@ namespace lsp
             at->pRatio              = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             at->pSync               = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            at->pOutTempo           = vPorts[port_id++];
         }
 
         // Bind delay ports
@@ -411,6 +425,10 @@ namespace lsp
             ad->pOutOfRange         = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pOutLoop            = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pOutTempo           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pOutDelayRef        = vPorts[port_id++];
         }
     }
 
@@ -479,6 +497,7 @@ namespace lsp
             ad->sEq[1].set_sample_rate(sr);
             ad->sBypass[0].init(sr);
             ad->sBypass[1].init(sr);
+            ad->sOutOfRange.init(sr);
         }
     }
 
@@ -495,7 +514,7 @@ namespace lsp
     bool art_delay_base::check_delay_ref(art_delay_t *ad)
     {
         art_delay_t *list[MAX_PROCESSORS];
-        size_t n = 0;
+        size_t n  = 0;
         list[n++] = ad;
 
         while (ad->nDelayRef >= 0)
@@ -507,6 +526,9 @@ namespace lsp
             for (size_t i=0; i<n; ++i)
                 if (list[i] == ad)
                     return false;
+
+            // Append to list
+            list[n++] = ad;
         }
 
         return true;
@@ -570,7 +592,7 @@ namespace lsp
         }
 
         // Apply recursive settings to delays
-        for (size_t i=0, nupd=0; nupd < MAX_PROCESSORS; i = (i % MAX_PROCESSORS))
+        for (size_t i=0, nupd=0; nupd < MAX_PROCESSORS; i = ((i+1) % MAX_PROCESSORS))
         {
             // Get the delay
             art_delay_t *ad         = &vDelays[i];
@@ -583,7 +605,7 @@ namespace lsp
                 continue;
 
             bool pfback             = (fback) && (ad->pFeedOn->getValue() >= 0.5f);
-            float delay             = ad->pDelay->getValue();
+            float delay             = seconds_to_samples(fSampleRate, ad->pDelay->getValue());
 
             // Tempo reference
             ssize_t tempo_ref       = ad->pTempoRef->getValue() - 1.0f;
@@ -591,16 +613,26 @@ namespace lsp
             {
                 // Compute bar * multiplier + fraction
                 art_tempo_t *at         = &vTempo[tempo_ref];
-                float bdelay            = ad->pBarFrac->getValue() * ad->pBarMul->getValue() + ad->pFrac->getValue();
-                delay                  += seconds_to_samples(fSampleRate, (240.0f * bdelay) / at->fTempo);
+                ad->fOutTempo           = at->fTempo;
+                float bfrac             = ad->pBarFrac->getValue() * ad->pBarMul->getValue() + ad->pFrac->getValue();
+                float bdelay            = (240.0f * bfrac) / ad->fOutTempo;
+                delay                  += seconds_to_samples(fSampleRate, bdelay);
             }
+            else
+                ad->fOutTempo           = 0.0f;
 
             // Parent delay reference
             if (p_ad != NULL)
-                delay                  += p_ad->sNew.fDelay * ad->pDelayMul->getValue();
+            {
+                ad->fOutDelayRef        = p_ad->sNew.fDelay * ad->pDelayMul->getValue();;
+                delay                  += ad->fOutDelayRef;
+            }
+            else
+                ad->fOutDelayRef        = 0.0f;
 
             // Update delay settings
             ad->sNew.fDelay         = delay;
+            ad->fOutDelay           = samples_to_seconds(fSampleRate, delay);
             float gain              = ad->pGain->getValue() * wet;
             ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
 
@@ -681,6 +713,10 @@ namespace lsp
                 fp.fQuality     = 0.0f;
                 eq->set_params(band++, &fp);
             }
+
+            // Mark delay as updated
+            ad->bUpdated    = true;
+            ++nupd;
         }
     }
 
@@ -801,6 +837,9 @@ namespace lsp
 
     void art_delay_base::process(size_t samples)
     {
+        // Estimate number of channels
+        size_t channels = (bStereoIn) ? 2 : 1;
+
         // Sync delay lines
         for (size_t j=0; j<MAX_PROCESSORS; ++j)
         {
@@ -824,7 +863,7 @@ namespace lsp
             size_t count        = lsp_min(samples - i, BUFFER_SIZE);
 
             // Process the dry sound (gain + pan)
-            for (size_t j=0; j<2; ++j)
+            for (size_t j=0; j<channels; ++j)
             {
                 if (sOldDryPan[j].l != sNewDryPan[j].l)
                 {
@@ -871,14 +910,34 @@ namespace lsp
             i                  += count;
         }
 
-        // Commit dynamic settings
+        // Commit dynamic settings and output values
         sOldDryPan[0]       = sNewDryPan[0];
         sOldDryPan[1]       = sNewDryPan[1];
+
+        for (size_t j=0; j<MAX_TEMPOS; ++j)
+        {
+            art_tempo_t *at     = &vTempo[j];
+            at->pOutTempo->setValue(at->fTempo);
+        }
 
         for (size_t j=0; j<MAX_PROCESSORS; ++j)
         {
             art_delay_t *ad     = &vDelays[j];
             ad->sOld            = ad->sNew;
+
+            // Update blink state
+            if (ad->fOutDelay > nMaxDelay)
+                ad->sOutOfRange.blink();
+
+            // Output values
+            ad->pOutDelay->setValue(ad->fOutDelay);
+            ad->pOutDelayRef->setValue(samples_to_seconds(fSampleRate, ad->fOutDelayRef));
+            ad->pOutTempo->setValue(ad->fOutTempo);
+            ad->pOutOfRange->setValue(ad->sOutOfRange.value());
+            ad->pOutLoop->setValue((ad->bValidRef) ? 0.0f : 1.0f);
+
+            // Post-process blink
+            ad->sOutOfRange.process(samples);
         }
     }
 

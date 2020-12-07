@@ -26,6 +26,7 @@
 
 #include <core/plugin.h>
 #include <core/util/Bypass.h>
+#include <core/util/Blink.h>
 #include <core/util/DynamicDelay.h>
 #include <core/filters/Equalizer.h>
 
@@ -61,6 +62,7 @@ namespace lsp
                 IPort              *pTempo;         // Tempo port
                 IPort              *pRatio;         // Ratio port
                 IPort              *pSync;          // Sync flag
+                IPort              *pOutTempo;      // Output tempo
             } art_tempo_t;
 
             typedef struct pan_t
@@ -84,6 +86,7 @@ namespace lsp
                 DynamicDelay       *pGDelay[2];     // Garbage
                 Equalizer           sEq[2];         // Equalizers for each channel
                 Bypass              sBypass[2];     // Bypass
+                Blink               sOutOfRange;    // Blink
                 DelayAllocator     *pAllocator;     // Allocator
 
                 bool                bStereo;        // Mode: Mono/stereo
@@ -93,6 +96,9 @@ namespace lsp
                 bool                bUpdated;       // Update flag
                 bool                bValidRef;      // Valid reference flag
                 ssize_t             nDelayRef;      // Reference to delay
+                float               fOutDelay;      // Output delay
+                float               fOutTempo;      // Output tempo
+                float               fOutDelayRef;   // Output delay reference value
 
                 art_settings_t      sOld;           // Old settings
                 art_settings_t      sNew;           // New settings
@@ -123,6 +129,8 @@ namespace lsp
                 IPort              *pOutDelay;      // Output delay
                 IPort              *pOutOfRange;    // Out of range status
                 IPort              *pOutLoop;       // Dependency loop
+                IPort              *pOutTempo;      // Actual tempo
+                IPort              *pOutDelayRef;   // Actual delay reference value
             } art_delay_t;
 
         protected:

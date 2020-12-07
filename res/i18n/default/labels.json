@@ -394,6 +394,7 @@
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",
 	"reset": "Reset",
+	"result": "Result",
 	
 	"reverberation_time:s": "Reverberation\nTime (s)",
 	

@@ -18,7 +18,7 @@
 				<vbox>
 					<knob id="tempo" visibility="!:sync" />
 					<indicator id="time:bpm" format="f4.1!" visibility=":sync" text_color="green" />
-					<label text="labels:host_bpm" font_size="9" visibility=":sync" />
+					<label text="labels.host_bpm" font_size="9" visibility=":sync" />
 				</vbox>
 				<knob id="strch" />
 				<grid rows="2" cols="2" fill="false">

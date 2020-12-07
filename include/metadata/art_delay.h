@@ -33,6 +33,11 @@ namespace lsp
         static const float  TIME_STEP           = 0.01f;
         static const float  TIME_DFL            = 0.0f;
 
+        static const float  DSEL_MIN            = 0.0f;
+        static const float  DSEL_MAX            = 999.999f;
+        static const float  DSEL_STEP           = 0.01f;
+        static const float  DSEL_DFL            = 0.0f;
+
         static const float  DENOMINATOR_MIN     = 1.0f;
         static const float  DENOMINATOR_MAX     = 64.0f;
         static const float  DENOMINATOR_STEP    = 1.0f;
@@ -57,6 +62,11 @@ namespace lsp
         static const float  DELAY_MULT_MAX      = 1000.0f;
         static const float  DELAY_MULT_STEP     = 0.1f;
         static const float  DELAY_MULT_DFL      = 0.0f;
+
+        static const float  ATEMPO_MIN          = 0.0f;
+        static const float  ATEMPO_MAX          = 9000.0f;
+        static const float  ATEMPO_STEP         = 0.1f;
+        static const float  ATEMPO_DFL          = 120.0f;
 
         static const float  TEMPO_MIN           = 20.0f;
         static const float  TEMPO_MAX           = 360.0f;
