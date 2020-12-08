@@ -1,11 +1,11 @@
 <plugin resizable="true">
 	<vbox spacing="4">
 		<!-- Master channel -->
-		<group text="groups.chan.master" embed="true">
+		<group text="groups.chan.master">
 		</group>
 
 		<!-- Tempo settings -->
-		<group text="groups.chan.tempo" embed="true">
+		<group text="groups.tempo_settings">
 			<grid rows="7" cols="23" transpose="true" spacing="2">
 				<ui:for id="i" first="0" last="7">
 					<!-- Separator -->
@@ -35,100 +35,157 @@
 		</group>
 				
 		<!-- Delay lines -->
-		<cgroup id="lsel" embed="true">
-			<ui:for id="g" first="0" last="3">
-				<vbox>
-					<!-- Delay Line -->
-					<ui:for id="i" first="${:g*4}" last="${:g*4+3}">
-						<!-- Delay formula -->
-						<ui:attributes bg_color="${(:i mod 2) ? 'bg2' : 'bg'}">
-							<grid rows="4" cols="18" hspacing="2">
-								<!-- Row 1 -->
-								<cell cols="5">
-									<label text="labels.delay_reference" />
-								</cell>
-								<void />
-								<cell cols="8">
-									<label text="labels.tempo_based_delay" />
-								</cell>
-								<void />
-								<label text="labels.delay" />
-								<void />
-								<label text="labels.result" />
-							
-								<!-- Row 2 -->
-								<label text="[" font_size="24" />
-								<vbox>
-									<combo id="dref${i}" />
-									<hbox spacing="4">
-										<vbox fill="false">
-											<indicator id="dval${i}" format="f6.3!" text_color="green" visibility="!:loop${i}" />
-											<indicator id="dval${i}" format="f6.3!" text_color="red" visibility=":loop${i}" />
-										</vbox>
-										<label text="units.s" />
-									</hbox>
-								</vbox>
-								<label text="x" font_size="24" color="knob_scale" />
-								<knob id="drefm${i}" />
-								<label text="]" font_size="24" />
-								
-								<label text="+" font_size="24" color="yellow" />
-								
-								<label text="[" font_size="24" />
-								<vbox>
-									<combo id="tref${i}" />
-									<hbox spacing="4">
-										<indicator id="tval${i}" format="f5.1!" text_color="green" fill="false" />
-										<label text="units.bpm" />
-									</hbox>
-								</vbox>
-								<frac id="treff${i}" id2="trefd${i}" color="green" />
-								<label text="x" font_size="24" color="knob_scale" />
-								<knob id="trefm${i}" />
-								<label text="+" font_size="24" color="knob_scale" />
-								<frac id="frac${i}" id2="den${i}" color="green" />
-								<label text="]" font_size="24" />
-								
-								<label text="+" font_size="24" color="yellow" />
-								
-								<knob id="dtim${i}" />
-								
-								<label text="=" font_size="24" color="yellow" />
+		<cgroup id="lsel">
+			<ui:for id="i" first="0" last="15">
+				<!-- Delay line -->
+				<vbox spacing="4">
+					<align hpos="0" pad_bottom="8">
+						<label text="labels.delay_time_formula" />
+					</align>
+					
+					<!-- Delay formula -->
+					<grid rows="4" cols="18" hspacing="2">
+						<!-- Row 1 -->
+						<cell cols="5">
+							<label text="labels.delay_reference" />
+						</cell>
+						<void />
+						<cell cols="8">
+							<label text="labels.tempo_based_delay" />
+						</cell>
+						<void />
+						<label text="labels.delay" />
+						<void />
+						<label text="labels.result" />
+					
+						<!-- Row 2 -->
+						<label text="[" font_size="24" />
+						<vbox>
+							<combo id="dref${i}" />
+							<hbox spacing="4">
 								<vbox fill="false">
-									<indicator id="adt${i}" format="f6.3!" text_color="green" visibility="!:door${i}" />
-									<indicator id="adt${i}" format="f6.3!" text_color="red" visibility=":door${i}" />
+									<indicator id="dval${i}" format="f6.3!" text_color="green" visibility="!:loop${i}" />
+									<indicator id="dval${i}" format="f6.3!" text_color="red" visibility=":loop${i}" />
 								</vbox>
-								
-								<!-- Row 3 -->
-								<void />
-								<void />
-								<void />
-								<value id="drefm${i}" same_line="true" />
-								<void />
-								
-								<void />
-								
-								<void />
-								<void />
-								<void />
-								<void />
-								<value id="trefm${i}" same_line="true" />
-								<void />
-								<void />
-								<void />
-								
-								<void />
-								
-								<value id="dtim${i}" same_line="true" />
-								
-								<void />
-								
-								<label text="units.seconds" />
-							</grid>
-						</ui:attributes>
-					</ui:for>
+								<label text="units.s" />
+							</hbox>
+						</vbox>
+						<label text="x" font_size="24" color="knob_scale" />
+						<knob id="drefm${i}" />
+						<label text="]" font_size="24" />
+						
+						<label text="+" font_size="24" color="yellow" />
+						
+						<label text="[" font_size="24" />
+						<vbox>
+							<combo id="tref${i}" />
+							<hbox spacing="4">
+								<indicator id="tval${i}" format="f5.1!" text_color="green" fill="false" />
+								<label text="units.bpm" />
+							</hbox>
+						</vbox>
+						<frac id="treff${i}" id2="trefd${i}" color="green" />
+						<label text="x" font_size="24" color="knob_scale" />
+						<knob id="trefm${i}" />
+						<label text="+" font_size="24" color="knob_scale" />
+						<frac id="frac${i}" id2="den${i}" color="green" />
+						<label text="]" font_size="24" />
+						
+						<label text="+" font_size="24" color="yellow" />
+						
+						<knob id="dadd${i}" />
+						
+						<label text="=" font_size="24" color="yellow" />
+						<vbox fill="false">
+							<indicator id="adt${i}" format="f6.3!" text_color="green" visibility="!:door${i}" />
+							<indicator id="adt${i}" format="f6.3!" text_color="red" visibility=":door${i}" />
+						</vbox>
+						
+						<!-- Row 3 -->
+						<cell cols="3"><void /></cell>
+						<value id="drefm${i}" same_line="true" />
+						<cell cols="6"><void /></cell>
+						<value id="trefm${i}" same_line="true" />
+						<cell cols="4"><void /></cell>								
+						<value id="dadd${i}" same_line="true" />
+						<void />
+						<label text="units.seconds" />
+					</grid>
+					
+					<!-- Separator -->
+					<hsep />
+					<align hpos="0" pad_bottom="8">
+						<label text="labels.delay_line_processing" />
+					</align>
+					
+					<!-- Delay settings -->
+					<grid rows="4" cols="15">
+						<!-- Heading 1 -->
+						<cell cols="4"><void /></cell>
+						<label text="labels.flt.low_cut" />
+						<cell cols="5"><label text="labels.equalizer:db" /></cell>
+						<label text="labels.flt.high_cut" />
+						<cell cols="2"><label text="labels.feedback" /></cell>
+						<label text="labels.panorama" />
+						<label text="labels.gain" />
+						
+						<!-- Heading 2 -->
+						<label text="labels.chan.on" />
+						<label text="labels.chan.solo" />
+						<label text="labels.chan.mute" />
+						<label text="labels.filters" />
+						<label text="labels.units.:hz" />
+						<label text="labels.flt.subs" />
+						<label text="labels.flt.bass" />
+						<label text="labels.flt.middle" />
+						<label text="labels.flt.presence" />
+						<label text="labels.flt.treble" />
+						<label text="labels.units.:hz" />
+						<label text="labels.chan.on" />
+						<label text="labels.units.:db" />
+						<label text="labels.units.:pc" />
+						<label text="labels.units.:db" />
+						
+						<!-- Controls -->
+						<button id="on${i}" led="true" color="yellow" size="32" />
+						<button id="s${i}" led="true" color="green" size="32" />
+						<button id="m${i}" led="true" color="red" size="32" />
+						<grid rows="3" cols="2">
+							<button id="lcf${i}" led="true" color="magenta" size="12" />
+							<label text="labels.flt.L_owC_ut" />
+							<button id="eq${i}" led="true" color="green" size="12" />
+							<label text="labels.flt.EQ_ualizer" />
+							<button id="hcf${i}" led="true" color="cyan" size="12" />
+							<label text="labels.flt.H_ighC_ut" />
+						</grid>
+						<knob id="flc${i}" size="20" scale_color="magenta" />
+						<knob id="fbs${i}" size="20" scale_color="green" balance="0 db" />
+						<knob id="fbb${i}" size="20" scale_color="green" balance="0 db" />
+						<knob id="fbm${i}" size="20" scale_color="green" balance="0 db" />
+						<knob id="fbp${i}" size="20" scale_color="green" balance="0 db" />
+						<knob id="fbt${i}" size="20" scale_color="green" balance="0 db" />
+						<knob id="fhc${i}" size="20" scale_color="cyan" />
+						<button id="fbe${i}" led="true" color="knob_scale" size="32" />
+						<knob id="fb${i}" />
+						<knob id="p${i}" />
+						<knob id="dg${i}" />
+						
+						<!-- Values -->
+						<cell cols="4"><void /></cell>
+						<value id="flc${i}" detailed="false" />
+						<value id="fbs${i}" detailed="false" />
+						<value id="fbb${i}" detailed="false" />
+						<value id="fbm${i}" detailed="false" />
+						<value id="fbp${i}" detailed="false" />
+						<value id="fbt${i}" detailed="false" />
+						<value id="fhc${i}" detailed="false" />
+						<void />
+						<value id="fb${i}" detailed="false" />
+						<value id="p${i}" detailed="false" />
+						<value id="dg${i}" detailed="false" />
+					</grid>
 				</vbox>
-			</ui:for>
+			</ui:for> <!-- i -->
 		</cgroup>
 	</vbox>
 </plugin>

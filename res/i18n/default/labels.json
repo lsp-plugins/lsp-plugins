@@ -148,6 +148,8 @@
 	
 	"delay": "Delay",
 	"delay:ms": "Delay (ms)",
+	"delay_line_processing": "Delay Line Processing",
+	"delay_time_formula": "Delay Time Formula",
 	"delay_reference": "Delay Reference",
 	
 	"direct_out": "Direct out",

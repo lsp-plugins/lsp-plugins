@@ -1,9 +1,22 @@
 {
 	"art_delay": {
-		"lines_0:3": "Delay Lines 0-3",
-		"lines_4:7": "Delay Lines 4-7",
-		"lines_8:11": "Delay Lines 8-11",
-		"lines_12:15": "Delay Lines 12-15",
+		"line_0": "Delay Line 0",
+		"line_1": "Delay Line 1",
+		"line_2": "Delay Line 2",
+		"line_3": "Delay Line 3",
+		"line_4": "Delay Line 4",
+		"line_5": "Delay Line 5",
+		"line_6": "Delay Line 6",
+		"line_7": "Delay Line 7",
+		"line_8": "Delay Line 8",
+		"line_9": "Delay Line 9",
+		"line_10": "Delay Line 10",
+		"line_11": "Delay Line 11",
+		"line_12": "Delay Line 12",
+		"line_13": "Delay Line 13",
+		"line_14": "Delay Line 14",
+		"line_15": "Delay Line 15",
+		
 		"modes": {
 			"notes": "Notes",
 			"off": "Off",

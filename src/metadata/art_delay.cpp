@@ -27,10 +27,22 @@ namespace lsp
 {
     static const port_item_t art_delay_lines[] =
     {
-        { "0-3",            "art_delay.lines_0:3"   },
-        { "4-7",            "art_delay.lines_4:7"   },
-        { "8-11",           "art_delay.lines_8:11"  },
-        { "12-15",          "art_delay.lines_12:15" },
+        { "0",            "art_delay.line_0"   },
+        { "1",            "art_delay.line_1"   },
+        { "2",            "art_delay.line_2"   },
+        { "3",            "art_delay.line_3"   },
+        { "4",            "art_delay.line_4"   },
+        { "5",            "art_delay.line_5"   },
+        { "6",            "art_delay.line_6"   },
+        { "7",            "art_delay.line_7"   },
+        { "8",            "art_delay.line_8"   },
+        { "9",            "art_delay.line_9"   },
+        { "10",           "art_delay.line_10"  },
+        { "11",           "art_delay.line_11"  },
+        { "12",           "art_delay.line_12"  },
+        { "13",           "art_delay.line_13"  },
+        { "14",           "art_delay.line_14"  },
+        { "15",           "art_delay.line_15"  },
         { NULL, NULL }
     };
 
@@ -140,7 +152,7 @@ namespace lsp
         INT_CONTROL("trefm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
         CONTROL("frac" #id, "Delay " #id " fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("den" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        CONTROL("dtim" #id, "Delay " #id " time", U_SEC, art_delay_base_metadata::TIME), \
+        CONTROL("dadd" #id, "Delay " #id " time addition", U_SEC, art_delay_base_metadata::TIME), \
         SWITCH("eq" #id, "Equalizer " #id " on", 0.0f), \
         SWITCH("lfc" #id, "Delay " #id " low-cut filter", 0.0f), \
         LOG_CONTROL("flc" #id, "Delay " #id " low-cut frequency", U_HZ, art_delay_base_metadata::LOW_CUT), \
