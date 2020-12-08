@@ -222,6 +222,7 @@
 		"correlation": "CORRELATION GRAPH",
 		"curve": "CURVE",
 		"delay_line": "DELAY LINE",
+		"delay_graph": "DELAY GRAPH",
 		"expansion": "EXPANSION",
 		"frequency": "FREQUENCY GRAPH",
 		"gating": "GATING",
@@ -275,6 +276,7 @@
 		"sound_speed": "Sound speed",
 		"transparency": "Transparency"
 	},
+	"max_delay": "Max Delay",
 	"max_latency": "Max Latency",
 	"max_time": "Max time",
 	

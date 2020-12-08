@@ -160,12 +160,13 @@ namespace lsp
             IPort                  *pMono;          // Mono/Stereo switch
             IPort                  *pFeedback;      // Enable feedback for all delays
             IPort                  *pOutGain;       // Overall output gain
+            IPort                  *pOutDMax;       // Maximum delay output value
 
             uint8_t                *pData;
 
         protected:
             static inline float         decode_ratio(size_t v);
-            static inline size_t        decode_max_delay_value(size_t v);
+            inline size_t               decode_max_delay_value(size_t v);
             bool                        check_delay_ref(art_delay_t *ad);
             void                        sync_delay(art_delay_t *ad);
             void                        process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count);

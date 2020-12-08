@@ -154,6 +154,7 @@ namespace lsp
         pMono           = NULL;
         pFeedback       = NULL;
         pOutGain        = NULL;
+        pOutDMax        = NULL;
 
         pData           = NULL;
     }
@@ -345,6 +346,8 @@ namespace lsp
         pFeedback       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pOutGain        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pOutDMax        = vPorts[port_id++];
 
         // Bind delay ports
         lsp_trace("Binding tempo ports");
@@ -419,6 +422,9 @@ namespace lsp
             }
             TRACE_PORT(vPorts[port_id]);
             ad->pGain               = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            port_id++;              // Skip hue settings
+
             TRACE_PORT(vPorts[port_id]);
             ad->pOutDelay           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -508,7 +514,8 @@ namespace lsp
 
     size_t art_delay_base::decode_max_delay_value(size_t v)
     {
-        return (v < sizeof(art_delay_max)/sizeof(uint8_t)) ? art_delay_max[v] : 1.0f;
+        float seconds = (v < sizeof(art_delay_max)/sizeof(uint8_t)) ? art_delay_max[v] : 1.0f;
+        return seconds_to_samples(fSampleRate, seconds);
     }
 
     bool art_delay_base::check_delay_ref(art_delay_t *ad)
@@ -926,7 +933,7 @@ namespace lsp
             ad->sOld            = ad->sNew;
 
             // Update blink state
-            if (ad->fOutDelay > nMaxDelay)
+            if (ad->sNew.fDelay > nMaxDelay)
                 ad->sOutOfRange.blink();
 
             // Output values
@@ -939,6 +946,8 @@ namespace lsp
             // Post-process blink
             ad->sOutOfRange.process(samples);
         }
+
+        pOutDMax->setValue(samples_to_seconds(fSampleRate, nMaxDelay));
     }
 
     void art_delay_base::dump(IStateDumper *v) const

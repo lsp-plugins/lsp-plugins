@@ -1,8 +1,80 @@
 <plugin resizable="true">
 	<vbox spacing="4">
 		<!-- Master channel -->
-		<group text="groups.chan.master">
-		</group>
+		<hbox spacing="2">
+			<vbox spacing="2" expand="true">
+				<graph width="320" expand="true">
+					<center hpos="-1" vpos="0" visible="false" />
+					
+					<!-- Axis -->
+					<axis min="0" max=":dmaxv" color="g_white" angle="0.0" logarithmic="false" />
+					<axis min="-1" max="1" color="g_white" angle="0.5" logarithmic="false" visibility="false" />
+					
+					<text
+						text="graph.axis.time"
+						basis="0;1" coord=":dmaxv;0" 
+						halign="-1" valign="-1"
+						color="g_white"
+					/>
+					
+					<ui:for id="i" first="0" last="15">
+						<marker
+							id="adt${i}"
+							basis="0" parallel="1" width="2"
+							color="yellow" hue_id="hue${i}"
+							visibility=":on${i}"
+						/>
+						<text
+							text="${i}"
+							basis="0;1" coord=":adt${i};1" 
+							halign="1" valign="-1"
+							color="yellow" hue_id="hue${i}"
+							visibility=":on${i}"
+						/>
+						<text
+							id="adt${i}" text="labels.values.fmt_value"
+							basis="0;1" coord=":adt${i};-1" 
+							halign="1" valign="1"
+							color="yellow" hue_id="hue${i}"
+							visibility=":on${i}"
+						/>
+					</ui:for>
+				</graph>
+				<align hpos="0">
+					<label text="labels.graphs.delay_graph" />
+				</align>
+			</vbox>
+				
+			<group text="groups.chan.master">
+				<grid rows="3" cols="9" spacing="2">
+					<label text="labels.max_delay" />
+					<label text="labels.feedback" />
+					<label text="labels.signal.mono" />
+					<cell rows="3"><vsep /></cell>
+					<label text="labels.signal.dry_pan" />
+					<label text="labels.signal.dry" />
+					<label text="labels.signal.wet" />
+					<cell rows="3"><vsep /></cell>
+					<label text="labels.output" />
+					
+					<combo id="dmax" />
+					<button id="fb" led="true" color="knob_scale" size="32" />
+					<button id="mono" led="true" color="yellow" size="32" />
+					<knob id="p_in" balance="0" />
+					<knob id="dry" scale_color="yellow" />
+					<knob id="wet" scale_color="yellow" />
+					<knob id="g_out" balance="0" />
+					
+					<label text="units.seconds" />
+					<void />
+					<void />
+					<value id="p_in" />
+					<value id="dry" />
+					<value id="wet" />
+					<value id="g_out" />
+				</grid>
+			</group>
+		</hbox>
 
 		<!-- Tempo settings -->
 		<group text="groups.tempo_settings">
@@ -71,7 +143,7 @@
 							</hbox>
 						</vbox>
 						<label text="x" font_size="24" color="knob_scale" />
-						<knob id="drefm${i}" />
+						<knob id="drefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						<label text="]" font_size="24" />
 						
 						<label text="+" font_size="24" color="yellow" />
@@ -86,14 +158,14 @@
 						</vbox>
 						<frac id="treff${i}" id2="trefd${i}" color="green" />
 						<label text="x" font_size="24" color="knob_scale" />
-						<knob id="trefm${i}" />
+						<knob id="trefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						<label text="+" font_size="24" color="knob_scale" />
 						<frac id="frac${i}" id2="den${i}" color="green" />
 						<label text="]" font_size="24" />
 						
 						<label text="+" font_size="24" color="yellow" />
 						
-						<knob id="dadd${i}" />
+						<knob id="dadd${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						
 						<label text="=" font_size="24" color="yellow" />
 						<vbox fill="false">
@@ -119,9 +191,9 @@
 					</align>
 					
 					<!-- Delay settings -->
-					<grid rows="4" cols="15">
+					<grid rows="4" cols="16">
 						<!-- Heading 1 -->
-						<cell cols="4"><void /></cell>
+						<cell cols="5"><void /></cell>
 						<label text="labels.flt.low_cut" />
 						<cell cols="5"><label text="labels.equalizer:db" /></cell>
 						<label text="labels.flt.high_cut" />
@@ -133,6 +205,7 @@
 						<label text="labels.chan.on" />
 						<label text="labels.chan.solo" />
 						<label text="labels.chan.mute" />
+						<label text="labels.chan.hue" />
 						<label text="labels.filters" />
 						<label text="labels.units.:hz" />
 						<label text="labels.flt.subs" />
@@ -150,6 +223,7 @@
 						<button id="on${i}" led="true" color="yellow" size="32" />
 						<button id="s${i}" led="true" color="green" size="32" />
 						<button id="m${i}" led="true" color="red" size="32" />
+						<knob id="hue${i}" size="20" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						<grid rows="3" cols="2">
 							<button id="lcf${i}" led="true" color="magenta" size="12" />
 							<label text="labels.flt.L_owC_ut" />
@@ -167,11 +241,13 @@
 						<knob id="fhc${i}" size="20" scale_color="cyan" />
 						<button id="fbe${i}" led="true" color="knob_scale" size="32" />
 						<knob id="fb${i}" />
-						<knob id="p${i}" />
-						<knob id="dg${i}" />
+						<knob id="p${i}" balance="0" />
+						<knob id="dg${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						
 						<!-- Values -->
-						<cell cols="4"><void /></cell>
+						<cell cols="3"><void /></cell>
+						<value id="hue${i}" detailed="false" />
+						<void />
 						<value id="flc${i}" detailed="false" />
 						<value id="fbs${i}" detailed="false" />
 						<value id="fbb${i}" detailed="false" />

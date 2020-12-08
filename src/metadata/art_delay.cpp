@@ -126,13 +126,14 @@ namespace lsp
     #define ART_DELAY_COMMON(pan)  \
         BYPASS, \
         COMBO("lsel", "Delay line selector", 0, art_delay_lines), \
-        COMBO("dmax", "Maximum possible delay", 0, art_delay_maxlen), \
+        COMBO("dmax", "Maximum possible delay selector", 0, art_delay_maxlen), \
         pan("_in", "Input"), \
         DRY_GAIN(GAIN_AMP_0_DB), \
         WET_GAIN(GAIN_AMP_0_DB), \
         SWITCH("mono", "Mono output", 0.0f), \
         SWITCH("fb", "Feedback", 1.0f), \
-        OUT_GAIN
+        OUT_GAIN, \
+        METER("dmaxv", "Actual delay maximum value", U_SEC, art_delay_base_metadata::DSEL)
 
     #define ART_DELAY_TEMPO(id) \
         CONTROL("tempo" #id, "Tempo " #id, U_BPM, art_delay_base_metadata::TEMPO), \
@@ -167,6 +168,7 @@ namespace lsp
         AMP_GAIN1("fb" #id, "Delay " #id " feedback", GAIN_AMP_M_INF_DB), \
         pan(#id, "Delay " #id), \
         AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB), \
+        HUE_CTL("hue" #id, "Delay " #id " hue", float(id) / art_delay_base_metadata::MAX_PROCESSORS ), \
         METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::DSEL), \
         BLINK("door" #id, "Delay " #id " out of range"), \
         BLINK("loop" #id, "Delay " #id " dependency loop"), \
