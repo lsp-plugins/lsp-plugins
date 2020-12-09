@@ -225,11 +225,11 @@
 						<button id="m${i}" led="true" color="red" size="32" />
 						<knob id="hue${i}" size="20" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						<grid rows="3" cols="2">
-							<button id="lcf${i}" led="true" color="magenta" size="12" />
+							<button id="lc${i}" led="true" color="magenta" size="12" />
 							<label text="labels.flt.L_owC_ut" />
 							<button id="eq${i}" led="true" color="green" size="12" />
 							<label text="labels.flt.EQ_ualizer" />
-							<button id="hcf${i}" led="true" color="cyan" size="12" />
+							<button id="hc${i}" led="true" color="cyan" size="12" />
 							<label text="labels.flt.H_ighC_ut" />
 						</grid>
 						<knob id="flc${i}" size="20" scale_color="magenta" />

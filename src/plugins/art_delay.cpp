@@ -130,8 +130,6 @@ namespace lsp
         sNewDryPan[0].r = 0.0f;
         sNewDryPan[1].l = 0.0f;
         sNewDryPan[1].r = 0.0f;
-        vDataBuf[0]     = NULL;
-        vDataBuf[1]     = NULL;
         vOutBuf[0]      = NULL;
         vOutBuf[1]      = NULL;
         vGainBuf        = NULL;
@@ -171,7 +169,7 @@ namespace lsp
         size_t sz_buf           = BUFFER_SIZE * sizeof(float);
         size_t sz_tempo         = ALIGN_SIZE(sizeof(art_tempo_t) * MAX_TEMPOS, ALIGN64);
         size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t) * MAX_PROCESSORS, ALIGN64);
-        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 7;
+        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 5;
 
         uint8_t *ptr            = alloc_aligned<uint8_t>(pData, sz_alloc, ALIGN64);
         if (ptr == NULL)
@@ -180,8 +178,6 @@ namespace lsp
         // Allocate data buffers
         for (size_t i=0; i<2; ++i)
         {
-            vDataBuf[i]             = reinterpret_cast<float *>(ptr);
-            ptr                    += sz_buf;
             vOutBuf[i]              = reinterpret_cast<float *>(ptr);
             ptr                    += sz_buf;
         }
@@ -229,6 +225,11 @@ namespace lsp
             ad->sBypass[0].construct();
             ad->sBypass[1].construct();
             ad->sOutOfRange.construct();
+
+            ad->sEq[0].init(art_delay_base_metadata::EQ_BANDS + 2, 0);
+            ad->sEq[1].init(art_delay_base_metadata::EQ_BANDS + 2, 0);
+            ad->sEq[0].set_mode(EQM_IIR);
+            ad->sEq[1].set_mode(EQM_IIR);
 
             ad->pAllocator          = new DelayAllocator(ad);
             if (ad->pAllocator == NULL)
@@ -549,7 +550,7 @@ namespace lsp
         float g_out         = pOutGain->getValue();
         float dry           = pDryGain->getValue() * g_out;
         float wet           = pWetGain->getValue() * g_out;
-        bool fback          = pFeedback->getValue();
+        bool fback          = pFeedback->getValue() >= 0.5f;
 
         bMono               = pMono->getValue() >= 0.5f;
         nMaxDelay           = decode_max_delay_value(pMaxDelay->getValue());
@@ -638,9 +639,8 @@ namespace lsp
                 ad->fOutDelayRef        = 0.0f;
 
             // Update delay settings
-            ad->sNew.fDelay         = delay;
-            ad->fOutDelay           = samples_to_seconds(fSampleRate, delay);
             float gain              = ad->pGain->getValue() * wet;
+            ad->sNew.fDelay         = delay;
             ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
 
             for (size_t j=0; j<channels; ++j)
@@ -648,6 +648,8 @@ namespace lsp
                 ad->sNew.sPan[j].l      = (100.0f - ad->pPan[j]->getValue()) * 0.005f * gain;
                 ad->sNew.sPan[j].r      = (ad->pPan[j]->getValue() + 100.0f) * 0.005f * gain;
             }
+
+            ad->fOutDelay           = samples_to_seconds(fSampleRate, lsp_min(delay, float(nMaxDelay)));
 
             // Determine mode
             bool eq_on          = ad->pEqOn->getValue() >= 0.5f;
@@ -778,34 +780,38 @@ namespace lsp
         else if (da->completed())
         {
             // Update delay
-            bool gc = false;
-
-            for (size_t i=0; i < channels; ++i)
+            if (ad->bOn)
             {
-                // There is data to commit?
-                if (ad->pPDelay[i] == NULL)
-                    continue;
+                bool gc = false;
 
-                // Copy delay data
-                ad->pPDelay[i]->copy(ad->pCDelay[i]);
+                for (size_t i=0; i < channels; ++i)
+                {
+                    // There is data to commit?
+                    if (ad->pPDelay[i] == NULL)
+                        continue;
 
-                // Swap pointers
-                ad->pGDelay[i] = ad->pCDelay[i];
-                ad->pCDelay[i] = ad->pPDelay[i];
-                ad->pPDelay[i] = NULL;
+                    // Copy delay data if it is present
+                    if (ad->pCDelay[i] != NULL)
+                        ad->pPDelay[i]->copy(ad->pCDelay[i]);
 
-                // Update garbage flag
-                gc = gc || (ad->pGDelay[i] != NULL);
-            }
+                    // Swap pointers
+                    ad->pGDelay[i] = ad->pCDelay[i];
+                    ad->pCDelay[i] = ad->pPDelay[i];
+                    ad->pPDelay[i] = NULL;
 
-            // Reset task state
-            da->reset();
+                    // Update garbage flag
+                    gc = gc || (ad->pGDelay[i] != NULL);
+                }
 
-            // Need to clean garbage?
-            if (gc)
-            {
-                da->set_size(nMaxDelay);
-                pExecutor->submit(da);
+                // Reset task state
+                da->reset();
+
+                // Need to clean garbage?
+                if (gc)
+                {
+                    da->set_size(nMaxDelay);
+                    pExecutor->submit(da);
+                }
             }
         }
     }
@@ -817,9 +823,17 @@ namespace lsp
             if (ad->pCDelay[i] == NULL)
                 return;
 
-        // Create delay and feedback control signals
-        dsp::lin_inter_set(vDelayBuf, 0, ad->sOld.fDelay, samples, ad->sNew.fDelay, off, count);
-        dsp::lin_inter_set(vGainBuf, 0, ad->sOld.fFeedback, samples, ad->sNew.fFeedback, off, count);
+        // Create delay control signal
+        if (ad->sOld.fDelay != ad->sNew.fDelay)
+            dsp::lin_inter_set(vDelayBuf, 0, ad->sOld.fDelay, samples, ad->sNew.fDelay, off, count);
+        else
+            dsp::fill(vDelayBuf, ad->sOld.fDelay, count);
+
+        // Create feedback control signal
+        if (ad->sOld.fFeedback != ad->sNew.fFeedback)
+            dsp::lin_inter_set(vGainBuf, 0, ad->sOld.fFeedback, samples, ad->sNew.fFeedback, off, count);
+        else
+            dsp::fill(vGainBuf, ad->sOld.fFeedback, count);
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -858,7 +872,7 @@ namespace lsp
         float *in[2], *out[2];
 
         in[0]   = pIn[0]->getBuffer<float>();
-        in[1]   = (bStereoIn) ? pIn[1]->getBuffer<float>() : NULL;
+        in[1]   = (bStereoIn) ? pIn[1]->getBuffer<float>() : in[0];
 
         out[0]  = pOut[0]->getBuffer<float>();
         out[1]  = pOut[1]->getBuffer<float>();
@@ -870,6 +884,9 @@ namespace lsp
             size_t count        = lsp_min(samples - i, BUFFER_SIZE);
 
             // Process the dry sound (gain + pan)
+            dsp::fill_zero(vOutBuf[0], count);
+            dsp::fill_zero(vOutBuf[1], count);
+
             for (size_t j=0; j<channels; ++j)
             {
                 if (sOldDryPan[j].l != sNewDryPan[j].l)
@@ -885,33 +902,30 @@ namespace lsp
             }
 
             // Process all delay channels and store result to vDataBuf
-            dsp::fill_zero(vDataBuf[0], count);
-            dsp::fill_zero(vDataBuf[1], count);
-
             for (size_t j=0; j<MAX_PROCESSORS; ++j)
             {
                 art_delay_t *ad     = &vDelays[j];
                 if (ad->bOn)
-                    process_delay(ad, vDataBuf, in, samples, i, count);
+                    process_delay(ad, vOutBuf, in, samples, i, count);
             }
 
             // Output internal buffer data to external outputs via applied bypass
+
             if (bMono)
             {
                 dsp::lr_to_mid(vOutBuf[0], vOutBuf[0], vOutBuf[1], count);
                 sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                sBypass[1].process(out[1], in[0], vOutBuf[0], count);
+                sBypass[1].process(out[1], in[1], vOutBuf[0], count);
             }
             else
             {
                 sBypass[0].process(out[0], in[0], vOutBuf[0], count);
-                sBypass[1].process(out[1], in[0], vOutBuf[1], count);
+                sBypass[1].process(out[1], in[1], vOutBuf[1], count);
             }
 
             // Update positions
             in[0]              += count;
-            if (bStereoIn)
-                in[1]              += count;
+            in[1]              += count;
             out[0]             += count;
             out[1]             += count;
             i                  += count;

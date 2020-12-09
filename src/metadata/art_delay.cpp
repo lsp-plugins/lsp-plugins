@@ -155,9 +155,9 @@ namespace lsp
         INT_CONTROL("den" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
         CONTROL("dadd" #id, "Delay " #id " time addition", U_SEC, art_delay_base_metadata::TIME), \
         SWITCH("eq" #id, "Equalizer " #id " on", 0.0f), \
-        SWITCH("lfc" #id, "Delay " #id " low-cut filter", 0.0f), \
+        SWITCH("lc" #id, "Delay " #id " low-cut filter", 0.0f), \
         LOG_CONTROL("flc" #id, "Delay " #id " low-cut frequency", U_HZ, art_delay_base_metadata::LOW_CUT), \
-        SWITCH("hfc" #id, "Delay " #id " high-cut filter", 0.0f), \
+        SWITCH("hc" #id, "Delay " #id " high-cut filter", 0.0f), \
         LOG_CONTROL("fhc" #id, "Delay " #id " high-cut frequency", U_HZ, art_delay_base_metadata::HIGH_CUT), \
         LOG_CONTROL("fbs" #id, "Delay " #id " sub-bass", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbb" #id, "Delay " #id " bass", U_GAIN_AMP, art_delay_base_metadata::BAND_GAIN), \

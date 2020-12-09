@@ -139,7 +139,6 @@ namespace lsp
             size_t                  nMaxDelay;      // Maximum delay
             pan_t                   sOldDryPan[2];  // Old panning + gain
             pan_t                   sNewDryPan[2];  // New panning + gain
-            float                  *vDataBuf[2];    // Temporary data buffer
             float                  *vOutBuf[2];     // Output buffer
             float                  *vGainBuf;       // Gain control buffer
             float                  *vDelayBuf;      // Delay control buffer

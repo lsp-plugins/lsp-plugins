@@ -61,7 +61,8 @@ namespace lsp
 
     status_t DynamicDelay::init(size_t max_size)
     {
-        size_t buf_sz       = max_size - (max_size % BUF_SIZE) + BUF_SIZE * 2;
+        size_t delay        = max_size + 1;
+        size_t buf_sz       = delay - (delay % BUF_SIZE) + BUF_SIZE * 2;
         size_t alloc        = buf_sz * sizeof(float);
 
         uint8_t *data       = NULL;
@@ -77,7 +78,7 @@ namespace lsp
 
         nHead               = 0;
         nCapacity           = buf_sz;
-        nMaxDelay           = max_size - 1;
+        nMaxDelay           = max_size;
         pData               = data;
 
         return STATUS_OK;
