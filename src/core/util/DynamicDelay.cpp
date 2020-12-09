@@ -90,17 +90,19 @@ namespace lsp
         nHead               = 0;
     }
 
-    void DynamicDelay::process(float *out, const float *in, const float *delay, const float *fback, size_t samples)
+    void DynamicDelay::process(float *out, const float *in, const float *delay, const float *fback, const float *fdelay, size_t samples)
     {
         for (size_t i=0; i < samples; ++i)
         {
-            ssize_t tail    = nHead - lsp_limit(ssize_t(delay[i]), 0, nMaxDelay); // Delay
+            ssize_t shift   = lsp_limit(ssize_t(delay[i]), 0, nMaxDelay);   // Delay
+            ssize_t tail    = nHead - shift;
             if (tail < 0)
                 tail           += nCapacity;
+            ssize_t feed    = tail  + lsp_limit(fdelay[i], 0, shift);       // Feedback delay
 
             vDelay[nHead]   = in[i];            // Save input sample to buffer
             float s         = vDelay[tail];     // Read delayed sample
-            vDelay[nHead]  += s * fback[i];     // Add feedback to the buffer
+            vDelay[feed]   += s * fback[i];     // Add feedback to the buffer
             out[i]          = vDelay[tail];     // Read the final sample to output buffer
 
             // Update head pointer

@@ -74,7 +74,8 @@ namespace lsp
             typedef struct art_settings_t
             {
                 float               fDelay;         // Delay value
-                float               fFeedback;      // Feedback value
+                float               fFeedGain;      // Feedback gain
+                float               fFeedLen;       // Feedback length
                 pan_t               sPan[2];        // Pan value + gain for each channel
                 size_t              nMaxDelay;      // Maximum possible delay
             } art_settings_t;
@@ -87,6 +88,7 @@ namespace lsp
                 Equalizer           sEq[2];         // Equalizers for each channel
                 Bypass              sBypass[2];     // Bypass
                 Blink               sOutOfRange;    // Blink
+                Blink               sFeedOutRange;  // Feedback is out of range
                 DelayAllocator     *pAllocator;     // Allocator
 
                 bool                bStereo;        // Mode: Mono/stereo
@@ -97,7 +99,9 @@ namespace lsp
                 bool                bValidRef;      // Valid reference flag
                 ssize_t             nDelayRef;      // Reference to delay
                 float               fOutDelay;      // Output delay
+                float               fOutFeedback;   // Output feedback delay
                 float               fOutTempo;      // Output tempo
+                float               fOutFeedTempo;  // Output tempo
                 float               fOutDelayRef;   // Output delay reference value
 
                 art_settings_t      sOld;           // Old settings
@@ -122,11 +126,22 @@ namespace lsp
                 IPort              *pHcfOn;         // High-cut filter on
                 IPort              *pHcfFreq;       // High-cut filter frequency
                 IPort              *pBandGain[EQ_BANDS];    // Band gain for each filter
-                IPort              *pFeedOn;        // Feedback on
-                IPort              *pFeedGain;      // Feedback gain
                 IPort              *pGain;          // Output gain
 
+                // Feedback control
+                IPort              *pFeedOn;        // Feedback on
+                IPort              *pFeedGain;      // Feedback gain
+                IPort              *pFeedTempoRef;  // Tempo reference for feedback
+                IPort              *pFeedBarFrac;   // Bar fraction
+                IPort              *pFeedBarDenom;  // Bar denominator
+                IPort              *pFeedBarMul;    // Bar multiplier
+                IPort              *pFeedFrac;      // Add fraction
+                IPort              *pFeedDenom;     // Add denominator
+                IPort              *pFeedDelay;     // Add delay
+
+                // Outputs
                 IPort              *pOutDelay;      // Output delay
+                IPort              *pOutFeedback;   // Output feedback delay
                 IPort              *pOutOfRange;    // Out of range status
                 IPort              *pOutLoop;       // Dependency loop
                 IPort              *pOutTempo;      // Actual tempo
@@ -142,6 +157,7 @@ namespace lsp
             float                  *vOutBuf[2];     // Output buffer
             float                  *vGainBuf;       // Gain control buffer
             float                  *vDelayBuf;      // Delay control buffer
+            float                  *vFeedBuf;       // Feedback delay control buffer
             float                  *vTempBuf;       // Temporary buffer for delay processing
             art_tempo_t            *vTempo;         // Tempo settings
             art_delay_t            *vDelays;        // Delay lines

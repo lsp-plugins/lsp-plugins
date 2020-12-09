@@ -80,12 +80,12 @@ namespace lsp
 
         static const float  LOW_CUT_MIN         = SPEC_FREQ_MIN;
         static const float  LOW_CUT_MAX         = 1000.0f;
-        static const float  LOW_CUT_STEP        = 0.01f;
+        static const float  LOW_CUT_STEP        = 0.001f;
         static const float  LOW_CUT_DFL         = 100.0f;
 
         static const float  HIGH_CUT_MIN        = 1000.0f;
         static const float  HIGH_CUT_MAX        = SPEC_FREQ_MAX;
-        static const float  HIGH_CUT_STEP       = 0.01f;
+        static const float  HIGH_CUT_STEP       = 0.001f;
         static const float  HIGH_CUT_DFL        = 8000.0f;
 
         static const size_t EQ_BANDS            = 5;

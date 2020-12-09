@@ -71,10 +71,11 @@ namespace lsp
              * @param out output buffer
              * @param in input buffer
              * @param delay the delay values
-             * @param fback feedback values
+             * @param fback feedback gain values
+             * @param fdelay feedback delay values
              * @param samples number of samples to process
              */
-            void        process(float *out, const float *in, const float *delay, const float *fback, size_t samples);
+            void        process(float *out, const float *in, const float *delay, const float *fback, const float *fdelay, size_t samples);
 
             /**
              * Clear delay state

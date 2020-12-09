@@ -134,6 +134,7 @@ namespace lsp
         vOutBuf[1]      = NULL;
         vGainBuf        = NULL;
         vDelayBuf       = NULL;
+        vFeedBuf        = NULL;
         vTempBuf        = NULL;
         vTempo          = NULL;
         vDelays         = NULL;
@@ -169,7 +170,7 @@ namespace lsp
         size_t sz_buf           = BUFFER_SIZE * sizeof(float);
         size_t sz_tempo         = ALIGN_SIZE(sizeof(art_tempo_t) * MAX_TEMPOS, ALIGN64);
         size_t sz_proc          = ALIGN_SIZE(sizeof(art_delay_t) * MAX_PROCESSORS, ALIGN64);
-        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 5;
+        size_t sz_alloc         = sz_tempo + sz_proc + sz_buf * 6;
 
         uint8_t *ptr            = alloc_aligned<uint8_t>(pData, sz_alloc, ALIGN64);
         if (ptr == NULL)
@@ -185,6 +186,8 @@ namespace lsp
         vGainBuf                = reinterpret_cast<float *>(ptr);
         ptr                    += sz_buf;
         vDelayBuf               = reinterpret_cast<float *>(ptr);
+        ptr                    += sz_buf;
+        vFeedBuf                = reinterpret_cast<float *>(ptr);
         ptr                    += sz_buf;
         vTempBuf                = reinterpret_cast<float *>(ptr);
         ptr                    += sz_buf;
@@ -225,6 +228,7 @@ namespace lsp
             ad->sBypass[0].construct();
             ad->sBypass[1].construct();
             ad->sOutOfRange.construct();
+            ad->sFeedOutRange.construct();
 
             ad->sEq[0].init(art_delay_base_metadata::EQ_BANDS + 2, 0);
             ad->sEq[1].init(art_delay_base_metadata::EQ_BANDS + 2, 0);
@@ -243,11 +247,13 @@ namespace lsp
             ad->bValidRef           = true;
             ad->nDelayRef           = DELAY_REF_NONE;
             ad->fOutDelay           = 0.0f;
+            ad->fOutFeedback        = 0.0f;
             ad->fOutTempo           = 0.0f;
             ad->fOutDelayRef        = 0.0f;
 
             ad->sOld.fDelay         = 0.0f;
-            ad->sOld.fFeedback      = 0.0f;
+            ad->sOld.fFeedGain      = 0.0f;
+            ad->sOld.fFeedLen       = 0.0f;
             if (bStereoIn)
             {
                 ad->sOld.sPan[0].l      = 1.0f;
@@ -287,11 +293,20 @@ namespace lsp
             ad->pHcfFreq            = NULL;
             for (size_t j=0; j<EQ_BANDS; ++j)
                 ad->pBandGain[j]        = NULL;
-            ad->pFeedOn             = NULL;
-            ad->pFeedGain           = NULL;
             ad->pGain               = NULL;
 
+            ad->pFeedOn             = NULL;
+            ad->pFeedGain           = NULL;
+            ad->pFeedTempoRef       = NULL;
+            ad->pFeedBarFrac        = NULL;
+            ad->pFeedBarDenom       = NULL;
+            ad->pFeedBarMul         = NULL;
+            ad->pFeedFrac           = NULL;
+            ad->pFeedDenom          = NULL;
+            ad->pFeedDelay          = NULL;
+
             ad->pOutDelay           = NULL;
+            ad->pOutFeedback        = NULL;
             ad->pOutOfRange         = NULL;
             ad->pOutLoop            = NULL;
             ad->pOutTempo           = NULL;
@@ -411,10 +426,6 @@ namespace lsp
                 ad->pBandGain[j]        = vPorts[port_id++];
             }
             TRACE_PORT(vPorts[port_id]);
-            ad->pFeedOn             = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
-            ad->pFeedGain           = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
             ad->pPan[0]             = vPorts[port_id++];
             if (ad->bStereo)
             {
@@ -426,8 +437,30 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             port_id++;              // Skip hue settings
 
+            // Feedback
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedOn             = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedGain           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedTempoRef       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedBarFrac        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedBarDenom       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedBarMul         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedFrac           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedDenom          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pFeedDelay          = vPorts[port_id++];
+
             TRACE_PORT(vPorts[port_id]);
             ad->pOutDelay           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            ad->pOutFeedback        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             ad->pOutOfRange         = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -505,6 +538,7 @@ namespace lsp
             ad->sBypass[0].init(sr);
             ad->sBypass[1].init(sr);
             ad->sOutOfRange.init(sr);
+            ad->sFeedOutRange.init(sr);
         }
     }
 
@@ -614,6 +648,7 @@ namespace lsp
 
             bool pfback             = (fback) && (ad->pFeedOn->getValue() >= 0.5f);
             float delay             = seconds_to_samples(fSampleRate, ad->pDelay->getValue());
+            float fbdelay           = seconds_to_samples(fSampleRate, ad->pFeedDelay->getValue());
 
             // Tempo reference
             ssize_t tempo_ref       = ad->pTempoRef->getValue() - 1.0f;
@@ -629,6 +664,20 @@ namespace lsp
             else
                 ad->fOutTempo           = 0.0f;
 
+            // Feedback tempo reference
+            tempo_ref               = ad->pFeedTempoRef->getValue() - 1.0f;
+            if (tempo_ref >= 0)
+            {
+                // Compute bar * multiplier + fraction
+                art_tempo_t *at         = &vTempo[tempo_ref];
+                ad->fOutFeedTempo       = at->fTempo;
+                float bfrac             = ad->pFeedBarFrac->getValue() * ad->pFeedBarMul->getValue() + ad->pFeedFrac->getValue();
+                float bdelay            = (240.0f * bfrac) / ad->fOutFeedTempo;
+                fbdelay                += seconds_to_samples(fSampleRate, bdelay);
+            }
+            else
+                ad->fOutFeedTempo       = 0.0f;
+
             // Parent delay reference
             if (p_ad != NULL)
             {
@@ -641,7 +690,7 @@ namespace lsp
             // Update delay settings
             float gain              = ad->pGain->getValue() * wet;
             ad->sNew.fDelay         = delay;
-            ad->sNew.fFeedback      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
+            ad->sNew.fFeedGain      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
 
             for (size_t j=0; j<channels; ++j)
             {
@@ -823,22 +872,50 @@ namespace lsp
             if (ad->pCDelay[i] == NULL)
                 return;
 
+        float dmax, fbmax;
+
         // Create delay control signal
         if (ad->sOld.fDelay != ad->sNew.fDelay)
+        {
             dsp::lin_inter_set(vDelayBuf, 0, ad->sOld.fDelay, samples, ad->sNew.fDelay, off, count);
+            dmax = lsp_max(vDelayBuf[0], vDelayBuf[count-1]);
+        }
         else
+        {
             dsp::fill(vDelayBuf, ad->sOld.fDelay, count);
+            dmax = ad->sOld.fDelay;
+        }
 
-        // Create feedback control signal
-        if (ad->sOld.fFeedback != ad->sNew.fFeedback)
-            dsp::lin_inter_set(vGainBuf, 0, ad->sOld.fFeedback, samples, ad->sNew.fFeedback, off, count);
+        // Create feedback gain control signal
+        if (ad->sOld.fFeedGain != ad->sNew.fFeedGain)
+            dsp::lin_inter_set(vGainBuf, 0, ad->sOld.fFeedGain, samples, ad->sNew.fFeedGain, off, count);
         else
-            dsp::fill(vGainBuf, ad->sOld.fFeedback, count);
+            dsp::fill(vGainBuf, ad->sOld.fFeedGain, count);
+
+        // Create feedback delay control signal
+        if (ad->sOld.fFeedLen != ad->sNew.fFeedLen)
+        {
+            dsp::lin_inter_set(vFeedBuf, 0, ad->sOld.fFeedLen, samples, ad->sNew.fFeedLen, off, count);
+            dmax = lsp_max(vFeedBuf[0], vFeedBuf[count-1]);
+        }
+        else
+        {
+            dsp::fill(vFeedBuf, ad->sOld.fFeedLen, count);
+            fbmax = ad->sOld.fFeedLen;
+        }
+
+        // Process the feedback signal and check that it is not out of range
+        if (fbmax > dmax)
+        {
+            ad->sFeedOutRange.blink(); // Indicate out of range
+            fbmax = dmax;
+        }
+        ad->fOutFeedback    = samples_to_seconds(fSampleRate, fbmax);
 
         for (size_t i=0; i<channels; ++i)
         {
             // Process the delay -> eq -> bypass chain
-            ad->pCDelay[i]->process(vTempBuf, in[i], vDelayBuf, vGainBuf, count);
+            ad->pCDelay[i]->process(vTempBuf, in[i], vDelayBuf, vGainBuf, vFeedBuf, count);
             ad->sEq[i].process(vTempBuf, vTempBuf, count);
             ad->sBypass[i].process(vTempBuf, NULL, vTempBuf, count);
 
@@ -952,6 +1029,7 @@ namespace lsp
 
             // Output values
             ad->pOutDelay->setValue(ad->fOutDelay);
+            ad->pOutFeedback->setValue(ad->fOutFeedback);
             ad->pOutDelayRef->setValue(samples_to_seconds(fSampleRate, ad->fOutDelayRef));
             ad->pOutTempo->setValue(ad->fOutTempo);
             ad->pOutOfRange->setValue(ad->sOutOfRange.value());
