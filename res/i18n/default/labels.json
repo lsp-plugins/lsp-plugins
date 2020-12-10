@@ -518,6 +518,7 @@
 	"temperature": "Temperature",
 	"tempo": "Tempo",
 	"tempo_based_delay": "Tempo-Based Delay",
+	"tempo_based_feedback_delay": "Tempo-Based Feedback Delay",
 	
 	"thr_eshold": "Thr",
 	"threads": "Threads",

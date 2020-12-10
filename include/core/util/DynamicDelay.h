@@ -75,7 +75,7 @@ namespace lsp
              * @param fdelay feedback delay values
              * @param samples number of samples to process
              */
-            void        process(float *out, const float *in, const float *delay, const float *fback, const float *fdelay, size_t samples);
+            void        process(float *out, const float *in, const float *delay, const float *fgain, const float *fdelay, size_t samples);
 
             /**
              * Clear delay state

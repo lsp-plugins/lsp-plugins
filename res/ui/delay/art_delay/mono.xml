@@ -116,7 +116,7 @@
 					</align>
 					
 					<!-- Delay formula -->
-					<grid rows="4" cols="18" hspacing="2">
+					<grid rows="6" cols="18" hspacing="2">
 						<!-- Row 1 -->
 						<cell cols="5">
 							<label text="labels.delay_reference" />
@@ -182,6 +182,52 @@
 						<value id="dadd${i}" same_line="true" />
 						<void />
 						<label text="units.seconds" />
+						
+						<!-- Row 4 -->
+						<cell cols="6"><void /></cell>
+						<cell cols="8">
+							<label text="labels.tempo_based_feedback_delay" />
+						</cell>
+						<void />
+						<label text="labels.delay" />
+						<void />
+						<label text="labels.feedback" />
+						
+						<!-- Row 5 -->
+						<cell cols="6"><void /></cell>
+						
+						<label text="[" font_size="24" />
+						<vbox>
+							<combo id="fbtr${i}" />
+							<hbox spacing="4">
+								<indicator id="fbtv${i}" format="f5.1!" text_color="green" fill="false" />
+								<label text="units.bpm" />
+							</hbox>
+						</vbox>
+						<frac id="fbbf${i}" id2="fbbd${i}" color="green" />
+						<label text="x" font_size="24" color="knob_scale" />
+						<knob id="fbbm${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
+						<label text="+" font_size="24" color="knob_scale" />
+						<frac id="fbf${i}" id2="fbd${i}" color="green" />
+						<label text="]" font_size="24" />
+						
+						<label text="+" font_size="24" color="yellow" />
+						
+						<knob id="fbadd${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
+						
+						<label text="=" font_size="24" color="yellow" />
+						<vbox fill="false">
+							<indicator id="afbt${i}" format="f6.3!" text_color="green" visibility="!:fbor${i}" />
+							<indicator id="afbt${i}" format="f6.3!" text_color="red" visibility=":fbor${i}" />
+						</vbox>
+						
+						<!-- Row 6 -->
+						<cell cols="10"><void /></cell>
+						<value id="fbbm${i}" same_line="true" />
+						<cell cols="4"><void /></cell>								
+						<value id="fbadd${i}" same_line="true" />
+						<void />
+						<label text="units.seconds" />
 					</grid>
 					
 					<!-- Separator -->
@@ -240,7 +286,7 @@
 						<knob id="fbt${i}" size="20" scale_color="green" balance="0 db" />
 						<knob id="fhc${i}" size="20" scale_color="cyan" />
 						<button id="fbe${i}" led="true" color="knob_scale" size="32" />
-						<knob id="fb${i}" />
+						<knob id="fbg${i}" />
 						<knob id="p${i}" balance="0" />
 						<knob id="dg${i}" scale_color="knob_scale" scale_hue_id="hue${i}" />
 						
@@ -256,7 +302,7 @@
 						<value id="fbt${i}" detailed="false" />
 						<value id="fhc${i}" detailed="false" />
 						<void />
-						<value id="fb${i}" detailed="false" />
+						<value id="fbg${i}" detailed="false" />
 						<value id="p${i}" detailed="false" />
 						<value id="dg${i}" detailed="false" />
 					</grid>

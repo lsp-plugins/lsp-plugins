@@ -143,8 +143,10 @@ namespace lsp
                 IPort              *pOutDelay;      // Output delay
                 IPort              *pOutFeedback;   // Output feedback delay
                 IPort              *pOutOfRange;    // Out of range status
+                IPort              *pOutFeedRange;  // Feedbsck out of range status
                 IPort              *pOutLoop;       // Dependency loop
                 IPort              *pOutTempo;      // Actual tempo
+                IPort              *pOutFeedTempo;  // Actual feedback tempo
                 IPort              *pOutDelayRef;   // Actual delay reference value
             } art_delay_t;
 

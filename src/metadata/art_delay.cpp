@@ -168,19 +168,21 @@ namespace lsp
         AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB), \
         HUE_CTL("hue" #id, "Delay " #id " hue", float(id) / art_delay_base_metadata::MAX_PROCESSORS ), \
         SWITCH("fbe" #id, "Delay " #id " feedback enable", 0.0f), \
-        AMP_GAIN1("fb" #id, "Delay " #id " feedback", GAIN_AMP_M_INF_DB), \
+        AMP_GAIN1("fbg" #id, "Delay " #id " feedback gain", GAIN_AMP_M_INF_DB), \
         COMBO("fbtr" #id, "Delay " #id " feedback tempo reference", 0, art_delay_tempo), \
-        CONTROL("fbtrbf" #id, "Delay " #id " feedback bar fraction", U_BAR, art_delay_base_metadata::DFRACTION), \
-        INT_CONTROL("fbtrbd" #id, "Delay " #id " feedback bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        INT_CONTROL("fbtrbm" #id, "Delay " #id " feedback bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
+        CONTROL("fbbf" #id, "Delay " #id " feedback bar fraction", U_BAR, art_delay_base_metadata::DFRACTION), \
+        INT_CONTROL("fbbd" #id, "Delay " #id " feedback bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
+        INT_CONTROL("fbbm" #id, "Delay " #id " feedback bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
         CONTROL("fbf" #id, "Delay " #id " feedback fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("fbd" #id, "Delay " #id " feedback denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
         CONTROL("fbadd" #id, "Delay " #id " feedback time addition", U_SEC, art_delay_base_metadata::TIME), \
         METER("adt" #id, "Delay " #id " actual time", U_SEC, art_delay_base_metadata::DSEL), \
         METER("afbt" #id, "Delay " #id " actual feedback time", U_SEC, art_delay_base_metadata::DSEL), \
         BLINK("door" #id, "Delay " #id " out of range"), \
+        BLINK("fbor" #id, "Delay " #id " feedback out of range"), \
         BLINK("loop" #id, "Delay " #id " dependency loop"), \
         METER("tval" #id, "Delay " #id " selected tempo", U_BPM, art_delay_base_metadata::ATEMPO), \
+        METER("fbtv" #id, "Delay " #id " selected feedback tempo", U_BPM, art_delay_base_metadata::ATEMPO), \
         METER("dval" #id, "Delay " #id " reference selected delay", U_SEC, art_delay_base_metadata::DSEL)
 
     #define ART_DELAY_TEMPOS \
