@@ -59,6 +59,12 @@ namespace lsp
         { "48",             NULL    },
         { "56",             NULL    },
         { "64",             NULL    },
+        { "96",             NULL    },
+        { "128",            NULL    },
+        { "160",            NULL    },
+        { "192",            NULL    },
+        { "224",            NULL    },
+        { "256",            NULL    },
 
         { NULL, NULL }
     };
@@ -126,10 +132,12 @@ namespace lsp
     #define ART_DELAY_COMMON(pan)  \
         BYPASS, \
         COMBO("lsel", "Delay line selector", 0, art_delay_lines), \
-        COMBO("dmax", "Maximum possible delay selector", 0, art_delay_maxlen), \
+        COMBO("dmax", "Maximum possible delay selector", 3, art_delay_maxlen), \
         pan("_in", "Input"), \
         DRY_GAIN(GAIN_AMP_0_DB), \
         WET_GAIN(GAIN_AMP_0_DB), \
+        SWITCH("dry_on", "Dry enable", 1.0f), \
+        SWITCH("wet_on", "Wet enable", 1.0f), \
         SWITCH("mono", "Mono output", 0.0f), \
         SWITCH("fb", "Feedback", 1.0f), \
         OUT_GAIN, \

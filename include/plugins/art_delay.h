@@ -174,6 +174,8 @@ namespace lsp
             IPort                  *pPan[2];        // Panning
             IPort                  *pDryGain;       // Dry gain
             IPort                  *pWetGain;       // Wet gain
+            IPort                  *pDryOn;         // Dry enable
+            IPort                  *pWetOn;         // Wet enable
             IPort                  *pMono;          // Mono/Stereo switch
             IPort                  *pFeedback;      // Enable feedback for all delays
             IPort                  *pOutGain;       // Overall output gain

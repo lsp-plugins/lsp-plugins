@@ -29,7 +29,7 @@ namespace lsp
     struct art_delay_base_metadata
     {
         static const float  TIME_MIN            = 0.0f;
-        static const float  TIME_MAX            = 64.0f;
+        static const float  TIME_MAX            = 256.0f;
         static const float  TIME_STEP           = 0.01f;
         static const float  TIME_DFL            = 0.0f;
 

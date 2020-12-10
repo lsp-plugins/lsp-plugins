@@ -19,10 +19,16 @@
 					
 					<ui:for id="i" first="0" last="15">
 						<marker
-							id="adt${i}"
-							basis="0" parallel="1" width="2"
+							value=":adt${i}"
+							basis="0" parallel="1" width="3"
 							color="yellow" hue_id="hue${i}"
 							visibility=":on${i}"
+						/>
+						<marker
+							value=":adt${i} + :afbt${i}"
+							basis="0" parallel="1" width="1"
+							color="yellow" hue_id="hue${i}"
+							visibility=":on${i} and :fbe${i} and :fb"
 						/>
 						<text
 							text="${i}"
@@ -38,6 +44,13 @@
 							color="yellow" hue_id="hue${i}"
 							visibility=":on${i}"
 						/>
+						<text
+							id="afbt${i}" text="labels.values.fmt_value"
+							basis="0;1" coord=":adt${i} + :afbt${i};0" 
+							halign="1" valign="1"
+							color="yellow" hue_id="hue${i}"
+							visibility=":on${i} and :fbe${i} and :fb"
+						/>
 					</ui:for>
 				</graph>
 				<align hpos="0">
@@ -52,8 +65,14 @@
 					<label text="labels.signal.mono" />
 					<cell rows="3"><vsep /></cell>
 					<label text="labels.signal.dry_pan" />
-					<label text="labels.signal.dry" />
-					<label text="labels.signal.wet" />
+					<hbox spacing="2">
+						<button color="red" led="true" id="dry_on" size="12" />
+						<label text="labels.signal.dry" />
+					</hbox>
+					<hbox spacing="2">
+						<button color="red" led="true" id="wet_on" size="12" />
+						<label text="labels.signal.wet" />
+					</hbox>
 					<cell rows="3"><vsep /></cell>
 					<label text="labels.output" />
 					

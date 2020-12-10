@@ -28,7 +28,7 @@
 
 namespace lsp
 {
-    static float art_delay_ratio[] =
+    static const float art_delay_ratio[] =
     {
         1.0f / 1.0f,
         1.0f / 2.0f,
@@ -47,10 +47,13 @@ namespace lsp
         6000.0f
     };
 
-    static uint8_t art_delay_max[] =
+    static const uint16_t art_delay_max[] =
     {
         1, 2, 4, 8,
-        16, 24, 32, 40, 48, 56, 64
+        16, 24, 32, 40,
+        48, 56, 64, 96,
+        128, 160, 192, 224,
+        256
     };
 
     art_delay_base::DelayAllocator::DelayAllocator(art_delay_t *delay)
@@ -150,6 +153,8 @@ namespace lsp
         pPan[1]         = NULL;
         pDryGain        = NULL;
         pWetGain        = NULL;
+        pDryOn          = NULL;
+        pWetOn          = NULL;
         pMono           = NULL;
         pFeedback       = NULL;
         pOutGain        = NULL;
@@ -357,6 +362,10 @@ namespace lsp
         pDryGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pWetGain        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDryOn          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pWetOn          = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMono           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -587,8 +596,8 @@ namespace lsp
 
         bool bypass         = pBypass->getValue() >= 0.5f;
         float g_out         = pOutGain->getValue();
-        float dry           = pDryGain->getValue() * g_out;
-        float wet           = pWetGain->getValue() * g_out;
+        float dry           = (pDryOn->getValue() >= 0.5f) ? pDryGain->getValue() * g_out : 0.0f;
+        float wet           = (pWetOn->getValue() >= 0.5f) ? pWetGain->getValue() * g_out : 0.0f;
         bool fback          = pFeedback->getValue() >= 0.5f;
 
         bMono               = pMono->getValue() >= 0.5f;
@@ -686,8 +695,8 @@ namespace lsp
             // Parent delay reference
             if (p_ad != NULL)
             {
-                ad->fOutDelayRef        = p_ad->sNew.fDelay * ad->pDelayMul->getValue();;
-                delay                  += ad->fOutDelayRef;
+                ad->fOutDelayRef        = p_ad->sNew.fDelay;
+                delay                  += ad->fOutDelayRef * ad->pDelayMul->getValue();
             }
             else
                 ad->fOutDelayRef        = 0.0f;
