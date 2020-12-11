@@ -88,6 +88,11 @@ namespace lsp
         static const float  HIGH_CUT_STEP       = 0.001f;
         static const float  HIGH_CUT_DFL        = 8000.0f;
 
+        static const float  MEMORY_MIN          = 0.0f;
+        static const float  MEMORY_MAX          = 65536.0f;
+        static const float  MEMORY_DFL          = 0.0f;
+        static const float  MEMORY_STEP         = 0.01f;
+
         static const size_t EQ_BANDS            = 5;
 
         static const size_t MAX_PROCESSORS      = 16;

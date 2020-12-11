@@ -20,6 +20,7 @@
  */
 
 #include <plugins/art_delay.h>
+#include <dsp/atomic.h>
 
 #define BUFFER_SIZE             0x1000U
 #define DELAY_REF_NONE          -1
@@ -56,8 +57,9 @@ namespace lsp
         256
     };
 
-    art_delay_base::DelayAllocator::DelayAllocator(art_delay_t *delay)
+    art_delay_base::DelayAllocator::DelayAllocator(art_delay_base *base, art_delay_t *delay)
     {
+        pBase       = base;
         pDelay      = delay;
         nSize       = 0;
     }
@@ -76,16 +78,20 @@ namespace lsp
         {
             if ((d = pDelay->pGDelay[i]) != NULL)
             {
-                pDelay->pGDelay[i] = NULL;
+                int32_t used        = d->capacity();
+                pDelay->pGDelay[i]  = NULL;
                 d->destroy();
                 delete d;
+                atomic_add(&pBase->nMemUsed, -used); // Decrement the overall memory usage
             }
 
             if ((d = pDelay->pPDelay[i]) != NULL)
             {
+                int32_t used        = d->capacity();
                 pDelay->pPDelay[i] = NULL;
                 d->destroy();
                 delete d;
+                atomic_add(&pBase->nMemUsed, -used); // Decrement the overall memory usage
             }
         }
 
@@ -115,6 +121,7 @@ namespace lsp
 
             // Add delay to list of pending
             pDelay->pPDelay[i]  = d;
+            atomic_add(&pBase->nMemUsed, d->capacity()); // Increment the overall memory usage
         }
 
         return STATUS_OK;
@@ -142,6 +149,7 @@ namespace lsp
         vTempo          = NULL;
         vDelays         = NULL;
         pExecutor       = NULL;
+        nMemUsed        = 0;
 
         pIn[0]          = NULL;
         pIn[1]          = NULL;
@@ -159,6 +167,7 @@ namespace lsp
         pFeedback       = NULL;
         pOutGain        = NULL;
         pOutDMax        = NULL;
+        pOutMemUse      = NULL;
 
         pData           = NULL;
     }
@@ -240,7 +249,7 @@ namespace lsp
             ad->sEq[0].set_mode(EQM_IIR);
             ad->sEq[1].set_mode(EQM_IIR);
 
-            ad->pAllocator          = new DelayAllocator(ad);
+            ad->pAllocator          = new DelayAllocator(this, ad);
             if (ad->pAllocator == NULL)
                 return;
 
@@ -374,6 +383,8 @@ namespace lsp
         pOutGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pOutDMax        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pOutMemUse      = vPorts[port_id++];
 
         // Bind delay ports
         lsp_trace("Binding tempo ports");
@@ -1053,7 +1064,9 @@ namespace lsp
             ad->sFeedOutRange.process(samples);
         }
 
+        float used = nMemUsed;
         pOutDMax->setValue(samples_to_seconds(fSampleRate, nMaxDelay));
+        pOutMemUse->setValue((used / (1024.0f * 1024.0f)) * sizeof(float)); // Translate floats into megabytes
     }
 
     void art_delay_base::dump(IStateDumper *v) const

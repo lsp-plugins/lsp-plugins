@@ -281,6 +281,7 @@
 	"max_time": "Max time",
 	
 	"measure": "Measure",
+	"memory:mb": "Memory (MB)",
 	"metering": {
 		"channel": "Channel",
 		"frequency": "Frequency",

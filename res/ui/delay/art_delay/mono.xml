@@ -3,6 +3,15 @@
 		<!-- Master channel -->
 		<hbox spacing="2">
 			<vbox spacing="2" expand="true">
+				<hbox>
+					<label text="labels.graphs.delay_graph" />
+					<align hpos="1" expand="true">
+						<hbox spacing="4">
+							<label text="labels.memory:mb" />
+							<indicator id="memuse" format="f6.1!" text_color="green" />
+						</hbox>
+					</align>
+				</hbox>
 				<graph width="320" expand="true">
 					<center hpos="-1" vpos="0" visible="false" />
 					
@@ -53,9 +62,6 @@
 						/>
 					</ui:for>
 				</graph>
-				<align hpos="0">
-					<label text="labels.graphs.delay_graph" />
-				</align>
 			</vbox>
 				
 			<group text="groups.chan.master">

@@ -164,6 +164,12 @@ namespace lsp
         { U_DEG_K,      NULL,       "degrees Kelvin",       "%.2f"      },
         { U_DEG_R,      NULL,       "degrees Rankine",      "%.2f"      },
 
+        { U_BYTES,      NULL,       "Bytes",                "%.0f"      },
+        { U_KBYTES,     NULL,       "Kilobytes",            "%.2f"      },
+        { U_MBYTES,     NULL,       "Megabytes",            "%.2f"      },
+        { U_GBYTES,     NULL,       "Gigabytes",            "%.2f"      },
+        { U_TBYTES,     NULL,       "Terabytes",            "%.2f"      },
+
         { -1, NULL }
     };
 

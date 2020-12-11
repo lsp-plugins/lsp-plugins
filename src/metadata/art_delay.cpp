@@ -71,40 +71,40 @@ namespace lsp
 
     static port_item_t art_delay_references[] =
     {
-        { "None",           "art_delay.none" },
+        { "None",           "art_delay.none"    },
 
-        { "0",              NULL    },
-        { "1",              NULL    },
-        { "2",              NULL    },
-        { "3",              NULL    },
-        { "4",              NULL    },
-        { "5",              NULL    },
-        { "6",              NULL    },
-        { "7",              NULL    },
-        { "8",              NULL    },
-        { "9",              NULL    },
-        { "10",             NULL    },
-        { "11",             NULL    },
-        { "12",             NULL    },
-        { "13",             NULL    },
-        { "14",             NULL    },
-        { "15",             NULL    },
+        { "0",              "art_delay.line_0"  },
+        { "1",              "art_delay.line_1"  },
+        { "2",              "art_delay.line_2"  },
+        { "3",              "art_delay.line_3"  },
+        { "4",              "art_delay.line_4"  },
+        { "5",              "art_delay.line_5"  },
+        { "6",              "art_delay.line_6"  },
+        { "7",              "art_delay.line_7"  },
+        { "8",              "art_delay.line_8"  },
+        { "9",              "art_delay.line_9"  },
+        { "10",             "art_delay.line_10" },
+        { "11",             "art_delay.line_11" },
+        { "12",             "art_delay.line_12" },
+        { "13",             "art_delay.line_13" },
+        { "14",             "art_delay.line_14" },
+        { "15",             "art_delay.line_15" },
 
         { NULL, NULL }
     };
 
     static port_item_t art_delay_tempo[] =
     {
-        { "None",           "art_delay.none" },
+        { "None",           "art_delay.none"    },
 
-        { "0",              NULL    },
-        { "1",              NULL    },
-        { "2",              NULL    },
-        { "3",              NULL    },
-        { "4",              NULL    },
-        { "5",              NULL    },
-        { "6",              NULL    },
-        { "7",              NULL    },
+        { "0",              "art_delay.tempo_0" },
+        { "1",              "art_delay.tempo_1" },
+        { "2",              "art_delay.tempo_2" },
+        { "3",              "art_delay.tempo_3" },
+        { "4",              "art_delay.tempo_4" },
+        { "5",              "art_delay.tempo_5" },
+        { "6",              "art_delay.tempo_6" },
+        { "7",              "art_delay.tempo_7" },
 
         { NULL, NULL }
     };
@@ -141,7 +141,8 @@ namespace lsp
         SWITCH("mono", "Mono output", 0.0f), \
         SWITCH("fb", "Feedback", 1.0f), \
         OUT_GAIN, \
-        METER("dmaxv", "Actual delay maximum value", U_SEC, art_delay_base_metadata::DSEL)
+        METER("dmaxv", "Actual delay maximum value", U_SEC, art_delay_base_metadata::DSEL), \
+        METER("memuse", "Overall memory usage", U_BYTES, art_delay_base_metadata::MEMORY)
 
     #define ART_DELAY_TEMPO(id) \
         CONTROL("tempo" #id, "Tempo " #id, U_BPM, art_delay_base_metadata::TEMPO), \

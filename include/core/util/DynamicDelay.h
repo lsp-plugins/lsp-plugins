@@ -57,7 +57,7 @@ namespace lsp
              * Obtain the overall delay capacity
              * @return the overall delay capacity in samples
              */
-            inline size_t capacity() const      { return nMaxDelay;     }
+            inline size_t capacity() const      { return nCapacity;     }
 
             /**
              * Initialize delay

@@ -40,11 +40,12 @@ namespace lsp
             class DelayAllocator: public ipc::ITask
             {
                 private:
+                    art_delay_base *pBase;          // Delay base
                     art_delay_t    *pDelay;         // Delay pointer
                     ssize_t         nSize;          // Requested delay size
 
                 public:
-                    explicit DelayAllocator(art_delay_t *delay);
+                    explicit DelayAllocator(art_delay_base *base, art_delay_t *delay);
                     virtual ~DelayAllocator();
 
                 public:
@@ -163,6 +164,7 @@ namespace lsp
             float                  *vTempBuf;       // Temporary buffer for delay processing
             art_tempo_t            *vTempo;         // Tempo settings
             art_delay_t            *vDelays;        // Delay lines
+            volatile uint32_t       nMemUsed;       // Overall memory usage by delay lines
 
             Bypass                  sBypass[2];     // Bypasses
             ipc::IExecutor         *pExecutor;
@@ -180,6 +182,7 @@ namespace lsp
             IPort                  *pFeedback;      // Enable feedback for all delays
             IPort                  *pOutGain;       // Overall output gain
             IPort                  *pOutDMax;       // Maximum delay output value
+            IPort                  *pOutMemUse;     // Memory usage
 
             uint8_t                *pData;
 

@@ -2,6 +2,7 @@
 	"bar": "bar",
 	"beat": "beat",
 	"bpm": "BPM",
+	"bytes": "B",
 	
 	"cent": "cent",
 	"cm": "cm",
@@ -14,15 +15,18 @@
 	"degr": "°R",
 	
 	"gain": "G",
+	"bbytes": "GB",
 	
 	"hz": "Hz",
 	"inch": "\"",
 	
+	"kbytes": "kB",
 	"khz": "kHz",
 	"km": "km",
 	"kmph": "km/h",
 
 	"m": "m",
+	"mbytes": "MB",
 	"mhz": "MHz",
 	"min": "min",
 	"mps": "m/s",
@@ -36,5 +40,7 @@
 	"s": "s",
 	"samp": "samp",
 	"seconds": "seconds",
-	"st": "st"
+	"st": "st",
+	
+	"tbytes": "TB"
 }
