@@ -99,6 +99,7 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/filters/transfer.h>
 
 #include <dsp/arch/x86/sse/3dmath.h>
+#include <dsp/arch/x86/sse/interpolate.h>
 
 #undef DSP_ARCH_X86_SSE_IMPL
 
