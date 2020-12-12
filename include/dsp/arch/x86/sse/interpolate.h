@@ -37,7 +37,7 @@ namespace sse
             float dx    = x1 - x0;
             float dy    = y1 - y0;
             float xx    = x - x0;
-            ssize_t off = 0;
+            ssize_t off;
         )
 
         ARCH_X86_ASM(
@@ -100,7 +100,7 @@ namespace sse
             __ASM_EMIT("jge         5b")
 
             __ASM_EMIT("6:")
-            : [n] "+r" (n), [off] "+r" (off)
+            : [n] "+r" (n), [off] "=&r" (off)
             : [dst] "r" (dst),
               [CC] "r" (lin_inter_const),
               [dx] "m" (dx),
@@ -119,7 +119,7 @@ namespace sse
             float dx    = x1 - x0;
             float dy    = y1 - y0;
             float xx    = x - x0;
-            ssize_t off = 0;
+            ssize_t off;
         )
 
         ARCH_X86_ASM(
@@ -189,7 +189,7 @@ namespace sse
             __ASM_EMIT("jge         5b")
 
             __ASM_EMIT("6:")
-            : [n] "+r" (n), [off] "+r" (off)
+            : [n] "+r" (n), [off] "=&r" (off)
             : [dst] "r" (dst),
               [CC] "r" (lin_inter_const),
               [dx] "m" (dx),
@@ -208,7 +208,7 @@ namespace sse
             float dx    = x1 - x0;
             float dy    = y1 - y0;
             float xx    = x - x0;
-            ssize_t off = 0;
+            ssize_t off;
         )
 
         ARCH_X86_ASM(
@@ -278,7 +278,7 @@ namespace sse
             __ASM_EMIT("jge         5b")
 
             __ASM_EMIT("6:")
-            : [n] "+r" (n), [off] "+r" (off)
+            : [n] "+r" (n), [off] "=&r" (off)
             : [dst] "r" (dst), [src] "r" (src),
               [CC] "r" (lin_inter_const),
               [dx] "m" (dx),
@@ -297,7 +297,7 @@ namespace sse
             float dx    = x1 - x0;
             float dy    = y1 - y0;
             float xx    = x - x0;
-            ssize_t off = 0;
+            ssize_t off;
         )
 
         ARCH_X86_ASM(
@@ -375,7 +375,7 @@ namespace sse
             __ASM_EMIT("jge         5b")
 
             __ASM_EMIT("6:")
-            : [n] "+r" (n), [off] "+r" (off)
+            : [n] "+r" (n), [off] "=&r" (off)
             : [dst] "r" (dst), [src] "r" (src),
               [CC] "r" (lin_inter_const),
               [dx] "m" (dx),
@@ -394,7 +394,7 @@ namespace sse
             float dx    = x1 - x0;
             float dy    = y1 - y0;
             float xx    = x - x0;
-            ssize_t off = 0;
+            ssize_t off;
         )
 
         ARCH_X86_ASM(
@@ -472,7 +472,7 @@ namespace sse
             __ASM_EMIT("jge         5b")
 
             __ASM_EMIT("6:")
-            : [n] "+r" (n), [off] "+r" (off)
+            : [n] "+r" (n), [off] "=&r" (off)
             : [dst] "r" (dst), [src] "r" (src),
               [CC] "r" (lin_inter_const),
               [dx] "m" (dx),

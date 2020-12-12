@@ -47,6 +47,16 @@ IF_ARCH_X86(
         void lin_inter_frmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
         void lin_inter_fmadd3(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
     }
+
+    namespace avx
+    {
+        void lin_inter_set(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul2(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul3(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_frmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd3(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+    }
 )
 
 typedef void (* lin_inter1_t)(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
@@ -116,26 +126,32 @@ PTEST_BEGIN("dsp.interpolation", linear, 5, 10000)
 
             CALL(native::lin_inter_set);
             IF_ARCH_X86(CALL(sse::lin_inter_set));
+            IF_ARCH_X86(CALL(avx::lin_inter_set));
             PTEST_SEPARATOR;
 
             CALL(native::lin_inter_mul2);
             IF_ARCH_X86(CALL(sse::lin_inter_mul2));
+            IF_ARCH_X86(CALL(avx::lin_inter_mul2));
             PTEST_SEPARATOR;
 
             CALL(native::lin_inter_mul3);
             IF_ARCH_X86(CALL(sse::lin_inter_mul3));
+            IF_ARCH_X86(CALL(avx::lin_inter_mul3));
             PTEST_SEPARATOR;
 
             CALL(native::lin_inter_fmadd2);
             IF_ARCH_X86(CALL(sse::lin_inter_fmadd2));
+            IF_ARCH_X86(CALL(avx::lin_inter_fmadd2));
             PTEST_SEPARATOR;
 
             CALL(native::lin_inter_frmadd2);
             IF_ARCH_X86(CALL(sse::lin_inter_frmadd2));
+            IF_ARCH_X86(CALL(avx::lin_inter_frmadd2));
             PTEST_SEPARATOR;
 
             CALL(native::lin_inter_fmadd3);
             IF_ARCH_X86(CALL(sse::lin_inter_fmadd3));
+            IF_ARCH_X86(CALL(avx::lin_inter_fmadd3));
             PTEST_SEPARATOR2;
         }
 

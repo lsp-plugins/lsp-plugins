@@ -44,6 +44,16 @@ IF_ARCH_X86(
         void lin_inter_frmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
         void lin_inter_fmadd3(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
     }
+
+    namespace avx
+    {
+        void lin_inter_set(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul2(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul3(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_frmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd3(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+    }
 )
 
 typedef void (* lin_inter1_t)(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
@@ -60,7 +70,7 @@ UTEST_BEGIN("dsp.interpolation", linear)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                32, 64, 65, 100, 999, 0xfff)
+                32, 64, 65, 100, 127, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
@@ -98,7 +108,7 @@ UTEST_BEGIN("dsp.interpolation", linear)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                32, 64, 65, 100, 999, 0xfff)
+                32, 64, 65, 100, 127, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -139,7 +149,7 @@ UTEST_BEGIN("dsp.interpolation", linear)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-                32, 64, 65, 100, 999, 0xfff)
+                32, 64, 65, 100, 127, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
@@ -295,6 +305,13 @@ UTEST_BEGIN("dsp.interpolation", linear)
         IF_ARCH_X86(CALL(sse::lin_inter_fmadd2, native::lin_inter_fmadd2, 16));
         IF_ARCH_X86(CALL(sse::lin_inter_frmadd2, native::lin_inter_frmadd2, 16));
         IF_ARCH_X86(CALL(sse::lin_inter_fmadd3, native::lin_inter_fmadd3, 16));
+
+        IF_ARCH_X86(CALL(avx::lin_inter_set, native::lin_inter_set, 32));
+        IF_ARCH_X86(CALL(avx::lin_inter_mul2, native::lin_inter_mul2, 32));
+        IF_ARCH_X86(CALL(avx::lin_inter_mul3, native::lin_inter_mul3, 32));
+        IF_ARCH_X86(CALL(avx::lin_inter_fmadd2, native::lin_inter_fmadd2, 32));
+        IF_ARCH_X86(CALL(avx::lin_inter_frmadd2, native::lin_inter_frmadd2, 32));
+        IF_ARCH_X86(CALL(avx::lin_inter_fmadd3, native::lin_inter_fmadd3, 32));
     }
 UTEST_END
 
