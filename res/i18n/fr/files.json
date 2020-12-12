@@ -2,7 +2,7 @@
 	"3d": {
 		"wavefont": "Format de fichier Wavefont 3D (*.obj)"
 	},
-	"all": "Any file (*.*)",
+	"all": "Tous les fichiers (*.*)",
 	"audio": {
 		"all": "Fichiers audio (*.wav, *.mp3)",
 		"audio_lspc": "Tous les conteneurs audio pris en charge (*.wav, *.lspc)",
@@ -12,6 +12,9 @@
 	"config": {
 		"lsp": "Fichier de configuration LSP plugin (*.cfg)",
 		"lspc": "Format de fichier de données de morceaux LSP (*.lspc)"
+	},
+	"hydrogen": {
+		"xml": "Fichier de description de kit de batterie Hydrogen (*.xml)"
 	},
 	"roomeqwizard": {
 		"all": "Tous les paramètres du filtre REW (*.req, *.txt)",
