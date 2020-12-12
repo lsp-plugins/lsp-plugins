@@ -68,6 +68,18 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+        void lin_inter_set(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul2(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_mul3(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_frmadd2(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+        void lin_inter_fmadd3(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
+    }
+)
+
 typedef void (* lin_inter1_t)(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
 typedef void (* lin_inter2_t)(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
 typedef void (* lin_inter3_t)(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n);
@@ -306,7 +318,7 @@ UTEST_BEGIN("dsp.interpolation", linear)
     UTEST_MAIN
     {
         // Validate the function
-//        validate();
+        validate();
 
         #define CALL(func, native, align) \
             call(#func, align, native, func)
@@ -331,6 +343,13 @@ UTEST_BEGIN("dsp.interpolation", linear)
         IF_ARCH_ARM(CALL(neon_d32::lin_inter_fmadd2, native::lin_inter_fmadd2, 16));
         IF_ARCH_ARM(CALL(neon_d32::lin_inter_frmadd2, native::lin_inter_frmadd2, 16));
         IF_ARCH_ARM(CALL(neon_d32::lin_inter_fmadd3, native::lin_inter_fmadd3, 16));
+
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_set, native::lin_inter_set, 16));
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_mul2, native::lin_inter_mul2, 16));
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_mul3, native::lin_inter_mul3, 16));
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_fmadd2, native::lin_inter_fmadd2, 16));
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_frmadd2, native::lin_inter_frmadd2, 16));
+        IF_ARCH_AARCH64(CALL(asimd::lin_inter_fmadd3, native::lin_inter_fmadd3, 16));
     }
 UTEST_END
 
