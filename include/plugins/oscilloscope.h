@@ -149,16 +149,6 @@ namespace lsp
                 float              *vDisplay_x;
                 float              *vDisplay_y;
 
-                // Debug - Remove for production.
-                float              *vDebug_vIn_y;
-                float              *vDebug_vData_y;
-                float              *vDebug_vData_y_delay;
-
-                size_t              nDebug_vIn_y_head;
-                size_t              nDebug_vData_y_head;
-                size_t              nDebug_vData_y_delay_head;
-                //
-
                 size_t              nDataHead;
                 size_t              nDisplayHead;
                 size_t              nSamplesCounter;
@@ -171,7 +161,6 @@ namespace lsp
 
                 ch_state_t          enState;
 
-                bool                bIsStageInit;
                 size_t              nUpdate;
                 ch_state_stage_t    sStateStage;
 

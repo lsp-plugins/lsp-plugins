@@ -360,9 +360,7 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            c->enMode           = CH_MODE_DFL;
-            c->enSweepType      = CH_SWEEP_TYPE_DFL;
-            c->enTrgInput       = CH_TRG_INPUT_DFL;
+            init_state_stage(c);
 
             if (!c->sACBlockBank_x.init(FILTER_CHAINS_MAX))
                 return;
@@ -412,24 +410,7 @@ namespace lsp
             c->vDisplay_y       = ptr;
             ptr                += BUF_LIM_SIZE;
 
-            // Debug - Remove for production.
-            c->vDebug_vIn_y             = ptr;
-            ptr                        += DEBUG_BUF_SIZE;
-
-            c->vDebug_vData_y           = ptr;
-            ptr                        += DEBUG_BUF_SIZE;
-
-            c->vDebug_vData_y_delay     = ptr;
-            ptr                        += DEBUG_BUF_SIZE;
-
-            c->nDebug_vIn_y_head            = 0;
-            c->nDebug_vData_y_head          = 0;
-            c->nDebug_vData_y_delay_head    = 0;
-            //
-
             c->enState          = CH_STATE_LISTENING;
-
-            c->bIsStageInit     = false;
 
             c->vIn_x            = NULL;
             c->vIn_y            = NULL;
@@ -474,43 +455,28 @@ namespace lsp
         // Bind ports
         size_t port_id = 0;
 
-        // Audio
         lsp_trace("Binding audio ports");
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_x     = vPorts[port_id++];
-        }
+            vChannels[ch].pIn_x = vPorts[port_id++];
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
-        {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_y     = vPorts[port_id++];
-        }
+            vChannels[ch].pIn_y = vPorts[port_id++];
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
-        {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pIn_ext   = vPorts[port_id++];
-        }
+            vChannels[ch].pIn_ext = vPorts[port_id++];
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
-        {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOut_x    = vPorts[port_id++];
-        }
+            vChannels[ch].pOut_x = vPorts[port_id++];
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
-        {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pOut_y    = vPorts[port_id++];
+            vChannels[ch].pOut_y = vPorts[port_id++];
         }
 
-        // Common
-        lsp_trace("Binding common ports");
+        lsp_trace("Binding channel control ports");
 
-        // Channels
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
@@ -563,7 +529,12 @@ namespace lsp
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pTrgReset = vPorts[port_id++];
+        }
 
+        lsp_trace("Binding channel visual outputs ports");
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pMesh = vPorts[port_id++];
         }
@@ -573,53 +544,53 @@ namespace lsp
     {
         c->nUpdate = 0;
 
-        c->sStateStage.nPV_pScpMode = c->pScpMode->getValue();
+        c->sStateStage.nPV_pScpMode = oscilloscope_base_metadata::MODE_DFL;
         c->nUpdate |= UPD_SCPMODE;
 
-        c->sStateStage.nPV_pCoupling_x = c->pCoupling_x->getValue();
+        c->sStateStage.nPV_pCoupling_x = oscilloscope_base_metadata::COUPLING_DFL;
         c->nUpdate |= UPD_ACBLOCK_X;
 
-        c->sStateStage.nPV_pCoupling_y = c->pCoupling_y->getValue();
+        c->sStateStage.nPV_pCoupling_y = oscilloscope_base_metadata::COUPLING_DFL;
         c->nUpdate |= UPD_ACBLOCK_Y;
 
-        c->sStateStage.nPV_pCoupling_ext = c->pCoupling_ext->getValue();
+        c->sStateStage.nPV_pCoupling_ext = oscilloscope_base_metadata::COUPLING_DFL;
         c->nUpdate |= UPD_ACBLOCK_EXT;
 
-        c->sStateStage.nPV_pOvsMode = c->pOvsMode->getValue();
+        c->sStateStage.nPV_pOvsMode = oscilloscope_base_metadata::OSC_OVS_DFL;
         c->nUpdate |= UPD_OVERSAMPLER_X;
         c->nUpdate |= UPD_OVERSAMPLER_Y;
         c->nUpdate |= UPD_OVERSAMPLER_EXT;
 
-        c->sStateStage.nPV_pTrgInput = c->pTrgInput->getValue();
+        c->sStateStage.nPV_pTrgInput = oscilloscope_base_metadata::TRIGGER_INPUT_DFL;
         c->nUpdate |= UPD_TRIGGER_INPUT;
 
-        c->sStateStage.fPV_pVerDiv = c->pVerDiv->getValue();
-        c->sStateStage.fPV_pVerPos = c->pVerPos->getValue();
+        c->sStateStage.fPV_pVerDiv = oscilloscope_base_metadata::VERTICAL_DIVISION_DFL;
+        c->sStateStage.fPV_pVerPos = oscilloscope_base_metadata::VERTICAL_POSITION_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.fPV_pTrgHys = c->pTrgHys->getValue();
+        c->sStateStage.fPV_pTrgHys = oscilloscope_base_metadata::TRIGGER_HYSTERESIS_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.fPV_pTrgLevel = c->pTrgLev->getValue();
+        c->sStateStage.fPV_pTrgLevel = oscilloscope_base_metadata::TRIGGER_LEVEL_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.nPV_pTrgMode = c->pTrgMode->getValue();
+        c->sStateStage.nPV_pTrgMode = oscilloscope_base_metadata::TRIGGER_MODE_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.fPV_pTrgHold = c->pTrgHold->getValue();
+        c->sStateStage.fPV_pTrgHold = oscilloscope_base_metadata::TRIGGER_HOLD_TIME_DFL;
         c->nUpdate |= UPD_TRIGGER_HOLD;
 
-        c->sStateStage.nPV_pTrgType = c->pTrgType->getValue();
+        c->sStateStage.nPV_pTrgType = oscilloscope_base_metadata::TRIGGER_TYPE_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.fPV_pHorDiv = c->pHorDiv->getValue();
+        c->sStateStage.fPV_pHorDiv = oscilloscope_base_metadata::TIME_DIVISION_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
 
-        c->sStateStage.fPV_pHorPos = c->pHorPos->getValue();
+        c->sStateStage.fPV_pHorPos = oscilloscope_base_metadata::TIME_POSITION_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
         c->nUpdate |= UPD_PRETRG_DELAY;
 
-        c->sStateStage.nPV_pSweepType = c->pSweepType->getValue();
+        c->sStateStage.nPV_pSweepType = oscilloscope_base_metadata::SWEEP_TYPE_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
     }
 
@@ -705,13 +676,6 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
-
-            if (!c->bIsStageInit)
-            {
-                init_state_stage(c);
-                c->bIsStageInit = true;
-                continue;
-            }
 
             size_t scpmode = c->pScpMode->getValue();
             if (scpmode != c->sStateStage.nPV_pScpMode)
@@ -981,33 +945,6 @@ namespace lsp
                         {
                             c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
                         }
-
-                        // Debug - Remove for production.
-                        size_t dbg_vIn_y_available = DEBUG_BUF_SIZE - c->nDebug_vIn_y_head;
-                        size_t dbg_vIn_y_copy = (dbg_vIn_y_available >= to_do) ? to_do : dbg_vIn_y_available;
-                        dsp::copy(&c->vDebug_vIn_y[c->nDebug_vIn_y_head], c->vIn_y, dbg_vIn_y_copy);
-
-                        size_t dbg_vData_y_available = DEBUG_BUF_SIZE - c->nDebug_vData_y_head;
-                        size_t dbg_vData_y_copy = (dbg_vData_y_available >= to_do_upsample) ? to_do_upsample : dbg_vData_y_available;
-                        dsp::copy(&c->vDebug_vData_y[c->nDebug_vData_y_head], c->vData_y, dbg_vData_y_copy);
-
-                        size_t dbg_vData_y_delay_available = DEBUG_BUF_SIZE - c->nDebug_vData_y_delay_head;
-                        size_t dbg_vData_y_delay_copy = (dbg_vData_y_delay_available >= to_do_upsample) ? to_do_upsample : dbg_vData_y_delay_available;
-                        dsp::copy(&c->vDebug_vData_y_delay[c->nDebug_vData_y_delay_head], c->vData_y_delay, dbg_vData_y_delay_copy);
-
-                        c->nDebug_vIn_y_head += dbg_vIn_y_copy;
-                        c->nDebug_vData_y_head += dbg_vData_y_copy;
-                        c->nDebug_vData_y_delay_head += dbg_vData_y_delay_copy;
-
-                        if (c->nDebug_vIn_y_head >= DEBUG_BUF_SIZE)
-                            c->nDebug_vIn_y_head = 0;
-
-                        if (c->nDebug_vData_y_head >= DEBUG_BUF_SIZE)
-                            c->nDebug_vData_y_head = 0;
-
-                        if (c->nDebug_vData_y_delay_head >= DEBUG_BUF_SIZE)
-                            c->nDebug_vData_y_delay_head = 0;
-                        //
 
                         c->nDataHead = 0;
 
