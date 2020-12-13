@@ -173,6 +173,7 @@
 	"export": "Export",
 	
 	"feedback": "Feedback",
+	"feed_gain": "Feed Gain",
 
 	"fft": {
 		"envelope": "Envelope",

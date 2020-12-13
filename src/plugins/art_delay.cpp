@@ -165,6 +165,7 @@ namespace lsp
         pWetOn          = NULL;
         pMono           = NULL;
         pFeedback       = NULL;
+        pFeedGain       = NULL;
         pOutGain        = NULL;
         pOutDMax        = NULL;
         pOutMemUse      = NULL;
@@ -379,6 +380,8 @@ namespace lsp
         pMono           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pFeedback       = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFeedGain       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pOutGain        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -609,7 +612,7 @@ namespace lsp
         float g_out         = pOutGain->getValue();
         float dry           = (pDryOn->getValue() >= 0.5f) ? pDryGain->getValue() * g_out : 0.0f;
         float wet           = (pWetOn->getValue() >= 0.5f) ? pWetGain->getValue() * g_out : 0.0f;
-        bool fback          = pFeedback->getValue() >= 0.5f;
+        float fback         = (pFeedback->getValue() >= 0.5f) ? pFeedGain->getValue() : 0.0f;
 
         bMono               = pMono->getValue() >= 0.5f;
         nMaxDelay           = decode_max_delay_value(pMaxDelay->getValue());
@@ -671,7 +674,6 @@ namespace lsp
             if ((p_ad != NULL) && (!p_ad->bUpdated))
                 continue;
 
-            bool pfback             = (fback) && (ad->pFeedOn->getValue() >= 0.5f);
             float delay             = seconds_to_samples(fSampleRate, ad->pDelay->getValue());
             float fbdelay           = seconds_to_samples(fSampleRate, ad->pFeedDelay->getValue());
 
@@ -715,7 +717,7 @@ namespace lsp
             // Update delay settings
             float gain              = ad->pGain->getValue() * wet;
             ad->sNew.fDelay         = delay;
-            ad->sNew.fFeedGain      = (pfback) ? ad->pFeedGain->getValue() : 0.0f;
+            ad->sNew.fFeedGain      = (ad->pFeedOn->getValue() >= 0.5f) ? fback * ad->pFeedGain->getValue() : 0.0f;
             ad->sNew.fFeedLen       = fbdelay;
 
             for (size_t j=0; j<channels; ++j)

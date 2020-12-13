@@ -65,9 +65,10 @@
 			</vbox>
 				
 			<group text="groups.chan.master">
-				<grid rows="3" cols="9" spacing="2">
+				<grid rows="3" cols="10" spacing="2">
 					<label text="labels.max_delay" />
 					<label text="labels.feedback" />
+					<label text="labels.feed_gain" />
 					<label text="labels.signal.mono" />
 					<cell rows="3"><vsep /></cell>
 					<label text="labels.signal.dry_pan" />
@@ -84,6 +85,7 @@
 					
 					<combo id="dmax" />
 					<button id="fb" led="true" color="knob_scale" size="32" />
+					<knob id="fbg" />
 					<button id="mono" led="true" color="yellow" size="32" />
 					<knob id="p_in" balance="0" />
 					<knob id="dry" scale_color="yellow" />
@@ -92,6 +94,7 @@
 					
 					<label text="units.seconds" />
 					<void />
+					<value id="fbg" />
 					<void />
 					<value id="p_in" />
 					<value id="dry" />

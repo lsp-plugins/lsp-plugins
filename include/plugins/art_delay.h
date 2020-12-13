@@ -180,6 +180,7 @@ namespace lsp
             IPort                  *pWetOn;         // Wet enable
             IPort                  *pMono;          // Mono/Stereo switch
             IPort                  *pFeedback;      // Enable feedback for all delays
+            IPort                  *pFeedGain;      // Feedback gain control
             IPort                  *pOutGain;       // Overall output gain
             IPort                  *pOutDMax;       // Maximum delay output value
             IPort                  *pOutMemUse;     // Memory usage

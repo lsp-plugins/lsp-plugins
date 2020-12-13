@@ -140,6 +140,7 @@ namespace lsp
         SWITCH("wet_on", "Wet enable", 1.0f), \
         SWITCH("mono", "Mono output", 0.0f), \
         SWITCH("fb", "Feedback", 1.0f), \
+        AMP_GAIN1("fbg", "Feedback gain", GAIN_AMP_0_DB), \
         OUT_GAIN, \
         METER("dmaxv", "Actual delay maximum value", U_SEC, art_delay_base_metadata::DSEL), \
         METER("memuse", "Overall memory usage", U_BYTES, art_delay_base_metadata::MEMORY)
