@@ -98,9 +98,9 @@ namespace lsp
             ssize_t tail    = nHead - shift;
             if (tail < 0)
                 tail           += nCapacity;
-            size_t feed     = tail  + lsp_limit(fdelay[i], 0, shift);       // Feedback delay
-            if (feed > nCapacity)
-                feed           -= nCapacity;
+            ssize_t feed    = nHead - lsp_limit(fdelay[i], 0, shift);       // Feedback delay
+            if (feed < 0)
+                feed           += nCapacity;
 
             vDelay[nHead]   = in[i];            // Save input sample to buffer
             float s         = vDelay[tail];     // Read delayed sample
