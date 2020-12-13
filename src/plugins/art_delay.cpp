@@ -1071,8 +1071,204 @@ namespace lsp
         pOutMemUse->setValue((used / (1024.0f * 1024.0f)) * sizeof(float)); // Translate floats into megabytes
     }
 
+    void art_delay_base::dump_pan(IStateDumper *v, const char *name, const pan_t *pan, size_t n)
+    {
+        v->begin_array(name, pan, n);
+        {
+            for (size_t i=0; i<n; ++i)
+            {
+                const pan_t *p = &pan[i];
+                v->begin_object(p, sizeof(pan_t));
+                {
+                    v->write("l", p->l);
+                    v->write("r", p->r);
+                }
+                v->end_object();
+            }
+        }
+        v->end_array();
+    }
+
+    void art_delay_base::dump_art_settings(IStateDumper *v, const char *name, const art_settings_t *as)
+    {
+        v->begin_object(name, as, sizeof(art_settings_t));
+        {
+            v->write("fDelay", as->fDelay);
+            v->write("fFeedGain", as->fFeedGain);
+            v->write("fFeedLen", as->fFeedLen);
+            dump_pan(v, "sPan", as->sPan, 2);
+            v->write("nMaxDelay", as->nMaxDelay);
+        }
+        v->end_object();
+    }
+
+    void art_delay_base::dump_art_tempo(IStateDumper *v, const art_tempo_t *at)
+    {
+        v->begin_object(at, sizeof(art_tempo_t));
+        {
+            v->write("fTempo", at->fTempo);
+            v->write("bSync", at->bSync);
+            v->write("pTempo", at->pTempo);
+            v->write("pRatio", at->pRatio);
+            v->write("pSync", at->pSync);
+            v->write("pOutTempo", at->pOutTempo);
+        }
+        v->end_object();
+    }
+
+    void art_delay_base::dump_art_delay(IStateDumper *v, const art_delay_t *ad)
+    {
+        v->begin_object(ad, sizeof(art_delay_t));
+        {
+            v->begin_array("pPDelay", ad->pPDelay, 2);
+            {
+                v->write_object(ad->pPDelay[0]);
+                v->write_object(ad->pPDelay[1]);
+            }
+            v->end_array();
+
+            v->begin_array("pCDelay", ad->pCDelay, 2);
+            {
+                v->write_object(ad->pCDelay[0]);
+                v->write_object(ad->pCDelay[1]);
+            }
+            v->end_array();
+
+            v->begin_array("pGDelay", ad->pGDelay, 2);
+            {
+                v->write_object(ad->pGDelay[0]);
+                v->write_object(ad->pGDelay[1]);
+            }
+            v->end_array();
+
+            v->begin_array("sEq", ad->sEq, 2);
+            {
+                v->write_object(&ad->sEq[0]);
+                v->write_object(&ad->sEq[1]);
+            }
+            v->end_array();
+
+            v->begin_array("sBypass", ad->sBypass, 2);
+            {
+                v->write_object(&ad->sBypass[0]);
+                v->write_object(&ad->sBypass[1]);
+            }
+            v->end_array();
+
+            v->write_object("sOutOfRange", &ad->sOutOfRange);
+            v->write_object("sFeedOutRange", &ad->sFeedOutRange);
+            v->write("pAllocator", &ad->pAllocator);
+
+            v->write("bStereo", ad->bStereo);
+            v->write("bOn", ad->bOn);
+            v->write("bSolo", ad->bSolo);
+            v->write("bMute", ad->bMute);
+            v->write("bUpdated", ad->bUpdated);
+            v->write("bValidRef", ad->bValidRef);
+            v->write("nDelayRef", ad->nDelayRef);
+            v->write("fOutDelay", ad->fOutDelay);
+            v->write("fOutFeedback", ad->fOutFeedback);
+            v->write("fOutTempo", ad->fOutTempo);
+            v->write("fOutFeedTempo", ad->fOutFeedTempo);
+            v->write("fOutDelayRef", ad->fOutDelayRef);
+
+            dump_art_settings(v, "sOld", &ad->sOld);
+            dump_art_settings(v, "sNew", &ad->sNew);
+
+            v->write("pOn", ad->pOn);
+            v->write("pTempoRef", ad->pTempoRef);
+            v->writev("pPan", ad->pPan, 2);
+            v->write("pSolo", ad->pSolo);
+            v->write("pMute", ad->pMute);
+            v->write("pDelayRef", ad->pDelayRef);
+            v->write("pDelayMul", ad->pDelayMul);
+            v->write("pBarFrac", ad->pBarFrac);
+            v->write("pBarMul", ad->pBarMul);
+            v->write("pFrac", ad->pFrac);
+            v->write("pDenom", ad->pDenom);
+            v->write("pDelay", ad->pDelay);
+            v->write("pEqOn", ad->pEqOn);
+            v->write("pLcfOn", ad->pLcfOn);
+            v->write("pLcfFreq", ad->pLcfFreq);
+            v->write("pHcfOn", ad->pHcfOn);
+            v->write("pHcfFreq", ad->pHcfFreq);
+            v->writev("pBandGain", ad->pBandGain, EQ_BANDS);
+            v->write("pGain", ad->pGain);
+
+            v->write("pFeedOn", ad->pFeedOn);
+            v->write("pFeedGain", ad->pFeedGain);
+            v->write("pFeedTempoRef", ad->pFeedTempoRef);
+            v->write("pFeedBarFrac", ad->pFeedBarFrac);
+            v->write("pFeedBarDenom", ad->pFeedBarDenom);
+            v->write("pFeedBarMul", ad->pFeedBarMul);
+            v->write("pFeedFrac", ad->pFeedFrac);
+            v->write("pFeedDenom", ad->pFeedDenom);
+            v->write("pFeedDelay", ad->pFeedDelay);
+
+            v->write("pOutDelay", ad->pOutDelay);
+            v->write("pOutFeedback", ad->pOutFeedback);
+            v->write("pOutOfRange", ad->pOutOfRange);
+            v->write("pOutFeedRange", ad->pOutFeedRange);
+            v->write("pOutLoop", ad->pOutLoop);
+            v->write("pOutTempo", ad->pOutTempo);
+            v->write("pOutFeedTempo", ad->pOutFeedTempo);
+            v->write("pOutDelayRef", ad->pOutDelayRef);
+        }
+        v->end_object();
+    }
+
     void art_delay_base::dump(IStateDumper *v) const
     {
+        v->write("bStereoIn", bStereoIn);
+        v->write("bMono", bMono);
+        v->write("nMaxDelay", nMaxDelay);
+        dump_pan(v, "sOldDryPan", sOldDryPan, 2);
+        dump_pan(v, "sNewDryPan", sNewDryPan, 2);
+        v->writev("vOutBuf", vOutBuf, 2);
+        v->write("vGainBuf", vGainBuf);
+        v->write("vDelayBuf", vDelayBuf);
+        v->write("vFeedBuf", vFeedBuf);
+        v->write("vTempBuf", vTempBuf);
+        v->begin_array("vTempo", vTempo, MAX_TEMPOS);
+        {
+            for (size_t i=0; i<MAX_TEMPOS; ++i)
+                dump_art_tempo(v, &vTempo[i]);
+        }
+        v->end_array();
+        v->begin_array("vDelays", vDelays, MAX_PROCESSORS);
+        {
+            for (size_t i=0; i<MAX_PROCESSORS; ++i)
+                dump_art_delay(v, &vDelays[i]);
+        }
+        v->end_array();
+        v->write("nMemUsed", nMemUsed);
+
+        v->begin_array("sBypass", sBypass, 2);
+        {
+            v->write_object(&sBypass[0]);
+            v->write_object(&sBypass[1]);
+        }
+        v->end_array();
+        v->write("pExecutor", pExecutor);
+
+
+        v->writev("pIn", pIn, 2);
+        v->writev("pOut", pOut, 2);
+        v->write("pBypass", pBypass);
+        v->write("pMaxDelay", pMaxDelay);
+        v->writev("pPan", pPan, 2);
+        v->write("pDryGain", pDryGain);
+        v->write("pWetGain", pWetGain);
+        v->write("pDryOn", pDryOn);
+        v->write("pWetOn", pWetOn);
+        v->write("pMono", pMono);
+        v->write("pFeedback", pFeedback);
+        v->write("pFeedGain", pFeedGain);
+        v->write("pOutGain", pOutGain);
+        v->write("pOutDMax", pOutDMax);
+        v->write("pOutMemUse", pOutMemUse);
+
+        v->write("pData", pData);
     }
 
     art_delay_mono::art_delay_mono(): art_delay_base(metadata, false)

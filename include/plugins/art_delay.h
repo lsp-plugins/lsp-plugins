@@ -194,6 +194,11 @@ namespace lsp
             void                        sync_delay(art_delay_t *ad);
             void                        process_delay(art_delay_t *ad, float **out, const float * const *in, size_t samples, size_t i, size_t count);
 
+            static void                 dump_pan(IStateDumper *v, const char *name, const pan_t *pan, size_t n);
+            static void                 dump_art_settings(IStateDumper *v, const char *name, const art_settings_t *as);
+            static void                 dump_art_delay(IStateDumper *v, const art_delay_t *ad);
+            static void                 dump_art_tempo(IStateDumper *v, const art_tempo_t *at);
+
         public:
             explicit art_delay_base(const plugin_metadata_t &mdata, bool stereo_in);
             virtual ~art_delay_base();
