@@ -1,0 +1,253 @@
+<plugin resizable="false">
+    <hbox spacing="4">
+    
+        <vbox spacing="4">
+            <group text="groups.oscilloscope.screen" expand="true" fill="true">
+        
+                <graph width="512" height="320" expand="true" fill="true">
+                    <center hpos="-1.0" vpos="0.0" visible="false" />
+                    <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
+                    <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
+    
+                    <mesh id="oscv_1" width="3" />
+    
+                    <marker value="-1" color="g_white" basis="1" parallel="0" />
+                    <marker value="-0.75" color="g_gray" basis="1" parallel="0" />
+                    <marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+                    <marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+                    <marker value="0.25" color="g_gray" basis="1" parallel="0" />
+                    <marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+                    <marker value="0.75" color="g_gray" basis="1" parallel="0" />
+                    <marker value="1" color="g_white" basis="1" parallel="0" />
+    
+                    <marker value="0.25" color="g_gray" basis="0" parallel="1" />
+                    <marker value="0.5" color="g_yellow" basis="0" parallel="1" />
+                    <marker value="0.75" color="g_gray" basis="0" parallel="1" />
+                    <marker value="1" color="g_white" basis="0" parallel="1" />
+                    <marker value="1.25" color="g_gray" basis="0" parallel="1" />
+                    <marker value="1.5" color="g_yellow" basis="0" parallel="1" />
+                    <marker value="1.75" color="g_gray" basis="0" parallel="1" />
+                    <marker value="2" color="g_white" basis="0" parallel="1" />
+    
+                    <text text="X" coord="0;-1" halign="1" valign="1" />
+                    <text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
+                    <text text="0.5" coord="1;-1" halign="-1" valign="1" />
+                    <text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
+                    <text text="1.0" coord="2;-1" halign="-1" valign="1" />
+    
+                    <text text="Y" coord="0;1" halign="1" valign="-1" />
+                    <text text="0.5" coord="0;0.5" halign="1" valign="-1" />
+                    <text text="0" coord="0;0" halign="1" valign="-1" />
+                    <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
+                </graph>
+                
+            </group>
+            
+            <hbox spacing="4">
+            
+                <group text="groups.oscilloscope.operation" expand="true" fill="true">
+                    <grid rows="1" cols="2" spacing="4">
+                    
+                        <group text="groups.oscilloscope.channel_1" expand="true" fill="true">
+                            <grid rows="2" cols="2" spacing="4">
+		                        <label text="labels.oscilloscope.oversampler_mode" />
+		                        <combo id="ovmo_1" same_line="true" />
+		                        <label text="labels.oscilloscope.mode" />          
+		                        <combo id="scmo_1" same_line="true" />
+		                    </grid>
+                        </group>
+                        
+                        <group text="groups.oscilloscope.channel_2" expand="true" fill="true">
+                            <grid rows="2" cols="2" spacing="4">
+                                <label text="labels.oscilloscope.oversampler_mode" />
+                                <combo id="ovmo_2" same_line="true" />
+                                <label text="labels.oscilloscope.mode" />          
+                                <combo id="scmo_2" same_line="true" />
+                            </grid>
+                        </group>
+                    
+                    </grid>
+                </group>
+                
+                <group text="labels.oscilloscope.coupling" expand="true" fill="true">
+	                <grid rows="1" cols="2" spacing="4">
+	                
+	                   <group text="groups.oscilloscope.channel_1" expand="true" fill="true">
+	                       <grid rows="3" cols="2" spacing="4">
+		                        <label text="X" />
+		                        <combo id="sccx_1" same_line="true" />
+		                        <label text="Y" />
+		                        <combo id="sccy_1" same_line="true" />
+		                        <label text="EXT" />
+		                        <combo id="scce_1" same_line="true" />
+		                    </grid>
+	                   </group>
+	                   
+	                   <group text="groups.oscilloscope.channel_2" expand="true" fill="true">
+	                       <grid rows="3" cols="2" spacing="4">
+                                <label text="X" />
+                                <combo id="sccx_2" same_line="true" />
+                                <label text="Y" />
+                                <combo id="sccy_2" same_line="true" />
+                                <label text="EXT" />
+                                <combo id="scce_2" same_line="true" />
+                            </grid>
+                       </group>
+                       
+	                </grid>
+                    
+                </group>
+            
+            </hbox>
+                
+        </vbox>
+        
+        <vbox spacing="4">
+        
+            <hbox spacing="4">
+                <group text="groups.oscilloscope.horizontal" expand="true" fill="true">
+                    <grid rows="1" cols="2" spacing="4">
+                    
+                        <group text="groups.oscilloscope.channel_1" expand="true" fill="true">
+	                        <grid rows="2" cols="1">
+		                        <grid rows="2" cols="1">
+		                            <label text="labels.oscilloscope.sweep_type" />
+		                            <combo id="swtp_1" same_line="true" />
+		                        </grid>
+		                        <grid rows="3" cols="2" hspacing="4">
+		                            <label text="labels.oscilloscope.division" />
+		                            <label text="labels.oscilloscope.position" />
+		                            <knob id="hzdv_1" size="18" />
+		                            <knob id="hzps_1" size="18" />
+		                            <value id="hzdv_1" />
+		                            <value id="hzps_1" />
+		                        </grid>
+		                    </grid>
+                        </group>
+                        
+                        <group text="groups.oscilloscope.channel_2" expand="true" fill="true">
+                            <grid rows="2" cols="1">
+                                <grid rows="2" cols="1">
+                                    <label text="labels.oscilloscope.sweep_type" />
+                                    <combo id="swtp_2" same_line="true" />
+                                </grid>
+                                <grid rows="3" cols="2" hspacing="4">
+                                    <label text="labels.oscilloscope.division" />
+                                    <label text="labels.oscilloscope.position" />
+                                    <knob id="hzdv_2" size="18" />
+                                    <knob id="hzps_2" size="18" />
+                                    <value id="hzdv_2" />
+                                    <value id="hzps_2" />
+                                </grid>
+                            </grid>
+                        </group>
+                    
+                    </grid>
+                    
+                </group>
+                
+                <group text="groups.oscilloscope.vertical" expand="true" fill="true">
+	                <grid rows="1" cols="2" spacing="4">
+	                
+	                   <group text="groups.oscilloscope.channel_1" expand="true" fill="true">
+	                       <grid rows="3" cols="2" hspacing="4">
+		                       <label text="labels.oscilloscope.division" />
+		                       <label text="labels.oscilloscope.position" />
+		                       <knob id="vedv_1" size="18" />
+		                       <knob id="veps_1" size="18" />
+		                       <value id="vedv_1" />
+		                       <value id="veps_1" />
+		                   </grid>
+	                   </group>
+	                   
+	                   <group text="groups.oscilloscope.channel_2" expand="true" fill="true">
+                           <grid rows="3" cols="2" hspacing="4">
+                               <label text="labels.oscilloscope.division" />
+                               <label text="labels.oscilloscope.position" />
+                               <knob id="vedv_2" size="18" />
+                               <knob id="veps_2" size="18" />
+                               <value id="vedv_2" />
+                               <value id="veps_2" />
+                           </grid>
+                       </group>
+	                   
+	                </grid>
+                
+                </group>
+            </hbox>
+            
+            <group text="groups.oscilloscope.trigger" expand="true" fill="true">
+                <grid rows="1" cols="2" spacing="4">
+                
+                    <group text="groups.oscilloscope.channel_1" expand="true" fill="true">
+                        <grid rows="3" cols="1" vspacing="4">
+                
+                            <grid rows="1" cols="2" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_reset" />
+                                <button id="trre_1" size="36" />
+                            </grid>
+                            
+                            <grid rows="3" cols="3" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_hysteresis" />
+                                <label text="labels.oscilloscope.trigger_level" />
+                                <label text="labels.oscilloscope.trigger_hold_time" />
+                                <knob id="trhy_1" size="18" />
+                                <knob id="trlv_1" size="18" />
+                                <knob id="trho_1" size="18" />
+                                <value id="trhy_1" />
+                                <value id="trlv_1" />
+                                <value id="trho_1" />
+                            </grid>
+                            
+                            <grid rows="3" cols="2" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_mode" />
+                                <combo id="trmo_1" same_line="true" />
+                                <label text="labels.oscilloscope.trigger_type" />
+                                <combo id="trtp_1" same_line="true" />
+                                <label text="labels.oscilloscope.trigger_input" />
+                                <combo id="trin_1" same_line="true" />
+                            </grid>
+                        
+                        </grid>
+                    </group>
+                    
+                    <group text="groups.oscilloscope.channel_2" expand="true" fill="true">
+                        <grid rows="3" cols="1" vspacing="4">
+                
+                            <grid rows="1" cols="2" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_reset" />
+                                <button id="trre_2" size="36" />
+                            </grid>
+                            
+                            <grid rows="3" cols="3" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_hysteresis" />
+                                <label text="labels.oscilloscope.trigger_level" />
+                                <label text="labels.oscilloscope.trigger_hold_time" />
+                                <knob id="trhy_2" size="18" />
+                                <knob id="trlv_2" size="18" />
+                                <knob id="trho_2" size="18" />
+                                <value id="trhy_2" />
+                                <value id="trlv_2" />
+                                <value id="trho_2" />
+                            </grid>
+                            
+                            <grid rows="3" cols="2" hspacing="4">
+                                <label text="labels.oscilloscope.trigger_mode" />
+                                <combo id="trmo_2" same_line="true" />
+                                <label text="labels.oscilloscope.trigger_type" />
+                                <combo id="trtp_2" same_line="true" />
+                                <label text="labels.oscilloscope.trigger_input" />
+                                <combo id="trin_2" same_line="true" />
+                            </grid>
+                        
+                        </grid>
+                    </group>
+                
+                </grid>
+        
+            </group>
+            
+        </vbox>
+        
+    </hbox>
+</plugin>

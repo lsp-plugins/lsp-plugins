@@ -90,6 +90,10 @@
 	    "operation": "Operation",
 	    "horizontal": "Horizontal",
 	    "vertical": "Vertical",
-	    "trigger": "Trigger"
+	    "trigger": "Trigger",
+	    "channel_1": "Channel 1",
+	    "channel_2": "Channel 2",
+	    "channel_3": "Channel 3",
+	    "channel_4": "Channel 4"
 	}
 }
