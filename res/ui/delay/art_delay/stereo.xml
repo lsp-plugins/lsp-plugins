@@ -3,10 +3,10 @@
 		<vbox spacing="4">
 
 			<!-- Graph, tempo and master box -->
-			<hbox spacing="2">
+			<hbox spacing="4">
 
 				<!-- Graph and tempo box -->
-				<vbox spacing="2">
+				<vbox spacing="4">
 
 					<!-- Graph box -->
 					<hbox spacing="2">
@@ -93,63 +93,80 @@
 				<!-- Master channel -->
 				<vbox spacing="4">
 					<group text="groups.chan.master">
-						<grid rows="16" cols="1" spacing="2">
-							<vbox spacing="2">
-								<label text="labels.max_delay:s"/>
-								<combo id="dmax"/>
+						<grid rows="15" cols="3" spacing="2">
+							<cell cols="3"><label text="labels.max_delay:s"/></cell>
+							<cell cols="3"><combo id="dmax"/></cell>
+							<cell cols="3">
 								<align hpos="0">
 									<hbox spacing="2">
 										<button id="mono" led="true" color="yellow" size="12"/>
 										<label text="labels.signal.mono"/>
 									</hbox>
 								</align>
-								<hbox spacing="2">
-									<button id="fb" led="true" color="knob_scale" size="12"/>
-									<align hpos="0">
+							</cell>
+							
+							<cell cols="2">
+								<align hpos="0">
+									<hbox spacing="2">
+										<button id="fb" led="true" color="knob_scale" size="12"/>
 										<label text="labels.feedback"/>
-									</align>
-								</hbox>
-							</vbox>
-							<hsep/>
-							<hbox>
-								<vbox>
-									<label text="labels.signal.dry_pan"/>
-									<knob id="p_in" balance="0"/>
-									<value id="p_in"/>
-								</vbox>
-								<vbox>
-									<label text="labels.output"/>
-									<knob id="g_out" balance="0"/>
-									<value id="g_out"/>
-								</vbox>
-							</hbox>
-							<hsep/>
-							<hbox>
-								<vbox>
-									<hbox spacing="2">
-										<align hpos="1">
-											<button color="red" led="true" id="dry_on" size="12"/>
-										</align>
-										<align hpos="0">
-											<label text="labels.signal.dry"/>
-										</align>
 									</hbox>
-									<knob id="dry" scale_color="yellow"/>
-									<value id="dry"/>
-								</vbox>
-								<vbox>
-									<hbox spacing="2">
-										<align hpos="1">
-											<button color="red" led="true" id="wet_on" size="12"/>
-										</align>
-										<align hpos="0">
-											<label text="labels.signal.wet"/>
-										</align>
-									</hbox>
-									<knob id="wet" scale_color="yellow"/>
-									<value id="wet"/>
-								</vbox>
+								</align>
+							</cell>
+							<void />
+							
+							<cell cols="2">
+								<knob id="fbg" />
+							</cell>
+							<void />
+							
+							<cell cols="2">
+								<value id="fbg" />
+							</cell>
+							<void />
+
+							<cell cols="3">
+								<hsep />
+							</cell>
+							
+							<cell cols="2">
+								<label text="labels.signal.dry_pan"/>
+							</cell>
+							<void />
+							
+							<label text="labels.chan.left" />
+							<label text="labels.chan.right" />
+							<label text="labels.output" />
+							
+							<knob id="pl_in" balance="0" scale_color="left_channel" />
+							<knob id="pr_in" balance="0" scale_color="right_channel" />
+							<knob id="g_out" balance="0"/>
+							
+							<value id="pl_in" />
+							<value id="pr_in" />
+							<value id="g_out" />
+							
+							<cell cols="3">
+								<hsep />
+							</cell>
+							
+							<hbox spacing="2">
+								<button color="red" led="true" id="dry_on" size="12"/>
+								<label text="labels.signal.dry"/>
 							</hbox>
+							<hbox spacing="2">
+								<button color="red" led="true" id="wet_on" size="12"/>
+								<label text="labels.signal.wet"/>
+							</hbox>
+							<void />
+							
+							<knob id="dry" scale_color="yellow"/>
+							<knob id="wet" scale_color="yellow"/>
+							<void />
+							
+							<value id="dry"/>							
+							<value id="wet"/>
+							<void />
 						</grid>
 					</group>
 				</vbox>
@@ -160,7 +177,7 @@
 				<ui:for id="i" first="0" last="15">
 					<!-- Delay line -->
 					<vbox spacing="4">
-						<align hpos="0" pad_bottom="8">
+						<align hpos="0" pad_bottom="4">
 							<label text="labels.delay_time_formula"/>
 						</align>
 
@@ -293,142 +310,20 @@
 							<label text="units.seconds"/>
 						</grid>
 
-						<!-- Formula modifed -->
-						<hsep/>
-						<vbox>
-							<align hpos="0" pad_bottom="8">
-								<label text="labels.delay_time_formula"/>
-							</align>
-
-							<!-- Delay formula 1 -->
-
-							<!-- Row 1 -->
-							<grid rows="2" cols="8" hspacing="4">
-								<label text="labels.delay_reference"/>
-								<void/>
-								<label text="labels.tempo_based_delay"/>
-								<void/>
-								<label text="labels.delay"/>
-								<void/>
-								<label text="labels.result"/>
-								<void expand="true"/>
-								<!-- Row 2 -->
-								<hbox spacing="2">
-									<label text="["/>
-									<label text="(A="/>
-									<value id="dval${i}" same_line="true"/>
-									<label text=")"/>
-									<label text="*"/>
-									<label text="(B="/>
-									<value id="drefm${i}" color_hue_id="hue${i}" same_line="true"/>
-									<label text=")"/>
-									<label text="]"/>
-								</hbox>
-								<label text=" + "/>
-								<hbox spacing="2">
-									<label text="["/>
-									<label text="(C="/>
-									<value id="tval${i}" same_line="true"/>
-									<label text=")"/>
-									<label text=":"/>
-									<label text="(D="/>
-									<value id="treff${i}" detailed="false" same_line="true"/>
-									<label text="/"/>
-									<value id="trefd${i}" detailed="false" same_line="true"/>
-									<label text=")"/>
-									<label text="*"/>
-									<label text="(E="/>
-									<value id="trefm${i}" color_id="hue${i}" same_line="true"/>
-									<label text=")"/>
-									<label text="+"/>
-									<label text="(F="/>
-									<value id="frac${i}" detailed="false" same_line="true"/>
-									<label text="/"/>
-									<value id="den${i}" detailed="false" same_line="true"/>
-									<label text=")"/>
-									<label text="]"/>
-								</hbox>
-								<label text=" + "/>
-								<hbox spacing="2">
-									<label text="(G="/>
-									<value id="dadd${i}" color_id="hue${i}" same_line="true"/>
-									<label text=")"/>
-								</hbox>
-								<label text=" = "/>
-								<value id="adt${i}" same_line="true"/>
-								<void expand="true"/>
-							</grid>
-							<hsep/>
-
-							<!-- Formula controls -->
-							<grid rows="4" cols="7">
-
-								<!-- Row 1 -->
-								<label text="A"/>
-								<label text="B"/>
-								<label text="C"/>
-								<label text="D"/>
-								<label text="E"/>
-								<label text="F"/>
-								<label text="G"/>
-
-								<!-- Row 2 -->
-								<combo id="dref${i}"/>
-								<knob id="drefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-								<combo id="tref${i}"/>
-								<frac id="treff${i}" id2="trefd${i}" color="green"/>
-								<knob id="trefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-								<frac id="frac${i}" id2="den${i}" color="green"/>
-								<knob id="dadd${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-
-								<!-- Row 3 -->
-								<vbox>
-									<value id="dval${i}" color="green" visibility="!:loop${i}" same_line="true"/>
-									<value id="dval${i}" color="red" visibility=":loop${i}" same_line="true"/>
-								</vbox>
-								<value id="drefm${i}" same_line="true"/>
-								<value id="tval${i}" same_line="true"/>
-								<hbox>
-									<value id="treff${i}" detailed="false" same_line="true"/>
-									<label text="/"/>
-									<value id="trefd${i}" detailed="false" same_line="true"/>
-								</hbox>
-								<value id="trefm${i}" same_line="true"/>
-								<hbox>
-									<value id="frac${i}" detailed="false" same_line="true"/>
-									<label text="/"/>
-									<value id="den${i}" detailed="false" same_line="true"/>
-								</hbox>
-									<value id="dadd${i}" same_line="true"/>
-
-								<!-- Row 4 -->
-
-								<cell cols="7">
-									<vbox fill="false">
-										<label text="labels.result" />
-										<value id="adt${i}" color="green" visibility="!:door${i}" same_line="true"/>
-										<value id="adt${i}" color="red" visibility=":door${i}" same_line="true"/>
-									</vbox>
-								</cell>
-
-							</grid>
-						</vbox>
-
 						<!-- Separator -->
 						<hsep/>
-						<align hpos="0" pad_bottom="8">
+						<align hpos="0" pad_bottom="4">
 							<label text="labels.delay_line_processing"/>
 						</align>
 
 						<!-- Delay settings modifed -->
-						<hbox spacing="2">
-
-							<!-- buttons and hue -->
-							<hbox spacing="2">
-								<grid rows="4" cols="2">
-									<cell cols="2">
-										<label text="Controls"/>
-									</cell>
+						<grid rows="4" cols="16" transpose="true">
+							<!-- Buttons and Hue -->
+							<!-- Column 1 -->
+							<void />
+							<label text="labels.controls" />
+							<cell rows="2">
+								<grid rows="3" cols="2">
 									<button id="on${i}" led="true" color="yellow" size="12"/>
 									<align hpos="0">
 										<label text="labels.chan.on"/>
@@ -442,86 +337,103 @@
 										<label text="labels.chan.mute"/>
 									</align>
 								</grid>
-								<vbox>
-									<label text="labels.chan.hue"/>
-									<knob id="hue${i}" size="20" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-									<value id="hue${i}" detailed="false"/>
-								</vbox>
-							</hbox>
-							<vsep/>
-
+							</cell>
+							
+							<!-- Column 2 -->
+							<void />
+							<label text="labels.chan.hue" />
+							<knob id="hue${i}" size="20" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+							<value id="hue${i}" detailed="false"/>
+							
+							<!-- Column 3 -->
+							<cell rows="4"><vsep /></cell>
+							
 							<!-- EQ -->
-							<hbox spacing="2">
-								<vbox>
-									<label text="labels.equalizer" pad_bottom="10"/>
-									<hbox>
-										<grid rows="4" cols="2" spacing="4">
-											<cell cols="2">
-												<label text="labels.filters"/>
-											</cell>
-											<button id="lc${i}" led="true" color="magenta" size="12"/>
-											<label text="labels.flt.L_owC_ut"/>
-											<button id="eq${i}" led="true" color="green" size="12"/>
-											<label text="labels.flt.EQ_ualizer"/>
-											<button id="hc${i}" led="true" color="cyan" size="12"/>
-											<label text="labels.flt.H_ighC_ut"/>
-										</grid>
-										<hbox expand="true">
-											<grid rows="3" cols="7">
-												<label text="labels.flt.low_cut"/>
-												<label text="labels.flt.subs"/>
-												<label text="labels.flt.bass"/>
-												<label text="labels.flt.middle"/>
-												<label text="labels.flt.presence"/>
-												<label text="labels.flt.treble"/>
-												<label text="labels.flt.high_cut"/>
-
-												<knob id="flc${i}" size="20" scale_color="magenta"/>
-												<knob id="fbs${i}" size="20" scale_color="green" balance="0 db"/>
-												<knob id="fbb${i}" size="20" scale_color="green" balance="0 db"/>
-												<knob id="fbm${i}" size="20" scale_color="green" balance="0 db"/>
-												<knob id="fbp${i}" size="20" scale_color="green" balance="0 db"/>
-												<knob id="fbt${i}" size="20" scale_color="green" balance="0 db"/>
-												<knob id="fhc${i}" size="20" scale_color="cyan"/>
-
-												<value id="flc${i}" same_line="true"/>
-												<value id="fbs${i}" same_line="true"/>
-												<value id="fbb${i}" same_line="true"/>
-												<value id="fbm${i}" same_line="true"/>
-												<value id="fbp${i}" same_line="true"/>
-												<value id="fbt${i}" same_line="true"/>
-												<value id="fhc${i}" same_line="true"/>
-											</grid>
-										</hbox>
-									</hbox>
-								</vbox>
+							<!-- Column 4 -->
+							<cell cols="8">
+								<label text="labels.equalizer" />
+							</cell>
+							<label text="labels.filters"/>
+							<cell rows="2">
+								<grid rows="3" cols="2" spacing="4">
+									<button id="lc${i}" led="true" color="magenta" size="12"/>
+									<label text="labels.flt.L_owC_ut"/>
+									<button id="eq${i}" led="true" color="green" size="12"/>
+									<label text="labels.flt.EQ_ualizer"/>
+									<button id="hc${i}" led="true" color="cyan" size="12"/>
+									<label text="labels.flt.H_ighC_ut"/>
+								</grid>
+							</cell>
+							
+							<!-- Column 5 -->
+							<label text="labels.flt.low_cut"/>
+							<knob id="flc${i}" size="20" scale_color="magenta"/>
+							<value id="flc${i}" same_line="true"/>
+							
+							<!-- Column 6 -->
+							<label text="labels.flt.subs"/>
+							<knob id="fbs${i}" size="20" scale_color="green" balance="0 db"/>
+							<value id="fbs${i}" same_line="true"/>
+							
+							<!-- Column 7 -->
+							<label text="labels.flt.bass"/>
+							<knob id="fbb${i}" size="20" scale_color="green" balance="0 db"/>
+							<value id="fbb${i}" same_line="true"/>
+							
+							<!-- Column 8 -->
+							<label text="labels.flt.middle"/>
+							<knob id="fbm${i}" size="20" scale_color="green" balance="0 db"/>
+							<value id="fbm${i}" same_line="true"/>
+							
+							<!-- Column 9 -->
+							<label text="labels.flt.presence"/>
+							<knob id="fbp${i}" size="20" scale_color="green" balance="0 db"/>
+							<value id="fbp${i}" same_line="true"/>
+							
+							<!-- Column 10 -->
+							<label text="labels.flt.treble"/>
+							<knob id="fbt${i}" size="20" scale_color="green" balance="0 db"/>
+							<value id="fbt${i}" same_line="true"/>
+							
+							<!-- Column 11 -->
+							<label text="labels.flt.high_cut"/>
+							<knob id="fhc${i}" size="20" scale_color="cyan"/>
+							<value id="fhc${i}" same_line="true"/>
+							
+							<!-- Column 12 -->
+							<cell rows="4"><vsep /></cell>
+							
+							<!-- Column 13 -->
+							<void />
+							<hbox>
+								<button id="fbe${i}" led="true" color="knob_scale" size="12"/>
+								<align hpos="0">
+									<label text="labels.feedback"/>
+								</align>
 							</hbox>
-							<vsep/>
-
-							<!-- Feedback Panorama Gain -->
-							<grid rows="3" cols="3" spacing="2">
-								<hbox>
-									<button id="fbe${i}" led="true" color="knob_scale" size="12"/>
-									<align hpos="0">
-										<label text="labels.feedback"/>
-									</align>
-								</hbox>
-								<label text="labels.panorama"/>
-								<label text="labels.gain"/>
-
-								<knob id="fbg${i}"/>
-								<knob id="p${i}" balance="0"/>
-								<knob id="dg${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-
-								<value id="fbg${i}" same_line="true"/>
-								<value id="p${i}" same_line="true"/>
-								<value id="dg${i}" same_line="true"/>
-
-							</grid>
-						</hbox>
+							<knob id="fbg${i}"/>
+							<value id="fbg${i}" same_line="true"/>
+							
+							<!-- Column 14 -->
+							<cell cols="2"><label text="labels.panorama"/></cell>
+							<label text="labels.chan.left"/>
+							<knob id="pl${i}" balance="0" scale_color="left_channel" />
+							<value id="pl${i}" same_line="true"/>
+							
+							<!-- Column 15 -->
+							<label text="labels.chan.right" />
+							<knob id="pr${i}" balance="0" scale_color="right_channel" />
+							<value id="pr${i}" same_line="true"/>
+							
+							<!-- Column 16 -->
+							<void />
+							<label text="labels.gain" />
+							<knob id="dg${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+							<value id="dg${i}" same_line="true"/>
+							
+						</grid>
 					</vbox>
-				</ui:for>
-				<!-- i -->
+				</ui:for> <!-- ui:for i -->
 			</cgroup>
 		</vbox>
 	</hbox>

@@ -278,6 +278,7 @@
 		"transparency": "Transparency"
 	},
 	"max_delay": "Max Delay",
+	"max_delay:s": "Max Delay (s)",
 	"max_latency": "Max Latency",
 	"max_time": "Max time",
 	

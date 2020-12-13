@@ -70,7 +70,7 @@ namespace lsp
 
         static const float  TEMPO_MIN           = 20.0f;
         static const float  TEMPO_MAX           = 360.0f;
-        static const float  TEMPO_STEP          = 0.1f;
+        static const float  TEMPO_STEP          = 0.05f;
         static const float  TEMPO_DFL           = 120.0f;
 
         static const float  BAND_GAIN_MIN       = GAIN_AMP_M_24_DB;
