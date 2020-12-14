@@ -1,11 +1,11 @@
 {
 	"language": "Langue",
 
-	"local": {
-		"es": "Espagnol",
+	"target": {
+		"es": "Español",
 		"fr": "Français",
-		"it": "Italien",
-		"ru": "Russe",
-		"us": "Anglais (US)"
+		"it": "Italiano",
+		"ru": "Русский",
+		"us": "English (US)"
 	}
 }
