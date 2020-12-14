@@ -61,7 +61,7 @@
 								</cell>
 								<vbox>
 									<knob id="tempo${i}"/>
-									<value id="tempo${i}" detailed="false" precision="2"/>
+									<value id="tempo${i}" width="45" detailed="false" precision="2"/>
 								</vbox>
 
 								<cell cols="3">
@@ -340,9 +340,10 @@
 
 							<!-- Column 2 -->
 							<void/>
+
 							<label text="labels.chan.hue"/>
 							<knob id="hue${i}" size="20" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-							<value id="hue${i}" detailed="false"/>
+							<value id="hue${i}" width="45" detailed="false"/>
 
 							<!-- Column 3 -->
 							<cell rows="4"><vsep/></cell>
@@ -367,37 +368,37 @@
 							<!-- Column 5 -->
 							<label text="labels.flt.low_cut"/>
 							<knob id="flc${i}" size="20" scale_color="magenta"/>
-							<value id="flc${i}" same_line="true"/>
+							<value id="flc${i}" width="52" same_line="true"/>
 
 							<!-- Column 6 -->
 							<label text="labels.flt.subs"/>
 							<knob id="fbs${i}" size="20" scale_color="green" balance="0 db"/>
-							<value id="fbs${i}" same_line="true"/>
+							<value id="fbs${i}" width="62" same_line="true"/>
 
 							<!-- Column 7 -->
 							<label text="labels.flt.bass"/>
 							<knob id="fbb${i}" size="20" scale_color="green" balance="0 db"/>
-							<value id="fbb${i}" same_line="true"/>
+							<value id="fbb${i}" width="62" same_line="true"/>
 
 							<!-- Column 8 -->
 							<label text="labels.flt.middle"/>
 							<knob id="fbm${i}" size="20" scale_color="green" balance="0 db"/>
-							<value id="fbm${i}" same_line="true"/>
+							<value id="fbm${i}" width="62" same_line="true"/>
 
 							<!-- Column 9 -->
 							<label text="labels.flt.presence"/>
 							<knob id="fbp${i}" size="20" scale_color="green" balance="0 db"/>
-							<value id="fbp${i}" same_line="true"/>
+							<value id="fbp${i}" width="62" same_line="true"/>
 
 							<!-- Column 10 -->
 							<label text="labels.flt.treble"/>
 							<knob id="fbt${i}" size="20" scale_color="green" balance="0 db"/>
-							<value id="fbt${i}" same_line="true"/>
+							<value id="fbt${i}" width="62" same_line="true"/>
 
 							<!-- Column 11 -->
 							<label text="labels.flt.high_cut"/>
 							<knob id="fhc${i}" size="20" scale_color="cyan"/>
-							<value id="fhc${i}" same_line="true"/>
+							<value id="fhc${i}" width="62" same_line="true"/>
 
 							<!-- Column 12 -->
 							<cell rows="4"><vsep/></cell>
@@ -417,18 +418,18 @@
 							<cell cols="2"><label text="labels.panorama"/></cell>
 							<label text="labels.chan.left"/>
 							<knob id="pl${i}" balance="0" scale_color="left_channel"/>
-							<value id="pl${i}" same_line="true"/>
+							<value id="pl${i}" width="49" same_line="true"/>
 
 							<!-- Column 15 -->
 							<label text="labels.chan.right"/>
 							<knob id="pr${i}" balance="0" scale_color="right_channel"/>
-							<value id="pr${i}" same_line="true"/>
+							<value id="pr${i}" width="49" same_line="true"/>
 
 							<!-- Column 16 -->
 							<void/>
 							<label text="labels.gain"/>
 							<knob id="dg${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-							<value id="dg${i}" same_line="true"/>
+							<value id="dg${i}" width="62" same_line="true"/>
 
 						</grid>
 					</vbox>
