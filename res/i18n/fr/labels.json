@@ -542,7 +542,7 @@
 		"samples": "Échantillons"
 	},
 	
-	"value": "Vleur",
+	"value": "Valeur",
 	"values": {
 		"best": "Meilleure",
 		"desc_label": "{@name}",
