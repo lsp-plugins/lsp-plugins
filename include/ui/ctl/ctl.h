@@ -199,6 +199,7 @@ namespace lsp
             A_PROPORTIONAL,
             A_RADIUS,
             A_RADIUS_ID,
+            A_READ_ONLY,
             A_RESIZABLE,
             A_REVERSIVE,
             A_ROLL_ID,

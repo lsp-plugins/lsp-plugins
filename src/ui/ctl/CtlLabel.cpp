@@ -126,6 +126,7 @@ namespace lsp
             fValue          = 0.0f;
             bDetailed       = true;
             bSameLine       = false;
+            bReadOnly       = false;
             nUnits          = U_NONE - 1;
             nPrecision      = -1;
             nAtomID         = -1;
@@ -225,6 +226,9 @@ namespace lsp
                     break;
                 case A_SAME_LINE:
                     PARSE_BOOL(value, bSameLine = __);
+                    break;
+                case A_READ_ONLY:
+                    PARSE_BOOL(value, bReadOnly = __);
                     break;
                 case A_PRECISION:
                     PARSE_INT(value, nPrecision = __);
@@ -460,7 +464,7 @@ namespace lsp
         {
             // Get control pointer
             CtlLabel *_this = static_cast<CtlLabel *>(ptr);
-            if ((_this == NULL) || (_this->enType != CTL_LABEL_VALUE))
+            if ((_this == NULL) || (_this->enType != CTL_LABEL_VALUE) || (_this->bReadOnly))
                 return STATUS_OK;
 
             // Get port metadata
