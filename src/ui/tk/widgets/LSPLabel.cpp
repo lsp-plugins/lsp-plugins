@@ -35,6 +35,8 @@ namespace lsp
             fVAlign     = 0.5f;
             fHAlign     = 0.5f;
             nBorder     = 0;
+            nMinWidth   = -1;
+            nMinHeight  = -1;
             pClass      = &metadata;
 
             sFont.set_size(12.0f);
@@ -149,6 +151,22 @@ namespace lsp
             }
         }
 
+        void LSPLabel::set_min_width(ssize_t value)
+        {
+            if (nMinWidth == value)
+                return;
+            nMinWidth   = value;
+            query_resize();
+        }
+
+        void LSPLabel::set_min_height(ssize_t value)
+        {
+            if (nMinHeight == value)
+                return;
+            nMinHeight  = value;
+            query_resize();
+        }
+
         void LSPLabel::size_request(size_request_t *r)
         {
             r->nMinWidth    = 0;
@@ -184,6 +202,12 @@ namespace lsp
                 r->nMaxWidth    = r->nMinWidth;
                 r->nMaxHeight   = r->nMinHeight;
             }
+
+            // Apply size constraints
+            if ((nMinWidth >= 0) && (r->nMinWidth < nMinWidth))
+                r->nMinWidth    = nMinWidth;
+            if ((nMinHeight >= 0) && (r->nMinHeight < nMinHeight))
+                r->nMinHeight   = nMinHeight;
 
             s->destroy();
             delete s;

@@ -37,6 +37,8 @@ namespace lsp
                 LSPFont             sFont;
                 LSPLocalString      sText;
                 ssize_t             nBorder;
+                ssize_t             nMinWidth;
+                ssize_t             nMinHeight;
 
             protected:
                 void    query_safe_resize();
@@ -89,6 +91,12 @@ namespace lsp
                 void set_align(float halign, float valign);
 
                 void set_border(float border);
+
+                void                        set_min_width(ssize_t value);
+                void                        set_min_height(ssize_t value);
+
+                inline ssize_t              min_width() const       { return nMinWidth;     }
+                inline ssize_t              min_height() const      { return nMinHeight;    }
 
             public:
                 virtual void draw(ISurface *s);

@@ -397,6 +397,15 @@ namespace lsp
         {
             if (pPort != NULL)
                 commit_value();
+
+            // Get label widget
+            LSPLabel *lbl = widget_cast<LSPLabel>(pWidget);
+            if (lbl != NULL)
+            {
+                lbl->set_min_width(nMinWidth);
+                lbl->set_min_height(nMinHeight);
+            }
+
             CtlWidget::end();
         }
 
