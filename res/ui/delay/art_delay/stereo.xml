@@ -20,7 +20,7 @@
 									</hbox>
 								</align>
 							</hbox>
-							<graph width="320" height="150" expand="true">
+							<graph width="320" height="120" expand="true">
 								<center hpos="-1" vpos="0" visible="false"/>
 
 								<!-- Axis -->
@@ -97,7 +97,6 @@
 					<group text="groups.chan.master">
 						<grid rows="17" cols="2" spacing="2">
 
-							<!-- row 1 -->
 							<cell cols="2"><label text="labels.max_delay:s"/></cell>
 							<cell cols="2"><combo id="dmax"/></cell>
 							<cell cols="2">
@@ -151,14 +150,18 @@
 								<hsep/>
 							</cell>
 
-							<hbox spacing="2">
-								<button color="red" led="true" id="dry_on" size="12"/>
-								<label text="labels.signal.dry"/>
-							</hbox>
-							<hbox spacing="2">
-								<button color="red" led="true" id="wet_on" size="12"/>
-								<label text="labels.signal.wet"/>
-							</hbox>
+							<align hpos="0">
+								<hbox spacing="2">
+									<button color="red" led="true" id="dry_on" size="12"/>
+									<label text="labels.signal.dry"/>
+								</hbox>
+							</align>
+							<align hpos="0">
+								<hbox spacing="2">
+									<button color="red" led="true" id="wet_on" size="12"/>
+									<label text="labels.signal.wet"/>
+								</hbox>
+							</align>
 
 							<knob id="dry" scale_color="yellow"/>
 							<knob id="wet" scale_color="yellow"/>

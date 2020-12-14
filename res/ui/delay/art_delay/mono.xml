@@ -20,7 +20,7 @@
 									</hbox>
 								</align>
 							</hbox>
-							<graph width="320" height="150" expand="true">
+							<graph width="320" height="120" expand="true">
 								<center hpos="-1" vpos="0" visible="false"/>
 
 								<!-- Axis -->
@@ -96,61 +96,68 @@
 				<!-- Master channel -->
 				<vbox spacing="4">
 					<group text="groups.chan.master">
-						<grid rows="16" cols="1" spacing="2">
-							<vbox spacing="2">
-								<label text="labels.max_delay:s"/>
-								<combo id="dmax"/>
+						<grid rows="11" cols="2" spacing="2">
+
+							<cell cols="2"><label text="labels.max_delay:s"/></cell>
+
+							<cell cols="2"><combo id="dmax"/></cell>
+
+							<cell cols="2">
 								<align hpos="0">
 									<hbox spacing="2">
 										<button id="mono" led="true" color="yellow" size="12"/>
 										<label text="labels.signal.mono"/>
 									</hbox>
 								</align>
+							</cell>
+
+							<cell cols="2">
 								<align hpos="0">
 									<hbox spacing="2">
-										<button id="fb" led="true" color="knob_scale" size="12"/><label text="labels.feedback"/></hbox>
+										<button id="fb" led="true" color="knob_scale" size="12"/>
+										<label text="labels.feedback"/>
+									</hbox>
 								</align>
+							</cell>
+
+							<knob id="fbg"/>
+							<value id="fbg"/>
+
+							<cell cols="2"><hsep/></cell>
+
+							<vbox>
+								<label text="labels.signal.dry_pan"/>
+								<knob id="p_in" balance="0"/>
+								<value id="p_in"/>
 							</vbox>
-							<hsep/>
-							<hbox>
-								<vbox>
-									<label text="labels.signal.dry_pan"/>
-									<knob id="p_in" balance="0"/>
-									<value id="p_in"/>
-								</vbox>
-								<vbox>
-									<label text="labels.output"/>
-									<knob id="g_out" balance="0"/>
-									<value id="g_out"/>
-								</vbox>
-							</hbox>
-							<hsep/>
-							<hbox>
-								<vbox>
-									<hbox spacing="2">
-										<align hpos="1">
-											<button color="red" led="true" id="dry_on" size="12"/>
-										</align>
-										<align hpos="0">
-											<label text="labels.signal.dry"/>
-										</align>
-									</hbox>
-									<knob id="dry" scale_color="yellow"/>
-									<value id="dry"/>
-								</vbox>
-								<vbox>
-									<hbox spacing="2">
-										<align hpos="1">
-											<button color="red" led="true" id="wet_on" size="12"/>
-										</align>
-										<align hpos="0">
-											<label text="labels.signal.wet"/>
-										</align>
-									</hbox>
-									<knob id="wet" scale_color="yellow"/>
-									<value id="wet"/>
-								</vbox>
-							</hbox>
+							<vbox>
+								<label text="labels.output"/>
+								<knob id="g_out" balance="0"/>
+								<value id="g_out"/>
+							</vbox>
+
+							<cell cols="2"><hsep/></cell>
+
+							<align hpos="0">
+								<hbox spacing="2">
+									<button color="red" led="true" id="dry_on" size="12"/>
+									<label text="labels.signal.dry"/>
+								</hbox>
+							</align>
+
+							<align hpos="0">
+								<hbox spacing="2">
+									<button color="red" led="true" id="wet_on" size="12"/>
+									<label text="labels.signal.wet"/>
+								</hbox>
+							</align>
+
+							<knob id="dry" scale_color="yellow"/>
+							<knob id="wet" scale_color="yellow"/>
+
+							<value id="dry"/>
+							<value id="wet"/>
+
 						</grid>
 					</group>
 				</vbox>
@@ -522,7 +529,7 @@
 							<value id="fbg${i}" same_line="true"/>
 
 							<!-- Column 14 -->
-							<void />
+							<void/>
 							<label text="labels.panorama"/>
 							<knob id="p${i}" balance="0"/>
 							<value id="p${i}" width="49" same_line="true"/>
