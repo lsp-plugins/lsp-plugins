@@ -57,34 +57,37 @@
 									<label text="${i}"/>
 								</cell>
 								<cell cols="3">
-									<ttap id="tempo${i}" text="actions.tap" color="knob_scale" 
-										width="102" height="32" led="false" text_color="label_text"/>
+									<ttap id="tempo${i}" text="actions.tap" color="knob_scale" width="102" height="32" led="false" text_color="label_text"/>
 								</cell>
 								<vbox>
 									<knob id="tempo${i}"/>
-									<value id="tempo${i}" detailed="false" precision="2" />
+									<value id="tempo${i}" detailed="false" precision="2"/>
 								</vbox>
-								
+
 								<cell cols="3">
 									<align hpos="1" pad_right="4">
-										<indicator id="atempo${i}" format="f6.2!" text_color="green" />
+										<indicator id="atempo${i}" format="f6.2!" text_color="green"/>
 									</align>
 								</cell>
 								<cell cols="3">
 									<align hpos="1" pad_right="4">
-										<label text_color="green" text="units.bpm" />
+										<label text_color="green" text="units.bpm"/>
 									</align>
 								</cell>
-								
+
 								<vsep/>
-								<align hpos="1">
+
 									<vbox>
-										<align vpos="0">
-											<combo id="ratio${i}" width="20" />
+										<align vpos="1">
+											<combo id="ratio${i}" width="20"/>
 										</align>
-										<button id="sync${i}" text="labels.sync" led="true" color="yellow" width="40" />
+										<align vpos="1">
+											<hbox>
+												<button id="sync${i}" led="true" color="yellow" width="12" height="12"/><label text="labels.sync"/>
+											</hbox>
+										</align>
 									</vbox>
-								</align>
+
 							</ui:for>
 						</grid>
 					</group>
@@ -399,13 +402,13 @@
 									<label text="/"/>
 									<value id="den${i}" detailed="false" same_line="true"/>
 								</hbox>
-									<value id="dadd${i}" same_line="true"/>
+								<value id="dadd${i}" same_line="true"/>
 
 								<!-- Row 4 -->
 
 								<cell cols="7">
 									<vbox fill="false">
-										<label text="labels.result" />
+										<label text="labels.result"/>
 										<value id="adt${i}" color="green" visibility="!:door${i}" same_line="true"/>
 										<value id="adt${i}" color="red" visibility=":door${i}" same_line="true"/>
 									</vbox>
