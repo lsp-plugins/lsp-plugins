@@ -46,6 +46,8 @@ namespace lsp
                 size_t              nSpacing;
                 bool                bProportional;
                 orientation_t       enOrientation;
+                ssize_t             nMinWidth;
+                ssize_t             nMinHeight;
 
             protected:
                 static inline bool  hidden_widget(const cell_t *w);
@@ -97,10 +99,16 @@ namespace lsp
                  * @return box orientation
                  */
                 inline orientation_t    orientation() const { return enOrientation; }
+                inline ssize_t      min_width() const       { return nMinWidth;     }
+                inline ssize_t      min_height() const      { return nMinHeight;    }
 
             //---------------------------------------------------------------------------------
             // Manipulation
             public:
+
+                void        set_min_width(ssize_t value);
+                void        set_min_height(ssize_t value);
+
                 /** Set box border
                  *
                  * @param value border value
