@@ -88,7 +88,8 @@ namespace lsp
         LOG_CONTROL("fbb" #id, "Delay " #id " bass", U_GAIN_AMP, slap_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbm" #id, "Delay " #id " middle", U_GAIN_AMP, slap_delay_base_metadata::BAND_GAIN), \
         LOG_CONTROL("fbp" #id, "Delay " #id " presence", U_GAIN_AMP, slap_delay_base_metadata::BAND_GAIN), \
-        LOG_CONTROL("fbt" #id, "Delay " #id " treble", U_GAIN_AMP, slap_delay_base_metadata::BAND_GAIN) \
+        LOG_CONTROL("fbt" #id, "Delay " #id " treble", U_GAIN_AMP, slap_delay_base_metadata::BAND_GAIN), \
+        AMP_GAIN10("dg" #id, "Delay " #id " gain", GAIN_AMP_0_DB)
 
     #define SLAP_DELAY_PROCESSORS(pan) \
         SLAP_DELAY_PROCESSOR(0, pan), \
