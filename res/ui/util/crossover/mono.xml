@@ -148,7 +148,7 @@
 		<cell cols="2">
 			<hbox spacing="2">
 				<group text="groups.processor" expand="true">
-					<grid rows="9" cols="24" spacing="2" transpose="true">
+					<grid rows="12" cols="24" spacing="2" transpose="true">
 						<label text="labels.band" />
 						<label text="labels.slope" />
 						<vbox>
@@ -159,6 +159,9 @@
 						<label text="labels.units.:db" />
 						<label text="labels.chan.solo" />
 						<label text="labels.chan.mute" />
+						<label text="labels.chan.phase" />
+						<label text="labels.delay" />
+						<label text="labels.units.:ms" />
 						<label text="labels.chan.hue" />
 						<void />
 						
@@ -180,9 +183,12 @@
 							<value id="bg_${i}" detailed="false" />
 							<button id="bs_${i}" size="24" color="green" text="labels.chan.S_olo" led="true" />
 							<button id="bm_${i}" size="24" color="red" text="labels.chan.M_ute" led="true" />
+							<button id="bp_${i}" size="24" color="yellow" text="labels.chan.P_hase" led="true" />
+							<knob id="bd_${i}" scale_hue_id="hue_${i}" />
+							<value id="bd_${i}" detailed="false" />
 							<knob id="hue_${i}" size="16" scale_hue_id="hue_${i}" />
 							<value id="hue_${i}" detailed="false" />
-							<cell rows="6">
+							<cell rows="9">
 								<meter id="blm_${i}" angle="1"
 									color="middle_channel"
 									logarithmic="true" type="rms_peak"
@@ -193,7 +199,7 @@
 						
 						<!-- Bands 1-7 -->
 						<ui:for id="i" first="1" last="7">
-							<cell rows="9">
+							<cell rows="12">
 								<vsep />
 							</cell>
 							
@@ -210,6 +216,9 @@
 								<value id="bg_${i}" detailed="false" />
 								<button id="bs_${i}" size="24" color="green" text="labels.chan.S_olo" led="true" />
 								<button id="bm_${i}" size="24" color="red" text="labels.chan.M_ute" led="true" />
+								<button id="bp_${i}" size="24" color="yellow" text="labels.chan.P_hase" led="true" />
+								<knob id="bd_${i}" scale_hue_id="hue_${i}" />
+								<value id="bd_${i}" detailed="false" />
 								<knob id="hue_${i}" size="16" scale_hue_id="hue_${i}" />
 								<value id="hue_${i}" detailed="false" />
 								<vbox>
@@ -217,7 +226,7 @@
 									<value id="fre_${i}" visibility=":frs_${i} igt 0" detailed="false" />
 									<label text="labels.chan.off" visibility=":frs_${i} ile 0" />
 								</vbox>
-								<cell rows="6">
+								<cell rows="9">
 									<meter id="blm_${i}" angle="1"
 										color="middle_channel"
 										logarithmic="true" type="rms_peak"
