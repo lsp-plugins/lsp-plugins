@@ -897,28 +897,30 @@ namespace lsp
     {
         float dmax, fbmax;
 
-        // Create delay control signal
-        if (ad->sOld.fDelay != ad->sNew.fDelay)
+        // Create delay control signal if it is changing slowly
+        if ((ad->sOld.fDelay != ad->sNew.fDelay) &&
+            (fabs(ad->sOld.fDelay - ad->sNew.fDelay)*0.25f <= samples))
         {
             dsp::lin_inter_set(vDelayBuf, 0, ad->sOld.fDelay, samples, ad->sNew.fDelay, off, count);
             dmax = lsp_max(vDelayBuf[0], vDelayBuf[count-1]);
         }
         else
         {
-            dsp::fill(vDelayBuf, ad->sOld.fDelay, count);
-            dmax = ad->sOld.fDelay;
+            dsp::fill(vDelayBuf, ad->sNew.fDelay, count);
+            dmax = ad->sNew.fDelay;
         }
 
-        // Create feedback delay control signal
-        if (ad->sOld.fFeedLen != ad->sNew.fFeedLen)
+        // Create feedback delay control signal if it is changing slowly
+        if ((ad->sOld.fFeedLen != ad->sNew.fFeedLen) &&
+            (fabs(ad->sOld.fFeedLen - ad->sNew.fFeedLen)*0.25f <= samples))
         {
             dsp::lin_inter_set(vFeedBuf, 0, ad->sOld.fFeedLen, samples, ad->sNew.fFeedLen, off, count);
             fbmax = lsp_max(vFeedBuf[0], vFeedBuf[count-1]);
         }
         else
         {
-            dsp::fill(vFeedBuf, ad->sOld.fFeedLen, count);
-            fbmax = ad->sOld.fFeedLen;
+            dsp::fill(vFeedBuf, ad->sNew.fFeedLen, count);
+            fbmax = ad->sNew.fFeedLen;
         }
 
         // Process the feedback signal and check that it is not out of range
