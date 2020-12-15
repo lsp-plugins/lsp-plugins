@@ -180,21 +180,12 @@
 				<ui:for id="i" first="0" last="15">
 					<!-- Delay line -->
 					<vbox spacing="4">
-						<hbox >
-							<align hpos="0" pad_bottom="4">
-								<vbox fill="false">
-									<label text="labels.warning.ok:WARNING PLACE" color="green" visibility="!(:loop${i} or :door${i} or :fbor${i})"/>
-									<label text="labels.warning.loop_in_delay" color="red" visibility=":loop${i}"/>
-									<label text="labels.warning.out_of_range" color="red" visibility=":door${i}"/>
-									<label text="labels.warning.out_of_range_feedback" color="red" visibility=":fbor${i}"/>
-								</vbox>
-							</align>
 							<align hpos="1" pad_bottom="4">
 								<label text="labels.delay_time_formula"/>
 							</align>
-						</hbox>
-						<hsep color="gray"/>
 
+						<hsep color="gray"/>
+						
 						<!-- Delay formula -->
 						<align hpos="1">
 							<grid rows="7" cols="19" hspacing="6">
@@ -265,8 +256,15 @@
 								</cell>
 
 								<!-- Row 5 -->
-								<cell cols="6">
-									<void/>
+								<cell cols="6" rows="3">
+									<align hpos="0" >
+									  <vbox width="245" fill="false">
+											<align hpos="0" ><label  text="labels.warning.all_good" color="green" visibility="!:loop${i} !:door${i} !:fbor${i}" /></align>
+									    <align hpos="0" ><label  text="labels.warning.loop_in_delay" color="red" visibility=":loop${i}"/></align>
+									    <align hpos="0" ><label  text="labels.warning.feedback_out_of_range" color="red" visibility=":fbor${i}"/></align>
+									    <align hpos="0" ><label  text="labels.warning.delay_out_of_range" color="red" visibility=":door${i}"/></align>
+									  </vbox>
+									</align>
 								</cell>
 								<cell cols="9">
 									<label text="labels.tempo_based_feedback_delay"/>
@@ -277,9 +275,7 @@
 								<label text="labels.feedback"/>
 
 								<!-- Row 6 -->
-								<cell cols="6">
-									<void/>
-								</cell>
+
 								<label text="[" font_size="22"/>
 								<value id="fbtv${i}" precision="2" width="130"  font_size="22" same_line="true"/>
 								<label text=":" font_size="22"/>
@@ -300,9 +296,7 @@
 								</vbox>
 
 								<!-- Row 7 -->
-								<cell cols="6">
-									<void/>
-								</cell>
+
 								<void/>
 								<combo id="fbtr${i}" fill="false" pad_bottom="5" width="64"/>
 								<void/>
