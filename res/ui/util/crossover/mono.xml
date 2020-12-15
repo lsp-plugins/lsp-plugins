@@ -173,6 +173,8 @@
 									<vsep />
 								</cell>
 							</ui:if>
+							
+							<!-- Band number -->
 							<cell cols="2">
 								<label text="${i}" />
 							</cell>
@@ -198,7 +200,6 @@
 								<ui:if test="${:i igt 0}">
 									<knob id="sf_${i}" size="16" scale_hue_id="hue_${i}" />
 								</ui:if>
-								
 								<knob id="bg_${i}" scale_hue_id="hue_${i}" />
 								<value id="bg_${i}" detailed="false" />
 								<button id="bs_${i}" size="24" color="green" text="labels.chan.S_olo" led="true" />
