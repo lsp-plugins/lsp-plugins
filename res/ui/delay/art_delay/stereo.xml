@@ -179,138 +179,139 @@
 				<ui:for id="i" first="0" last="15">
 					<!-- Delay line -->
 					<vbox spacing="4">
-						<align hpos="0" pad_bottom="4">
+
+						<align hpos="1" pad_bottom="4">
 							<label text="labels.delay_time_formula"/>
 						</align>
 
+						<hsep color="gray"/>
+
 						<!-- Delay formula -->
-						<grid rows="6" cols="18" hspacing="2">
-							<!-- Row 1 -->
-							<cell cols="5">
-								<label text="labels.delay_reference"/>
-							</cell>
-							<void/>
-							<cell cols="8">
-								<label text="labels.tempo_based_delay"/>
-							</cell>
-							<void/>
-							<label text="labels.delay"/>
-							<void/>
-							<label text="labels.result"/>
+						<align hpos="1">
+							<grid rows="7" cols="19" hspacing="6">
+								<!-- Row 1 -->
+								<cell cols="5">
+									<label text="labels.delay_reference"/>
+								</cell>
+								<void/>
+								<cell cols="9">
+									<label text="labels.tempo_based_delay"/>
+								</cell>
+								<void/>
+								<label text="labels.delay"/>
+								<void/>
+								<label text="labels.result"/>
 
-							<!-- Row 2 -->
-							<label text="[" font_size="24"/>
-							<vbox>
-								<combo id="dref${i}"/>
-								<hbox spacing="4">
-									<vbox fill="false">
-										<indicator id="dval${i}" format="f6.3!" text_color="green" visibility="!:loop${i}"/>
-										<indicator id="dval${i}" format="f6.3!" text_color="red" visibility=":loop${i}"/>
+								<!-- Row 2 -->
+								<label text="[" font_size="22"/>
+								<combo id="dref${i}" fill="false" pad_bottom="5" width="80"/>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<knob id="drefm${i}" scale_color="knob_scale" size="12" scale_hue_id="hue${i}"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<label text="[" font_size="22"/>
+								<combo id="tref${i}" fill="false" pad_bottom="5" width="64"/>
+								<label text=":" font_size="22"/>
+								<frac id="treff${i}" id2="trefd${i}" color="green"/>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<knob id="trefm${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+								<label text="+" font_size="22" color="knob_scale"/>
+								<frac id="frac${i}" id2="den${i}" color="green"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<knob id="dadd${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+								<cell rows="2">
+									<label text="=" font_size="30" color="yellow"/>
+								</cell>
+								<cell rows="2">
+									<vbox fill="false" width="150">
+										<value id="adt${i}" width="150" precision="3" color="green" visibility="!:door${i}" font_size="30" same_line="true"/>
+										<value id="adt${i}" width="150" precision="3" color="red" visibility=":door${i}" font_size="30" same_line="true"/>
 									</vbox>
-									<label text="units.s"/>
-								</hbox>
-							</vbox>
-							<label text="x" font_size="24" color="knob_scale"/>
-							<knob id="drefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-							<label text="]" font_size="24"/>
+								</cell>
 
-							<label text="+" font_size="24" color="yellow"/>
+								<!-- Row 3 -->
+								<label text="[" font_size="22"/>
+								<vbox>
+									<value id="dval${i}" color="green" visibility="!:loop${i}" font_size="22" same_line="true"/>
+									<value id="dval${i}" color="red" visibility=":loop${i}" font_size="22" same_line="true"/>
+								</vbox>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<value id="drefm${i}" read_only="true" width="55" font_size="22" same_line="true"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<label text="[" font_size="22"/>
+								<value id="tval${i}" precision="2" width="130" color="green" font_size="22" same_line="true"/>
+								<label text=":" font_size="22"/>
+								<value id="treff${i}" read_only="true" width="75" color="green" font_size="22" same_line="true" detailed="false"/>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<value id="trefm${i}" read_only="true" width="55" font_size="22" same_line="true"/>
+								<label text="+" font_size="22" color="knob_scale"/>
+								<value id="frac${i}" read_only="true" width="75" color="green" font_size="22" same_line="true" detailed="false"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<value id="dadd${i}" width="92" read_only="true" precision="3" font_size="22" same_line="true"/>
 
-							<label text="[" font_size="24"/>
-							<vbox>
-								<combo id="tref${i}"/>
-								<hbox spacing="4">
-									<indicator id="tval${i}" format="f5.1!" text_color="green" fill="false"/>
-									<label text="units.bpm"/>
-								</hbox>
-							</vbox>
-							<frac id="treff${i}" id2="trefd${i}" color="green"/>
-							<label text="x" font_size="24" color="knob_scale"/>
-							<knob id="trefm${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-							<label text="+" font_size="24" color="knob_scale"/>
-							<frac id="frac${i}" id2="den${i}" color="green"/>
-							<label text="]" font_size="24"/>
+								<!-- Row 4 -->
+								<cell cols="19" pad_bottom="4">
+									<hsep color="gray"/>
+								</cell>
 
-							<label text="+" font_size="24" color="yellow"/>
-
-							<knob id="dadd${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-
-							<label text="=" font_size="24" color="yellow"/>
-							<vbox fill="false">
-								<indicator id="adt${i}" format="f6.3!" text_color="green" visibility="!:door${i}"/>
-								<indicator id="adt${i}" format="f6.3!" text_color="red" visibility=":door${i}"/>
-							</vbox>
-
-							<!-- Row 3 -->
-							<cell cols="3">
+								<!-- Row 5 -->
+								<cell cols="6">
+									<void/>
+								</cell>
+								<cell cols="9">
+									<label text="labels.tempo_based_feedback_delay"/>
+								</cell>
 								<void/>
-							</cell>
-							<value id="drefm${i}" same_line="true"/>
-							<cell cols="6">
+								<label text="labels.delay"/>
 								<void/>
-							</cell>
-							<value id="trefm${i}" same_line="true"/>
-							<cell cols="4">
-								<void/>
-							</cell>
-							<value id="dadd${i}" same_line="true"/>
-							<void/>
-							<label text="units.seconds"/>
+								<label text="labels.feedback"/>
 
-							<!-- Row 4 -->
-							<cell cols="6">
-								<void/>
-							</cell>
-							<cell cols="8">
-								<label text="labels.tempo_based_feedback_delay"/>
-							</cell>
-							<void/>
-							<label text="labels.delay"/>
-							<void/>
-							<label text="labels.feedback"/>
+								<!-- Row 6 -->
+								<cell cols="6">
+									<void/>
+								</cell>
+								<label text="[" font_size="22"/>
+								<combo id="fbtr${i}" fill="false" pad_bottom="5" width="64"/>
+								<label text=":" font_size="22"/>
+								<frac id="fbbf${i}" id2="trefd${i}" color="green"/>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<knob id="fbbm${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+								<label text="+" font_size="22" color="knob_scale"/>
+								<frac id="fbf${i}" id2="den${i}" color="green"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<knob id="fbadd${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
+								<cell rows="2">
+									<label text="=" font_size="30" color="yellow"/>
+								</cell>
+								<cell rows="2">
+									<vbox fill="false">
+										<value id="afbt${i}" width="150" precision="3" color="green" visibility="!:fbor${i}" font_size="30" same_line="true"/>
+										<value id="afbt${i}" width="150" precision="3" color="red" visibility=":fbor${i}" font_size="30" same_line="true"/>
+									</vbox>
+								</cell>
 
-							<!-- Row 5 -->
-							<cell cols="6">
-								<void/>
-							</cell>
+								<!-- Row 7 -->
+								<cell cols="6">
+									<void/>
+								</cell>
+								<label text="[" font_size="22"/>
+								<value id="fbtv${i}" precision="2" width="130" color="green" font_size="22" same_line="true"/>
+								<label text=":" font_size="22"/>
+								<value id="fbbf${i}" read_only="true" width="75" color="green" font_size="22" same_line="true" detailed="false"/>
+								<label text="x" font_size="22" color="knob_scale"/>
+								<value id="fbbm${i}" read_only="true" width="55" font_size="22" same_line="true"/>
+								<label text="+" font_size="22" color="knob_scale"/>
+								<value id="fbf${i}" read_only="true" width="75" color="green" font_size="22" same_line="true" detailed="false"/>
+								<label text="]" font_size="22"/>
+								<label text="+" font_size="22" color="yellow"/>
+								<value id="fbadd${i}" width="92" read_only="true" precision="3" font_size="22" same_line="true"/>
 
-							<label text="[" font_size="24"/>
-							<vbox>
-								<combo id="fbtr${i}"/>
-								<hbox spacing="4">
-									<indicator id="fbtv${i}" format="f5.1!" text_color="green" fill="false"/>
-									<label text="units.bpm"/>
-								</hbox>
-							</vbox>
-							<frac id="fbbf${i}" id2="fbbd${i}" color="green"/>
-							<label text="x" font_size="24" color="knob_scale"/>
-							<knob id="fbbm${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-							<label text="+" font_size="24" color="knob_scale"/>
-							<frac id="fbf${i}" id2="fbd${i}" color="green"/>
-							<label text="]" font_size="24"/>
-
-							<label text="+" font_size="24" color="yellow"/>
-
-							<knob id="fbadd${i}" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-
-							<label text="=" font_size="24" color="yellow"/>
-							<vbox fill="false">
-								<indicator id="afbt${i}" format="f6.3!" text_color="green" visibility="!:fbor${i}"/>
-								<indicator id="afbt${i}" format="f6.3!" text_color="red" visibility=":fbor${i}"/>
-							</vbox>
-
-							<!-- Row 6 -->
-							<cell cols="10">
-								<void/>
-							</cell>
-							<value id="fbbm${i}" same_line="true"/>
-							<cell cols="4">
-								<void/>
-							</cell>
-							<value id="fbadd${i}" same_line="true"/>
-							<void/>
-							<label text="units.seconds"/>
-						</grid>
+							</grid>
+						</align>
 
 						<!-- Separator -->
 						<hsep/>
