@@ -570,10 +570,10 @@
 	},
 
 	"warning": {
-		"all_good": "All values are in acceptable range.",
-		"loop_in_delay": "Warning! Loop in delay reference chain.",
+		"all_values_good": "All values are in acceptable range.",
+		"delay_out_of_range": "Warning! Delay out of possible range.",
 		"feedback_out_of_range": "Warning! Feedback out of range.",
-		"delay_out_of_range": "Warning! Delay out of possible range."
+		"loop_in_delay": "Warning! Loop in delay reference chain."
 	},
 
 	"working_area": "Working area",

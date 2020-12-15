@@ -257,13 +257,21 @@
 
 								<!-- Row 5 -->
 								<cell cols="6" rows="3">
-									<align hpos="0" >
-									  <vbox width="245" fill="false">
-											<align hpos="0" ><label  text="labels.warning.all_good" color="green" visibility="!:loop${i} !:door${i} !:fbor${i}" /></align>
-									    <align hpos="0" ><label  text="labels.warning.loop_in_delay" color="red" visibility=":loop${i}"/></align>
-									    <align hpos="0" ><label  text="labels.warning.feedback_out_of_range" color="red" visibility=":fbor${i}"/></align>
-									    <align hpos="0" ><label  text="labels.warning.delay_out_of_range" color="red" visibility=":door${i}"/></align>
-									  </vbox>
+									<align hpos="0" vpos="0">
+										<vbox width="245" fill="false">
+											<align hpos="0" visibility="!(:loop${i} or :door${i} or :fbor${i})" >
+												<label text="labels.warning.all_values_good" color="green" />
+											</align>
+											<align hpos="0" visibility=":loop${i}">
+												<label text="labels.warning.loop_in_delay" color="red"/>
+											</align>
+											<align hpos="0" visibility=":fbor${i}">
+												<label text="labels.warning.feedback_out_of_range" color="red" />
+											</align>
+											<align hpos="0" visibility=":door${i}">
+												<label text="labels.warning.delay_out_of_range" color="red" />
+											</align>
+										</vbox>
 									</align>
 								</cell>
 								<cell cols="9">
