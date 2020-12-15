@@ -16,15 +16,15 @@
 	"channel": "Канал",
 	"channel_n": "Канал {@id}",
 	"channels": "Каналы",
-	
+
 	"distance": "Расстояние",
 	
 	"gain": "Усиление",
 	"general": "Общие настройки",
-	
+
 	"impulse_response": "Импульсный отклик",
 	"instrument_mixer": "Микшер инструментов",
-	
+
 	"latency": "Задержка",
 	
 	"lchan": {
@@ -81,7 +81,9 @@
 	"signals": "Сигналы",
 	
 	"test_signal": "Тестовый сигнал",
+	"tempo_settings": "Настройки темпа",
+
 	"time": "Время",
-	
+
 	"wet_signal_eq": "Эквализация обработанного сигнала"
 }
