@@ -174,7 +174,7 @@
 						<ui:set id="chl" value="${(:blk mod 2) ? 'labels.chan.id_R_ight' : 'labels.chan.id_L_eft'}" />
 						<ui:set id="chp" value="${(:blk mod 2) ? 'r' : 'l'}" />
 					
-						<grid rows="9" cols="24" spacing="2" transpose="true">
+						<grid rows="12" cols="24" spacing="2" transpose="true">
 							<label text="labels.band" />
 							<label text="labels.slope" />
 							<vbox>
@@ -185,65 +185,64 @@
 							<label text="labels.units.:db" />
 							<label text="labels.chan.solo" />
 							<label text="labels.chan.mute" />
+							<label text="labels.chan.phase" />
+							<label text="labels.delay" />
+							<label text="labels.units.:ms" />
 							<label text="labels.chan.hue" />
 							<void />
-							
-							<!-- Band 0 -->
-							<ui:for id="i" first="0" last="0">
+
+							<!-- Bands 0-7 -->
+							<ui:for id="i" first="0" last="7">
+								<!-- Separator -->
+								<ui:if test="${:i igt 0}">
+									<cell rows="12">
+										<vsep />
+									</cell>
+								</ui:if>
+								
+								<!-- Band number -->
 								<cell cols="2">
 									<label text="${chl}" text:id="${i}" color="${chc}" />
-								</cell>
-								<cell cols="2">
-									<void />
-								</cell>
-								<cell cols="2" fill="false">
-									<vbox>
-										<label text="0" />
-										<value id="fre_${i}${chp}" same_line="true" detailed="false" />
-									</vbox>
-								</cell>
-								<knob id="bg_${i}${chp}" scale_hue_id="hue_${i}${chp}" />
-								<value id="bg_${i}${chp}" detailed="false" />
-								<button id="bs_${i}${chp}" size="24" color="green" text="labels.chan.S_olo" led="true" />
-								<button id="bm_${i}${chp}" size="24" color="red" text="labels.chan.M_ute" led="true" />
-								<knob id="hue_${i}${chp}" size="16" scale_hue_id="hue_${i}${chp}" />
-								<value id="hue_${i}${chp}" detailed="false" />
-								<cell rows="6">
-									<meter id="blm_${i}${chp}"
-										angle="1"
-										color="${chc}"
-										logarithmic="true" type="rms_peak"
-										min="-72 db" max="12 db" height="64"
-									/>
-								</cell>
-							</ui:for>
-							
-							<!-- Bands 1-7 -->
-							<ui:for id="i" first="1" last="7">
-								<cell rows="9">
-									<vsep />
 								</cell>
 								
-								<cell cols="2">
-									<label text="${chl}" text:id="${i}" color="${chc}" />
-								</cell>
-								<cell cols="2">
-									<combo id="frs_${i}${chp}" />
-								</cell>
-								<ui:attributes bright="(:frs_${i}${chp} igt 0) ? 1 : 0.5">
-									<knob id="sf_${i}${chp}" size="16" scale_hue_id="hue_${i}${chp}" />
+								<!-- Slope selector -->
+								<ui:if test="${:i ieq 0}">
+									<cell cols="2"><void /></cell>
+								</ui:if>
+								<ui:if test="${:i igt 0}">
+									<cell cols="2"><combo id="frs_${i}${chp}" /></cell>
+								</ui:if>
+								
+								<!-- Band parameters  -->
+								<ui:attributes ui:recurision="-1" bright="((${i} ieq 0) or (:frs_${i}${chp} igt 0)) ? 1 : 0.5">
+									<ui:if test="${:i ieq 0}">
+										<cell cols="2" fill="false">
+											<vbox>
+												<label text="0" />
+												<value id="fre_${i}${chp}" same_line="true" detailed="false" />
+											</vbox>
+										</cell>
+									</ui:if>
+									<ui:if test="${:i igt 0}">
+										<knob id="sf_${i}${chp}" size="16" scale_hue_id="hue_${i}${chp}" />
+									</ui:if>
 									<knob id="bg_${i}${chp}" scale_hue_id="hue_${i}${chp}" />
 									<value id="bg_${i}${chp}" detailed="false" />
 									<button id="bs_${i}${chp}" size="24" color="green" text="labels.chan.S_olo" led="true" />
 									<button id="bm_${i}${chp}" size="24" color="red" text="labels.chan.M_ute" led="true" />
+									<button id="bp_${i}${chp}" size="24" color="yellow" text="labels.chan.P_hase" led="true" />
+									<knob id="bd_${i}${chp}" scale_hue_id="hue_${i}" />
+									<value id="bd_${i}${chp}" detailed="false" />
 									<knob id="hue_${i}${chp}" size="16" scale_hue_id="hue_${i}${chp}" />
 									<value id="hue_${i}${chp}" detailed="false" />
-									<vbox>
-										<value id="sf_${i}${chp}" visibility=":frs_${i}${chp} igt 0" detailed="false" />
-										<value id="fre_${i}${chp}" visibility=":frs_${i}${chp} igt 0" detailed="false" />
-										<label text="labels.chan.off" visibility=":frs_${i}${chp} ile 0" />
-									</vbox>
-									<cell rows="6">
+									<ui:if test="${:i igt 0}">
+										<vbox>
+											<value id="sf_${i}${chp}" visibility=":frs_${i}${chp} igt 0" detailed="false" />
+											<value id="fre_${i}${chp}" visibility=":frs_${i}${chp} igt 0" detailed="false" />
+											<label text="labels.chan.off" visibility=":frs_${i}${chp} ile 0" />
+										</vbox>
+									</ui:if>
+									<cell rows="9">
 										<meter id="blm_${i}${chp}"
 											angle="1"
 											color="${chc}"

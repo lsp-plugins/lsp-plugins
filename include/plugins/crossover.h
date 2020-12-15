@@ -28,6 +28,7 @@
 #include <core/util/Bypass.h>
 #include <core/util/Analyzer.h>
 #include <core/util/Crossover.h>
+#include <core/util/Delay.h>
 
 namespace lsp
 {
@@ -44,6 +45,8 @@ namespace lsp
 
             typedef struct xover_band_t
             {
+                Delay           sDelay;             // Band delay
+
                 float          *vOut;               // Output channel pointer
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
@@ -58,7 +61,9 @@ namespace lsp
 
                 IPort          *pSolo;              // Soloing
                 IPort          *pMute;              // Muting
+                IPort          *pPhase;             // Phase reversal
                 IPort          *pGain;              // Gain
+                IPort          *pDelay;             // Delay
                 IPort          *pOutLevel;          // Output level of the band
                 IPort          *pFreqEnd;           // Frequency range end
                 IPort          *pOut;               // Output port
