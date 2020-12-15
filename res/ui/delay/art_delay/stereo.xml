@@ -183,9 +183,10 @@
 						<hbox >
 							<align hpos="0" pad_bottom="4">
 								<vbox fill="false">
-									<label text="labels.warning.ok:WARNING PLACE" color="green" visibility="!:fbor${i}"/>
-									<label id="afbt${i}" text="labels.warning.loop_in_delay" color="red" visibility=":fbor${i}"/>
-									<label id="afbt${i}" text="labels.warning.out_of_range" color="red" visibility=":fbor${i}"/>
+									<label text="labels.warning.ok:WARNING PLACE" color="green" visibility="!(:loop${i} or :door${i} or :fbor${i})"/>
+									<label text="labels.warning.loop_in_delay" color="red" visibility=":loop${i}"/>
+									<label text="labels.warning.out_of_range" color="red" visibility=":door${i}"/>
+									<label text="labels.warning.out_of_range_feedback" color="red" visibility=":fbor${i}"/>
 								</vbox>
 							</align>
 							<align hpos="1" pad_bottom="4">
