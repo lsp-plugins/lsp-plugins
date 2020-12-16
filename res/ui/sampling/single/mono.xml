@@ -19,7 +19,7 @@
 				</hbox>
 				<button id="muting" size="24" color="yellow" led="true" />
 				<knob id="fout" size="20" />
-				<indicator id="mn" format="i3" text_color="green" />
+				<midinote id="mn" note_id="note" octave_id="oct" format="i3" text_color="green" />
 				<button id="mute" size="32" />
 				
 				<label />

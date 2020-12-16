@@ -84,7 +84,7 @@
 						<combo id="note" width="20" />
 						<combo id="oct" width="20" />
 						<label text="labels.midi.midi_num" />
-						<indicator id="mn" format="i3" text_color="green" />
+						<midinote id="mn" note_id="note" octave_id="oct" format="i3" text_color="green" />
 					</hbox>
 				</align>
 				

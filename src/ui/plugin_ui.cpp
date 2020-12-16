@@ -657,6 +657,13 @@ namespace lsp
                 vWidgets.add(ind);
                 return new CtlIndicator(this, ind);
             }
+            case WC_MIDINOTE:
+            {
+                LSPIndicator *ind = new LSPIndicator(&sDisplay);
+                ind->init();
+                vWidgets.add(ind);
+                return new CtlMidiNote(this, ind);
+            }
             case WC_LED:
             {
                 LSPLed *led = new LSPLed(&sDisplay);
