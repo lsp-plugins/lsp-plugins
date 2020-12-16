@@ -26,7 +26,6 @@ namespace lsp
 {
     namespace ctl
     {
-        
         class CtlIndicator: public CtlWidget
         {
             public:

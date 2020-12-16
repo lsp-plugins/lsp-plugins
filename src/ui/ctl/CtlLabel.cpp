@@ -158,6 +158,13 @@ namespace lsp
                 nAtomID = -1;
             }
 
+            if (pPopup != NULL)
+            {
+                pPopup->destroy();
+                delete pPopup;
+                pPopup = NULL;
+            }
+
             pWidget = NULL;
         }
 
