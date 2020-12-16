@@ -43,133 +43,37 @@
 
 					<!-- Global Delay Controls -->
 					<group text="groups.global_delay_ctr">
-					<hbox>
-
-
-							<grid rows="4" cols="31" spacing="4">
-								<!-- row 1-->
-								<label text="0"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="1"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="2"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="3"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="4"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="5"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="6"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="7"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="8"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="9"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="10"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="11"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="12"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="13"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="14"/>
-								<cell rows="4">
-									<vsep/>
-								</cell>
-								<label text="15"/>
-
-								<!-- Row 2 -->
-
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="yellow" size="12"/> <label text="labels.chan.on"/></hbox> </align>
-
-								<!-- Row 3 -->
-
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="green" size="12"/> <label text="labels.chan.solo"/></hbox> </align>
-
-								<!-- Row 4 -->
-
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-								<align hpos="0"><hbox> <button id="" led="true" color="red" size="12"/> <label text="labels.chan.mute"/></hbox> </align>
-
-						</grid>
-					</hbox>
-				</group>
+						<hbox>
+							<grid rows="4" cols="31" spacing="4" transpose="true">
+								<ui:for id="i" first="0" last="15">
+									<ui:if test="${:i igt 0}">
+										<cell rows="4">
+											<vsep/>
+										</cell>
+									</ui:if>
+									<label text="${i}"/>
+									<align hpos="0">
+										<hbox>
+											<button id="on${i}" led="true" color="yellow" size="12"/>
+											<label text="labels.chan.on"/>
+										</hbox>
+									</align>
+									<align hpos="0">
+										<hbox>
+											<button id="s${i}" led="true" color="green" size="12"/>
+											<label text="labels.chan.solo"/>
+										</hbox>
+									</align>
+									<align hpos="0">
+										<hbox>
+											<button id="m${i}" led="true" color="red" size="12"/>
+											<label text="labels.chan.mute"/>
+										</hbox>
+									</align>
+								</ui:for>
+							</grid>
+						</hbox>
+					</group>
 
 					<!-- Tempo settings -->
 					<group text="groups.tempo_settings">

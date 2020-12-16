@@ -34,11 +34,11 @@ allocates memory only if it is turned on in the delay effect.</p>
 	<li><b>Feedback</b> - the button and knob that allow to enable or disable feedback and control feedback gain for all delay lines and simultaneously.</li>
 	<li><b>Output</b> - the overall output volume of the plugin.</li>
 	<?php if ($m == 'm') { ?>
-	    <li><b>Dry pan</b> - the panorama of input (dry) signal.</li>
-    <?php } else { ?>
-    	<li><b>Dry pan Left</b> - the panorama of the left channel of the input (dry) signal.</li>
-    	<li><b>Dry pan Right</b> - the panorama of the right channel of the input (dry) signal.</li>
-    <?php }?>
+		<li><b>Dry pan</b> - the panorama of input (dry) signal.</li>
+	<?php } else { ?>
+		<li><b>Dry pan Left</b> - the panorama of the left channel of the input (dry) signal.</li>
+		<li><b>Dry pan Right</b> - the panorama of the right channel of the input (dry) signal.</li>
+	<?php }?>
 	<li><b>Dry</b> - the level of the dry (unprocessed) signal.</li>
 	<li><b>Wet</b> - the level of the wet (processed) signal.</li>
 </ul>
@@ -46,6 +46,14 @@ allocates memory only if it is turned on in the delay effect.</p>
 <b>Indicators</b>:
 <ul>
 	<li><b>Memory</b> - the overall memory consumption by delay lines of the plugin in megabytes.</li>
+</ul>
+
+<b>Global Delay Line Controls</b> section:
+<ul>
+	<li><b>On</b> - enables the corresponding delay. When turned on, the desired memory area is allocated for the delay so it could
+		operate in real-time mode. When turned off, the allocated memory gets freed.</li>
+	<li><b>Solo</b> - turns the corresponding delay line into soloing mode. All other non-soloing delay lines become muted.</li>
+	<li><b>Mute</b> - mutes the corresponding delay line.</li>
 </ul>
 
 <b>Tempo Settings</b> section:
@@ -87,10 +95,10 @@ allocates memory only if it is turned on in the delay effect.</p>
 	</ul>
 	<li><b>Delay Line Processing</b> - the main delay controls.</li>
 	<ul>
-		<li><b>On</b> - enables the delay. When turned on, the corresponding memory area is allocated for the delay so it could
-		operate in real-time mode. When turned off, the memory area becomes freed.</li>
-		<li><b>Solo</b> - turns the delay into soloing mode. All other non-soloing delay lines become muted.</li>
-		<li><b>Mute</b> - turns the delay into mute.</li>
+		<li><b>On</b> - enables the delay. When turned on, the desired memory area is allocated for the delay so it could
+		operate in real-time mode. When turned off, the allocated memory gets freed.</li>
+		<li><b>Solo</b> - turns the delay line into soloing mode. All other non-soloing delay lines become muted.</li>
+		<li><b>Mute</b> - mutes the delay line.</li>
 		<li><b>Hue</b> - allows to set up hue of the delay line on the graph and some other related controls.</li>
 		<li><b>Equalizer</b> - provides additional controls for equalization of the delayed signal:</li>
 		<ul>
