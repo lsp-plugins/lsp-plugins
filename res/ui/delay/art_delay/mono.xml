@@ -20,7 +20,7 @@
 									</hbox>
 								</align>
 							</hbox>
-							<graph width="320" height="120" expand="true">
+							<graph width="320" height="100" expand="true">
 								<center hpos="-1" vpos="0" visible="false"/>
 
 								<!-- Axis -->
@@ -40,6 +40,35 @@
 						</vbox>
 
 					</hbox>
+
+					<!-- Global Delay Controls -->
+									<hbox>
+										<align hpos="0"><grid rows="1" cols="4" hspacing="6">
+											<label text="Global delay controls"/>
+
+											<hbox>
+												<button id=" " led="true" color="yellow" size="12"/>
+											<align hpos="0">
+												<label text="labels.chan.on"/>
+											</align>
+										</hbox>
+
+										<hbox>
+											<button id=" " led="true" color="green" size="12"/>
+											<align hpos="0">
+												<label text="labels.chan.solo"/>
+											</align>>
+										</hbox>
+											<hbox>
+												<button id=" " led="true" color="red" size="12"/>
+											<align hpos="0">
+												<label text="labels.chan.mute"/>
+											</align>
+										</hbox>
+
+										</grid>
+									</align>
+									</hbox>
 
 					<!-- Tempo settings -->
 					<group text="groups.tempo_settings">
