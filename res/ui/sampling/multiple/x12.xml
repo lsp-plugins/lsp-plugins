@@ -28,7 +28,7 @@
 						<combo id="note[inst]" fill="true" />
 						<combo id="oct[inst]" fill="true" />
 					</hbox>
-					<indicator id="mn[inst]" format="i3" text_color="green" />
+					<midinote id="mn[inst]" note_id="note[inst]" octave_id="oct[inst]" format="i3" text_color="green" />
 					<cell rows="2"><knob id="dyna[inst]" scale_color="green" /></cell>
 					<cell rows="2"><knob id="drft[inst]" scale_color="green" /></cell>
 					
@@ -181,7 +181,7 @@
 					<knob id="panr_${i}" size="20" balance="0.5" scale_color="cyan" />
 					<value id="panr_${i}" detailed="false" />
 					<combo id="mgrp_${i}" />
-					<indicator id="mn_${i}" format="i3" text_color="green" />
+					<midinote id="mn_${i}" note_id="note_${i}" octave_id="oct_${i}" format="i3" text_color="green" />
 					<led id="iact_${i}" />
 					<button id="trg_${i}" size="32" toggle="false" />
 					<led id="trg_${i}" />
