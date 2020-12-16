@@ -29,9 +29,10 @@
 
 === 1.1.28 ===
 
-- Added possibility to change the note number in the sampler.
 - Added sample reversal feature to the Sampler and Multisampler plugin series.
 - Added possibility to use relative paths in file configurations.
+* Added possibility to change the note number in Sampler/Multisampler/Trigger plugin series
+  by scrolling mouse wheel over the note number indicator or performing mouse double click on it.
 * Implemented Atristic Delay plugin.
 * Added delay time and phase inversion for each band of the crossover plugin.
 * Plugins now can be built with Clang C++ compiler version 10+.
