@@ -41,34 +41,34 @@
 
 					</hbox>
 
-        <!-- Global Delay Controls -->
-				<hbox>
-					<align hpos="0"><grid rows="1" cols="4" hspacing="6">
-						<label text="Global delay controls"/>
-
-						<hbox>
-							<button id=" " led="true" color="yellow" size="12"/>
-						<align hpos="0" >
-							<label text="labels.chan.on"/>
-						</align>
-					</hbox>
-
+					<!-- Global Delay Controls -->
 					<hbox>
-						<button id=" " led="true" color="green" size="12"/>
-						<align hpos="0" >
-							<label text="labels.chan.solo"/>
-						</align>>
-					</hbox>
-						<hbox>
-							<button id=" " led="true" color="red" size="12"/>
-						<align hpos="0" >
-							<label text="labels.chan.mute"/>
+						<align hpos="0">
+							<grid rows="1" cols="4" hspacing="6">
+								<label text="Global delay controls"/>
+
+								<hbox>
+									<button id="" led="true" color="yellow" size="12"/>
+									<align hpos="0">
+										<label text="labels.chan.on"/>
+									</align>
+								</hbox>
+
+								<hbox>
+									<button id="" led="true" color="green" size="12"/>
+									<align hpos="0"><label text="labels.chan.solo"/></align>
+								</hbox>
+
+								<hbox>
+									<button id="" led="true" color="red" size="12"/>
+									<align hpos="0">
+										<label text="labels.chan.mute"/>
+									</align>
+								</hbox>
+
+							</grid>
 						</align>
 					</hbox>
-
-					</grid>
-				</align>
-				</hbox>
 
 					<!-- Tempo settings -->
 					<group text="groups.tempo_settings">
@@ -209,9 +209,9 @@
 				<ui:for id="i" first="0" last="15">
 					<!-- Delay line -->
 					<vbox spacing="4">
-							<align hpos="1" pad_bottom="4">
-								<label text="labels.delay_time_formula"/>
-							</align>
+						<align hpos="1" pad_bottom="4">
+							<label text="labels.delay_time_formula"/>
+						</align>
 
 						<hsep color="gray"/>
 
@@ -234,7 +234,7 @@
 								<!-- Row 2 -->
 								<label text="[" font_size="22"/>
 								<vbox>
-									<value id="dval${i}"  visibility="!:loop${i}" font_size="22" same_line="true"/>
+									<value id="dval${i}" visibility="!:loop${i}" font_size="22" same_line="true"/>
 									<value id="dval${i}" color="red" visibility=":loop${i}" font_size="22" same_line="true"/>
 								</vbox>
 								<label text="x" font_size="22"/>
@@ -242,18 +242,18 @@
 								<label text="]" font_size="22"/>
 								<label text="+" font_size="22"/>
 								<label text="[" font_size="22"/>
-								<value id="tval${i}" precision="2" width="130"  font_size="22" same_line="true"/>
+								<value id="tval${i}" precision="2" width="130" font_size="22" same_line="true"/>
 								<label text=":" font_size="22"/>
-								<value id="treff${i}" read_only="true" precision="3" width="75"  font_size="22" same_line="true" detailed="false"/>
+								<value id="treff${i}" read_only="true" precision="3" width="75" font_size="22" same_line="true" detailed="false"/>
 								<label text="x" font_size="22"/>
 								<value id="trefm${i}" width="55" font_size="22" same_line="true"/>
 								<label text="+" font_size="22"/>
-								<value id="frac${i}" read_only="true" precision="3" width="75"  font_size="22" same_line="true" detailed="false"/>
+								<value id="frac${i}" read_only="true" precision="3" width="75" font_size="22" same_line="true" detailed="false"/>
 								<label text="]" font_size="22"/>
 								<label text="+" font_size="22"/>
 								<value id="dadd${i}" width="110" precision="3" font_size="22" same_line="true"/>
 								<label text="=" font_size="22"/>
-								<vbox fill="false" >
+								<vbox fill="false">
 									<value id="adt${i}" width="110" precision="3" color="green" visibility="!:door${i}" font_size="22" same_line="true"/>
 									<value id="adt${i}" width="110" precision="3" color="red" visibility=":door${i}" font_size="22" same_line="true"/>
 								</vbox>
@@ -268,11 +268,11 @@
 								<void/>
 								<combo id="tref${i}" fill="false" pad_bottom="5" width="64"/>
 								<void/>
-								<frac id="treff${i}" id2="trefd${i}" color="green" />
+								<frac id="treff${i}" id2="trefd${i}" color="green"/>
 								<void/>
 								<knob id="trefm${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
 								<void/>
-								<frac id="frac${i}" id2="den${i}" color="green" />
+								<frac id="frac${i}" id2="den${i}" color="green"/>
 								<void/>
 								<void/>
 								<knob id="dadd${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
@@ -288,17 +288,17 @@
 								<cell cols="6" rows="3">
 									<align hpos="0" vpos="0">
 										<vbox width="245" fill="false">
-											<align hpos="0" visibility="!(:loop${i} or :door${i} or :fbor${i})" >
-												<label text="labels.warning.all_values_good" color="green" />
+											<align hpos="0" visibility="!(:loop${i} or :door${i} or :fbor${i})">
+												<label text="labels.warning.all_values_good" color="green"/>
 											</align>
 											<align hpos="0" visibility=":loop${i}">
 												<label text="labels.warning.loop_in_delay" color="red"/>
 											</align>
 											<align hpos="0" visibility=":fbor${i}">
-												<label text="labels.warning.feedback_out_of_range" color="red" />
+												<label text="labels.warning.feedback_out_of_range" color="red"/>
 											</align>
 											<align hpos="0" visibility=":door${i}">
-												<label text="labels.warning.delay_out_of_range" color="red" />
+												<label text="labels.warning.delay_out_of_range" color="red"/>
 											</align>
 										</vbox>
 									</align>
@@ -314,13 +314,13 @@
 								<!-- Row 6 -->
 
 								<label text="[" font_size="22"/>
-								<value id="fbtv${i}" precision="2" width="130"  font_size="22" same_line="true"/>
+								<value id="fbtv${i}" precision="2" width="130" font_size="22" same_line="true"/>
 								<label text=":" font_size="22"/>
-								<value id="fbbf${i}" read_only="true" precision="3" width="75"  font_size="22" same_line="true" detailed="false"/>
+								<value id="fbbf${i}" read_only="true" precision="3" width="75" font_size="22" same_line="true" detailed="false"/>
 								<label text="x" font_size="22"/>
 								<value id="fbbm${i}" width="55" font_size="22" same_line="true"/>
 								<label text="+" font_size="22"/>
-								<value id="fbf${i}" read_only="true" precision="3" width="75"  font_size="22" same_line="true" detailed="false"/>
+								<value id="fbf${i}" read_only="true" precision="3" width="75" font_size="22" same_line="true" detailed="false"/>
 								<label text="]" font_size="22"/>
 								<label text="+" font_size="22"/>
 								<value id="fbadd${i}" width="110" precision="3" font_size="22" same_line="true"/>
@@ -337,11 +337,11 @@
 								<void/>
 								<combo id="fbtr${i}" fill="false" pad_bottom="5" width="64"/>
 								<void/>
-								<frac id="fbbf${i}" id2="fbbd${i}" color="green" />
+								<frac id="fbbf${i}" id2="fbbd${i}" color="green"/>
 								<void/>
 								<knob id="fbbm${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
-								<void />
-								<frac id="fbf${i}" id2="fbd${i}" color="green" />
+								<void/>
+								<frac id="fbf${i}" id2="fbd${i}" color="green"/>
 								<void/>
 								<void/>
 								<knob id="fbadd${i}" size="12" scale_color="knob_scale" scale_hue_id="hue${i}"/>
