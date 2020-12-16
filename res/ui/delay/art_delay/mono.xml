@@ -31,10 +31,10 @@
 
 								<ui:for id="i" first="0" last="15">
 									<marker value=":adt${i}" basis="0" parallel="1" width="3" color="yellow" hue_id="hue${i}" visibility=":on${i}"/>
-									<marker value=":adt${i}*2 - :afbt${i}" basis="0" parallel="1" width="1" color="yellow" hue_id="hue${i}" visibility=":on${i} and :fbe${i} and :fb"/>
+									<marker value=":adt${i} + :afbt${i}" basis="0" parallel="1" width="1" color="yellow" hue_id="hue${i}" visibility=":on${i} and :fbe${i} and :fb"/>
 									<text text="${i}" basis="0;1" coord=":adt${i};1" halign="1" valign="-1" color="yellow" hue_id="hue${i}" visibility=":on${i}"/>
 									<text id="adt${i}" text="labels.values.fmt_value" basis="0;1" coord=":adt${i};-1" halign="1" valign="1" color="yellow" hue_id="hue${i}" visibility=":on${i}"/>
-									<text id="afbt${i}" text="labels.values.fmt_value" basis="0;1" coord=":adt${i}*2 - :afbt${i};0" halign="1" valign="1" color="yellow" hue_id="hue${i}" visibility=":on${i} and :fbe${i} and :fb"/>
+									<text id="afbt${i}" text="labels.values.fmt_value" basis="0;1" coord=":adt${i} + :afbt${i};0" halign="1" valign="1" color="yellow" hue_id="hue${i}" visibility=":on${i} and :fbe${i} and :fb"/>
 								</ui:for>
 							</graph>
 						</vbox>
