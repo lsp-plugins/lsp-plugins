@@ -215,8 +215,8 @@ namespace lsp
         {
             for (size_t n = vItems.size(); n > size; --n)
             {
-                LSPListItem *item = vItems.get(n);
-                if (!vItems.remove(n))
+                LSPListItem *item = vItems.get(n-1);
+                if (!vItems.remove(n-1))
                     return STATUS_BAD_STATE;
 
                 if (item != NULL)

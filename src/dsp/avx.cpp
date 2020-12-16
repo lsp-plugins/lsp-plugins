@@ -63,6 +63,7 @@
 #include <dsp/arch/x86/avx/msmatrix.h>
 #include <dsp/arch/x86/avx/resampling.h>
 #include <dsp/arch/x86/avx/convolution.h>
+#include <dsp/arch/x86/avx/interpolate.h>
 
 #undef DSP_ARCH_X86_AVX_IMPL
 
@@ -327,6 +328,13 @@ namespace avx
         CEXPORT1(favx, downsample_8x);
 
         CEXPORT1(favx, convolve);
+
+        CEXPORT1(favx, lin_inter_set);
+        CEXPORT1(favx, lin_inter_mul2);
+        CEXPORT1(favx, lin_inter_mul3);
+        CEXPORT1(favx, lin_inter_fmadd2);
+        CEXPORT1(favx, lin_inter_frmadd2);
+        CEXPORT1(favx, lin_inter_fmadd3);
 
         // FMA3 support?
         if (f->features & CPU_OPTION_FMA3)

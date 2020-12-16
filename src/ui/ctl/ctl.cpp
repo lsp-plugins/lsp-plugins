@@ -181,6 +181,7 @@ namespace lsp
             "proportional",
             "radius",
             "radius_id",
+            "read_only",
             "resizable",
             "reversive",
             "roll_id",

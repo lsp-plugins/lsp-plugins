@@ -143,6 +143,13 @@ namespace lsp
         U_DEG_K,                // Degrees (Kelvin)
         U_DEG_R,                // Degrees (Rankine)
 
+        // Size units
+        U_BYTES,                // Bytes
+        U_KBYTES,               // Kilobytes
+        U_MBYTES,               // Megabytes
+        U_GBYTES,               // Gigabytes
+        U_TBYTES,               // Terabytes
+
         U_ENUM                  // List index
     };
 

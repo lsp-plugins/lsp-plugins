@@ -1,4 +1,39 @@
 {
+	"art_delay": {
+		"line_0": "Delay Line 0",
+		"line_1": "Delay Line 1",
+		"line_2": "Delay Line 2",
+		"line_3": "Delay Line 3",
+		"line_4": "Delay Line 4",
+		"line_5": "Delay Line 5",
+		"line_6": "Delay Line 6",
+		"line_7": "Delay Line 7",
+		"line_8": "Delay Line 8",
+		"line_9": "Delay Line 9",
+		"line_10": "Delay Line 10",
+		"line_11": "Delay Line 11",
+		"line_12": "Delay Line 12",
+		"line_13": "Delay Line 13",
+		"line_14": "Delay Line 14",
+		"line_15": "Delay Line 15",
+		
+		"tempo_0": "Tempo 0",
+		"tempo_1": "Tempo 1",
+		"tempo_2": "Tempo 2",
+		"tempo_3": "Tempo 3",
+		"tempo_4": "Tempo 4",
+		"tempo_5": "Tempo 5",
+		"tempo_6": "Tempo 6",
+		"tempo_7": "Tempo 7",
+		
+		"modes": {
+			"notes": "Notes",
+			"off": "Off",
+			"time": "Time"
+		},
+		"none" : "None"
+	},
+	
 	"bool": {
 		"off": "off",
 		"on": "on"
@@ -335,6 +370,17 @@
 			"8x3": "Half x8(3L)"
 		},
 		"normal": {
+			"2x2": "x2(2L)",
+			"2x3": "x2(3L)",
+			"3x2": "x3(2L)",
+			"3x3": "x3(3L)",
+			"4x2": "x4(2L)",
+			"4x3": "x4(3L)",
+			"6x2": "x6(2L)",
+			"6x3": "x6(3L)",
+			"8x2": "x8(2L)",
+			"8x3": "x8(3L)",
+
 			"x2": "x2",
 			"x3": "x3",
 			"x4": "x4",

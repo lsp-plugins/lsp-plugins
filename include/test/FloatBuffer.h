@@ -53,6 +53,7 @@ namespace test
             inline void randomize(float min, float max) { test::randomize(pBuffer, nLength, min, max); }
             void randomize()                            { test::randomize_positive(pBuffer, nLength); };
             void fill_zero();
+            void fill(float v);
             void copy(const FloatBuffer &buf);
             void copy(const float *buf, size_t count);
             void replace(const float *buf, size_t count);
