@@ -174,7 +174,7 @@
 
 	"feedback": "Feedback",
 	"feed_gain": "Feed Gain",
-
+	
 	"fft": {
 		"envelope": "Envelope",
 		"fft": "FFT",
@@ -185,6 +185,10 @@
 	},
 
 	"file": "File",
+	"file_display": {
+		"system": "{@title} /",
+		"user": "{@title} ~"
+	},
 	"file_list": "File list",
 	"file_name": "File name",
 	"filter": "Filter",
