@@ -426,7 +426,7 @@ namespace lsp
 
         // Bind kernel
         lsp_trace("Binding kernel ports...");
-        port_id     = sKernel.bind(vPorts, port_id, false);
+        port_id             = sKernel.bind(vPorts, port_id, false);
     }
 
     size_t trigger_base::decode_mode()
@@ -560,6 +560,7 @@ namespace lsp
     void trigger_base::ui_activated()
     {
         bUISync = true;
+        sKernel.sync_samples_with_ui();
     }
 
     void trigger_base::update_sample_rate(long sr)
