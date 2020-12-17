@@ -138,6 +138,7 @@ namespace lsp
             af->fTailCut                = 0.0f;
             af->fFadeIn                 = 0.0f;
             af->fFadeOut                = 0.0f;
+            af->bReverse                = false;
             af->fPreDelay               = PREDELAY_DFL;
             af->sListen.init();
             af->bOn                     = true;
@@ -155,6 +156,7 @@ namespace lsp
             af->pPreDelay               = NULL;
             af->pOn                     = NULL;
             af->pListen                 = NULL;
+            af->pReverse                = NULL;
             af->pLength                 = NULL;
             af->pStatus                 = NULL;
             af->pMesh                   = NULL;
@@ -278,6 +280,8 @@ namespace lsp
             af->pOn                 = ports[port_id++];
             TRACE_PORT(ports[port_id]);
             af->pListen             = ports[port_id++];
+            TRACE_PORT(ports[port_id]);
+            af->pReverse            = ports[port_id++];
 
             for (size_t j=0; j<nChannels; ++j)
             {
@@ -470,6 +474,13 @@ namespace lsp
                 af->fFadeOut    = value;
                 af->bDirty      = true;
             }
+
+            bool reverse    = af->pReverse->getValue() >= 0.5f;
+            if (reverse != af->bReverse)
+            {
+                af->bReverse    = reverse;
+                af->bDirty      = true;
+            }
         }
 
         // Get humanisation parameters
@@ -654,7 +665,11 @@ namespace lsp
                 {
                     float *dst          = s->getBuffer(j);
                     const float *src    = afs->pFile->channel(j);
-                    dsp::copy(dst, &src[head], max_samples);
+
+                    if (af->bReverse)
+                        dsp::reverse2(dst, &src[tail], max_samples);
+                    else
+                        dsp::copy(dst, &src[head], max_samples);
 
                     // Apply fade-in and fade-out to the buffer
                     fade_in(dst, dst, millis_to_samples(nSampleRate, af->fFadeIn), max_samples);

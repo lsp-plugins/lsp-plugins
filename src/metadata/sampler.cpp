@@ -173,6 +173,7 @@ namespace lsp
                 sampler_kernel_metadata::PREDELAY_MIN, sampler_kernel_metadata::PREDELAY_MAX, 0, sampler_kernel_metadata::PREDELAY_STEP, NULL }, \
         SWITCH("on", "Sample enabled", 1.0f), \
         TRIGGER("ls", "Sample listen"), \
+        SWITCH("rs", "Sample reverse", 0.0f), \
         gain, \
         BLINK("ac", "Sample activity"), \
         BLINK("no", "Sample note on event"), \
