@@ -995,8 +995,6 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             afile_t *af         = &vFiles[i];
-            if (!af->bSync)
-                continue;
 
             // Output information about the file
             af->pLength->setValue(af->fLength);
@@ -1014,9 +1012,9 @@ namespace lsp
             // Output activity flag
             af->pActive->setValue(((af->bOn) && (channels > 0)) ? 1.0f : 0.0f);
 
-            // Store file dump to mesh
+            // Store file thumbnails to mesh
             mesh_t *mesh        = reinterpret_cast<mesh_t *>(af->pMesh->getBuffer());
-            if ((mesh == NULL) || (!mesh->isEmpty()))
+            if ((mesh == NULL) || (!mesh->isEmpty()) || (!af->bSync))
                 continue;
 
             if (channels > 0)
