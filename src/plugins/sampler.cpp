@@ -133,6 +133,7 @@ namespace lsp
             af->pLoader                 = NULL;
 
             af->bDirty                  = false;
+            af->bSync                   = false;
             af->fVelocity               = 1.0f;
             af->fHeadCut                = 0.0f;
             af->fTailCut                = 0.0f;
@@ -488,6 +489,16 @@ namespace lsp
         fDrift          = (pDrift != NULL) ? pDrift->getValue() : 0.0f;
     }
 
+    void sampler_kernel::sync_samples_with_ui()
+    {
+        // Iterate all samples
+        for (size_t i=0; i<nFiles; ++i)
+        {
+            afile_t *af         = &vFiles[i];
+            af->bSync           = true;
+        }
+    }
+
     void sampler_kernel::update_sample_rate(long sr)
     {
         // Store new sample rate
@@ -702,8 +713,9 @@ namespace lsp
             }
             else
             {
-                // Mark  sample empty
-                s->setLength(0);
+                // Cleanup sample data
+                for (size_t j=0; j<s->channels(); ++j)
+                    dsp::fill_zero(afs->vThumbs[j], MESH_SIZE);
 
                 // Unbind empty sample
                 for (size_t j=0; j<nChannels; ++j)
@@ -717,8 +729,9 @@ namespace lsp
                 vChannels[j].unbind(af->nID);
         }
 
-        // Reset dirty flag
+        // Reset dirty flag and set sync flag
         af->bDirty      = false;
+        af->bSync       = true;
     }
 
     void sampler_kernel::reorder_samples()
@@ -982,6 +995,8 @@ namespace lsp
         for (size_t i=0; i<nFiles; ++i)
         {
             afile_t *af         = &vFiles[i];
+            if (!af->bSync)
+                continue;
 
             // Output information about the file
             af->pLength->setValue(af->fLength);
@@ -1014,6 +1029,8 @@ namespace lsp
             }
             else
                 mesh->data(0, 0);
+
+            af->bSync           = false;
         }
     }
 
@@ -1444,6 +1461,16 @@ namespace lsp
                 sc->sBypass.init(sr);
                 sc->sDryBypass.init(sr);
             }
+        }
+    }
+
+    void sampler_base::ui_activated()
+    {
+        // Update settings on all samplers
+        for (size_t i=0; i<nSamplers; ++i)
+        {
+            sampler_t *s = &vSamplers[i];
+            s->sSampler.sync_samples_with_ui();
         }
     }
 

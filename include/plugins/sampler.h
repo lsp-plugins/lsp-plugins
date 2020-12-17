@@ -80,6 +80,7 @@ namespace lsp
                 AFLoader           *pLoader;                // Audio file loader task
 
                 bool                bDirty;                 // Dirty flag
+                bool                bSync;                  // Sync flag
                 float               fVelocity;              // Velocity
                 float               fHeadCut;               // Head cut (ms)
                 float               fTailCut;               // Tail cut (ms)
@@ -178,6 +179,7 @@ namespace lsp
 
             void    update_settings();
             void    update_sample_rate(long sr);
+            void    sync_samples_with_ui();
 
             /** Process the sampler kernel
              *
@@ -287,6 +289,7 @@ namespace lsp
 
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
+            virtual void ui_activated();
 
             virtual void process(size_t samples);
     };
