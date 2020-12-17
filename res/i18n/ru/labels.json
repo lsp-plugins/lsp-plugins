@@ -184,6 +184,10 @@
 	},
 
 	"file": "Файл",
+	"file_display": {
+		"system": "{@title} /",
+		"user": "{@title} ~"
+	},
 	"file_list": "Список файлов",
 	"file_name": "Имя файла",
 	"filter": "Фильтр",

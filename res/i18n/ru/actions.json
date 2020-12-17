@@ -33,6 +33,7 @@
 	
 	"import": "Импорт",
 	"import_hydrogen_drumkit_file": "Библиотека семплов Hydrogen...",
+	"import_installed_hydrogen_drumkit": "Установленная библиотека Hydrogen",
 	"import_settings_from_clipboard": "Импорт настроек из буфера обмена",
 	"import_settings_from_file": "Импорт настроек из файла...",
 	"import_rew_filter_file": "Файл фильтров REW...",
