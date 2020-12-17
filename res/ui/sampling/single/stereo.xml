@@ -42,7 +42,8 @@
 					bind="makeup=mk[ssel],predelay=pd[ssel]"
 				/>
 					
-				<grid rows="3" cols="7" vspacing="2">
+				<grid rows="3" cols="8" spacing="2">
+					<label text="labels.sedit.reverse" />
 					<label text="labels.sedit.head_cut" />
 					<label text="labels.sedit.tail_cut" />
 					<label text="labels.sedit.fade_in" />
@@ -51,6 +52,7 @@
 					<label text="labels.sedit.predelay" />
 					<label text="labels.sedit.listen" />
 					
+					<button id="rs[ssel]" size="32" />
 					<knob id="hc[ssel]" size="20" />
 					<knob id="tc[ssel]" size="20" />
 					<knob id="fi[ssel]" size="20" scale_color="yellow" />
@@ -59,6 +61,7 @@
 					<knob id="pd[ssel]" size="20" />
 					<button id="ls[ssel]" size="32" toggle="false" />
 					
+					<led id="rs[ssel]" />
 					<value id="hc[ssel]" />
 					<value id="tc[ssel]" />
 					<value id="fi[ssel]" />
