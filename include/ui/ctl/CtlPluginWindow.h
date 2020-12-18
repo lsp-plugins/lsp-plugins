@@ -64,6 +64,7 @@ namespace lsp
                 CtlPort            *pPath;
                 CtlPort            *pR3DBackend;
                 CtlPort            *pLanguage;
+                CtlPort            *pRelPaths;
 
                 cstorage<backend_sel_t>     vBackendSel;
                 cvector<lang_sel_t>         vLangSel;
@@ -105,6 +106,7 @@ namespace lsp
                 LSPHyperlink   *create_hlink(LSPWidgetContainer *dst, const char *text, float halign = 0.0f);
                 status_t        init_r3d_support(LSPMenu *menu);
                 status_t        init_i18n_support(LSPMenu *menu);
+                bool            has_path_ports();
                 static status_t follow_url(const LSPString *url);
 
             public:

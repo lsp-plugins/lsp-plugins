@@ -241,6 +241,13 @@ namespace lsp
              */
             CtlPort *port(const char *name);
 
+            /**
+             * Get port by index
+             * @param idx index of the port
+             * @return internal port by index
+             */
+            CtlPort *port_by_index(size_t idx);
+
             /** Get port count
              *
              * @return number of ports

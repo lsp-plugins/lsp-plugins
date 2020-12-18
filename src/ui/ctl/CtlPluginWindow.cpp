@@ -51,6 +51,7 @@ namespace lsp
             pPath           = NULL;
             pR3DBackend     = NULL;
             pLanguage       = NULL;
+            pRelPaths       = NULL;
             nVisible        = 0;
         }
         
@@ -115,6 +116,7 @@ namespace lsp
             BIND_PORT(pRegistry, pPBypass, PORT_NAME_BYPASS);
             BIND_PORT(pRegistry, pR3DBackend, R3D_BACKEND_PORT);
             BIND_PORT(pRegistry, pLanguage, LANGUAGE_PORT);
+            BIND_PORT(pRegistry, pRelPaths, REL_PATHS_PORT);
 
             const plugin_metadata_t *meta   = pUI->metadata();
 
@@ -593,6 +595,18 @@ namespace lsp
             return STATUS_OK;
         }
 
+        bool CtlPluginWindow::has_path_ports()
+        {
+            for (size_t i = 0, n = pUI->ports_count(); i < n; ++i)
+            {
+                CtlPort *p = pUI->port_by_index(i);
+                const port_t *meta = (p != NULL) ? p->metadata() : NULL;
+                if ((meta != NULL) && (meta->role == R_PATH))
+                    return true;
+            }
+            return false;
+        }
+
         status_t CtlPluginWindow::slot_select_backend(LSPWidget *sender, void *ptr, void *data)
         {
             backend_sel_t *sel = reinterpret_cast<backend_sel_t *>(ptr);
@@ -784,6 +798,47 @@ namespace lsp
                     ffi.set_extension("");
                     f->add(&ffi);
                 }
+
+                // Add 'Relative paths' option
+                if (__this->has_path_ports())
+                {
+                    LSPBox *op_rpath        = new LSPBox(__this->pWnd->display());
+                    __this->vWidgets.add(op_rpath);
+                    op_rpath->init();
+                    op_rpath->set_horizontal(true);
+                    op_rpath->set_spacing(4);
+
+                    // Add switch button
+                    LSPButton *btn_rpath    = new LSPButton(__this->pWnd->display());
+                    __this->vWidgets.add(btn_rpath);
+                    btn_rpath->init();
+
+                    CtlWidget *ctl          = new CtlButton(__this->pRegistry, btn_rpath);
+                    ctl->init();
+                    ctl->set(A_ID, REL_PATHS_PORT);
+                    ctl->set(A_COLOR, "yellow");
+                    ctl->set(A_LED, "true");
+                    ctl->set(A_SIZE, "16");
+                    ctl->begin();
+                    ctl->end();
+                    __this->pRegistry->add_widget(ctl);
+                    op_rpath->add(btn_rpath);
+
+                    // Add label
+                    LSPLabel *lbl_rpath     = new LSPLabel(__this->pWnd->display());
+                    __this->vWidgets.add(lbl_rpath);
+                    lbl_rpath->init();
+
+                    lbl_rpath->set_expand(true);
+                    lbl_rpath->set_halign(0.0f);
+                    lbl_rpath->text()->set("labels.relative_paths");
+                    op_rpath->add(lbl_rpath);
+
+                    // Add option to dialog
+                    dlg->add_option(op_rpath);
+                }
+
+                // Bind actions
                 dlg->bind_action(slot_call_export_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);

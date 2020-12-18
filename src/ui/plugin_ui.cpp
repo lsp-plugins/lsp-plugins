@@ -280,6 +280,7 @@ namespace lsp
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
         PATH(UI_LANGUAGE_PORT_ID, "Selected language identifier for the UI interface"),
+        SWITCH(UI_REL_PATHS_PORT_ID, "Use relative paths when exporting configuration file", 0.0f),
         PORTS_END
     };
 
@@ -1496,6 +1497,11 @@ namespace lsp
 //        #endif /* LSP_TRACE */
 
         return count;
+    }
+
+    CtlPort *plugin_ui::port_by_index(size_t index)
+    {
+        return vPorts.get(index);
     }
 
     CtlPort *plugin_ui::port(const char *name)
