@@ -326,7 +326,7 @@ namespace lsp
                     if (w->pWidget->expand())
                     {
                         expand      ++;
-                        n_expand   += w->a.nWidth;
+                        n_expand   += lsp_max(0, w->a.nWidth);
                     }
                 }
                 else    // VBOX
@@ -341,7 +341,7 @@ namespace lsp
                     if (w->pWidget->expand())
                     {
                         expand      ++;
-                        n_expand   += w->a.nHeight;
+                        n_expand   += lsp_max(0, w->a.nHeight);
                     }
                 }
             }
