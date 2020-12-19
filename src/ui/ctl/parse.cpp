@@ -92,7 +92,23 @@ namespace lsp
             return true;
         }
 
-        bool set_port_value(CtlPort *up, const char *value, size_t flags)
+        bool parse_relative_path(io::Path *path, const io::Path *base, const char *value, size_t len)
+        {
+            if ((base == NULL) || (len <= 0))
+                return false;
+
+            LSPString svalue;
+            if (!svalue.set_utf8(value, len))
+                return false;
+
+            // This method won't accept absolute path stored in svalue
+            if (path->set(base, &svalue) != STATUS_OK)
+                return false;
+
+            return (path->canonicalize() == STATUS_OK);
+        }
+
+        bool set_port_value(CtlPort *up, const char *value, size_t flags, const io::Path *base)
         {
             if (up == NULL)
                 return false;
@@ -132,6 +148,15 @@ namespace lsp
                 case R_PATH:
                 {
                     size_t len      = ::strlen(value);
+                    io::Path path;
+
+                    if (parse_relative_path(&path, base, value, len))
+                    {
+                        // Update value and it's length
+                        value   = path.as_utf8();
+                        len     = strlen(value);
+                    }
+
                     up->write(value, len, flags);
                     break;
                 }
@@ -141,7 +166,21 @@ namespace lsp
             return true;
         }
 
-        status_t format_port_value(CtlPort *up, LSPString *name, LSPString *value, LSPString *comment, int *flags)
+        bool format_relative_path(LSPString *value, const char *path, const io::Path *base)
+        {
+            if (base == NULL)
+                return false;
+
+            io::Path xpath;
+            if (xpath.set(path) != STATUS_OK)
+                return false;
+            if (xpath.as_relative(base) != STATUS_OK)
+                return false;
+
+            return value->append(xpath.as_string());
+        }
+
+        status_t format_port_value(CtlPort *up, LSPString *name, LSPString *value, LSPString *comment, int *flags, const io::Path *base)
         {
             // Get metadata
             const port_t *p    = up->metadata();
@@ -228,8 +267,13 @@ namespace lsp
                     LSP_BOOL_ASSERT(name->append_utf8(p->id), STATUS_NO_MEM);
 
                     const char *path    = up->get_buffer<const char>();
-                    if (value != NULL)
-                        LSP_BOOL_ASSERT(value->append_utf8(path), STATUS_NO_MEM)
+                    if ((path != NULL) && (strlen(path) > 0))
+                    {
+                        if (!format_relative_path(value, path, base))
+                        {
+                            LSP_BOOL_ASSERT(value->append_utf8(path), STATUS_NO_MEM)
+                        }
+                    }
                     else
                         LSP_BOOL_ASSERT(value->append_utf8(""), STATUS_NO_MEM);
 

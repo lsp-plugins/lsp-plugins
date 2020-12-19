@@ -401,6 +401,7 @@
 
 	"reflections": "Reflections",
 
+	"relative_paths": "Relative paths",
 	"rel_ease": "Rel",
 	"release": "Release",
 	"release:db_ms": "Release\n(dB, ms)",

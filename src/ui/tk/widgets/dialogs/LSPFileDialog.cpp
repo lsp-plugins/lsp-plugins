@@ -83,6 +83,7 @@ namespace lsp
             sWAction(dpy),
             sWCancel(dpy),
             sMainGrid(dpy),
+            sOptions(dpy),
             sSBBookmarks(dpy),
             sSBAlign(dpy),
             sBookmarks(dpy),
@@ -297,6 +298,11 @@ namespace lsp
             sWarnBox.set_horizontal();
             sWarnBox.set_spacing(8);
 
+            LSP_STATUS_ASSERT(sOptions.init());
+            sOptions.set_spacing(4);
+            sOptions.set_vertical(true);
+            sOptions.set_expand(true);
+
             LSP_STATUS_ASSERT(sSBBookmarks.init());
             sSBBookmarks.set_vertical();
             sSBBookmarks.set_spacing(4);
@@ -306,6 +312,7 @@ namespace lsp
             sSBBookmarks.set_vscroll_bypass(false);
             sSBBookmarks.set_hscroll(SCROLL_NONE);
             sSBBookmarks.set_hscroll_bypass(false);
+            LSP_STATUS_ASSERT(sOptions.add(&sSBBookmarks));
 
             LSP_STATUS_ASSERT(sSBAlign.init());
             sSBAlign.set_pos(0.0f, -1.0f); // Middle, Top
@@ -344,7 +351,7 @@ namespace lsp
             LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.bookmark_list"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
             // Row 3
-            LSP_STATUS_ASSERT(sMainGrid.add(&sSBBookmarks));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sOptions));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
             // Row 4
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
@@ -439,6 +446,7 @@ namespace lsp
             sWCancel.destroy();
             sHBox.destroy();
             sWarnBox.destroy();
+            sOptions.destroy();
             sSBBookmarks.destroy();
             sSBAlign.destroy();
             sBookmarks.destroy();
@@ -1683,6 +1691,11 @@ namespace lsp
             ent->sHlink.set_popup(&sBMPopup);
 
             return STATUS_OK;
+        }
+
+        status_t LSPFileDialog::add_option(LSPWidget *option)
+        {
+            return sOptions.add(option);
         }
 
     } /* namespace ctl */

@@ -54,7 +54,7 @@ namespace lsp
     status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value, size_t flags)
     {
         add_notification(name);
-        pUI->apply_changes(name, value, hPorts, bPreset);
+        pUI->apply_changes(name, value, hPorts, bPreset, pBasePath);
         return STATUS_OK;
     }
 
@@ -131,7 +131,7 @@ namespace lsp
                 continue;
 
             // Try to format port value
-            status_t res = format_port_value(up, name, value, comment, flags);
+            status_t res = format_port_value(up, name, value, comment, flags, pBasePath);
 
             // Skip port if it has bad, non-serializable type
             if (res == STATUS_BAD_TYPE)
@@ -280,6 +280,7 @@ namespace lsp
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PATH(UI_R3D_BACKEND_PORT_ID, "Identifier of selected backend for 3D rendering"),
         PATH(UI_LANGUAGE_PORT_ID, "Selected language identifier for the UI interface"),
+        SWITCH(UI_REL_PATHS_PORT_ID, "Use relative paths when exporting configuration file", 0.0f),
         PORTS_END
     };
 
@@ -1310,15 +1311,23 @@ namespace lsp
         c.append_utf8       ("  " LSP_BASE_URI " \n");
     }
 
-    status_t plugin_ui::export_settings(const char *filename)
+    status_t plugin_ui::export_settings(const char *filename, bool relative)
     {
+        status_t res;
         LSPString c;
         build_config_header(c);
 
+        // Form the base path of file
+        io::Path base;
+        if ((res = base.set(filename)) != STATUS_OK)
+            return res;
+        if ((res = base.remove_last()) != STATUS_OK)
+            return res;
+
         // Serialize data to file
         KVTStorage *kvt = kvt_lock();
-        ConfigSource cfg(this, vPorts, kvt, &c);
-        status_t res = config::save(filename, &cfg, true);
+        ConfigSource cfg(this, vPorts, kvt, &c, (relative) ? &base : NULL);
+        res = config::save(filename, &cfg, true);
         kvt->gc();
         kvt_release();
 
@@ -1332,7 +1341,7 @@ namespace lsp
 
         // Serialize data to string
         KVTStorage *kvt = kvt_lock();
-        ConfigSource cfg(this, vPorts, kvt, &c);
+        ConfigSource cfg(this, vPorts, kvt, &c, NULL);
         status_t res = config::serialize(&data, &cfg, true);
         kvt->gc();
         kvt_release();
@@ -1376,7 +1385,7 @@ namespace lsp
     {
         // Deserialize configuration data
         KVTStorage *kvt = kvt_lock();
-        ConfigHandler handler(this, vPorts, kvt, false);
+        ConfigHandler handler(this, vPorts, kvt, false, NULL);
         status_t res = config::deserialize(data, &handler);
         handler.notify_all();
         if (kvt != NULL)
@@ -1390,10 +1399,18 @@ namespace lsp
 
     status_t plugin_ui::import_settings(const char *filename, bool preset)
     {
+        // Form the base path of file
+        status_t res;
+        io::Path base;
+        if ((res = base.set(filename)) != STATUS_OK)
+            return res;
+        if ((res = base.remove_last()) != STATUS_OK)
+            return res;
+
         // Load configuration data
         KVTStorage *kvt = kvt_lock();
-        ConfigHandler handler(this, vPorts, kvt, preset);
-        status_t res = config::load(filename, &handler);
+        ConfigHandler handler(this, vPorts, kvt, preset, &base);
+        res = config::load(filename, &handler);
         handler.notify_all();
         if (kvt != NULL)
         {
@@ -1417,7 +1434,7 @@ namespace lsp
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
         c.append_utf8       ("  " LSP_BASE_URI " \n");
 
-        ConfigSource cfg(this, vConfigPorts, NULL, &c);
+        ConfigSource cfg(this, vConfigPorts, NULL, &c, NULL);
 
         status_t status = config::save(fd, &cfg, true);
 
@@ -1434,7 +1451,7 @@ namespace lsp
         if (fd == NULL)
             return STATUS_UNKNOWN_ERR;
 
-        ConfigHandler handler(this, vConfigPorts, NULL, false);
+        ConfigHandler handler(this, vConfigPorts, NULL, false, NULL);
         status_t status = config::load(fd, &handler);
 
         // Close file
@@ -1444,7 +1461,7 @@ namespace lsp
         return status;
     }
 
-    bool plugin_ui::apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset)
+    bool plugin_ui::apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset, const io::Path *base)
     {
         // Get UI port
         size_t n_ports  = ports.size();
@@ -1457,7 +1474,7 @@ namespace lsp
             if ((meta == NULL) || (meta->id == NULL))
                 continue;
             if (!::strcmp(meta->id, key))
-                return set_port_value(p, value, (preset) ? PF_PRESET_IMPORT : PF_STATE_IMPORT);
+                return set_port_value(p, value, (preset) ? PF_PRESET_IMPORT : PF_STATE_IMPORT, base);
         }
         return false;
     }
@@ -1496,6 +1513,11 @@ namespace lsp
 //        #endif /* LSP_TRACE */
 
         return count;
+    }
+
+    CtlPort *plugin_ui::port_by_index(size_t index)
+    {
+        return vPorts.get(index);
     }
 
     CtlPort *plugin_ui::port(const char *name)

@@ -42,9 +42,9 @@ namespace lsp
     {
         bool parse_file_formats(const char *variable, LSPFileFilter *flt);
 
-        bool set_port_value(CtlPort *port, const char *value, size_t flags);
+        bool set_port_value(CtlPort *port, const char *value, size_t flags, const io::Path *base);
 
-        status_t format_port_value(CtlPort *port, LSPString *name, LSPString *value, LSPString *comment, int *flags);
+        status_t format_port_value(CtlPort *port, LSPString *name, LSPString *value, LSPString *comment, int *flags, const io::Path *base);
     }
 }
 
