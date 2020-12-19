@@ -29,7 +29,7 @@
 
 === 1.1.28 ===
 
-- Added possibility to use relative paths in file configurations.
+* Added possibility to use relative paths in file configurations.
 * Added sample reversal feature to the Sampler/Multisampler/Trigger plugin series.
 * Added automatic scanning of installed Hydrogen drumkits to the Multisampler plugin series
   and possibility to load them by single click in the main menu.
