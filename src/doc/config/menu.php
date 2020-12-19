@@ -14,6 +14,8 @@
 		def_menu_item('plugins', $plugin['id'], $plugin['description'] . ' - ' . $plugin['name'], $page_id);
 	}
 	
+	def_menu_item('', 'tutorials', 'Tutorials and Tips');
+	   def_menu_item('tutorials', 'sampler_import_hydrogen_kit', 'Import a Hydrogen Drumkit into Multi-Sampler');
 	def_menu_item('', 'video', 'Video Tutorials');
 	def_menu_item('', 'development', 'Development Notes');
 	   def_menu_item('development', 'versioning', 'Versioning');
