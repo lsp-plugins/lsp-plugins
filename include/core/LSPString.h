@@ -300,6 +300,14 @@ namespace lsp
             inline size_t temporal_capacity() const { return (pTemp != NULL) ? pTemp->nLength : 0; };
 
             /**
+             * Find number of matching characters from one string to another
+             */
+            size_t          match(const LSPString *s, size_t index) const;
+            inline size_t   match(const LSPString *s) const         { return match(s, 0);          }
+            size_t          match_nocase(const LSPString *s, size_t index) const;
+            inline size_t   match_nocase(const LSPString *s) const  { return match_nocase(s, 0);   }
+
+            /**
              * Clone string as set of UTF-8 characters. 1 character at the tail will contain additional end-of-line.
              */
             char *clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const;

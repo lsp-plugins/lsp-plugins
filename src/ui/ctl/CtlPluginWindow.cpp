@@ -1047,7 +1047,8 @@ namespace lsp
         status_t CtlPluginWindow::slot_call_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
-            __this->pUI->export_settings(__this->pExport->selected_file());
+            bool relative = __this->pRelPaths->get_value() >= 0.5f;
+            __this->pUI->export_settings(__this->pExport->selected_file(), relative);
             return STATUS_OK;
         }
 

@@ -54,13 +54,16 @@ namespace lsp
                     KVTStorage         *pKVT;
                     cvector<char>       vNotify;
                     bool                bPreset;
+                    io::Path           *pBasePath;
 
                 protected:
                     void add_notification(const char *id);
 
                 public:
-                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt, bool preset):
-                        pUI(ui), hPorts(ports), pKVT(kvt), bPreset(preset) {}
+                    explicit ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports,
+                            KVTStorage *kvt, bool preset, io::Path *base
+                    ):
+                        pUI(ui), hPorts(ports), pKVT(kvt), bPreset(preset), pBasePath(base) {}
                     virtual ~ConfigHandler();
 
                 public:
@@ -79,11 +82,15 @@ namespace lsp
                     LSPString      *pComment;
                     KVTIterator    *pIter;
                     size_t          nPortID;
+                    io::Path       *pBasePath;
 
                 public:
-                    explicit ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, KVTStorage *kvt, LSPString *comment):
+                    explicit ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports,
+                            KVTStorage *kvt, LSPString *comment, io::Path *base
+                        ):
                         pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {
                         pIter       = (kvt != NULL) ? kvt->enum_all() : NULL;
+                        pBasePath   = base;
                     }
 
                 public:
@@ -137,7 +144,7 @@ namespace lsp
             size_t          rebuild_sorted_ports();
             CtlWidget      *build_widget(widget_ctl_t w_class);
             io::File       *open_config_file(bool write);
-            bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset);
+            bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports, bool preset, const io::Path *base);
             status_t        scan_presets();
             void            build_config_header(LSPString &c);
             void            destroy_presets();
@@ -198,9 +205,10 @@ namespace lsp
             /** Export settings of the UI to the file
              *
              * @param filename file name
+             * @param relative use relative paths
              * @return status of operation
              */
-            status_t export_settings(const char *filename);
+            status_t export_settings(const char *filename, bool relative);
 
             /** Import settings of the UI from the file
              *

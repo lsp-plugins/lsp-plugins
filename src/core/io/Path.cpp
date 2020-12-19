@@ -1158,5 +1158,125 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
             return append(&path->sPath);
         }
+
+        status_t Path::as_relative(const char *path)
+        {
+            status_t res;
+            io::Path child, base;
+            if ((res = base.set(path)) != STATUS_OK)
+                return res;
+            if ((res = child.set(this)) != STATUS_OK)
+                return res;
+
+            if ((res = child.compute_relative(&base)) == STATUS_OK)
+                sPath.swap(&child.sPath);
+            return res;
+        }
+
+        status_t Path::as_relative(const LSPString *path)
+        {
+            status_t res;
+            io::Path child, base;
+            if ((res = base.set(path)) != STATUS_OK)
+                return res;
+            if ((res = child.set(this)) != STATUS_OK)
+                return res;
+
+            if ((res = child.compute_relative(&base)) == STATUS_OK)
+                sPath.swap(&child.sPath);
+            return res;
+        }
+
+        status_t Path::as_relative(const Path *path)
+        {
+            status_t res;
+            io::Path child, base;
+            if ((res = base.set(path)) != STATUS_OK)
+                return res;
+            if ((res = child.set(this)) != STATUS_OK)
+                return res;
+
+            if ((res = child.compute_relative(&base)) == STATUS_OK)
+                sPath.swap(&child.sPath);
+            return res;
+        }
+
+        status_t Path::compute_relative(Path *base)
+        {
+            // Canonicalize both paths
+            status_t res;
+            if ((res = canonicalize()) != STATUS_OK)
+                return res;
+            if ((res = base->canonicalize()) != STATUS_OK)
+                return res;
+
+            // Check that beginning of paths matches
+            size_t matched = sPath.match(&base->sPath);
+            if (matched <= 0)
+                return STATUS_NOT_FOUND;
+
+            // The length matches the base file?
+            ssize_t idx1, idx2;
+            if (matched == base->length())
+            {
+                if (sPath.length() == base->length())
+                {
+                    // Lengths match - clear
+                    sPath.clear();
+                    return STATUS_OK;
+                }
+                else if (sPath.char_at(matched) == FILE_SEPARATOR_C)
+                {
+                    // Just remove file base
+                    sPath.remove(0, matched+1);
+                    return STATUS_OK;
+                }
+
+                // Find last matchind file separator
+                idx1 = sPath.rindex_of(matched, FILE_SEPARATOR_C);
+                idx2 = base->sPath.rindex_of(matched, FILE_SEPARATOR_C);
+                if ((idx1 < 0) || (idx2 != idx1))
+                    return STATUS_NOT_FOUND;
+            }
+            else if (matched == sPath.length())
+            {
+                if (base->sPath.char_at(matched) != FILE_SEPARATOR_C)
+                    return STATUS_NOT_FOUND;
+
+                // All is OK, we're just at the end of the child path
+                idx1 = matched - 1;
+                idx2 = matched;
+            }
+            else
+            {
+                // Find last matchind file separator
+                idx1 = sPath.rindex_of(matched, FILE_SEPARATOR_C);
+                idx2 = base->sPath.rindex_of(matched, FILE_SEPARATOR_C);
+                if ((idx1 < 0) || (idx2 != idx1))
+                    return STATUS_NOT_FOUND;
+            }
+
+            // Add the necessary amount of '../' references
+            LSPString tmp;
+            while (true)
+            {
+                idx2        = base->sPath.index_of(idx2 + 1, FILE_SEPARATOR_C);
+                if (!tmp.append_ascii(".." FILE_SEPARATOR_S))
+                    return STATUS_NO_MEM;
+                if (idx2 < 0)
+                    break;
+            }
+
+            // Append the rest path
+            if (!tmp.append(&sPath, idx1 + 1))
+                return STATUS_NO_MEM;
+            // Remove the trailing '/' character if present
+            if (tmp.ends_with(FILE_SEPARATOR_C))
+                tmp.remove_last();
+
+            sPath.swap(&tmp);
+
+            return STATUS_OK;
+        }
     }
 } /* namespace lsp */
