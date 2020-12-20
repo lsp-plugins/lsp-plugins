@@ -4,7 +4,7 @@
 
 === 1.1.28 ===
 
-* Implemented Atristic Delay plugin.
+* Implemented Artistic Delay plugin.
 * Added delay time and phase inversion for each band of the crossover plugin.
 * MIDI octave numbering now starts with "-1", previously it started with "-2".
 * Added automatic scanning of installed Hydrogen drumkits to the Multisampler plugin series
