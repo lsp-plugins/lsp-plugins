@@ -32,12 +32,14 @@ namespace lsp
                 static const ctl_class_t metadata;
 
             protected:
+                CtlPort        *pPort;
                 CtlExpression   sCoord;
                 CtlExpression   sBasis;
                 CtlColor        sColor;
 
             protected:
                 void        update_coords();
+                void        update_text();
 
             public:
                 explicit CtlText(CtlRegistry *src, LSPText *text);

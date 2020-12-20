@@ -2940,7 +2940,56 @@ Description:	This plugin performs split of input signal into multiple (up to 8) 
 	*Plugin ID:	vlqv
 
 -----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Artistic Delay Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Construct your own delay from 8 tempos and 16 delay lines.
+		
+	Registration:	
+		
+	*Plugin ID:	vxll
+
 -----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Artistic Delay Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Construct your own delay from 8 tempos and 16 delay lines.
+		
+	Registration:	
+		
+	*Plugin ID:	kbbr
+
+
 -----------------------------------------------------
 -----------------------------------------------------
 

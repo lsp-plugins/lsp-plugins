@@ -38,6 +38,8 @@
 	"active": "Actif",
 	"actual_duration": "Durée\neffective (s)",
 	
+	"alr": "ALR",
+	
 	"amplitude": "Amplitude",
 	
 	"att_ack": "Att",
@@ -49,7 +51,8 @@
 	
 	"balance": "Balance",
 	
-	"band_hue": "Band, Tonalité",
+	"band": "Bande",
+	"band_hue": "Bande, Tonalité",
 	
 	"bool": {
 		"off": "off",
@@ -77,6 +80,7 @@
 		"M_ute": "M",
 		"OFF": "OFF",
 		"ON": "ON",
+		"P_hase": "P",
 		"R_ight": "D",
 		"R_ight:": "R :",
 		"S_ide": "C",
@@ -108,6 +112,7 @@
 		"on": "On",
 		"out": "Sortie",
 		"output": "Sortie",
+		"phase": "Phase",
 		"pitch": "Hauteur tonale",
 		"pitch_left": "Hauteur tonale gauche",
 		"pitch_mid": "Hauteur tonale mil",
@@ -119,13 +124,15 @@
 		"side": "Côté",
 		"side_on": "Côté on",
 		"solo": "Solo",
-		"solo_hold": "Solo/maintien"
+		"solo_hold": "Solo/maintien",
+		"volume": "Volume"
 	},
 	"channel": "Canal",
 	"channels": "Canaux",
 	
 	"clear": "Effacer",
 	
+	"contour:": "Contour :",
 	"controls": "Contrôles",
 	"ctl": "Ctl",
 	
@@ -180,6 +187,10 @@
 	"filters": "Filtres",
 	
 	"flt": {
+		"10k": "10k",
+		"1k": "1k",
+		"2_2k": "2,2k",
+		"4_7k": "4,7k",
 		"EQ_ualizer": "EQ",
 		"H_ighC_ut": "HC",
 		"HCF": "HCF",
@@ -337,6 +348,7 @@
 		"gate": "Porte (gate)",
 		"latency_detector": "Détecteur de latence",
 		"limiter": "Limiteur",
+		"surge_filter": "Filtre anti-coupure",
 		"trigger": "Déclencheur"
 	},
 	
@@ -353,8 +365,8 @@
 		"postprocessing": "POSTTRAITEMENT",
 		"preprocessing": "PRÉTRAITEMENT",
 		"profiler_state": "ÉTAT DU PROFILEUR :",
-		"rt_algorithm": "Algorithme RT",
 		"recording": "EN ENREGISTREMENT",
+		"rt_algorithm": "Algorithme RT",
 		"saving": "EN SAUVEGARDE",
 		"waiting": "EN ATTENTE"
 	},
@@ -438,10 +450,13 @@
 		"P_hase": "P",
 		"S_ide": "C",
 		"amplitude": "Amplitude",
+		"clip": "Clip",
+		"clipping": "Clipping",
 		"dry": "Originel",
 		"dry:db": "Originel\n(dB)",
 		"dry_pan": "Pan originel",
 		"duty_ratio": "Ratio obligatoire",
+		"envelope": "Enveloppe",
 		"fade_in": "Fondu ouverture",
 		"fade_out": "Fondu fermeture",
 		"fall": "Chute",
@@ -459,6 +474,9 @@
 		"phase": "Phase",
 		"positive_width": "Largeur positive",
 		"raise": "Augmenter",
+		"reference": "Référence",
+		"relative": "Relatif",
+		"rms": "RMS",
 		"stereo": "Stéréo",
 		"width": "Largeur",
 		"wet": "Traité",
@@ -524,7 +542,7 @@
 		"samples": "Échantillons"
 	},
 	
-	"value": "Vleur",
+	"value": "Valeur",
 	"values": {
 		"best": "Meilleure",
 		"desc_label": "{@name}",

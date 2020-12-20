@@ -498,6 +498,17 @@ namespace dsp
 
     size_t  (* base64_enc)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
     ssize_t (* base64_dec)(void *dst, size_t *dst_left, const void *src, size_t *src_left) = NULL;
+
+    void    (* lin_inter_set)(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_inter_mul2)(float *dst, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_inter_mul3)(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_inter_fmadd2)(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_inter_frmadd2)(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_inter_fmadd3)(float *dst, const float *src1, const float *src2, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+
+    void    (* lin_xfade2)(float *dst, const float *src, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_xfade3)(float *dst, const float *a, const float *b, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
+    void    (* lin_xfade_add3)(float *dst, const float *a, const float *b, int32_t x0, float y0, int32_t x1, float y1, int32_t x, uint32_t n) = 0;
 }
 
 namespace dsp

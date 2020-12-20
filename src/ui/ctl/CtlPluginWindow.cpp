@@ -24,6 +24,7 @@
 #include <ui/ui.h>
 #include <ui/plugin_ui.h>
 #include <metadata/ports.h>
+#include <core/ipc/Process.h>
 
 namespace lsp
 {
@@ -50,6 +51,7 @@ namespace lsp
             pPath           = NULL;
             pR3DBackend     = NULL;
             pLanguage       = NULL;
+            pRelPaths       = NULL;
             nVisible        = 0;
         }
         
@@ -114,6 +116,7 @@ namespace lsp
             BIND_PORT(pRegistry, pPBypass, PORT_NAME_BYPASS);
             BIND_PORT(pRegistry, pR3DBackend, R3D_BACKEND_PORT);
             BIND_PORT(pRegistry, pLanguage, LANGUAGE_PORT);
+            BIND_PORT(pRegistry, pRelPaths, REL_PATHS_PORT);
 
             const plugin_metadata_t *meta   = pUI->metadata();
 
@@ -136,13 +139,43 @@ namespace lsp
 
                 // Initialize menu items
                 {
-                    // Create export menu
+                    // Create 'About Plugin' menu item
                     LSPMenu *submenu = new LSPMenu(dpy);
                     vWidgets.add(submenu);
                     submenu->init();
                     submenu->set_unique_id(WUID_EXPORT_MENU);
 
-                    LSPMenuItem *itm = new LSPMenuItem(dpy);
+                    // Add 'Plugin manual' menu item
+                    LSPMenuItem *itm     = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->text()->set("actions.plugin_manual");
+                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_show_plugin_manual, this);
+                    pMenu->add(itm);
+
+                    // Add 'UI manual' menu item
+                    itm                 = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->text()->set("actions.ui_manual");
+                    itm->slots()->bind(LSPSLOT_SUBMIT, slot_show_ui_manual, this);
+                    pMenu->add(itm);
+
+
+                    // Add separator
+                    itm     = new LSPMenuItem(dpy);
+                    vWidgets.add(itm);
+                    itm->init();
+                    itm->set_separator(true);
+                    pMenu->add(itm);
+
+                    // Create export menu
+                    submenu = new LSPMenu(dpy);
+                    vWidgets.add(submenu);
+                    submenu->init();
+                    submenu->set_unique_id(WUID_EXPORT_MENU);
+
+                    itm = new LSPMenuItem(dpy);
                     vWidgets.add(itm);
                     itm->init();
                     itm->text()->set("actions.export");
@@ -562,6 +595,18 @@ namespace lsp
             return STATUS_OK;
         }
 
+        bool CtlPluginWindow::has_path_ports()
+        {
+            for (size_t i = 0, n = pUI->ports_count(); i < n; ++i)
+            {
+                CtlPort *p = pUI->port_by_index(i);
+                const port_t *meta = (p != NULL) ? p->metadata() : NULL;
+                if ((meta != NULL) && (meta->role == R_PATH))
+                    return true;
+            }
+            return false;
+        }
+
         status_t CtlPluginWindow::slot_select_backend(LSPWidget *sender, void *ptr, void *data)
         {
             backend_sel_t *sel = reinterpret_cast<backend_sel_t *>(ptr);
@@ -753,6 +798,47 @@ namespace lsp
                     ffi.set_extension("");
                     f->add(&ffi);
                 }
+
+                // Add 'Relative paths' option
+                if (__this->has_path_ports())
+                {
+                    LSPBox *op_rpath        = new LSPBox(__this->pWnd->display());
+                    __this->vWidgets.add(op_rpath);
+                    op_rpath->init();
+                    op_rpath->set_horizontal(true);
+                    op_rpath->set_spacing(4);
+
+                    // Add switch button
+                    LSPButton *btn_rpath    = new LSPButton(__this->pWnd->display());
+                    __this->vWidgets.add(btn_rpath);
+                    btn_rpath->init();
+
+                    CtlWidget *ctl          = new CtlButton(__this->pRegistry, btn_rpath);
+                    ctl->init();
+                    ctl->set(A_ID, REL_PATHS_PORT);
+                    ctl->set(A_COLOR, "yellow");
+                    ctl->set(A_LED, "true");
+                    ctl->set(A_SIZE, "16");
+                    ctl->begin();
+                    ctl->end();
+                    __this->pRegistry->add_widget(ctl);
+                    op_rpath->add(btn_rpath);
+
+                    // Add label
+                    LSPLabel *lbl_rpath     = new LSPLabel(__this->pWnd->display());
+                    __this->vWidgets.add(lbl_rpath);
+                    lbl_rpath->init();
+
+                    lbl_rpath->set_expand(true);
+                    lbl_rpath->set_halign(0.0f);
+                    lbl_rpath->text()->set("labels.relative_paths");
+                    op_rpath->add(lbl_rpath);
+
+                    // Add option to dialog
+                    dlg->add_option(op_rpath);
+                }
+
+                // Bind actions
                 dlg->bind_action(slot_call_export_settings_to_file, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
@@ -812,6 +898,113 @@ namespace lsp
             return STATUS_OK;
         }
 
+        static const char * manual_prefixes[] =
+        {
+            LSP_LIB_PREFIX("/share"),
+            LSP_LIB_PREFIX("/local/share"),
+            "/usr/share",
+            "/usr/local/share",
+            "/share",
+            NULL
+        };
+
+        status_t CtlPluginWindow::slot_show_plugin_manual(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
+            const plugin_metadata_t *meta = __this->pUI->metadata();
+
+            io::Path path;
+            LSPString spath;
+            status_t res;
+
+            // Try to open local documentation
+            for (const char **prefix = manual_prefixes; *prefix != NULL; ++prefix)
+            {
+                path.fmt("%s/doc/%s/html/plugins/%s.html",
+                        *prefix, LSP_ARTIFACT_ID, meta->lv2_uid
+                    );
+
+                lsp_trace("Checking path: %s", path.as_utf8());
+
+                if (path.exists())
+                {
+                    if (spath.fmt_utf8("file://%s", path.as_utf8()))
+                    {
+                        if ((res = follow_url(&spath)) == STATUS_OK)
+                            return res;
+                    }
+                }
+            }
+
+            // Follow the online documentation
+            if (spath.fmt_utf8("%s?page=manuals&section=%s", LSP_BASE_URI, meta->lv2_uid))
+            {
+                if ((res = follow_url(&spath)) == STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
+        status_t CtlPluginWindow::slot_show_ui_manual(LSPWidget *sender, void *ptr, void *data)
+        {
+            io::Path path;
+            LSPString spath;
+            status_t res;
+
+            // Try to open local documentation
+            for (const char **prefix = manual_prefixes; *prefix != NULL; ++prefix)
+            {
+                path.fmt("%s/doc/%s/html/constrols.html", *prefix, LSP_ARTIFACT_ID);
+                lsp_trace("Checking path: %s", path.as_utf8());
+
+                if (path.exists())
+                {
+                    if (spath.fmt_utf8("file://%s", path.as_utf8()))
+                    {
+                        if ((res = follow_url(&spath)) == STATUS_OK)
+                            return res;
+                    }
+                }
+            }
+
+            // Follow the online documentation
+            if (spath.fmt_utf8("%s?page=manuals&section=controls", LSP_BASE_URI))
+            {
+                if ((res = follow_url(&spath)) == STATUS_OK)
+                    return res;
+            }
+
+            return STATUS_NOT_FOUND;
+        }
+
+        status_t CtlPluginWindow::follow_url(const LSPString *url)
+        {
+            #ifdef PLATFORM_WINDOWS
+                ::ShellExecuteW(
+                    NULL,               // Not associated with window
+                    L"open",            // Open hyperlink
+                    sUrl.get_utf16(),   // The file to execute
+                    NULL,               // Parameters
+                    NULL,               // Directory
+                    SW_SHOWNORMAL       // Show command
+                );
+            #else
+                status_t res;
+                ipc::Process p;
+
+                if ((res = p.set_command("xdg-open")) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.add_arg(url)) != STATUS_OK)
+                    return STATUS_OK;
+                if ((res = p.launch()) != STATUS_OK)
+                    return STATUS_OK;
+                p.wait();
+            #endif /* PLATFORM_WINDOWS */
+
+            return STATUS_OK;
+        }
+
         status_t CtlPluginWindow::slot_debug_dump(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
@@ -854,7 +1047,8 @@ namespace lsp
         status_t CtlPluginWindow::slot_call_export_settings_to_file(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
-            __this->pUI->export_settings(__this->pExport->selected_file());
+            bool relative = __this->pRelPaths->get_value() >= 0.5f;
+            __this->pUI->export_settings(__this->pExport->selected_file(), relative);
             return STATUS_OK;
         }
 

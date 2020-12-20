@@ -12,19 +12,21 @@
 	"chan": {
 		"master": "Master Channel"
 	},
-	
+
 	"channel": "Channel",
 	"channel_n": "Channel {@id}",
 	"channels": "Channels",
-	
+
 	"distance": "Distance",
-	
+
 	"gain": "Gain",
 	"general": "General",
-	
+
+	"global_delay_ctr": "Global Delay Line Controls",
+
 	"impulse_response": "Impulse Response",
 	"instrument_mixer": "Instrument mixer",
-	
+
 	"latency": "Latency",
 	
 	"lchan": {
@@ -74,14 +76,16 @@
 	"sample_matrix": "Sample Matrix",
 	"sample_n": "Sample {@id}",
 	"samples": "Samples",
-	
+
 	"sidechain": "Sidechain",
 	"signal": "Signal",
 	"signal_n": "Signal {@id}",
 	"signals": "Signals",
 	
 	"test_signal": "Test Signal",
+	"tempo_settings": "Tempo Settings",
+
 	"time": "Time",
-	
+
 	"wet_signal_eq": "Wet Signal Equalization"
 }

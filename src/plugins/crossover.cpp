@@ -55,6 +55,7 @@ namespace lsp
 
     crossover_base::~crossover_base()
     {
+        destroy();
     }
 
     void crossover_base::init(IWrapper *wrapper)
@@ -123,6 +124,8 @@ namespace lsp
 
                 c->sXOver.set_handler(i, process_band, this, c);                // Bind channel as a handler
 
+                b->sDelay.construct();
+
                 b->vOut             = NULL;
 
                 b->vResult          = reinterpret_cast<float *>(ptr);
@@ -141,7 +144,9 @@ namespace lsp
 
                 b->pSolo            = NULL;
                 b->pMute            = NULL;
+                b->pPhase           = NULL;
                 b->pGain            = NULL;
+                b->pDelay           = NULL;
                 b->pOutLevel        = NULL;
                 b->pFreqEnd         = NULL;
                 b->pOut             = NULL;
@@ -330,7 +335,9 @@ namespace lsp
                     xover_band_t *sb    = &vChannels[0].vBands[j];
                     b->pSolo            = sb->pSolo;
                     b->pMute            = sb->pMute;
+                    b->pPhase           = sb->pPhase;
                     b->pGain            = sb->pGain;
+                    b->pDelay           = sb->pDelay;
                     b->pHue             = sb->pHue;
                     b->pFreqEnd         = sb->pFreqEnd;
                     b->pAmpGraph        = NULL;
@@ -342,7 +349,11 @@ namespace lsp
                     TRACE_PORT(vPorts[port_id]);
                     b->pMute            = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
+                    b->pPhase           = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
                     b->pGain            = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pDelay           = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pHue             = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
@@ -384,6 +395,12 @@ namespace lsp
                 c->sXOver.destroy();
                 c->vBuffer      = NULL;
                 c->vTr          = NULL;
+
+                for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+                {
+                    xover_band_t *b = &c->vBands[j];
+                    b->sDelay.destroy();
+                }
             }
 
             vChannels       = NULL;
@@ -484,12 +501,16 @@ namespace lsp
             {
                 xover_band_t *b     = &c->vBands[i];
                 float hue           = b->pHue->getValue();
+                size_t delay        = millis_to_samples(fSampleRate, b->pDelay->getValue());
+                float gain          = b->pGain->getValue();
+
+                b->sDelay.set_delay(delay);
 
                 b->bSolo            = b->pSolo->getValue() >= 0.5f;
                 if ((i > 0) && (c->vSplit[i-1].pSlope->getValue() <= 0))
                     b->bSolo            = false;
                 b->bMute            = b->pMute->getValue() >= 0.5f;
-                b->fGain            = b->pGain->getValue();
+                b->fGain            = (b->pPhase->getValue() >= 0.5f) ? -GAIN_AMP_0_DB : GAIN_AMP_0_DB;
                 if (b->fHue != hue)
                 {
                     b->fHue             = hue;
@@ -497,7 +518,7 @@ namespace lsp
                 }
                 solo                = solo || b->bSolo;
 
-                xc->set_gain(i, b->fGain);
+                xc->set_gain(i, gain);
             }
 
             // Configure bands (step 2):
@@ -560,6 +581,7 @@ namespace lsp
     {
         // Determine number of channels
         size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
+        size_t max_delay    = millis_to_samples(sr, crossover_base_metadata::DELAY_MAX);
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -568,6 +590,12 @@ namespace lsp
 
             c->sBypass.init(sr);
             xc->set_sample_rate(sr);
+
+            for (size_t j=0; j<crossover_base_metadata::BANDS_MAX; ++j)
+            {
+                xover_band_t *b     = &c->vBands[j];
+                b->sDelay.init(max_delay);
+            }
         }
 
         sAnalyzer.set_sample_rate(sr);
@@ -597,9 +625,9 @@ namespace lsp
         xover_band_t *b         = &c->vBands[band];
 
         // Process signal of the band
-        dsp::copy(&b->vResult[sample], data, count);
+        b->sDelay.process(&b->vResult[sample], data, b->fGain, count);
         if (!b->bMute)
-            dsp::add2(&c->vResult[sample], data, count);
+            dsp::add2(&c->vResult[sample], &b->vResult[sample], count);
     }
 
     void crossover_base::process(size_t samples)
@@ -1014,6 +1042,8 @@ namespace lsp
 
                             v->begin_object(v, sizeof(xover_band_t));
                             {
+                                v->write_object("sDelay", &b->sDelay);
+
                                 v->write("vOut", b->vOut);
                                 v->write("vResult", b->vResult);
                                 v->write("vTr", b->vTr);
@@ -1028,7 +1058,9 @@ namespace lsp
 
                                 v->write("pSolo", b->pSolo);
                                 v->write("pMute", b->pMute);
+                                v->write("pPhase", b->pPhase);
                                 v->write("pGain", b->pGain);
+                                v->write("pDelay", b->pDelay);
                                 v->write("pOutLevel", b->pOutLevel);
                                 v->write("pFreqEnd", b->pFreqEnd);
                                 v->write("pOut", b->pOut);

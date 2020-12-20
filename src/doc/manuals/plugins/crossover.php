@@ -13,7 +13,7 @@
     	This plugin performs split of mono input signal into separate frequency bands passed to individual mono output channels.
     	Additinally it provides output monitoring channel to control individual channels or result of summing signals passed
     	to individual mono output channels.
-    <?php } elseif ($m == 'stereo') { ?>
+    <?php } elseif ($m == 's') { ?>
 		This plugin performs split of stereo input signal into separate frequency bands passed to individual stereo output channels.
 		Additinally it provides output monitoring channel to control individual channels or result of summing signals
 		passed to individual stereo output channels.
@@ -34,6 +34,11 @@
     Each range of the frequency band can be adjusted by specifying the slope of the corresponding Low-pass and High-pass filters.
     The frequency graph allows to view characteristics of filters for each frequency band and the result of summing the frequency response
     for all filters. For better audio engineering the plugin addionally provides FFT analysis of input and output signal.
+</p>
+<p>
+	Note that <b>Phase</b> and <b>Delay</b> band parameters do not affect the estimated frequency graph which is computed
+	for non-inverted band phase and zero delay value. For another settings, the actual frequency response can be obtained from
+	the FFT analysis of the output signal.
 </p>
 
 <p><b>Controls:</b></p>
@@ -57,6 +62,8 @@
 	<li><b>Gain</b> - adjusts gain to the corresponding frequency band.</li>
 	<li><b>Solo</b> - enables soloing of the corresponding frequency band for the monitoring channel.</li>
 	<li><b>Mute</b> - mutes the corresponding frequency band for the monitoring channel.</li>
+	<li><b>Phase</b> - inverts phase for the the corresponding frequency band.</li>
+	<li><b>Delay</b> - adds specified delay for the corresponding frequency band.</li>
 	<li><b>Hue</b> - adjusts hue of the frequency band in the UI.</li>
 </ul>
 <p><b>'Signal' section:</b></p>

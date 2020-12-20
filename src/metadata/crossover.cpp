@@ -87,7 +87,9 @@ namespace lsp
     #define XOVER_BAND(id, label, x, total, fe, fs) \
             SWITCH("bs" id, "Solo band" label, 0.0f), \
             SWITCH("bm" id, "Mute band" label, 0.0f), \
+            SWITCH("bp" id, "Phase invert" label, 0.0f), \
             LOG_CONTROL("bg" id, "Band gain" label, U_GAIN_AMP, crossover_base_metadata::MAKEUP), \
+            CONTROL("bd" id, "Band delay" label, U_MSEC, crossover_base_metadata::DELAY), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
             MESH("bfc" id, "Band frequency chart" label, 2, crossover_base_metadata::FILTER_MESH_POINTS)

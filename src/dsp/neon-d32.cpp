@@ -97,6 +97,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/fft.h>
 #include <dsp/arch/arm/neon-d32/fastconv.h>
 #include <dsp/arch/arm/neon-d32/mix.h>
+#include <dsp/arch/arm/neon-d32/interpolate.h>
 
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
@@ -368,6 +369,13 @@ namespace neon_d32
         EXPORT1(mix_add2);
         EXPORT1(mix_add3);
         EXPORT1(mix_add4);
+
+        EXPORT1(lin_inter_set);
+        EXPORT1(lin_inter_mul2);
+        EXPORT1(lin_inter_mul3);
+        EXPORT1(lin_inter_fmadd2);
+        EXPORT1(lin_inter_frmadd2);
+        EXPORT1(lin_inter_fmadd3);
     }
 }
 

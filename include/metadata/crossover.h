@@ -42,6 +42,12 @@ namespace lsp
         static const float          MAKEUP_DFL          = GAIN_AMP_0_DB;
         static const float          MAKEUP_STEP         = 0.05f;
 
+        // Delay for each band
+        static const float          DELAY_MIN           = 0.0f;
+        static const float          DELAY_MAX           = 1000.0f;
+        static const float          DELAY_DFL           = 0.0f;
+        static const float          DELAY_STEP          = 0.5f;
+
         // Split frequency
         static const float          SPLIT_FREQ_MIN      = 10.0f;
         static const float          SPLIT_FREQ_MAX      = 20000.0f;

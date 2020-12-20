@@ -256,7 +256,7 @@ namespace lsp
                     virtual const char * const *get_drag_ctypes();
 
                     virtual status_t    reject_drag();
-                    virtual status_t    acceptDrag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
+                    virtual status_t    accept_drag(IDataSink *sink, drag_t action, bool internal, const realize_t *r);
 
                     void                handle_error(XErrorEvent *ev);
 

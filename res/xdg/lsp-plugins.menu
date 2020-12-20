@@ -7,6 +7,8 @@
       <Name>lsp-plugins</Name>
       <Directory>lsp-plugins.directory</Directory>
       <Include>
+        <Filename>in.lsp_plug.lsp_plugins_art_delay_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_art_delay_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_comp_delay_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_comp_delay_stereo.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_comp_delay_x2_stereo.desktop</Filename>

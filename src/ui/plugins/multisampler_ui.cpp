@@ -21,11 +21,31 @@
 
 #include <ui/plugins/multisampler_ui.h>
 #include <core/files/Hydrogen.h>
+#include <core/system.h>
+#include <core/io/Dir.h>
 
 #include <metadata/plugins.h>
 
 namespace lsp
 {
+    static const char * h2_system_paths[] =
+    {
+        "/usr/share/hydrogen",
+        "/usr/local/share/hydrogen",
+        "/opt/hydrogen",
+        "/share/hydrogen",
+        NULL
+    };
+
+    static const char * h2_user_paths[] =
+    {
+        ".hydrogen",
+        ".h2",
+        ".config/hydrogen",
+        ".config/h2",
+        NULL
+    };
+
     multisampler_ui::multisampler_ui(const plugin_metadata_t *mdata, void *root_widget):
         plugin_ui(mdata, root_widget)
     {
@@ -36,6 +56,17 @@ namespace lsp
     multisampler_ui::~multisampler_ui()
     {
         pHydrogenImport = NULL;      // Will be automatically destroyed from list of widgets
+
+        // Destroy all information about drumkits
+        for (size_t i=0, n=vDrumkits.size(); i<n; ++i)
+        {
+            h2drumkit_t *dk = vDrumkits.at(i);
+            if (dk == NULL)
+                continue;
+            dk->pMenu       = NULL;
+            delete dk;
+        }
+        vDrumkits.flush();
     }
 
     status_t multisampler_ui::build()
@@ -43,6 +74,9 @@ namespace lsp
         status_t res = plugin_ui::build();
         if (res != STATUS_OK)
             return res;
+
+        lookup_hydrogen_files();
+        sort_hydrogen_files();
 
         // Find hydrogen port
         pHydrogenPath   =  port(UI_CONFIG_PORT_PREFIX UI_DLG_HYDROGEN_PATH_ID);
@@ -57,6 +91,195 @@ namespace lsp
             child->text()->set("actions.import_hydrogen_drumkit_file");
             child->slots()->bind(LSPSLOT_SUBMIT, slot_start_import_hydrogen_file, this);
             menu->add(child);
+
+            if (vDrumkits.size() > 0)
+            {
+                // Create menu item
+                child           = new LSPMenuItem(&sDisplay);
+                vWidgets.add(child);
+                child->init();
+                child->text()->set("actions.import_installed_hydrogen_drumkit");
+                menu->add(child);
+
+                // Create submenu
+                menu            = new LSPMenu(&sDisplay);
+                vWidgets.add(menu);
+                menu->init();
+                child->set_submenu(menu);
+
+                // Add hydrogen files to menu
+                add_hydrogen_files_to_menu(menu);
+            }
+        }
+
+        return STATUS_OK;
+    }
+
+    void multisampler_ui::sort_hydrogen_files()
+    {
+        if (vDrumkits.size() < 2)
+            return;
+
+        // Simple selection sort
+        for (size_t i=0, n=vDrumkits.size()-1; i<n; ++i)
+            for (size_t j=i+1; j<=n; ++j)
+            {
+                h2drumkit_t *a = vDrumkits.at(i);
+                h2drumkit_t *b = vDrumkits.at(j);
+                if (a->sName.compare_to_nocase(&b->sName) > 0)
+                    vDrumkits.swap(i, j);
+            }
+    }
+
+    status_t multisampler_ui::add_drumkit(const io::Path *path, const hydrogen::drumkit_t *dk, bool system)
+    {
+        h2drumkit_t *drumkit = new h2drumkit_t();
+        if (drumkit == NULL)
+            return STATUS_NO_MEM;
+
+        if (!drumkit->sName.set(&dk->name))
+        {
+            delete drumkit;
+            return STATUS_NO_MEM;
+        }
+
+        if (drumkit->sPath.set(path) != STATUS_OK)
+        {
+            delete drumkit;
+            return STATUS_NO_MEM;
+        }
+
+        drumkit->bSystem        = system;
+        drumkit->pMenu          = NULL;
+
+        if (!vDrumkits.add(drumkit))
+        {
+            delete drumkit;
+            return STATUS_NO_MEM;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t multisampler_ui::scan_hydrogen_directory(const io::Path *path, bool system)
+    {
+        status_t res;
+        io::Path dir, subdir;
+        io::fattr_t fa;
+
+        // Open the directory
+        if ((res = dir.set(path)) != STATUS_OK)
+            return res;
+        if ((res = dir.append_child("data/drumkits")) != STATUS_OK)
+            return res;
+
+        io::Dir fd;
+        if ((res = fd.open(&dir)) != STATUS_OK)
+            return res;
+
+        // Read the directory
+        while ((res = fd.read(&subdir, true)) == STATUS_OK)
+        {
+            if ((subdir.is_dot()) || (subdir.is_dotdot()))
+                continue;
+
+            // Find all subdirectories
+            if ((res = io::File::sym_stat(&subdir, &fa)) != STATUS_OK)
+                continue;
+            if (fa.type != io::fattr_t::FT_DIRECTORY)
+                continue;
+
+            // Lookup for drumkit file
+            if ((res = subdir.append_child("drumkit.xml")) != STATUS_OK)
+                continue;
+
+            // Load drumkit settings
+            hydrogen::drumkit_t dk;
+            if ((res = hydrogen::load(&subdir, &dk)) != STATUS_OK)
+                continue;
+
+            // If all is OK, add drumkit metadata
+            if ((res = add_drumkit(&subdir, &dk, system)) != STATUS_OK)
+            {
+                fd.close();
+                return STATUS_NO_MEM;
+            }
+        }
+
+        // Close the directory
+        fd.close();
+
+        return (res == STATUS_EOF) ? STATUS_OK : res;
+    }
+
+    void multisampler_ui::lookup_hydrogen_files()
+    {
+        // Lookup in system directories
+        io::Path dir, subdir;
+        for (const char **path = h2_system_paths; (path != NULL) && (*path != NULL); ++path)
+        {
+            if (dir.set(*path) != STATUS_OK)
+                continue;
+
+            scan_hydrogen_directory(&dir, true);
+        }
+
+        // Lookup in user's home directory
+        if (system::get_home_directory(&dir) != STATUS_OK)
+            return;
+
+        for (const char **path = h2_user_paths; (path != NULL) && (*path != NULL); ++path)
+        {
+            if (subdir.set(&dir) != STATUS_OK)
+                continue;
+            if (subdir.append_child(*path) != STATUS_OK)
+                continue;
+
+            scan_hydrogen_directory(&subdir, false);
+        }
+    }
+
+    void multisampler_ui::add_hydrogen_files_to_menu(LSPMenu *menu)
+    {
+        LSPString tmp;
+
+        for (size_t i=0, n=vDrumkits.size(); i<n; ++i)
+        {
+            h2drumkit_t *h2 = vDrumkits.at(i);
+
+            LSPMenuItem *child = new LSPMenuItem(&sDisplay);
+            vWidgets.add(child);
+            child->init();
+            child->text()->set((h2->bSystem) ? "labels.file_display.system" : "labels.file_display.user");
+            child->text()->params()->set_string("file", h2->sPath.as_string());
+            if (h2->sPath.get_parent(&tmp) == STATUS_OK)
+                child->text()->params()->set_string("parent", &tmp);
+            if (h2->sPath.get_last(&tmp) == STATUS_OK)
+                child->text()->params()->set_string("name", &tmp);
+            child->text()->params()->set_string("title", &h2->sName);
+
+            // Bind
+            child->slots()->bind(LSPSLOT_SUBMIT, slot_import_hydrogen_file, this);
+            menu->add(child);
+            h2->pMenu       = child;
+        }
+    }
+
+    status_t multisampler_ui::slot_import_hydrogen_file(LSPWidget *sender, void *ptr, void *data)
+    {
+        multisampler_ui *_this = static_cast<multisampler_ui *>(ptr);
+        if (_this == NULL)
+            return STATUS_BAD_STATE;
+
+        for (size_t i=0, n=_this->vDrumkits.size(); i<n; ++i)
+        {
+            h2drumkit_t *h2 = _this->vDrumkits.at(i);
+            if (h2->pMenu == sender)
+            {
+                lsp_trace("Importing Hydrogen file from %s", h2->sPath.as_utf8());
+                _this->import_hydrogen_file(h2->sPath.as_string());
+                break;
+            }
         }
 
         return STATUS_OK;
@@ -329,6 +552,7 @@ namespace lsp
 
         return STATUS_OK;
     }
+
 }
 
 

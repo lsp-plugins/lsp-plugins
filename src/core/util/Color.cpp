@@ -111,14 +111,18 @@ namespace lsp
             H = (R - G) / d + 4.0;
 
         // Calculate saturation
-        if (L < 1.0)
-            S = d / L;
-        else if (L > 1.0)
-            S = d / (1.0 - L);
+//        if (L < 1.0)
+//            S = d / L;
+//        else if (L > 1.0)
+//            S = d / (1.0 - L);
+        if (L <= 0.5f)
+            S = (L <= 0.0f) ? 0.0f : d / L;
+        else if (L > 0.5f)
+            S = (L < 1.0f) ? d / (1.0f - L) : 0.0f;
 
         // Normalize hue
-        H  /= 6.0;
-        S  *= 0.5;
+        H  /= 6.0f;
+        S  *= 0.5f;
 
         nMask |= M_HSL;
     }

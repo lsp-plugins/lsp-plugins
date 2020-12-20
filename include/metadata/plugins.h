@@ -52,6 +52,7 @@
 #define LSP_LOUD_COMP_BASE              LSP_LADSPA_BASE + 98
 #define LSP_SURGE_FILTER_BASE           LSP_LADSPA_BASE + 100
 #define LSP_CROSSOVER_BASE              LSP_LADSPA_BASE + 102
+#define LSP_ART_DELAY_BASE              LSP_LADSPA_BASE + 106
 
 #define LSP_NONLINEAR_CONVOLVER_BASE    LSP_LADSPA_BASE + 1000
 
@@ -83,6 +84,7 @@
 #include <metadata/loud_comp.h>
 #include <metadata/surge_filter.h>
 #include <metadata/crossover.h>
+#include <metadata/art_delay.h>
 
 #include <metadata/nonlinear_convolver.h>
 

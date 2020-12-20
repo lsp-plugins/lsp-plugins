@@ -297,7 +297,7 @@ namespace lsp
         // Open file for reading
         FILE *fd = fopen("/proc/curproc/map", "r");
         if (fd == NULL)
-            return NULL;
+            return false;
 
         char *line      = NULL;
         ssize_t len     = 0;
@@ -350,7 +350,7 @@ namespace lsp
         // Open file for reading
         FILE *fd = popen(cmd, "r");
         if (fd == NULL)
-            return NULL;
+            return false;
 
         char *line      = NULL;
         ssize_t len     = 0;

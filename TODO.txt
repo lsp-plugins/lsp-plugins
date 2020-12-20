@@ -5,6 +5,8 @@
 === Planned ===
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
+- Implemented dynamic equalizer plugin.
+- Implemented soundfont-based sampler.
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
@@ -20,6 +22,10 @@
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Implemented Multiband Dynamic Processor plugin series.
+- Changed channel/device numbering to start with 1 in the UI.
+- Added support of auto-mute feature for plugins.
+- Added 'Reset to default' button.
+- Added possibility to change themes in runtime.
 
 *******************************************************************************
 * New plugin check list before release

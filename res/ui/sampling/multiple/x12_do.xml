@@ -33,7 +33,7 @@
 						<combo id="note[inst]" fill="true" />
 						<combo id="oct[inst]" fill="true" />
 					</hbox>
-					<indicator id="mn[inst]" format="i3" text_color="green" />
+					<midinote id="mn[inst]" note_id="note[inst]" octave_id="oct[inst]" format="i3" text_color="green" />
 					<cell rows="2"><knob id="dyna[inst]" scale_color="green" /></cell>
 					<cell rows="2"><knob id="drft[inst]" scale_color="green" /></cell>
 					
@@ -100,7 +100,8 @@
 						bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
 					/>
 						
-					<grid rows="3" cols="7" vspacing="2">
+					<grid rows="3" cols="8" spacing="2">
+						<label text="labels.sedit.reverse" />
 						<label text="labels.sedit.head_cut" />
 						<label text="labels.sedit.tail_cut" />
 						<label text="labels.sedit.fade_in" />
@@ -109,6 +110,7 @@
 						<label text="labels.sedit.predelay" />
 						<label text="labels.sedit.listen" />
 						
+						<button id="rs[inst][ssel]" size="32" />
 						<knob id="hc[inst][ssel]" size="20" />
 						<knob id="tc[inst][ssel]" size="20" />
 						<knob id="fi[inst][ssel]" size="20" scale_color="yellow" />
@@ -117,6 +119,7 @@
 						<knob id="pd[inst][ssel]" size="20" />
 						<button id="ls[inst][ssel]" size="32" toggle="false" />
 						
+						<led id="rs[inst][ssel]" />
 						<value id="hc[inst][ssel]" />
 						<value id="tc[inst][ssel]" />
 						<value id="fi[inst][ssel]" />
@@ -188,7 +191,7 @@
 					<knob id="panr_${i}" size="20" balance="0.5" scale_color="cyan" />
 					<value id="panr_${i}" detailed="false" />
 					<combo id="mgrp_${i}" />
-					<indicator id="mn_${i}" format="i3" text_color="green" />
+					<midinote id="mn_${i}" note_id="note_${i}" octave_id="oct_${i}" format="i3" text_color="green" />
 					<led id="iact_${i}" />
 					<button id="trg_${i}" size="32" toggle="false" />
 					<led id="trg_${i}" />

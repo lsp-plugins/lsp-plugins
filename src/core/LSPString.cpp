@@ -1944,6 +1944,34 @@ namespace lsp
     }
 #endif /* PLATFORM_WINDOWS */
 
+    size_t LSPString::match(const LSPString *s, size_t index) const
+    {
+        if (index >= nLength)
+            return 0;
+        size_t i=0, n = lsp_min(s->nLength, nLength - index);
+
+        for (; i < n; ++i)
+        {
+            if (pData[i] != s->pData[i])
+                return i;
+        }
+        return i;
+    }
+
+    size_t LSPString::match_nocase(const LSPString *s, size_t index) const
+    {
+        if (index >= nLength)
+            return 0;
+        size_t i=0, n = lsp_min(s->nLength, nLength - index);
+
+        for (; i < n; ++i)
+        {
+            if (towlower(pData[i]) != towlower(s->pData[i]))
+                return i;
+        }
+        return i;
+    }
+
     char *LSPString::clone_utf8(size_t *bytes, ssize_t first, ssize_t last) const
     {
         const char *utf8 = get_utf8(first, last);

@@ -42,14 +42,14 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
-                return;
-
-            LSPIndicator *ind = static_cast<LSPIndicator *>(pWidget);
+            LSPIndicator *ind = widget_cast<LSPIndicator>(pWidget);
 
             // Initialize color controllers
-            sColor.init_hsl(pRegistry, ind, ind->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
-            sTextColor.init_basic(pRegistry, ind, ind->text_color(), A_TEXT_COLOR);
+            if (ind != NULL)
+            {
+                sColor.init_hsl(pRegistry, ind, ind->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+                sTextColor.init_basic(pRegistry, ind, ind->text_color(), A_TEXT_COLOR);
+            }
         }
 
         void CtlIndicator::end()
@@ -61,9 +61,9 @@ namespace lsp
         void CtlIndicator::commit_value(float value)
         {
 //            lsp_trace("commit value=%f", value);
-            if (pWidget == NULL)
+            LSPIndicator *ind = widget_cast<LSPIndicator>(pWidget);
+            if (ind == NULL)
                 return;
-            LSPIndicator *ind = static_cast<LSPIndicator *>(pWidget);
 
             if (pPort != NULL)
             {
@@ -82,7 +82,7 @@ namespace lsp
 
         void CtlIndicator::set(widget_attribute_t att, const char *value)
         {
-            LSPIndicator *ind = (pWidget != NULL) ? static_cast<LSPIndicator *>(pWidget) : NULL;
+            LSPIndicator *ind = widget_cast<LSPIndicator>(pWidget);
 
             switch (att)
             {
@@ -109,7 +109,6 @@ namespace lsp
         void CtlIndicator::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
-
             if (pPort == port)
                 commit_value(pPort->get_value());
         }

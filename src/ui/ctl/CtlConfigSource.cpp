@@ -59,7 +59,7 @@ namespace lsp
             if (ref == NULL)
                 return STATUS_EOF;
 
-            LSP_STATUS_ASSERT(format_port_value(ref->pPort, name, value, comment, flags));
+            LSP_STATUS_ASSERT(format_port_value(ref->pPort, name, value, comment, flags, NULL));
             if (!name->set(&ref->sName))
                 return STATUS_NO_MEM;
 

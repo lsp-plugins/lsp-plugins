@@ -1015,6 +1015,7 @@ namespace lsp
 
         status_t LSPAudioFile::on_drag_request(const ws_event_t *e, const char * const *ctype)
         {
+            lsp_trace("Accepting drag");
             ssize_t idx = pSink->select_mime_type(ctype);
             if (idx >= 0)
                 pDisplay->accept_drag(pSink, DRAG_COPY, true, &sSize);

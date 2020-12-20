@@ -21,6 +21,8 @@
 
 #include <ui/ctl/ctl.h>
 
+#define TMP_BUF_SIZE        128
+
 namespace lsp
 {
     namespace ctl
@@ -29,6 +31,8 @@ namespace lsp
 
         CtlText::CtlText(CtlRegistry *src, LSPText *text): CtlWidget(src, text)
         {
+            pPort           = NULL;
+
             pClass          = &metadata;
         }
 
@@ -61,6 +65,31 @@ namespace lsp
             }
         }
 
+        void CtlText::update_text()
+        {
+            // Update text
+            if (pPort == NULL)
+                return;
+
+            LSPText *text       = widget_cast<LSPText>(pWidget);
+            if (text == NULL)
+                return;
+
+            // Get port metadata and value
+            const port_t *mdata = pPort->metadata();
+            if (mdata == NULL)
+                return;
+            float value         = pPort->get_value();
+
+            // Format the value
+            char buf[TMP_BUF_SIZE];
+            calc::Parameters params;
+            format_value(buf, TMP_BUF_SIZE, mdata, value, -1);
+
+            // Update text parameter
+            text->text()->params()->set_cstring("value", buf);
+        }
+
         void CtlText::init()
         {
             CtlWidget::init();
@@ -78,6 +107,8 @@ namespace lsp
         {
             CtlWidget::end();
             update_coords();
+            if (pPort != NULL)
+                update_text();
         }
 
         void CtlText::set(const char *name, const char *value)
@@ -100,6 +131,9 @@ namespace lsp
                     break;
                 case A_BASIS:
                     sBasis.parse(value, EXPR_FLAGS_MULTIPLE);
+                    break;
+                case A_ID:
+                    BIND_PORT(pRegistry, pPort, value);
                     break;
                 case A_HALIGN:
                     if (text != NULL)
@@ -130,6 +164,8 @@ namespace lsp
         {
             CtlWidget::notify(port);
             update_coords();
+            if (port == pPort)
+                update_text();
         }
     } /* namespace ctl */
 } /* namespace lsp */

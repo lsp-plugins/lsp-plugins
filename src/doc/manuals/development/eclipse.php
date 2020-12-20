@@ -92,16 +92,6 @@ and enter into the <b>Other flags</b> field the following string:</p>
 	<img src="<?= $IMG ?>eclipse-project-linker-general.png">
 </div>
 
-<p>Select <b>GCC C++ Linker</b> &rarr; <b>General</b> settings and enable the <b>Support for pthread (-pthread)</b> option:<p>
-<div class="images">
-	<img src="<?= $IMG ?>eclipse-project-linker-general.png">
-</div>
-
-<p>Select <b>GCC C++ Linker</b> &rarr; <b>General</b> settings and enable the <b>Support for pthread (-pthread)</b> option:<p>
-<div class="images">
-	<img src="<?= $IMG ?>eclipse-project-linker-general.png">
-</div>
-
 <p>Select <b>GCC C++ Linker</b> &rarr; <b>Libraries</b> settings and add the following libraries to the list:
 <ul>
 	<li>pthread</li>

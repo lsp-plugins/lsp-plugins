@@ -23,6 +23,7 @@ export BUILD_R3D_BACKENDS
 INSTALLATIONS           =
 UNINSTALLATIONS         =
 RELEASES                =
+INCLUDE                 = -I"${CURDIR}/include"
 
 ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
   INSTALLATIONS          += install_ladspa
@@ -83,6 +84,7 @@ ifeq ($(BUILD_PROFILE),x86_64)
 endif
 
 ifeq ($(BUILD_PLATFORM), BSD)
+  INCLUDE          += -I/usr/local/include
   ifeq ($(BUILD_PROFILE),arm)
     CC_ARCH          = -marm
     ifneq ($(LD_PATH),)
@@ -119,8 +121,7 @@ endif
 export CC_ARCH
 export LD_ARCH
 export LD_PATH
-
-export INCLUDE     = -I"${CURDIR}/include"
+export INCLUDE
 
 # Dependencies: compile headers and linkage libraries
 ifeq ($(BUILD_SYSTEM),Windows)
@@ -134,6 +135,8 @@ else
   export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
   export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
   export XLIB_LIBS        = $(shell pkg-config --libs x11)
+  export LV2_HEADERS      = $(shell pkg-config --cflags lv2)
+  export LV2_LIBS         = $(shell pkg-config --libs lv2)
   export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
   export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
   export JACK_HEADERS     = $(shell pkg-config --cflags jack)

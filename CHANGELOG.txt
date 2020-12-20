@@ -2,6 +2,28 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.28 ===
+
+* Implemented Atristic Delay plugin.
+* Added delay time and phase inversion for each band of the crossover plugin.
+* MIDI octave numbering now starts with "-1", previously it started with "-2".
+* Added automatic scanning of installed Hydrogen drumkits to the Multisampler plugin series
+  and possibility to load them by single click in the main menu.
+* Added sample reversal feature to the Sampler/Multisampler/Trigger plugin series.
+* Added possibility to change the note number in Sampler/Multisampler/Trigger plugin series
+  by scrolling mouse wheel over the note number indicator or performing mouse double click on it.
+* Added possibility to use relative paths in file configurations.
+* Added 'Plugin Manual' menu item to show the documentation to plugin in the browser.
+* Added 'UI Manual' menu item to show the documentation to UI in the browser.
+* Added tutorial of using hydrogen drumkits in the Multisampler plugin series - contributed by chrisanthropic @ github.
+* Updated french translations - contributed by Olivier Humbert.
+* Plugins now can be built with Clang C++ compiler version 10+.
+* Refactored ipc::Process for better work with vfork() system call.
+* Fixed bug in improper RGB -> HSL conversion for UI.
+* Fixed regression in led indication for the Compensation Delay plugin series.
+* Fixed drag&drop regression after code refactoring.
+* Fixed bug in Fraction widget related to nominator drop-down list values.
+
 === 1.1.26 ===
 
 * Implemented Crossover Plugin series.

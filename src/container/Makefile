@@ -37,20 +37,20 @@ ifeq ($(BUILD_PLATFORM),BSD)
   LIBS                   += $(ICONV_LIBS)
 endif
 
-LV2_OBJFILES            = $(OBJFILES)
-LV2_LIBS                = $(LIBS)
-LV2_DEPS                =
+X_LV2_OBJFILES          = $(OBJFILES)
+X_LV2_LIBS              = $(LIBS) $(LV2_LIBS)
+X_LV2_DEPS              =
 ifeq ($(LV2_UI),1)
-  LV2_DEPS               += $(OBJ_HELPERS)
-  LV2_OBJFILES           += $(OBJ_HELPERS) $(UI_OBJFILES)
-  LV2_LIBS               += $(UI_LIBS)
+  X_LV2_DEPS             += $(OBJ_HELPERS)
+  X_LV2_OBJFILES         += $(OBJ_HELPERS) $(UI_OBJFILES)
+  X_LV2_LIBS             += $(UI_LIBS)
 endif
 
-VST_OBJFILES            = $(OBJFILES)
-VST_LIBS                = $(LIBS)
+X_VST_OBJFILES          = $(OBJFILES)
+X_VST_LIBS              = $(LIBS)
 ifeq ($(VST_UI),1)
-  VST_OBJFILES           += $(UI_OBJFILES)
-  VST_LIBS               += $(UI_LIBS)
+  X_VST_OBJFILES         += $(UI_OBJFILES)
+  X_VST_LIBS             += $(UI_LIBS)
 endif
 
 .PHONY: all
@@ -67,17 +67,17 @@ $(LIB_LADSPA):
 	@echo "  $(CXX) $(notdir $(LIB_LADSPA))"
 	@$(CXX) -o $(LIB_LADSPA) $(OBJDIR)/ladspa.o $(OBJFILES) $(SO_FLAGS) $(LIBS)
 
-$(LIB_LV2): $(LV2_DEPS)
+$(LIB_LV2): $(X_LV2_DEPS)
 	@echo "  $(CXX) lv2.cpp"
-	@$(CXX) -o $(OBJDIR)/lv2.o -c lv2.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(CAIRO_HEADERS)
-	@echo "  $(CXX) $(notdir $(LIB_LV2))"
-	@$(CXX) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(LV2_OBJFILES) $(SO_FLAGS) $(LV2_LIBS)
+	@$(CXX) -o $(OBJDIR)/lv2.o -c lv2.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(CAIRO_HEADERS) $(LV2_HEADERS)
+	@echo "  $(CXX) $(notdir $(X_LIB_LV2))"
+	@$(CXX) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(X_LV2_OBJFILES) $(SO_FLAGS) $(X_LV2_LIBS)
 
 $(LIB_VST):
 	@echo "  $(CXX) vst.cpp"
 	@$(CXX) -o $(OBJDIR)/vst.o -c vst.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 	@echo "  $(CXX) $(notdir $(LIB_VST))"
-	@$(CXX) -o $(LIB_VST) $(OBJDIR)/vst.o $(VST_OBJFILES) $(SO_FLAGS) $(VST_LIBS) 
+	@$(CXX) -o $(LIB_VST) $(OBJDIR)/vst.o $(X_VST_OBJFILES) $(SO_FLAGS) $(X_VST_LIBS) 
 
 $(LIB_JACK): $(OBJ_HELPERS)
 	@echo "  $(CXX) jack.cpp"

@@ -55,7 +55,7 @@ namespace lsp
     #define SLAP_DELAY_COMMON(pan)  \
         BYPASS, \
         COMBO("lsel", "Delay line selector", 0, slap_delay_lines), \
-        CONTROL("temp", "Tem", U_DEG_CEL, slap_delay_base_metadata::TEMPERATURE), \
+        CONTROL("temp", "Temperature", U_DEG_CEL, slap_delay_base_metadata::TEMPERATURE), \
         CONTROL("pred", "Pre-delay", U_MSEC, slap_delay_base_metadata::PRED_TIME), \
         CONTROL("strch", "Stretch time", U_PERCENT, slap_delay_base_metadata::STRETCH), \
         CONTROL("tempo", "Tempo", U_BPM, slap_delay_base_metadata::TEMPO), \

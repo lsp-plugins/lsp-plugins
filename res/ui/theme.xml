@@ -51,7 +51,7 @@
 		<dark_grey value="#444444" />
 		
 		<!-- Label colors -->
-		<label_text value="#dae0ff" />
+		<label_text value="#ebecee" />
 		<invalid_input value="#880000" />
 		
 		<!-- Button colors -->
@@ -64,7 +64,7 @@
 		
 		<!-- Logo -->
 		<logo_face value="#00c0ff" />
-		<logo_text value="#dae0ff" />
+		<logo_text value="#ebecee" />
 		
 		<!-- Graph colors -->
 		<graph_axis value="#cc8800" />

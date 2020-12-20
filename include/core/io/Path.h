@@ -59,7 +59,8 @@ namespace lsp
             private:
                 Path & operator = (const Path &);
 
-                inline void fixup_path();
+                inline void     fixup_path();
+                status_t        compute_relative(Path *base);
 
             public:
                 explicit Path();
@@ -136,6 +137,7 @@ namespace lsp
                 bool        is_dot() const;
                 bool        is_dotdot() const;
                 inline bool is_empty() const                        { return sPath.is_empty();  }
+                inline size_t   length() const                      { return sPath.length();            }
 
                 inline void clear()                                 { sPath.clear();    }
 
@@ -151,9 +153,9 @@ namespace lsp
                 status_t    get_canonical(LSPString *path) const;
                 status_t    get_canonical(Path *path) const;
 
-                inline status_t as_relative(const char *path)       { return remove_base(path); }
-                inline status_t as_relative(const LSPString *path)  { return remove_base(path); }
-                inline status_t as_relative(const Path *path)       { return remove_base(path); }
+                status_t    as_relative(const char *path);
+                status_t    as_relative(const LSPString *path);
+                status_t    as_relative(const Path *path);
 
                 bool        equals(const Path *path) const;
                 bool        equals(const LSPString *path) const;

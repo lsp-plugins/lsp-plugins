@@ -133,11 +133,13 @@ namespace lsp
             af->pLoader                 = NULL;
 
             af->bDirty                  = false;
+            af->bSync                   = false;
             af->fVelocity               = 1.0f;
             af->fHeadCut                = 0.0f;
             af->fTailCut                = 0.0f;
             af->fFadeIn                 = 0.0f;
             af->fFadeOut                = 0.0f;
+            af->bReverse                = false;
             af->fPreDelay               = PREDELAY_DFL;
             af->sListen.init();
             af->bOn                     = true;
@@ -155,6 +157,7 @@ namespace lsp
             af->pPreDelay               = NULL;
             af->pOn                     = NULL;
             af->pListen                 = NULL;
+            af->pReverse                = NULL;
             af->pLength                 = NULL;
             af->pStatus                 = NULL;
             af->pMesh                   = NULL;
@@ -278,6 +281,8 @@ namespace lsp
             af->pOn                 = ports[port_id++];
             TRACE_PORT(ports[port_id]);
             af->pListen             = ports[port_id++];
+            TRACE_PORT(ports[port_id]);
+            af->pReverse            = ports[port_id++];
 
             for (size_t j=0; j<nChannels; ++j)
             {
@@ -470,11 +475,28 @@ namespace lsp
                 af->fFadeOut    = value;
                 af->bDirty      = true;
             }
+
+            bool reverse    = af->pReverse->getValue() >= 0.5f;
+            if (reverse != af->bReverse)
+            {
+                af->bReverse    = reverse;
+                af->bDirty      = true;
+            }
         }
 
         // Get humanisation parameters
         fDynamics       = (pDynamics != NULL) ? pDynamics->getValue() * 0.01 : 0.0f; // fDynamics = 0..1.0
         fDrift          = (pDrift != NULL) ? pDrift->getValue() : 0.0f;
+    }
+
+    void sampler_kernel::sync_samples_with_ui()
+    {
+        // Iterate all samples
+        for (size_t i=0; i<nFiles; ++i)
+        {
+            afile_t *af         = &vFiles[i];
+            af->bSync           = true;
+        }
     }
 
     void sampler_kernel::update_sample_rate(long sr)
@@ -654,7 +676,11 @@ namespace lsp
                 {
                     float *dst          = s->getBuffer(j);
                     const float *src    = afs->pFile->channel(j);
-                    dsp::copy(dst, &src[head], max_samples);
+
+                    if (af->bReverse)
+                        dsp::reverse2(dst, &src[tail], max_samples);
+                    else
+                        dsp::copy(dst, &src[head], max_samples);
 
                     // Apply fade-in and fade-out to the buffer
                     fade_in(dst, dst, millis_to_samples(nSampleRate, af->fFadeIn), max_samples);
@@ -687,8 +713,9 @@ namespace lsp
             }
             else
             {
-                // Mark  sample empty
-                s->setLength(0);
+                // Cleanup sample data
+                for (size_t j=0; j<s->channels(); ++j)
+                    dsp::fill_zero(afs->vThumbs[j], MESH_SIZE);
 
                 // Unbind empty sample
                 for (size_t j=0; j<nChannels; ++j)
@@ -702,8 +729,9 @@ namespace lsp
                 vChannels[j].unbind(af->nID);
         }
 
-        // Reset dirty flag
+        // Reset dirty flag and set sync flag
         af->bDirty      = false;
+        af->bSync       = true;
     }
 
     void sampler_kernel::reorder_samples()
@@ -984,9 +1012,9 @@ namespace lsp
             // Output activity flag
             af->pActive->setValue(((af->bOn) && (channels > 0)) ? 1.0f : 0.0f);
 
-            // Store file dump to mesh
+            // Store file thumbnails to mesh
             mesh_t *mesh        = reinterpret_cast<mesh_t *>(af->pMesh->getBuffer());
-            if ((mesh == NULL) || (!mesh->isEmpty()))
+            if ((mesh == NULL) || (!mesh->isEmpty()) || (!af->bSync))
                 continue;
 
             if (channels > 0)
@@ -999,6 +1027,8 @@ namespace lsp
             }
             else
                 mesh->data(0, 0);
+
+            af->bSync           = false;
         }
     }
 
@@ -1429,6 +1459,16 @@ namespace lsp
                 sc->sBypass.init(sr);
                 sc->sDryBypass.init(sr);
             }
+        }
+    }
+
+    void sampler_base::ui_activated()
+    {
+        // Update settings on all samplers
+        for (size_t i=0; i<nSamplers; ++i)
+        {
+            sampler_t *s = &vSamplers[i];
+            s->sSampler.sync_samples_with_ui();
         }
     }
 

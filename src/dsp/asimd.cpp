@@ -95,6 +95,8 @@ namespace asimd // TODO: make constants common for all architectures
 #include <dsp/arch/aarch64/asimd/filters/transfer.h>
 #include <dsp/arch/aarch64/asimd/filters/transform.h>
 
+#include <dsp/arch/aarch64/asimd/interpolate.h>
+
 
 #define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
@@ -359,6 +361,13 @@ namespace asimd
         EXPORT1(downsample_8x);
 
         EXPORT1(convolve);
+
+        EXPORT1(lin_inter_set);
+        EXPORT1(lin_inter_mul2);
+        EXPORT1(lin_inter_mul3);
+        EXPORT1(lin_inter_fmadd2);
+        EXPORT1(lin_inter_frmadd2);
+        EXPORT1(lin_inter_fmadd3);
     }
 }
 

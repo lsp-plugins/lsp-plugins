@@ -281,6 +281,56 @@ namespace lsp
             return res;
         }
 
+        status_t read_instrument_component(xml::PullParser *p,  instrument_t *inst)
+        {
+            status_t item, res = STATUS_OK;
+
+            do
+            {
+                if ((item = p->read_next()) < 0)
+                    return -item;
+
+                switch (item)
+                {
+                    case xml::XT_CHARACTERS:
+                    case xml::XT_CDATA:
+                    case xml::XT_COMMENT:
+                        break;
+
+                    case xml::XT_START_ELEMENT:
+                    {
+                        const LSPString *name = p->name();
+                        if (name->equals_ascii("layer"))
+                        {
+                            layer_t *layer = new layer_t();
+                            if (layer == NULL)
+                                return STATUS_NO_MEM;
+                            if (!inst->layers.add(layer))
+                            {
+                                delete layer;
+                                return STATUS_NO_MEM;
+                            }
+                            res = read_layer(p, layer);
+                        }
+                        else
+                        {
+                            lsp_warn("Unexpected tag: %s", name->get_native());
+                            res = skip_tags(p);
+                        }
+                        break;
+                    }
+
+                    case xml::XT_END_ELEMENT:
+                        return res;
+
+                    default:
+                        return STATUS_CORRUPTED;
+                }
+            } while (res == STATUS_OK);
+
+            return res;
+        }
+
         status_t read_instrument(xml::PullParser *p, instrument_t *inst)
         {
             status_t item, res = STATUS_OK;
@@ -372,6 +422,8 @@ namespace lsp
                             }
                             res = read_layer(p, layer);
                         }
+                        else if (name->equals_ascii("instrumentComponent"))
+                            res = read_instrument_component(p, inst);
                         else
                         {
                             lsp_warn("Unexpected tag: %s", name->get_native());

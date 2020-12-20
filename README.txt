@@ -194,8 +194,8 @@ from any location. After execution, the gprof profiling file 'gmon.out' is creat
 You may build plugins from scratch.
 
 For successful build you need the following packages to be installed:
-  * gcc >= 4.7
-  * gcc-c++ >= 4.7
+  * gcc >= 4.7 OR clang >= 10.0.1
+  * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
   * libstdc++-devel >= 4.7
   * jack-devel >= 1.9.5
