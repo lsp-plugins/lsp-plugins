@@ -26,6 +26,7 @@
 - Added support of auto-mute feature for plugins.
 - Added 'Reset to default' button.
 - Added possibility to change themes in runtime.
+- Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
 *******************************************************************************
 * New plugin check list before release
