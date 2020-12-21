@@ -5,7 +5,7 @@
 	{
 		$a = $a['description'];
 		$b = $b['description'];
-		return ($a == $b) ? 0 : ($a > $b) ? 1 : -1;
+		return ($a == $b) ? 0 : (($a > $b) ? 1 : -1);
 	}
 	
 	function sort_plugins()
