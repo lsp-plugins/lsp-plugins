@@ -28,6 +28,11 @@
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
+=== 1.1.40 ===
+
+- Channels of spectrum analyzer are now synchronized.
+- Fixed latency computation error for FIR and FFT modes of the filter.
+
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************
