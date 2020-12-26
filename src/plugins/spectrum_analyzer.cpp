@@ -68,6 +68,7 @@ namespace lsp
         pFrequency      = NULL;
         pLevel          = NULL;
         pLogScale       = NULL;
+        pFftData        = NULL;
 
         pFreeze         = NULL;
         pSpp            = NULL;
@@ -163,7 +164,6 @@ namespace lsp
             c->pFreeze          = NULL;
             c->pHue             = NULL;
             c->pShift           = NULL;
-            c->pSpec            = NULL;
         }
 
         lsp_assert(ptr <= &guard[alloc]);
@@ -236,7 +236,6 @@ namespace lsp
             c->pFreeze          = vPorts[port_id++];
             c->pHue             = vPorts[port_id++];
             c->pShift           = vPorts[port_id++];
-            c->pSpec            = vPorts[port_id++];
 
             // Sync metadata
             const port_t *meta  = c->pSolo->metadata();
@@ -265,6 +264,7 @@ namespace lsp
         pSelector       = vPorts[port_id++];
         pFrequency      = vPorts[port_id++];
         pLevel          = vPorts[port_id++];
+        pFftData        = vPorts[port_id++];
 
         // Bind spectralizer ports
         if (nChannels > 1)
@@ -601,6 +601,15 @@ namespace lsp
             c->vOut             = c->pOut->getBuffer<float>();
         }
 
+        // Check that mesh request is pending
+        mesh_t *mesh        = pFftData->getBuffer<mesh_t>();
+        bool mesh_request   = (mesh != NULL) && (mesh->isEmpty());
+        if ((enMode == SA_SPECTRALIZER) || (enMode == SA_SPECTRALIZER_STEREO))
+            mesh_request        = false;
+
+        if (mesh_request)
+            dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
+
         for (size_t n=samples; n > 0;)
         {
             // Get number of samples to process
@@ -615,25 +624,18 @@ namespace lsp
                 // Get channel pointer
                 sa_channel_t *c     = &vChannels[i];
 
-                // Get primitives
-                mesh_t *mesh        = reinterpret_cast<mesh_t *>(c->pSpec->getBuffer());
-
-                // Determine if there is a request for sync
-                bool mesh_request   = (mesh != NULL) && (mesh->isEmpty());
-                bool data_request   = (nChannel == i);
-
                 // Bypass signal
                 dsp::copy(c->vOut, c->vIn, count);
 
                 if (bBypass)
                 {
-                    if (mesh_request)
-                        mesh->data(2, 0);       // Set mesh to empty data
-                    if (data_request)
+                    if (nChannel == i)
                     {
                         pFrequency->setValue(0);
                         pLevel->setValue(0);
                     }
+                    if (mesh_request)
+                        dsp::fill_zero(mesh->pvData[i+1], spectrum_analyzer_base_metadata::MESH_POINTS);
                 }
                 else
                 {
@@ -641,7 +643,7 @@ namespace lsp
                     sAnalyzer.process(i, c->vIn, count);
 
                     // Copy data to output channel
-                    if (data_request)
+                    if (nChannel == i)
                     {
                         size_t idx  = fSelector * ((fft_size - 1) >> 1);
                         pFrequency->setValue(float(idx * fSampleRate) / float(fft_size));
@@ -652,19 +654,17 @@ namespace lsp
                     // Copy data to mesh
                     if (mesh_request)
                     {
-                        if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode != SA_SPECTRALIZER_STEREO))
+                        if (c->bSend)
                         {
                             // Copy frequency points
                             size_t flags = 0;
                             if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
                                 flags |= F_SMOOTH_LOG | F_MASTERING;
 
-                            dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
-                            get_spectrum(mesh->pvData[1], i, flags);
-                            mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS); // Mark mesh containing data
+                            get_spectrum(mesh->pvData[i+1], i, flags);
                         }
                         else
-                            mesh->data(2, 0);
+                            dsp::fill_zero(mesh->pvData[i+1], spectrum_analyzer_base_metadata::MESH_POINTS);
                     }
                 }
 
@@ -714,6 +714,10 @@ namespace lsp
             if (fired)
                 sCounter.commit();
         } // for n
+
+        // Commit mesh data
+        if (mesh_request)
+            mesh->data(nChannels + 1, spectrum_analyzer_base_metadata::MESH_POINTS);
     }
 
     bool spectrum_analyzer_base::inline_display(ICanvas *cv, size_t width, size_t height)

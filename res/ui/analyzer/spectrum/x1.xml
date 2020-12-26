@@ -53,7 +53,7 @@
 					<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 		
 					<!-- Meshes -->
-					<mesh id="spc_0" width="3" visibility_id="on_0" hue_id="hue_0" />
+					<mesh id="spd" x_index="0" y_index="1" width="3" visibility_id="on_0" hue_id="hue_0" />
 					
 					<!-- Boundaries -->
 					<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
