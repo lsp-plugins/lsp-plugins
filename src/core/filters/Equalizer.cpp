@@ -296,7 +296,7 @@ namespace lsp
 
         // Restore input buffer
         dsp::copy(vFftRe, vTmp, conv_len);
-        nLatency    = nConvSize;
+        nLatency    = nConvSize + (nConvSize >> 1);
     }
 
     void Equalizer::set_mode(equalizer_mode_t mode)
