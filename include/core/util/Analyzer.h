@@ -71,6 +71,7 @@ namespace lsp
             {
                 float      *vBuffer;        // FFT delay buffer
                 float      *vAmp;           // FFT amplitude
+                float      *vData;          // FFT data
                 ssize_t     nCounter;       // FFT trigger counter
                 ssize_t     nHead;          // Current position in the delay buffer
                 ssize_t     nDelay;         // Delay in the delay buffer
@@ -79,22 +80,23 @@ namespace lsp
             } channel_t;
 
         protected:
-            size_t      nChannels;
-            size_t      nMaxRank;
-            size_t      nRank;
+            size_t      nChannels;          // Overall number of channels
+            size_t      nStrobeId;          // Strobe channel to trigger sync
+            size_t      nMaxRank;           // Maximum FFT rank
+            size_t      nRank;              // Current FFT rank
             size_t      nSampleRate;        // Sample rate
             size_t      nMaxSampleRate;     // Maximum possible sample rate
-            ssize_t     nBufSize;
-            ssize_t     nFftPeriod;
-            float       fReactivity;
-            float       fTau;
+            ssize_t     nBufSize;           // Delay buffer size
+            ssize_t     nFftPeriod;         // FFT period
+            float       fReactivity;        // FFT reactivity
+            float       fTau;               // Smooth coefficient
             float       fRate;              // FFT refresh rate
             float       fMinRate;           // Minimum possible FFT refresh rate
-            float       fShift;
-            size_t      nReconfigure;
-            size_t      nEnvelope;
-            size_t      nWindow;
-            bool        bActive;
+            float       fShift;             // Gain shift
+            size_t      nReconfigure;       // Reconfiguration flags
+            size_t      nEnvelope;          // Type of spectral envelope
+            size_t      nWindow;            // Type of FFT window
+            bool        bActive;            // Activity flag
 
             channel_t  *vChannels;          // List of channels
             void       *vData;              // Allocated floating-point data
@@ -127,6 +129,12 @@ namespace lsp
              * @return status of operation
              */
             bool init(size_t channels, size_t max_rank, size_t max_sr, float min_rate);
+
+            /**
+             * Get overall number of channels
+             * @return overall number of channels
+             */
+            inline size_t get_channels() const      { return nChannels; }
 
             /** Set window for analysis
              *
@@ -309,13 +317,13 @@ namespace lsp
             /** Reconfigure analyzer
              *
              */
-            void reconfigure();
+            void            reconfigure();
 
             /** Check that analyzer needs reconfiguration
              *
              * @return true if needs reconfiguration
              */
-            inline bool needs_reconfiguration() const   { return nReconfigure; }
+            inline bool     needs_reconfiguration() const   { return nReconfigure; }
 
             /**
              * Dump the state
