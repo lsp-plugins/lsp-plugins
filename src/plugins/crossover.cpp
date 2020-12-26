@@ -84,7 +84,8 @@ namespace lsp
 
         // Initialize analyzer
         size_t an_cid           = 0;
-        if (!sAnalyzer.init(2*channels, crossover_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(2*channels, crossover_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, crossover_base_metadata::REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(crossover_base_metadata::FFT_RANK);

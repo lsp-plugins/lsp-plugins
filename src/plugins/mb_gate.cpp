@@ -93,7 +93,8 @@ namespace lsp
 
         // Initialize analyzer
         size_t an_cid       = 0;
-        if (!sAnalyzer.init(2*channels, mb_gate_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(2*channels, mb_gate_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, mb_gate_base_metadata::FFT_REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(mb_gate_base_metadata::FFT_RANK);

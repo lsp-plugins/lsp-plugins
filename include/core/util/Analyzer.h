@@ -69,9 +69,11 @@ namespace lsp
 
             typedef struct channel_t
             {
-                float      *vBuffer;        // FFT buffer
+                float      *vBuffer;        // FFT delay buffer
                 float      *vAmp;           // FFT amplitude
                 ssize_t     nCounter;       // FFT trigger counter
+                ssize_t     nHead;          // Current position in the delay buffer
+                ssize_t     nDelay;         // Delay in the delay buffer
                 bool        bFreeze;        // Freeze analysis
                 bool        bActive;        // Enable analysis
             } channel_t;
@@ -80,12 +82,14 @@ namespace lsp
             size_t      nChannels;
             size_t      nMaxRank;
             size_t      nRank;
-            size_t      nSampleRate;
-            size_t      nBufSize;
+            size_t      nSampleRate;        // Sample rate
+            size_t      nMaxSampleRate;     // Maximum possible sample rate
+            ssize_t     nBufSize;
             ssize_t     nFftPeriod;
             float       fReactivity;
             float       fTau;
-            float       fRate;
+            float       fRate;              // FFT refresh rate
+            float       fMinRate;           // Minimum possible FFT refresh rate
             float       fShift;
             size_t      nReconfigure;
             size_t      nEnvelope;
@@ -103,131 +107,129 @@ namespace lsp
             explicit Analyzer();
             ~Analyzer();
 
+            /**
+             * Construct analyzer
+             */
+            void        construct();
+
+            /** Destroy analyzer
+             *
+             */
+            void        destroy();
+
         public:
             /** Initialize analyzer
              *
              * @param channels number of channels for analysis
              * @param max_rank maximum FFT rank
+             * @param max_sr maximum sample rate
+             * @param min_rate minimum refresh rate
              * @return status of operation
              */
-            bool init(size_t channels, size_t max_rank);
-
-            /** Destroy analyzer
-             *
-             */
-            void destroy();
+            bool init(size_t channels, size_t max_rank, size_t max_sr, float min_rate);
 
             /** Set window for analysis
              *
              * @param window window
              */
-            inline void set_window(size_t window)
-            {
-                if (nWindow == window)
-                    return;
+            void set_window(size_t window);
 
-                nWindow         = window;
-                nReconfigure   |= R_WINDOW;
-            }
+            /**
+             * Get analyzer window
+             * @return analyzer window
+             */
+            inline size_t get_window() const        { return nWindow; }
 
             /** Set envelope for analysis
              *
              * @param envelope envelope type
              */
-            inline void set_envelope(size_t envelope)
-            {
-                if (nEnvelope == envelope)
-                    return;
+            void set_envelope(size_t envelope);
 
-                nEnvelope       = envelope;
-                nReconfigure   |= R_ENVELOPE;
-            }
+            /**
+             * Get envelope of analysis
+             * @return envelope of analysis
+             */
+            inline size_t get_envelope() const       { return nEnvelope; }
 
             /** Set shift gain for analysis
              *
              * @param envelope envelope type
              */
-            inline void set_shift(float shift)
-            {
-                if (fShift == shift)
-                    return;
+            void set_shift(float shift);
 
-                fShift          = shift;
-                nReconfigure   |= R_ENVELOPE;
-            }
+            /**
+             * Get gain shift value
+             * @return gain shift value
+             */
+            inline float get_shift() const          { return fShift; }
 
             /** Set sample rate for analysis
              *
              * @param sr sample rate
              */
-            inline void set_sample_rate(size_t sr)
-            {
-                if (nSampleRate == sr)
-                    return;
+            void set_sample_rate(size_t sr);
 
-                nSampleRate     = sr;
-                nReconfigure   |= R_ALL;
-            }
+            /**
+             * Get sample rate
+             * @return sample rate
+             */
+            inline size_t get_sample_rate() const { return nSampleRate; }
+
+            /**
+             * Get maximum possible sample rate
+             * @return maximum possible sample rate
+             */
+            inline size_t get_max_sample_rate() const { return nMaxSampleRate; }
 
             /** Set-up FFT analysis rate
              *
              * @param rate FFT rate
              */
-            inline void set_rate(float rate)
-            {
-                if (fRate == rate)
-                    return;
+            void set_rate(float rate);
 
-                fRate           = rate;
-                nReconfigure   |= R_COUNTERS;
-            }
+            /**
+             * Get current refresh rate
+             * @return current refresh rate
+             */
+            inline float get_rate() const { return fRate;   }
 
-            /** Set-up FFT reactivity
+            /**
+             * Get minimum possible rate
+             * @return minimum possible rate
+             */
+            inline float get_min_rate() const { return fMinRate;    }
+
+            /** Set-up FFT analysis reactivity
              *
              * @param reactivity reactivity (msec)
              */
-            inline void set_reactivity(float reactivity)
-            {
-                if (fReactivity == reactivity)
-                    return;
+            void set_reactivity(float reactivity);
 
-                fReactivity     = reactivity;
-                nReconfigure   |= R_TAU;
-            }
+            /**
+             * Get reactivity of the analysis
+             * @return reactivivy of the analysis
+             */
+            inline float get_reactivity() const     { return fReactivity; }
 
             /** Set rank of the analysis
              *
              * @param rank analysis rank
              * @return analysis rank
              */
-            inline bool set_rank(size_t rank)
-            {
-                if ((rank < 2) || (rank > nMaxRank))
-                    return false;
-                else if (nRank == rank)
-                    return true;
-                nRank           = rank;
-                nReconfigure   |= R_ALL;
-                return true;
-            }
+            bool set_rank(size_t rank);
 
             /**
              * Return current rank of analyzer
              * @return current rank of analyzer
              */
-            inline size_t get_rank() const
-            {
-                return nRank;
-            }
+            inline size_t get_rank() const          { return nRank; }
 
             /** Set analyzer activity
              *
              * @param active activity flag
              */
-            inline void set_activity(bool active)
-            {
-                bActive         = active;
-            }
+            inline void set_activity(bool active)   { bActive = active; }
 
             /** Freeze channel
              *
@@ -235,13 +237,7 @@ namespace lsp
              * @param freeze freeze flag
              * @return status of operation
              */
-            inline bool freeze_channel(size_t channel, bool freeze)
-            {
-                if (channel >= nChannels)
-                    return false;
-                vChannels[channel].bFreeze      = freeze;
-                return true;
-            }
+            bool freeze_channel(size_t channel, bool freeze);
 
             /** Enable channel
              *
@@ -249,13 +245,7 @@ namespace lsp
              * @param enable enable flag
              * @return status of operation
              */
-            inline bool enable_channel(size_t channel, bool enable)
-            {
-                if (channel >= nChannels)
-                    return false;
-                vChannels[channel].bActive      = enable;
-                return true;
-            }
+            bool enable_channel(size_t channel, bool enable);
 
             /** Check if channel is active
              *
@@ -264,10 +254,10 @@ namespace lsp
              */
             inline bool channel_active(size_t channel) const { return (channel < nChannels) ? vChannels[channel].bActive : false; }
 
-            inline void reset()
-            {
-                nReconfigure       |= R_ANALYSIS;
-            }
+            /**
+             * Reset the FFT data of analyzer
+             */
+            inline void reset() { nReconfigure       |= R_ANALYSIS; }
 
             /** Process data
              *
@@ -325,10 +315,7 @@ namespace lsp
              *
              * @return true if needs reconfiguration
              */
-            inline bool needs_reconfiguration() const
-            {
-                return nReconfigure;
-            }
+            inline bool needs_reconfiguration() const   { return nReconfigure; }
 
             /**
              * Dump the state

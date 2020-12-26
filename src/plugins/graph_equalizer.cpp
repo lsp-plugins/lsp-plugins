@@ -79,7 +79,8 @@ namespace lsp
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
 
         // Initialize analyzer
-        if (!sAnalyzer.init(channels, graph_equalizer_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(channels, graph_equalizer_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, graph_equalizer_base_metadata::REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(graph_equalizer_base_metadata::FFT_RANK);

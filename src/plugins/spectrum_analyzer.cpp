@@ -185,7 +185,8 @@ namespace lsp
                 channels++;
 
         // Initialize analyzer
-        sAnalyzer.init(channels, spectrum_analyzer_base_metadata::RANK_MAX);
+        sAnalyzer.init(channels, spectrum_analyzer_base_metadata::RANK_MAX,
+                       MAX_SAMPLE_RATE, spectrum_analyzer_base_metadata::REFRESH_RATE);
         sAnalyzer.set_rate(spectrum_analyzer_base_metadata::REFRESH_RATE);
 
         // Initialize counter

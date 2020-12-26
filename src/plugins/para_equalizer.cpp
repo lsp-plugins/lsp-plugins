@@ -361,7 +361,8 @@ namespace lsp
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
 
         // Initialize analyzer
-        if (!sAnalyzer.init(channels, para_equalizer_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(channels, para_equalizer_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, para_equalizer_base_metadata::REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(para_equalizer_base_metadata::FFT_RANK);

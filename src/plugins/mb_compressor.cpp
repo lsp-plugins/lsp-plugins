@@ -94,7 +94,8 @@ namespace lsp
 
         // Initialize analyzer
         size_t an_cid       = 0;
-        if (!sAnalyzer.init(2*channels, mb_compressor_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(2*channels, mb_compressor_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, mb_compressor_base_metadata::REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(mb_compressor_base_metadata::FFT_RANK);
