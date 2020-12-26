@@ -81,7 +81,7 @@ namespace lsp
         destroy();
 
         size_t fft_size         = 1 << max_rank;
-        nBufSize                = ALIGN_SIZE(max_rank * 2 + size_t(float(max_sr) / min_rate), DEFAULT_ALIGN);
+        nBufSize                = ALIGN_SIZE(fft_size + size_t(float(max_sr) / min_rate) * 2 + DEFAULT_ALIGN, DEFAULT_ALIGN);
         size_t allocate         = 5 * fft_size +                // vSigRe, vFftReIm (re + im), vWindow, vEnvelope
                                   channels * nBufSize +         // c->vBuffer
                                   channels * fft_size;          // c->vAmp
@@ -101,8 +101,8 @@ namespace lsp
 
         nChannels           = channels;
         nMaxRank            = max_rank;
-        nMaxSampleRate      = max_sr;
         nRank               = max_rank;
+        nMaxSampleRate      = max_sr;
         fMinRate            = min_rate;
 
         // Clear buffers
@@ -224,6 +224,7 @@ namespace lsp
         if (channel >= nChannels)
             return false;
         vChannels[channel].bActive      = enable;
+        nReconfigure   |= R_COUNTERS;
         return true;
     }
 
@@ -299,7 +300,7 @@ namespace lsp
                     if ((bActive) && (c->bActive))
                     {
                         // Get the time mark to start from
-                        ssize_t offset  = c->nHead - c->nDelay;
+                        ssize_t offset  = c->nHead - (fft_size + c->nDelay);
                         if (offset < 0)
                             offset         += nBufSize;
 
@@ -313,8 +314,6 @@ namespace lsp
                         else
                             dsp::mul3(vSigRe, &c->vBuffer[offset], vWindow, fft_size);
 
-                        // Apply window to the temporary buffer
-                        dsp::mul3(vSigRe, c->vBuffer, vWindow, fft_size);
                         // Do Real->complex conversion and FFT
                         dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
                         dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
