@@ -82,7 +82,7 @@ namespace lsp
         destroy();
 
         size_t fft_size         = 1 << max_rank;
-        nBufSize                = ALIGN_SIZE(fft_size + size_t(float(max_sr) / min_rate) * 2 + DEFAULT_ALIGN, DEFAULT_ALIGN);
+        nBufSize                = ALIGN_SIZE(fft_size + size_t(float(max_sr * 2) / min_rate) + DEFAULT_ALIGN, DEFAULT_ALIGN);
         size_t allocate         = 5 * fft_size +                // vSigRe, vFftReIm (re + im), vWindow, vEnvelope
                                   channels * nBufSize +         // c->vBuffer
                                   channels * fft_size +         // c->vAmp
@@ -238,7 +238,9 @@ namespace lsp
             return;
 
         size_t fft_size     = 1 << nRank;
-        nFftPeriod          = float(nSampleRate) / fRate;
+        size_t fft_period   = float(nSampleRate) / fRate;
+        size_t step         = fft_period / nChannels;
+        nFftPeriod          = step * nChannels;
 
         // Update envelope
         if (nReconfigure & R_ENVELOPE)
@@ -265,8 +267,6 @@ namespace lsp
         if (nReconfigure & R_COUNTERS)
         {
             // Get step aligned to 4-sample boundary
-            size_t step     = nFftPeriod / nChannels;
-
             for (size_t i=0; i<nChannels; ++i)
             {
                 size_t delay            = i * step;
@@ -289,6 +289,7 @@ namespace lsp
 
         // Process single channel
         // Get channel pointer
+
         ssize_t fft_size    = 1 << nRank;
         ssize_t fft_csize   = (fft_size >> 1) + 1;
         channel_t *c        = &vChannels[channel];
@@ -317,12 +318,14 @@ namespace lsp
                     {
                         // Get the time mark to start from
                         ssize_t offset  = c->nHead - (fft_size + c->nDelay);
+
+                        lsp_trace("channel=%d, offset=%d, samples=%d", int(channel), int(offset), int(samples));
+
                         if (offset < 0)
                             offset         += nBufSize;
 
                         // Prepare the real buffer
-                        ssize_t count   = nBufSize - offset;
-
+//                        ssize_t count   = nBufSize - offset;
 //                        if (count < fft_size)
 //                        {
 //                            dsp::copy(vSigRe, &c->vBuffer[offset], count);
@@ -336,6 +339,7 @@ namespace lsp
 //
 //                        dsp::mul2(vSigRe, vWindow, fft_size);
 
+                        ssize_t count   = nBufSize - offset;
                         if (count < fft_size)
                         {
                             dsp::mul3(vSigRe, &c->vBuffer[offset], vWindow, count);
@@ -364,9 +368,6 @@ namespace lsp
                 // Limit number of samples to be processed
                 if (to_process > ssize_t(samples))
                     to_process      = samples;
-                // Add limitation of processed data according to the FFT window size
-                if (to_process > ssize_t(fft_size))
-                    to_process      = fft_size;
 
                 // Put data to the analyzer's buffer
                 ssize_t count       = nBufSize - c->nHead;
