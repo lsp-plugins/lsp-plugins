@@ -501,11 +501,9 @@ namespace lsp
 
 #ifndef LSP_NO_VST_UI
             case effEditOpen: // Run editor
-            {
                 if (w->show_ui(ptr))
                     v = 1;
                 break;
-            }
 
             case effEditClose: // Close editor
                 w->hide_ui();
@@ -534,20 +532,16 @@ namespace lsp
                 break;
 
             case effGetChunk:
-            {
                 v       = w->serialize_state(reinterpret_cast<const void **>(ptr), index);
                 break;
-            }
 
             case effSetChunk:
-            {
                 if (e->flags & effFlagsProgramChunks)
                 {
                     w->deserialize_state(ptr, value);
                     v = 1;
                 }
                 break;
-            }
 
             case effProcessEvents:
                 w->process_events(reinterpret_cast<const VstEvents *>(ptr));
@@ -561,6 +555,8 @@ namespace lsp
             case effOfflineNotify:
             case effOfflinePrepare:
             case effOfflineRun:
+                break;
+
             case effGetVendorVersion:
             {
                 const plugin_metadata_t *m = w->get_metadata();
@@ -568,6 +564,7 @@ namespace lsp
                     v = vst_version(m->version);
                 break;
             }
+
             case effVendorSpecific:
             case effProcessVarIo:
             case effSetSpeakerArrangement:
@@ -632,7 +629,9 @@ namespace lsp
                 break;
 
             // DEPRECATED STUFF
-            case effIdentify:  v = kEffectIdentify;    break;
+            case effIdentify:
+                v = kEffectIdentify;
+                break;
 
             case effGetVu:
             case effEditDraw:

@@ -28,9 +28,10 @@
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
-=== 1.1.40 ===
+=== 1.1.30 ===
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
+* Fixed improper VST call handling for several calls.
 - Channels of spectrum analyzer are now synchronized.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
