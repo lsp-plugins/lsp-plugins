@@ -32,6 +32,7 @@
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
 * Fixed improper VST call handling for several calls.
+* Several typo fixes in documentation (contributed by Olivier Humbert).
 - Channels of spectrum analyzer are now synchronized.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
