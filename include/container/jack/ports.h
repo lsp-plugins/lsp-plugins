@@ -274,6 +274,7 @@ namespace lsp
                             }
 
                             // Convert MIDI event
+                            lsp_dumpb("in midi event", midi_event.buffer, midi_event.size);
                             if (midi::decode(&ev, midi_event.buffer) <= 0)
                             {
                                 lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
@@ -287,6 +288,10 @@ namespace lsp
                         }
 
                         // All MIDI events ARE ordered chronologically, we do not need to perform sort
+                        #ifdef LSP_TRACE
+                            if (event_count > 0)
+                                lsp_trace("Decoded %d MIDI events", int(event_count));
+                        #endif
                     }
 
                     // Replace pBuffer with pMidi
@@ -326,6 +331,8 @@ namespace lsp
                         // Determine size of the message
                         midi::event_t *ev   = &pMidi->vEvents[i];
                         ssize_t size        = midi::size_of(ev);
+                        lsp_trace("Output event: type=0x%02x, timestamp=%d", int(ev->type), int(ev->timestamp));
+
                         if (size <= 0)
                         {
                             lsp_warn("Could not encode output MIDI message of type 0x%02x, timestamp=%d", int(ev->type), int(ev->timestamp));
@@ -343,6 +350,7 @@ namespace lsp
 
                         // Encode MIDI event
                         midi::encode(midi_data, ev);
+                        lsp_dumpb("out midi event", midi_data, size);
                     }
 
                     // Cleanup the output buffer
