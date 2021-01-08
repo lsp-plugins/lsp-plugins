@@ -498,6 +498,7 @@ namespace lsp
                 v->write("vBuffer", c->vBuffer);
                 v->write("vAmp", c->vAmp);
                 v->write("vData", c->vData);
+                v->write("nDelay", c->nDelay);
                 v->write("bFreeze", c->bFreeze);
                 v->write("bActive", c->bActive);
             }
