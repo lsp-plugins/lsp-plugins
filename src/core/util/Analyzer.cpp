@@ -290,7 +290,7 @@ namespace lsp
         ssize_t fft_size    = 1 << nRank;
         ssize_t fft_csize   = (fft_size >> 1) + 1;
 
-        for (size_t offset = 0; offset < samples; ++offset)
+        for (size_t offset = 0; offset < samples; )
         {
             // Determine the actual position
             size_t channel  = nCounter / nStep;
@@ -311,6 +311,10 @@ namespace lsp
                         {
                             // Get the time mark to start from
                             ssize_t doff    = nHead - (fft_size + c->nDelay);
+
+//                            lsp_trace("channel=%d, head=%d, delay=%d, offset=%d, buf_size=%d, samples=%d",
+//                                    int(channel), int(nHead), int(c->nDelay), int(doff), int(nBufSize), int(samples));
+
                             if (doff < 0)
                                 doff           += nBufSize;
 
@@ -340,10 +344,7 @@ namespace lsp
                 {
                     // Strobe trigger, copy buffers
                     for (size_t i=0; i<nChannels; ++i)
-                    {
-                        c = &vChannels[i];
-                        dsp::copy(c->vData, c->vAmp, fft_size);
-                    }
+                        dsp::copy(vChannels[i].vData, vChannels[i].vAmp, fft_size);
                 }
             } // off == 0
 
@@ -351,23 +352,23 @@ namespace lsp
             size_t to_process   = lsp_min(samples - offset, nStep - off);
 
             // Commit data to delay buffers for each channel
-            size_t ncopy        = nBufSize - nHead;
+            size_t tail         = nBufSize - nHead;
             for (size_t i=0; i<nChannels; ++i)
             {
                 c                   = &vChannels[i];
                 const float *src    = (in != NULL) ? in[i] : NULL;
 
-                if (ncopy < to_process)
+                if (tail < to_process)
                 {
                     if (src != NULL)
                     {
-                        dsp::copy(&c->vBuffer[nHead], &src[offset], ncopy);
-                        dsp::copy(c->vBuffer, &src[offset + ncopy], to_process - ncopy);
+                        dsp::copy(&c->vBuffer[nHead], &src[offset], tail);
+                        dsp::copy(c->vBuffer, &src[offset + tail], to_process - tail);
                     }
                     else
                     {
-                        dsp::fill_zero(&c->vBuffer[nHead], ncopy);
-                        dsp::fill_zero(c->vBuffer, to_process - ncopy);
+                        dsp::fill_zero(&c->vBuffer[nHead], tail);
+                        dsp::fill_zero(c->vBuffer, to_process - tail);
                     }
                 }
                 else
