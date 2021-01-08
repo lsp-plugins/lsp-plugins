@@ -242,8 +242,8 @@ namespace lsp
 
         size_t fft_size     = 1 << nRank;
         size_t fft_period   = float(nSampleRate) / fRate;
-        nStep               = fft_period / (nChannels + 1);
-        nPeriod             = nStep * (nChannels + 1);
+        nStep               = fft_period / nChannels;
+        nPeriod             = nStep * nChannels;
 
         // Update envelope
         if (nReconfigure & R_ENVELOPE)
@@ -251,6 +251,7 @@ namespace lsp
             envelope::reverse_noise(vEnvelope, fft_size, envelope::envelope_t(nEnvelope));
             dsp::mul_k2(vEnvelope, fShift / fft_size, fft_size);
         }
+
         // Clear analysis
         if (nReconfigure & R_ANALYSIS)
         {
@@ -299,53 +300,51 @@ namespace lsp
             // Need to do FFT transform/sync?
             if (off == 0)
             {
-                if (channel < nChannels)
-                {
-                    // Regular channel, need to perform FFT if
-                    c   = &vChannels[channel];
-
-                    // Perform FFT only for active channels
-                    if (!c->bFreeze)
-                    {
-                        if ((bActive) && (c->bActive))
-                        {
-                            // Get the time mark to start from
-                            ssize_t doff    = nHead - (fft_size + c->nDelay);
-
-//                            lsp_trace("channel=%d, head=%d, delay=%d, offset=%d, buf_size=%d, samples=%d",
-//                                    int(channel), int(nHead), int(c->nDelay), int(doff), int(nBufSize), int(samples));
-
-                            if (doff < 0)
-                                doff           += nBufSize;
-
-                            // Prepare the real buffer
-                            ssize_t count   = nBufSize - doff;
-                            if (count < fft_size)
-                            {
-                                dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, count);
-                                dsp::mul3(&vSigRe[count], c->vBuffer, &vWindow[count], fft_size - count);
-                            }
-                            else
-                                dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, fft_size);
-
-                            // Do Real->complex conversion and FFT
-                            dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
-                            dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
-                            // Get complex argument
-                            dsp::pcomplex_mod(vFftReIm, vFftReIm, fft_csize);
-                            // Mix with the previous value
-                            dsp::mix2(c->vAmp, vFftReIm, 1.0 - fTau, fTau, fft_csize);
-                        }
-                        else
-                            dsp::fill_zero(c->vAmp, fft_size);
-                    } // c->bFreeze
-                }
-                else
+                if (nCounter == 0)
                 {
                     // Strobe trigger, copy buffers
                     for (size_t i=0; i<nChannels; ++i)
                         dsp::copy(vChannels[i].vData, vChannels[i].vAmp, fft_size);
                 }
+
+                // Regular channel, need to perform FFT if
+                c   = &vChannels[channel];
+
+                // Perform FFT only for active channels
+                if (!c->bFreeze)
+                {
+                    if ((bActive) && (c->bActive))
+                    {
+                        // Get the time mark to start from
+                        ssize_t doff    = nHead - (fft_size + c->nDelay);
+
+//                        lsp_trace("channel=%d, head=%d, delay=%d, offset=%d, buf_size=%d, samples=%d",
+//                                int(channel), int(nHead), int(c->nDelay), int(doff), int(nBufSize), int(samples));
+
+                        if (doff < 0)
+                            doff           += nBufSize;
+
+                        // Prepare the real buffer
+                        ssize_t count   = nBufSize - doff;
+                        if (count < fft_size)
+                        {
+                            dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, count);
+                            dsp::mul3(&vSigRe[count], c->vBuffer, &vWindow[count], fft_size - count);
+                        }
+                        else
+                            dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, fft_size);
+
+                        // Do Real->complex conversion and FFT
+                        dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
+                        dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
+                        // Get complex argument
+                        dsp::pcomplex_mod(vFftReIm, vFftReIm, fft_csize);
+                        // Mix with the previous value
+                        dsp::mix2(c->vAmp, vFftReIm, 1.0 - fTau, fTau, fft_csize);
+                    }
+                    else
+                        dsp::fill_zero(c->vAmp, fft_size);
+                } // c->bFreeze
             } // off == 0
 
             // How many samples to process?

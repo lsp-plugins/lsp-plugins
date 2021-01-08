@@ -888,24 +888,24 @@ namespace lsp
                 }
             }
 
+            // Do FFT in 'PRE'-position
+            if (fft_pos == FFTP_PRE)
+                sAnalyzer.process(analyze, to_process);
+
             // Process each channel individually
             for (size_t i=0; i<channels; ++i)
             {
                 eq_channel_t *c     = &vChannels[i];
 
-                // Do FFT in 'PRE'-position
-                if (fft_pos == FFTP_PRE)
-                    sAnalyzer.process(analyze, to_process);
-
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
                 if (c->fInGain != 1.0f)
                     dsp::mul_k2(c->vBuffer, c->fInGain, to_process);
-
-                // Do FFT in 'POST'-position
-                if (fft_pos == FFTP_POST)
-                    sAnalyzer.process(analyze, to_process);
             }
+
+            // Do FFT in 'POST'-position
+            if (fft_pos == FFTP_POST)
+                sAnalyzer.process(analyze, to_process);
 
             // Post-process data (if needed)
             if ((nMode == EQ_MID_SIDE) && (!bListen))
