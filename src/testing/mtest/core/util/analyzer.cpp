@@ -50,10 +50,15 @@ MTEST_BEGIN("core.util", analyzer)
         dsp::fill_zero(in, in.size());
         in[0] = 1.0f;
 
+        const float *vbuf[2];
+        vbuf[0] = in;
+        vbuf[1] = in;
+
         for (size_t i=0; i<10; ++i)
         {
+            printf("process %d\n", int(i));
             for (size_t j=0; j<spa.get_channels(); ++j)
-                spa.process(j, in, in.size());
+                spa.process(vbuf, in.size());
 
             dsp::fill_zero(in, in.size());
         }

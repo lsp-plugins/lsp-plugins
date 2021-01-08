@@ -41,13 +41,14 @@ namespace lsp
     void Analyzer::construct()
     {
         nChannels       = 0;
-        nStrobeId       = 0;
         nMaxRank        = 0;
         nRank           = 0;
         nSampleRate     = 0;
         nMaxSampleRate  = 0;
         nBufSize        = 0;
-        nFftPeriod      = 0;
+        nCounter        = 0;
+        nPeriod         = 0;
+        nStep           = 0;
         fReactivity     = 0.0f;
         fTau            = 1.0f;
         fRate           = 1.0f;
@@ -135,7 +136,6 @@ namespace lsp
             abuf               += fft_size;
 
             // Counters
-            c->nCounter         = 0;
             c->nHead            = 0;
             c->nDelay           = 0;
             c->bFreeze          = false;
@@ -227,6 +227,9 @@ namespace lsp
     {
         if (channel >= nChannels)
             return false;
+        if (vChannels[channel].bActive == enable)
+            return false;
+
         vChannels[channel].bActive      = enable;
         nReconfigure   |= R_COUNTERS;
         return true;
@@ -239,8 +242,8 @@ namespace lsp
 
         size_t fft_size     = 1 << nRank;
         size_t fft_period   = float(nSampleRate) / fRate;
-        size_t step         = fft_period / nChannels;
-        nFftPeriod          = step * nChannels;
+        nStep               = fft_period / (nChannels + 1);
+        nPeriod             = nStep * (nChannels + 1);
 
         // Update envelope
         if (nReconfigure & R_ENVELOPE)
@@ -262,132 +265,130 @@ namespace lsp
             windows::window(vWindow, fft_size, windows::window_t(nWindow));
         // Update reactivity
         if (nReconfigure & R_TAU)
-            fTau    = 1.0f - expf(logf(1.0f - M_SQRT1_2) / seconds_to_samples(float(nSampleRate) / float(nFftPeriod), fReactivity));
+            fTau    = 1.0f - expf(logf(1.0f - M_SQRT1_2) / seconds_to_samples(float(nSampleRate) / float(nPeriod), fReactivity));
         // Update counters
         if (nReconfigure & R_COUNTERS)
         {
-            // Get step aligned to 4-sample boundary
             for (size_t i=0; i<nChannels; ++i)
-            {
-                size_t delay            = i * step;
-                vChannels[i].nCounter   = nFftPeriod - delay;
-                vChannels[i].nDelay     = delay;
-            }
+                vChannels[i].nDelay     = nPeriod - (i+1)*nStep;
         }
 
-        // Clear reconfiguration flag
+        // Clear reconfiguration flag and update strobe signal
         nReconfigure    = 0;
     }
 
-    void Analyzer::process(size_t channel, const float *in, size_t samples)
+    void Analyzer::process(const float * const *in, size_t samples)
     {
-        if ((vChannels == NULL) || (channel >= nChannels))
+        if (vChannels == NULL)
             return;
 
         // Auto-apply reconfiguration
         reconfigure();
 
-        // Process single channel
-        // Get channel pointer
-
+        // Do main processing
+        channel_t *c;
         ssize_t fft_size    = 1 << nRank;
         ssize_t fft_csize   = (fft_size >> 1) + 1;
-        channel_t *c        = &vChannels[channel];
 
-        // Process signal by channel
-        while (samples > 0)
+        for (size_t offset = 0; offset < samples; ++offset)
         {
-            // Calculate amount of samples that can be appended to buffer
-            ssize_t to_process  = nFftPeriod - c->nCounter;
-            if (to_process <= 0)
+            // Determine the actual position
+            size_t channel  = nCounter / nStep;
+            size_t off      = nCounter % nStep;
+
+            // Need to do FFT transform/sync?
+            if (off == 0)
             {
-                // Check for strobe trigger and make a snapshot
-                if (channel == nStrobeId)
+                if (channel < nChannels)
                 {
-                    for (size_t i=0; i<nChannels; ++i)
+                    // Regular channel, need to perform FFT if
+                    c   = &vChannels[channel];
+
+                    // Perform FFT only for active channels
+                    if (!c->bFreeze)
                     {
-                        channel_t *sc = &vChannels[i];
-                        dsp::copy(sc->vData, sc->vAmp, fft_size);
-                    }
-                }
-
-                // Perform FFT only for active channels
-                if (!c->bFreeze)
-                {
-                    if ((bActive) && (c->bActive))
-                    {
-                        // Get the time mark to start from
-                        ssize_t offset  = c->nHead - (fft_size + c->nDelay);
-
-                        lsp_trace("channel=%d, offset=%d, samples=%d", int(channel), int(offset), int(samples));
-
-                        if (offset < 0)
-                            offset         += nBufSize;
-
-                        // Prepare the real buffer
-//                        ssize_t count   = nBufSize - offset;
-//                        if (count < fft_size)
-//                        {
-//                            dsp::copy(vSigRe, &c->vBuffer[offset], count);
-//                            dsp::copy(&vSigRe[count], c->vBuffer, fft_size - count);
-//                        }
-//                        else
-//                            dsp::copy(vSigRe, &c->vBuffer[offset], fft_size);
-//
-//                        int idx = dsp::abs_max_index(vSigRe, fft_size);
-//                        lsp_trace("channel=%d, peak index: %d, value=%f", int(channel), idx, vSigRe[idx]);
-//
-//                        dsp::mul2(vSigRe, vWindow, fft_size);
-
-                        ssize_t count   = nBufSize - offset;
-                        if (count < fft_size)
+                        if ((bActive) && (c->bActive))
                         {
-                            dsp::mul3(vSigRe, &c->vBuffer[offset], vWindow, count);
-                            dsp::mul3(&vSigRe[count], c->vBuffer, &vWindow[count], fft_size - count);
+                            // Get the time mark to start from
+                            ssize_t doff    = c->nHead - (fft_size + c->nDelay);
+
+                            lsp_trace("channel=%d, offset=%d, samples=%d", int(channel), int(doff), int(samples));
+
+                            if (doff < 0)
+                                doff           += nBufSize;
+
+                            // Prepare the real buffer
+                            ssize_t count   = nBufSize - doff;
+                            if (count < fft_size)
+                            {
+                                dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, count);
+                                dsp::mul3(&vSigRe[count], c->vBuffer, &vWindow[count], fft_size - count);
+                            }
+                            else
+                                dsp::mul3(vSigRe, &c->vBuffer[doff], vWindow, fft_size);
+
+                            // Do Real->complex conversion and FFT
+                            dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
+                            dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
+                            // Get complex argument
+                            dsp::pcomplex_mod(vFftReIm, vFftReIm, fft_csize);
+                            // Mix with the previous value
+                            dsp::mix2(c->vAmp, vFftReIm, 1.0 - fTau, fTau, fft_csize);
                         }
                         else
-                            dsp::mul3(vSigRe, &c->vBuffer[offset], vWindow, fft_size);
-
-                        // Do Real->complex conversion and FFT
-                        dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
-                        dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
-                        // Get complex argument
-                        dsp::pcomplex_mod(vFftReIm, vFftReIm, fft_csize);
-                        // Mix with the previous value
-                        dsp::mix2(c->vAmp, vFftReIm, 1.0 - fTau, fTau, fft_csize);
-                    }
-                    else
-                        dsp::fill_zero(c->vAmp, fft_size);
-                }
-
-                // Update counter
-                c->nCounter        -= nFftPeriod;
-            }
-            else
-            {
-                // Limit number of samples to be processed
-                if (to_process > ssize_t(samples))
-                    to_process      = samples;
-
-                // Put data to the analyzer's buffer
-                ssize_t count       = nBufSize - c->nHead;
-                if (count < to_process)
-                {
-                    dsp::copy(&c->vBuffer[c->nHead], in, count);
-                    dsp::copy(c->vBuffer, &in[count], to_process - count);
-                    c->nHead            = to_process - count;
+                            dsp::fill_zero(c->vAmp, fft_size);
+                    } // c->bFreeze
                 }
                 else
                 {
-                    dsp::copy(&c->vBuffer[c->nHead], in, to_process);
+                    // Strobe trigger, copy buffers
+                    for (size_t i=0; i<nChannels; ++i)
+                    {
+                        c = &vChannels[i];
+                        dsp::copy(c->vData, c->vAmp, fft_size);
+                    }
+                }
+            } // off == 0
+
+            // How many samples to process?
+            size_t to_process   = lsp_min(samples - offset, nStep - off);
+
+            // Commit data to delay buffers for each channel
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                c                   = &vChannels[i];
+                const float *src    = (in != NULL) ? in[i] : NULL;
+                size_t ncopy        = nBufSize - c->nHead;
+
+                if (ncopy < to_process)
+                {
+                    if (src != NULL)
+                    {
+                        dsp::copy(&c->vBuffer[c->nHead], &src[offset], ncopy);
+                        dsp::copy(c->vBuffer, &src[offset + ncopy], to_process - ncopy);
+                    }
+                    else
+                    {
+                        dsp::fill_zero(&c->vBuffer[c->nHead], ncopy);
+                        dsp::fill_zero(c->vBuffer, to_process - ncopy);
+                    }
+                    c->nHead            = to_process - ncopy;
+                }
+                else
+                {
+                    if (src != NULL)
+                        dsp::copy(&c->vBuffer[c->nHead], &src[offset], to_process);
+                    else
+                        dsp::fill_zero(&c->vBuffer[c->nHead], to_process);
                     c->nHead           += to_process;
                 }
-
-                // Update counter and pointers
-                c->nCounter        += to_process;
-                in                 += to_process;
-                samples            -= to_process;
             }
+
+            // Update position
+            offset     += to_process;
+            nCounter    = nCounter + to_process;
+            if (nCounter >= nPeriod)
+                nCounter   -= nPeriod;
         }
     }
 
@@ -470,13 +471,14 @@ namespace lsp
     void Analyzer::dump(IStateDumper *v) const
     {
         v->write("nChannels", nChannels);
-        v->write("nStrobeId", nChannels);
         v->write("nMaxRank", nMaxRank);
         v->write("nRank", nRank);
         v->write("nSampleRate", nSampleRate);
         v->write("nMaxSampleRate", nMaxSampleRate);
         v->write("nBufSize", nBufSize);
-        v->write("nFftPeriod", nFftPeriod);
+        v->write("nCounter", nCounter);
+        v->write("nPeriod", nPeriod);
+        v->write("nStep", nStep);
         v->write("fReactivity", fReactivity);
         v->write("fTau", fTau);
         v->write("fRate", fRate);
@@ -496,7 +498,6 @@ namespace lsp
                 v->write("vBuffer", c->vBuffer);
                 v->write("vAmp", c->vAmp);
                 v->write("vData", c->vData);
-                v->write("nCounter", c->nCounter);
                 v->write("bFreeze", c->bFreeze);
                 v->write("bActive", c->bActive);
             }

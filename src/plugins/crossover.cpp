@@ -33,6 +33,8 @@ namespace lsp
     {
         nMode           = mode;
         vChannels       = NULL;
+        for (size_t i=0; i<4; ++i)
+            vAnalyze[i]     = NULL;
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
         fZoom           = GAIN_AMP_0_DB;
@@ -75,8 +77,7 @@ namespace lsp
                                   channels * (
                                       2 * mesh_size                           +                   // vTr (both complex and real)
                                       mesh_size                               +                   // vFc (real only)
-                                      BUFFER_SIZE * sizeof(float)             +                   // vBuffer
-                                      BUFFER_SIZE * sizeof(float)             +                   // vResult
+                                      BUFFER_SIZE * sizeof(float) * 4         +                   // vInAnalyze, vOutAnalyze, vBuffer, vResult
                                       BUFFER_SIZE * crossover_base_metadata::BANDS_MAX +          // band.vResult
                                       crossover_base_metadata::BANDS_MAX * mesh_size * 2 +        // band.vTr
                                       crossover_base_metadata::BANDS_MAX * mesh_size              // band.vFc
@@ -165,6 +166,10 @@ namespace lsp
 
             c->vIn              = NULL;
             c->vOut             = NULL;
+            c->vInAnalyze       = reinterpret_cast<float *>(ptr);
+            ptr                += BUFFER_SIZE * sizeof(float);
+            c->vOutAnalyze      = reinterpret_cast<float *>(ptr);
+            ptr                += BUFFER_SIZE * sizeof(float);
             c->vBuffer          = reinterpret_cast<float *>(ptr);
             ptr                += BUFFER_SIZE * sizeof(float);
             c->vResult          = reinterpret_cast<float *>(ptr);
@@ -176,6 +181,10 @@ namespace lsp
 
             c->nAnInChannel     = an_cid++;
             c->nAnOutChannel    = an_cid++;
+
+            vAnalyze[c->nAnInChannel]   = c->vInAnalyze;
+            vAnalyze[c->nAnOutChannel]  = c->vOutAnalyze;
+
             c->bSyncCurve       = false;
             c->fInLevel         = 0.0f;
             c->fOutLevel        = 0.0f;
@@ -665,15 +674,9 @@ namespace lsp
                 vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
                 vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do) * fInGain);
 
-                dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_do);
-
-                if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
-                    sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vBuffer, to_do);
-                if (sAnalyzer.channel_active(vChannels[1].nAnInChannel))
-                    sAnalyzer.process(vChannels[1].nAnInChannel, vChannels[1].vBuffer, to_do);
-
-                dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_do);
-                dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_do);
+                dsp::lr_to_ms(vChannels[0].vInAnalyze, vChannels[1].vInAnalyze, vChannels[0].vIn, vChannels[1].vIn, to_do);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vInAnalyze, fInGain, to_do);
+                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vInAnalyze, fInGain, to_do);
                 dsp::fill_zero(vChannels[0].vResult, to_do);
                 dsp::fill_zero(vChannels[1].vResult, to_do);
             }
@@ -682,24 +685,19 @@ namespace lsp
                 vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
                 vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do) * fInGain);
 
-                if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
-                    sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vIn, to_do);
-                if (sAnalyzer.channel_active(vChannels[1].nAnInChannel))
-                    sAnalyzer.process(vChannels[1].nAnInChannel, vChannels[1].vIn, to_do);
-
-                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
-                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vIn, fInGain, to_do);
-
+                dsp::copy(vChannels[0].vInAnalyze,  vChannels[0].vIn, to_do);
+                dsp::copy(vChannels[0].vOutAnalyze, vChannels[0].vOut, to_do);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vInAnalyze, fInGain, to_do);
+                dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vInAnalyze, fInGain, to_do);
                 dsp::fill_zero(vChannels[0].vResult, to_do);
                 dsp::fill_zero(vChannels[1].vResult, to_do);
             }
             else
             {
                 vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
-                if (sAnalyzer.channel_active(vChannels[0].nAnInChannel))
-                    sAnalyzer.process(vChannels[0].nAnInChannel, vChannels[0].vIn, to_do);
 
-                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_do);
+                dsp::copy(vChannels[0].vInAnalyze,  vChannels[0].vIn, to_do);
+                dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vInAnalyze, fInGain, to_do);
                 dsp::fill_zero(vChannels[0].vResult, to_do);
             }
 
@@ -731,10 +729,8 @@ namespace lsp
             // Post-process and route signal to outputs via bypasses
             if (nMode == XOVER_MS)
             {
-                if (sAnalyzer.channel_active(vChannels[0].nAnOutChannel))
-                    sAnalyzer.process(vChannels[0].nAnOutChannel, vChannels[0].vResult, to_do);
-                if (sAnalyzer.channel_active(vChannels[1].nAnOutChannel))
-                    sAnalyzer.process(vChannels[1].nAnOutChannel, vChannels[1].vResult, to_do);
+                dsp::copy(vChannels[0].vOutAnalyze, vChannels[0].vResult, to_do);
+                dsp::copy(vChannels[1].vOutAnalyze, vChannels[1].vResult, to_do);
 
                 if (!bMSOut)
                     dsp::ms_to_lr(vChannels[0].vResult, vChannels[1].vResult, vChannels[0].vResult, vChannels[1].vResult, to_do);
@@ -750,10 +746,8 @@ namespace lsp
             }
             else if (channels > 1)
             {
-                if (sAnalyzer.channel_active(vChannels[0].nAnOutChannel))
-                    sAnalyzer.process(vChannels[0].nAnOutChannel, vChannels[0].vResult, to_do);
-                if (sAnalyzer.channel_active(vChannels[1].nAnOutChannel))
-                    sAnalyzer.process(vChannels[1].nAnOutChannel, vChannels[1].vResult, to_do);
+                dsp::copy(vChannels[0].vOutAnalyze, vChannels[0].vResult, to_do);
+                dsp::copy(vChannels[1].vOutAnalyze, vChannels[1].vResult, to_do);
 
                 dsp::mul_k2(vChannels[0].vResult, fOutGain, to_do);
                 dsp::mul_k2(vChannels[1].vResult, fOutGain, to_do);
@@ -766,14 +760,16 @@ namespace lsp
             }
             else
             {
-                if (sAnalyzer.channel_active(vChannels[0].nAnOutChannel))
-                    sAnalyzer.process(vChannels[0].nAnOutChannel, vChannels[0].vResult, to_do);
+                dsp::copy(vChannels[0].vOutAnalyze, vChannels[0].vResult, to_do);
 
                 dsp::mul_k2(vChannels[0].vResult, fOutGain, to_do);
                 vChannels[0].fOutLevel  = lsp_max(vChannels[0].fOutLevel, dsp::abs_max(vChannels[0].vResult, to_do));
 
                 vChannels[0].sBypass.process(vChannels[0].vOut, vChannels[0].vIn, vChannels[0].vResult, to_do);
             }
+
+            // Call the analyzer
+            sAnalyzer.process(vAnalyze, to_do);
 
             // Update pointers
             for (size_t i=0; i<channels; ++i)
@@ -1075,6 +1071,8 @@ namespace lsp
 
                     v->write("vIn", c->vIn);
                     v->write("vOut", c->vOut);
+                    v->write("vInAnalyze", c->vInAnalyze);
+                    v->write("vOutAnalyze", c->vOutAnalyze);
                     v->write("vBuffer", c->vBuffer);
                     v->write("vResult", c->vResult);
                     v->write("vTr", c->vTr);
@@ -1100,6 +1098,8 @@ namespace lsp
             }
         }
         v->end_array();
+
+        v->writev("vAnalyze", vAnalyze, 4);
 
         v->write("fInGain", fInGain);
         v->write("fOutGain", fOutGain);

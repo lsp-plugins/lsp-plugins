@@ -72,22 +72,22 @@ namespace lsp
                 float      *vBuffer;        // FFT delay buffer
                 float      *vAmp;           // FFT amplitude
                 float      *vData;          // FFT data
-                ssize_t     nCounter;       // FFT trigger counter
-                ssize_t     nHead;          // Current position in the delay buffer
-                ssize_t     nDelay;         // Delay in the delay buffer
+                size_t      nHead;          // Current position in the delay buffer
+                size_t      nDelay;         // Delay in the delay buffer
                 bool        bFreeze;        // Freeze analysis
                 bool        bActive;        // Enable analysis
             } channel_t;
 
         protected:
             size_t      nChannels;          // Overall number of channels
-            size_t      nStrobeId;          // Strobe channel to trigger sync
             size_t      nMaxRank;           // Maximum FFT rank
             size_t      nRank;              // Current FFT rank
             size_t      nSampleRate;        // Sample rate
             size_t      nMaxSampleRate;     // Maximum possible sample rate
-            ssize_t     nBufSize;           // Delay buffer size
-            ssize_t     nFftPeriod;         // FFT period
+            size_t      nBufSize;           // Delay buffer size
+            size_t      nCounter;           // Current counter
+            size_t      nPeriod;            // FFT transform period
+            size_t      nStep;              // FFT transform period
             float       fReactivity;        // FFT reactivity
             float       fTau;               // Smooth coefficient
             float       fRate;              // FFT refresh rate
@@ -267,13 +267,13 @@ namespace lsp
              */
             inline void reset() { nReconfigure       |= R_ANALYSIS; }
 
-            /** Process data
-             *
-             * @param channel ID of input channel
-             * @param in data for processing
+            /**
+             * Process input signal
+             * @param in array of pointers to buffers for all channels
+             *        if pointer is NULL or the pointer to buffer is NULL, it is considered to be zero-filled
              * @param samples number of samples to process
              */
-            void process(size_t channel, const float *in, size_t samples);
+            void process(const float * const *in, size_t samples);
 
             /** Read spectrum data
              *

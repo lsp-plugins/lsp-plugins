@@ -618,7 +618,7 @@ namespace lsp
                 count = n;
             bool fired = sCounter.submit(count);
 
-            // Process data
+            // Process channel data
             for (size_t i=0; i<nChannels; ++i)
             {
                 // Get channel pointer
@@ -673,6 +673,7 @@ namespace lsp
                 c->vOut        += count;
             }
 
+            // Synchronize buffer state
             if ((enMode == SA_SPECTRALIZER) || (enMode == SA_SPECTRALIZER_STEREO))
             {
                 // Update frame buffers if counter has fired
