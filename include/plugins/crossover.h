@@ -87,6 +87,8 @@ namespace lsp
 
                 float          *vIn;                // Input buffer
                 float          *vOut;               // Output buffer
+                float          *vInAnalyze;         // Input analysis
+                float          *vOutAnalyze;        // Output analysis
                 float          *vBuffer;            // Common data processing buffer
                 float          *vResult;            // Result buffer
                 float          *vTr;                // Transfer function
@@ -113,6 +115,7 @@ namespace lsp
             Analyzer        sAnalyzer;              // Analyzer
             size_t          nMode;                  // Crossover mode
             channel_t      *vChannels;              // Crossover channels
+            float          *vAnalyze[4];            // Data analysis buffer
             float           fInGain;                // Input gain
             float           fOutGain;               // Output gain
             float           fZoom;                  // Zoom

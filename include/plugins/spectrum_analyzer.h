@@ -53,7 +53,6 @@ namespace lsp
                 IPort      *pFreeze;            // Freeze flag
                 IPort      *pHue;               // Hue of the graph color
                 IPort      *pShift;             // Shift gain
-                IPort      *pSpec;              // Spectrum output
             } sa_channel_t;
 
             typedef struct sa_spectralizer_t
@@ -92,6 +91,7 @@ namespace lsp
             Counter             sCounter;
             size_t              nChannels;
             sa_channel_t       *vChannels;
+            float             **vAnalyze;           // Analysis buffers
             float              *vFrequences;
             float              *vMFrequences;
             uint32_t           *vIndexes;
@@ -122,6 +122,7 @@ namespace lsp
             IPort              *pFrequency;
             IPort              *pLevel;
             IPort              *pLogScale;
+            IPort              *pFftData;
 
             IPort              *pFreeze;
             IPort              *pSpp;

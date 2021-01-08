@@ -28,12 +28,13 @@
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
-=== 1.1.30 ===
+=== 1.1.29 ===
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
 * Fixed improper VST call handling for several calls.
 * Several typo fixes in documentation (contributed by Olivier Humbert).
 * Fixed improper output MIDI event sorting for all plugins.
+* Channels of spectrum analyzer are now synchronized.
 - Added equalizer hide/show button for convolver plugin series.
 - Channels of spectrum analyzer are now synchronized.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
