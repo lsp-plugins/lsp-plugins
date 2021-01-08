@@ -31,7 +31,7 @@
 === 1.1.40 ===
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
-- Channels of spectrum analyzer are now synchronized.
+* Channels of spectrum analyzer are now synchronized.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
 *******************************************************************************
