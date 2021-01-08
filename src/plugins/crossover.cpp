@@ -33,8 +33,10 @@ namespace lsp
     {
         nMode           = mode;
         vChannels       = NULL;
-        for (size_t i=0; i<4; ++i)
-            vAnalyze[i]     = NULL;
+        vAnalyze[0]     = NULL;
+        vAnalyze[1]     = NULL;
+        vAnalyze[2]     = NULL;
+        vAnalyze[3]     = NULL;
         fInGain         = GAIN_AMP_0_DB;
         fOutGain        = GAIN_AMP_0_DB;
         fZoom           = GAIN_AMP_0_DB;
@@ -685,8 +687,8 @@ namespace lsp
                 vChannels[0].fInLevel   = lsp_max(vChannels[0].fInLevel, dsp::abs_max(vChannels[0].vIn, to_do) * fInGain);
                 vChannels[1].fInLevel   = lsp_max(vChannels[1].fInLevel, dsp::abs_max(vChannels[1].vIn, to_do) * fInGain);
 
-                dsp::copy(vChannels[0].vInAnalyze,  vChannels[0].vIn, to_do);
-                dsp::copy(vChannels[0].vOutAnalyze, vChannels[0].vOut, to_do);
+                dsp::copy(vChannels[0].vInAnalyze, vChannels[0].vIn, to_do);
+                dsp::copy(vChannels[1].vInAnalyze, vChannels[1].vIn, to_do);
                 dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vInAnalyze, fInGain, to_do);
                 dsp::mul_k3(vChannels[1].vBuffer, vChannels[1].vInAnalyze, fInGain, to_do);
                 dsp::fill_zero(vChannels[0].vResult, to_do);

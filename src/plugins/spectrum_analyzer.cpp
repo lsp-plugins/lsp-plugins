@@ -38,6 +38,7 @@ namespace lsp
     {
         nChannels       = 0;
         vChannels       = NULL;
+        vAnalyze        = NULL;
         pData           = NULL;
         vFrequences     = NULL;
         vMFrequences    = NULL;
@@ -99,7 +100,8 @@ namespace lsp
         size_t freq_buf_size    = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
         size_t mfreq_buf_size   = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
         size_t ind_buf_size     = ALIGN_SIZE(sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
-        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size;
+        size_t analyze_size     = ALIGN_SIZE(sizeof(float *) * channels, 16);
+        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size + analyze_size;
 
         lsp_trace("header_size      = %d", int(hdr_size));
         lsp_trace("freq_buf_size    = %d", int(freq_buf_size));
@@ -142,6 +144,9 @@ namespace lsp
         ptr          += ind_buf_size;
         memset(vIndexes, 0, ind_buf_size);
         lsp_trace("vIndexes = %p", vIndexes);
+
+        vAnalyze    = reinterpret_cast<float **>(ptr);
+        ptr        += analyze_size;
 
         // Initialize channels
         for (size_t i=0; i<channels; ++i)
@@ -613,47 +618,50 @@ namespace lsp
         for (size_t n=samples; n > 0;)
         {
             // Get number of samples to process
-            size_t count = sCounter.pending();
-            if (count > n)
-                count = n;
+            size_t count = lsp_min(sCounter.pending(), n);
             bool fired = sCounter.submit(count);
 
-            // Process channel data
+            // Always bypass signal
             for (size_t i=0; i<nChannels; ++i)
+                dsp::copy(vChannels[i].vOut, vChannels[i].vIn, count);
+
+            if (bBypass)
             {
-                // Get channel pointer
-                sa_channel_t *c     = &vChannels[i];
-
                 // Bypass signal
-                dsp::copy(c->vOut, c->vIn, count);
+                pFrequency->setValue(0);
+                pLevel->setValue(0);
 
-                if (bBypass)
+                // For mesh request fill all data with zeros
+                if (mesh_request)
                 {
-                    if (nChannel == i)
-                    {
-                        pFrequency->setValue(0);
-                        pLevel->setValue(0);
-                    }
-                    if (mesh_request)
+                    for (size_t i=0; i<nChannels; ++i)
                         dsp::fill_zero(mesh->pvData[i+1], spectrum_analyzer_base_metadata::MESH_POINTS);
                 }
-                else
+            }
+            else
+            {
+                // Prepare analysis data
+                for (size_t i=0; i<nChannels; ++i)
+                    vAnalyze[i]     = vChannels[i].vIn;
+
+                // Perform analysis
+                sAnalyzer.process(vAnalyze, count);
+
+                // Report values
+                sa_channel_t *c     = &vChannels[nChannel];
                 {
-                    // Process the data
-                    sAnalyzer.process(i, c->vIn, count);
+                    size_t idx  = fSelector * ((fft_size - 1) >> 1);
+                    pFrequency->setValue(float(idx * fSampleRate) / float(fft_size));
+                    float lvl = sAnalyzer.get_level(nChannel, idx);
+                    pLevel->setValue(lvl * c->fGain * fPreamp );
+                }
 
-                    // Copy data to output channel
-                    if (nChannel == i)
+                // Mesh is requested?
+                if (mesh_request)
+                {
+                    for (size_t i=0; i<nChannels; ++i)
                     {
-                        size_t idx  = fSelector * ((fft_size - 1) >> 1);
-                        pFrequency->setValue(float(idx * fSampleRate) / float(fft_size));
-                        float lvl = sAnalyzer.get_level(i, idx);
-                        pLevel->setValue(lvl * c->fGain * fPreamp );
-                    }
-
-                    // Copy data to mesh
-                    if (mesh_request)
-                    {
+                        c     = &vChannels[i];
                         if (c->bSend)
                         {
                             // Copy frequency points
@@ -667,10 +675,15 @@ namespace lsp
                             dsp::fill_zero(mesh->pvData[i+1], spectrum_analyzer_base_metadata::MESH_POINTS);
                     }
                 }
+            }
 
-                // Update pointers
-                c->vIn         += count;
-                c->vOut        += count;
+            // Update pointers
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                // Get channel pointer
+                sa_channel_t *c     = &vChannels[i];
+                c->vIn             += count;
+                c->vOut            += count;
             }
 
             // Synchronize buffer state

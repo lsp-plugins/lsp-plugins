@@ -146,6 +146,8 @@ namespace lsp
                 float          *vExtScBuffer;       // External sidechain buffer
                 float          *vTr;                // Transfer function
                 float          *vTrMem;             // Transfer buffer (memory)
+                float          *vInAnalyze;         // Input signal analysis
+                float          *vOutAnalyze;        // Input signal analysis
 
                 size_t          nAnInChannel;       // Analyzer channel used for input signal analysis
                 size_t          nAnOutChannel;      // Analyzer channel used for output signal analysis
@@ -179,6 +181,7 @@ namespace lsp
             float           fZoom;                  // Zoom
             uint8_t        *pData;                  // Aligned data pointer
             float          *vSc[2];                 // Sidechain signal data
+            float          *vAnalyze[4];            // Analysis buffer
             float          *vBuffer;                // Temporary buffer
             float          *vEnv;                   // Expander envelope buffer
             float          *vTr;                    // Transfer buffer

@@ -52,6 +52,10 @@ namespace lsp
         pIDisplay       = NULL;
         vSc[0]          = NULL;
         vSc[1]          = NULL;
+        vAnalyze[0]     = NULL;
+        vAnalyze[1]     = NULL;
+        vAnalyze[2]     = NULL;
+        vAnalyze[3]     = NULL;
         vBuffer         = NULL;
         vEnv            = NULL;
 
@@ -124,6 +128,7 @@ namespace lsp
                     MBE_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
                     MBE_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
                     ((bSidechain) ? MBE_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
+                    MBE_BUFFER_SIZE * sizeof(float) * 2 + // vInAnalyze + vOutAnalyze for each channel
                     // Band buffers
                     (
                         MBE_BUFFER_SIZE * sizeof(float) + // vVCA of each band
@@ -200,9 +205,16 @@ namespace lsp
             ptr            += 2 * filter_mesh_size;
             c->vTrMem       = reinterpret_cast<float *>(ptr);
             ptr            += filter_mesh_size;
+            c->vInAnalyze   = reinterpret_cast<float *>(ptr);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            c->vOutAnalyze  = reinterpret_cast<float *>(ptr);
+            ptr            += MBE_BUFFER_SIZE * sizeof(float);
 
             c->nAnInChannel = an_cid++;
             c->nAnOutChannel= an_cid++;
+            vAnalyze[c->nAnInChannel]   = c->vInAnalyze;
+            vAnalyze[c->nAnOutChannel]  = c->vOutAnalyze;
+
             c->bInFft       = false;
             c->bOutFft      = false;
 
@@ -1139,8 +1151,7 @@ namespace lsp
                 if (bSidechain)
                     c->sEnvBoost[1].process(c->vExtScBuffer, c->vExtScBuffer, to_process);
 
-                if (sAnalyzer.channel_active(c->nAnInChannel))
-                    sAnalyzer.process(c->nAnInChannel, c->vBuffer, to_process);
+                dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
             }
 
             // MAIN PLUGIN STUFF
@@ -1248,8 +1259,10 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c        = &vChannels[i];
-                sAnalyzer.process(c->nAnOutChannel, c->vBuffer, to_process);
+                dsp::copy(c->vOutAnalyze, c->vBuffer, to_process);
             }
+
+            sAnalyzer.process(vAnalyze, to_process);
 
             // Post-process data (if needed)
             if (nMode == MBEM_MS)

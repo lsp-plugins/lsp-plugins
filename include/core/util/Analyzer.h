@@ -72,7 +72,6 @@ namespace lsp
                 float      *vBuffer;        // FFT delay buffer
                 float      *vAmp;           // FFT amplitude
                 float      *vData;          // FFT data
-                size_t      nHead;          // Current position in the delay buffer
                 size_t      nDelay;         // Delay in the delay buffer
                 bool        bFreeze;        // Freeze analysis
                 bool        bActive;        // Enable analysis
@@ -88,6 +87,7 @@ namespace lsp
             size_t      nCounter;           // Current counter
             size_t      nPeriod;            // FFT transform period
             size_t      nStep;              // FFT transform period
+            size_t      nHead;              // Head of each delay buffer
             float       fReactivity;        // FFT reactivity
             float       fTau;               // Smooth coefficient
             float       fRate;              // FFT refresh rate

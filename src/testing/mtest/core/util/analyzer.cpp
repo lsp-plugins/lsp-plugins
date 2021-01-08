@@ -54,7 +54,7 @@ MTEST_BEGIN("core.util", analyzer)
         vbuf[0] = in;
         vbuf[1] = in;
 
-        for (size_t i=0; i<10; ++i)
+        for (size_t i=0; i<64; ++i)
         {
             printf("process %d\n", int(i));
             for (size_t j=0; j<spa.get_channels(); ++j)

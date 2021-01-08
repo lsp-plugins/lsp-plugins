@@ -24,7 +24,7 @@
 #include <core/util/Color.h>
 #include <plugins/mb_gate.h>
 
-#define MBE_BUFFER_SIZE         0x1000
+#define MBG_BUFFER_SIZE         0x1000
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
@@ -52,6 +52,10 @@ namespace lsp
         pIDisplay       = NULL;
         vSc[0]          = NULL;
         vSc[1]          = NULL;
+        vAnalyze[0]     = NULL;
+        vAnalyze[1]     = NULL;
+        vAnalyze[2]     = NULL;
+        vAnalyze[3]     = NULL;
         vBuffer         = NULL;
         vEnv            = NULL;
 
@@ -114,19 +118,20 @@ namespace lsp
                 mb_gate_base_metadata::CURVE_MESH_SIZE * sizeof(float) + // Curve
                 mb_gate_base_metadata::FFT_MESH_POINTS * sizeof(float) + // vFreqs array
                 mb_gate_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t) + // vIndexes array
-                MBE_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
-                MBE_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
+                MBG_BUFFER_SIZE * sizeof(float) + // Global vBuffer for band signal processing
+                MBG_BUFFER_SIZE * sizeof(float) + // Global vEnv for band signal processing
+                MBG_BUFFER_SIZE * sizeof(float) * 2 + // vInAnalyze + vOutAnalyze for each channel
                 // Channel buffers
                 (
-                    MBE_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
+                    MBG_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
                     2 * filter_mesh_size + // vTr of each channel
                     filter_mesh_size + // vTrMem of each channel
-                    MBE_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
-                    MBE_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
-                    ((bSidechain) ? MBE_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
+                    MBG_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
+                    MBG_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
+                    ((bSidechain) ? MBG_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
                     // Band buffers
                     (
-                        MBE_BUFFER_SIZE * sizeof(float) + // vVCA of each band
+                        MBG_BUFFER_SIZE * sizeof(float) + // vVCA of each band
                         mb_gate_base_metadata::FFT_MESH_POINTS * 2 * sizeof(float) // vTr transfer function for each band
                     ) * mb_gate_base_metadata::BANDS_MAX
                 ) * channels;
@@ -150,18 +155,18 @@ namespace lsp
         vIndexes        = reinterpret_cast<uint32_t *>(ptr);
         ptr            += mb_gate_base_metadata::FFT_MESH_POINTS * sizeof(uint32_t);
         vSc[0]          = reinterpret_cast<float *>(ptr);
-        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        ptr            += MBG_BUFFER_SIZE * sizeof(float);
         if (channels > 1)
         {
             vSc[1]          = reinterpret_cast<float *>(ptr);
-            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
         }
         else
             vSc[1]          = NULL;
         vBuffer         = reinterpret_cast<float *>(ptr);
-        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        ptr            += MBG_BUFFER_SIZE * sizeof(float);
         vEnv            = reinterpret_cast<float *>(ptr);
-        ptr            += MBE_BUFFER_SIZE * sizeof(float);
+        ptr            += MBG_BUFFER_SIZE * sizeof(float);
 
         // Initialize filters according to number of bands
         if (sFilters.init(mb_gate_base_metadata::BANDS_MAX * channels) != STATUS_OK)
@@ -187,22 +192,28 @@ namespace lsp
             c->vScIn        = NULL;
 
             c->vBuffer      = reinterpret_cast<float *>(ptr);
-            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
             c->vScBuffer    = reinterpret_cast<float *>(ptr);
-            ptr            += MBE_BUFFER_SIZE * sizeof(float);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
             c->vExtScBuffer = NULL;
             if (bSidechain)
             {
                 c->vExtScBuffer = reinterpret_cast<float *>(ptr);
-                ptr            += MBE_BUFFER_SIZE * sizeof(float);
+                ptr            += MBG_BUFFER_SIZE * sizeof(float);
             }
             c->vTr          = reinterpret_cast<float *>(ptr);
             ptr            += 2 * filter_mesh_size;
             c->vTrMem       = reinterpret_cast<float *>(ptr);
             ptr            += filter_mesh_size;
+            c->vInAnalyze   = reinterpret_cast<float *>(ptr);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
+            c->vOutAnalyze  = reinterpret_cast<float *>(ptr);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
 
             c->nAnInChannel = an_cid++;
             c->nAnOutChannel= an_cid++;
+            vAnalyze[c->nAnInChannel]   = c->vInAnalyze;
+            vAnalyze[c->nAnOutChannel]  = c->vOutAnalyze;
             c->bInFft       = false;
             c->bOutFft      = false;
 
@@ -242,7 +253,7 @@ namespace lsp
                 }
 
                 b->vVCA             = reinterpret_cast<float *>(ptr);
-                ptr                += MBE_BUFFER_SIZE * sizeof(float);
+                ptr                += MBG_BUFFER_SIZE * sizeof(float);
                 b->vTr              = reinterpret_cast<float *>(ptr);
                 ptr                += mb_gate_base_metadata::FFT_MESH_POINTS * sizeof(float) * 2;
 
@@ -1097,7 +1108,7 @@ namespace lsp
         while (samples > 0)
         {
             // Determine buffer size for processing
-            size_t to_process   = (samples > MBE_BUFFER_SIZE) ? MBE_BUFFER_SIZE : samples;
+            size_t to_process   = (samples > MBG_BUFFER_SIZE) ? MBG_BUFFER_SIZE : samples;
 
             // Measure input signal level
             for (size_t i=0; i<channels; ++i)
@@ -1147,8 +1158,7 @@ namespace lsp
                 if (bSidechain)
                     c->sEnvBoost[1].process(c->vExtScBuffer, c->vExtScBuffer, to_process);
 
-                if (sAnalyzer.channel_active(c->nAnInChannel))
-                    sAnalyzer.process(c->nAnInChannel, c->vBuffer, to_process);
+                dsp::copy(c->vInAnalyze, c->vBuffer, to_process);
             }
 
             // MAIN PLUGIN STUFF
@@ -1258,8 +1268,10 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c        = &vChannels[i];
-                sAnalyzer.process(c->nAnOutChannel, c->vBuffer, to_process);
+                dsp::copy(c->vOutAnalyze, c->vBuffer, to_process);
             }
+
+            sAnalyzer.process(vAnalyze, to_process);
 
             // Post-process data (if needed)
             if (nMode == MBEM_MS)

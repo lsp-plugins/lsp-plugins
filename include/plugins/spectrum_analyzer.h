@@ -91,6 +91,7 @@ namespace lsp
             Counter             sCounter;
             size_t              nChannels;
             sa_channel_t       *vChannels;
+            float             **vAnalyze;           // Analysis buffers
             float              *vFrequences;
             float              *vMFrequences;
             uint32_t           *vIndexes;

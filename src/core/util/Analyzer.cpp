@@ -49,6 +49,7 @@ namespace lsp
         nCounter        = 0;
         nPeriod         = 0;
         nStep           = 0;
+        nHead           = 0;
         fReactivity     = 0.0f;
         fTau            = 1.0f;
         fRate           = 1.0f;
@@ -136,7 +137,6 @@ namespace lsp
             abuf               += fft_size;
 
             // Counters
-            c->nHead            = 0;
             c->nDelay           = 0;
             c->bFreeze          = false;
             c->bActive          = true;
@@ -270,7 +270,7 @@ namespace lsp
         if (nReconfigure & R_COUNTERS)
         {
             for (size_t i=0; i<nChannels; ++i)
-                vChannels[i].nDelay     = nPeriod - (i+1)*nStep;
+                vChannels[i].nDelay     = i*nStep;
         }
 
         // Clear reconfiguration flag and update strobe signal
@@ -310,10 +310,7 @@ namespace lsp
                         if ((bActive) && (c->bActive))
                         {
                             // Get the time mark to start from
-                            ssize_t doff    = c->nHead - (fft_size + c->nDelay);
-
-                            lsp_trace("channel=%d, offset=%d, samples=%d", int(channel), int(doff), int(samples));
-
+                            ssize_t doff    = nHead - (fft_size + c->nDelay);
                             if (doff < 0)
                                 doff           += nBufSize;
 
@@ -354,41 +351,42 @@ namespace lsp
             size_t to_process   = lsp_min(samples - offset, nStep - off);
 
             // Commit data to delay buffers for each channel
+            size_t ncopy        = nBufSize - nHead;
             for (size_t i=0; i<nChannels; ++i)
             {
                 c                   = &vChannels[i];
                 const float *src    = (in != NULL) ? in[i] : NULL;
-                size_t ncopy        = nBufSize - c->nHead;
 
                 if (ncopy < to_process)
                 {
                     if (src != NULL)
                     {
-                        dsp::copy(&c->vBuffer[c->nHead], &src[offset], ncopy);
+                        dsp::copy(&c->vBuffer[nHead], &src[offset], ncopy);
                         dsp::copy(c->vBuffer, &src[offset + ncopy], to_process - ncopy);
                     }
                     else
                     {
-                        dsp::fill_zero(&c->vBuffer[c->nHead], ncopy);
+                        dsp::fill_zero(&c->vBuffer[nHead], ncopy);
                         dsp::fill_zero(c->vBuffer, to_process - ncopy);
                     }
-                    c->nHead            = to_process - ncopy;
                 }
                 else
                 {
                     if (src != NULL)
-                        dsp::copy(&c->vBuffer[c->nHead], &src[offset], to_process);
+                        dsp::copy(&c->vBuffer[nHead], &src[offset], to_process);
                     else
-                        dsp::fill_zero(&c->vBuffer[c->nHead], to_process);
-                    c->nHead           += to_process;
+                        dsp::fill_zero(&c->vBuffer[nHead], to_process);
                 }
             }
 
-            // Update position
+            // Update positions
             offset     += to_process;
-            nCounter    = nCounter + to_process;
+            nCounter   += to_process;
             if (nCounter >= nPeriod)
                 nCounter   -= nPeriod;
+            nHead      += to_process;
+            if (nHead >= nBufSize)
+                nHead      -= nBufSize;
         }
     }
 
@@ -479,6 +477,7 @@ namespace lsp
         v->write("nCounter", nCounter);
         v->write("nPeriod", nPeriod);
         v->write("nStep", nStep);
+        v->write("nHead", nHead);
         v->write("fReactivity", fReactivity);
         v->write("fTau", fTau);
         v->write("fRate", fRate);

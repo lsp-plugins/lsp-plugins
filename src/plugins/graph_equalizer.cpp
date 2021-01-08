@@ -558,6 +558,7 @@ namespace lsp
     void graph_equalizer_base::process(size_t samples)
     {
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
+        float *analyze[2];
 
         // Initialize buffer pointers
         for (size_t i=0; i<channels; ++i)
@@ -565,6 +566,7 @@ namespace lsp
             eq_channel_t *c     = &vChannels[i];
             c->vIn              = c->pIn->getBuffer<float>();
             c->vOut             = c->pOut->getBuffer<float>();
+            analyze[i]          = c->vBuffer;
         }
 
         size_t fft_pos          = (ui_active()) ? nFftPosition : FFTP_NONE;
@@ -625,7 +627,7 @@ namespace lsp
 
                 // Do FFT in 'PRE'-position
                 if (fft_pos == FFTP_PRE)
-                    sAnalyzer.process(i, c->vBuffer, to_process);
+                    sAnalyzer.process(analyze, to_process);
 
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
@@ -634,7 +636,7 @@ namespace lsp
 
                 // Do FFT in 'POST'-position
                 if (fft_pos == FFTP_POST)
-                    sAnalyzer.process(i, c->vBuffer, to_process);
+                    sAnalyzer.process(analyze, to_process);
             }
 
             // Post-process data (if needed)
