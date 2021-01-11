@@ -35,6 +35,7 @@
 * Several typo fixes in documentation (contributed by Olivier Humbert).
 * Fixed improper output MIDI event sorting for all plugins.
 * Channels of spectrum analyzer are now synchronized.
+* Fixed regression related to loading built-in file resources.
 - Added equalizer hide/show button for convolver plugin series.
 - Channels of spectrum analyzer are now synchronized.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
