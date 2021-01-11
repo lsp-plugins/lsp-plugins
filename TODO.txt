@@ -36,8 +36,8 @@
 * Fixed improper output MIDI event sorting for all plugins.
 * Channels of spectrum analyzer are now synchronized.
 * Fixed regression related to loading built-in file resources.
-- Added equalizer hide/show button for convolver plugin series.
-- Channels of spectrum analyzer are now synchronized.
+* Added extra button to hide/show equalizer section for Impulse Responses and Impulse Reverb
+  plugin series.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
 *******************************************************************************

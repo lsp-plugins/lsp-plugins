@@ -49,6 +49,7 @@
 	<li><b>File</b> - file editor selector</li>
 	<li><b>FFT frame</b> - the maximum size of the FFT (Fast Fourier Transform) frame that can be used for time-continuous convolution</li>
 	<li><b>IR equalizer</b> - enables wet (processed) signal equalization in additional <b>Wet Signal Equalization</b> section</li>
+	<li><b>Show</b> - Displays the additional <b>Wet Signal Equalization</b> section in the UI</li>
 	<li><b>Reverse</b> - allows to reverse impulse file in time domain.</li>
 	<li><b>Head cut</b> - cut amount of milliseconds from the beginning of the impulse files, can be used to remove early reflections of reverb.</li>
 	<li><b>Tail cut</b> - cut amount of milliseconds from the end of the impulse files, can be used to remove large reverberation tail.</li>
