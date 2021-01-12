@@ -384,14 +384,18 @@ namespace lsp
                             s   = skip_spaces(s);
                             if (!parse_int(&v, &s))
                                 break;
-                            if (*(s++) != '/')
-                                return result;
-                            if (!parse_int(&vt, &s))
-                                vt  = 0;
-                            if (*(s++) != '/')
-                                return result;
-                            if (!parse_int(&vn, &s))
-                                vn = 0;
+                            s   = skip_spaces(s);
+                            if (*s == '/') {
+                                s   = skip_spaces(s + 1);
+                                if (!parse_int(&vt, &s))
+                                    vt  = 0;
+                                s   = skip_spaces(s);
+                                if (*s == '/') {
+                                    s   = skip_spaces(s+1);
+                                    if (!parse_int(&vn, &s))
+                                        vn = 0;
+                                }
+                            }
 
                             // Ensure that indexes are correct
                             v   = (v < 0) ? st->sVx.size() + v : v - 1;
