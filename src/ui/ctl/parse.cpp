@@ -101,6 +101,9 @@ namespace lsp
             if (!svalue.set_utf8(value, len))
                 return false;
 
+            if (svalue.starts_with_ascii("builtin://"))
+                return path->set(&svalue) == STATUS_OK;
+
             // This method won't accept absolute path stored in svalue
             if (path->set(base, &svalue) != STATUS_OK)
                 return false;
