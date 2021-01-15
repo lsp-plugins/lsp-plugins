@@ -1101,6 +1101,7 @@ namespace lsp
             if (invisible())
                 return STATUS_OK;
 
+            sWFiles.selection()->clear();
             return apply_filters();
         }
 
@@ -1149,12 +1150,12 @@ namespace lsp
         status_t LSPFileDialog::on_dlg_action(void *data)
         {
             bool committed = false;
+            file_entry_t *ent = selected_entry();
+            LSPString fname;
+            LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
 
             if (enMode == FDM_SAVE_FILE) // Use 'File name' field
             {
-                LSPString fname;
-                LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
-
                 if (wAutoExt.is_down())
                 {
                     LSPString ext;
@@ -1178,21 +1179,15 @@ namespace lsp
                 LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
                 committed = true;
             }
-            else
+            else if ((ent == NULL) && (!LSPFileMask::is_dots(&fname)) && (LSPFileMask::valid_file_name(&fname)))
             {
-                LSPString fname;
-                LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
-                if ((!LSPFileMask::is_dots(&fname)) && (LSPFileMask::valid_file_name(&fname)))
-                {
-                    LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
-                    committed = true;
-                }
+                LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
+                committed = true;
             }
 
             // Use selection
             if (!committed)
             {
-                file_entry_t *ent = selected_entry();
                 if (ent == NULL)
                     return show_message("titles.attention", "headings.attention", "messages.file.not_specified");
 
