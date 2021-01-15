@@ -39,6 +39,7 @@
 * Added extra button to hide/show equalizer section for Impulse Responses and Impulse Reverb
   plugin series.
 * Updated OBJ file parsing for support less strict file format.
+* Fixed improper behaviour of File Open Dialog widget related to file name input.
 - Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
 *******************************************************************************
