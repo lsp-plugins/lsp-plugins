@@ -114,6 +114,26 @@ namespace dsp
      */
     extern void (* pcomplex_r2c)(float *dst, const float *src, size_t count);
 
+    /** Convert real to packed complex:
+     *  dst[i].re = 0
+     *  dst[i].im = src[i]
+     *
+     * @param dst destination packed complex data
+     * @param src source real data
+     * @param count number of items to convert
+     */
+    extern void (* pcomplex_i2c)(float *dst, const float *src, size_t count);
+
+    /** Convert real to packed complex:
+     *  dst[i].re = re[i]
+     *  dst[i].im = im[i]
+     *
+     * @param dst destination packed complex data
+     * @param src source real data
+     * @param count number of items to convert
+     */
+    extern void (* pcomplex_ri2c)(float *dst, const float *re, const float *im, size_t count);
+
     /** Convert packed complex to real:
      *  dst[i] = src[i].re
      *
@@ -122,6 +142,25 @@ namespace dsp
      * @param count number of items to convert
      */
     extern void (* pcomplex_c2r)(float *dst, const float *src, size_t count);
+
+    /** Convert packed complex to real:
+     *  dst[i] = src[i].im
+     *
+     * @param dst destination real data
+     * @param src source packed complex data
+     * @param count number of items to convert
+     */
+    extern void (* pcomplex_c2i)(float *dst, const float *src, size_t count);
+
+    /** Convert packed complex to real:
+     *  re[i] = src[i].re
+     *  im[i] = src[i].im
+     *
+     * @param dst destination real data
+     * @param src source packed complex data
+     * @param count number of items to convert
+     */
+    extern void (* pcomplex_c2ri)(float *re, float *im, const float *src, size_t count);
 
     /** Convert packed complex to real and add to destination buffer
      *
