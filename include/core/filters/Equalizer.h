@@ -63,7 +63,8 @@ namespace lsp
             size_t              nBufSize;           // Buffer size
             equalizer_mode_t    nMode;              // Equalizer mode
 
-            float              *vBuffer;            // Buffer data
+            float              *vInBuffer;          // Input buffer data
+            float              *vOutBuffer;         // Output buffer data
             float              *vConv;              // Convolution data
             float              *vFft;               // FFT transform data buffer (real + imaginary)
             float              *vTemp;              // Temporary buffer for miscellaneous calculations

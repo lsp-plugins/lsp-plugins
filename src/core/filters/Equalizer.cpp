@@ -45,12 +45,13 @@ namespace lsp
         vFilters        = NULL;
         nFilters        = 0;
         nSampleRate     = 0;
-        nFirSize       = 0;
+        nFirSize        = 0;
         nFirRank        = 0;
         nLatency        = 0;
         nBufSize        = 0;
         nMode           = EQM_BYPASS;
-        vBuffer         = NULL;
+        vInBuffer       = NULL;
+        vOutBuffer      = NULL;
         vConv           = NULL;
         vFft            = NULL;
         vTemp           = NULL;
@@ -80,9 +81,10 @@ namespace lsp
         {
             nFirSize            = 1 << fir_rank;
             nFirRank            = fir_rank;
+            size_t fft_size     = nFirSize << 1;
             size_t conv_size    = nFirSize << 2;
             size_t tmp_size     = lsp_max(conv_size, BUFFER_SIZE);
-            size_t allocate     = conv_size*3 + tmp_size + nFirSize;
+            size_t allocate     = fft_size*2 + conv_size*2 + tmp_size + nFirSize;
 
             float *ptr          = alloc_aligned<float>(pData, allocate);
             if (ptr == NULL)
@@ -94,8 +96,10 @@ namespace lsp
             dsp::fill_zero(ptr, allocate);
 
             // Assign pointers
-            vBuffer             = ptr;
-            ptr                += conv_size;            // nFirSize * 4
+            vInBuffer           = ptr;
+            ptr                += fft_size;             // nFirSize * 2
+            vOutBuffer          = ptr;
+            ptr                += fft_size;             // nFirSize * 2
             vConv               = ptr;
             ptr                += conv_size;            // nFirSize * 4
             vFft                = ptr;
@@ -116,7 +120,8 @@ namespace lsp
 
             nFirSize            = 0;
             nFirRank            = 0;
-            vBuffer             = NULL;
+            vInBuffer           = NULL;
+            vOutBuffer          = NULL;
             vConv               = NULL;
             vFft                = NULL;
             vTemp               = ptr;
@@ -154,7 +159,8 @@ namespace lsp
         if (pData != NULL)
         {
             free_aligned(pData);
-            vBuffer         = NULL;
+            vInBuffer       = NULL;
+            vOutBuffer      = NULL;
             vConv           = NULL;
             vFft            = NULL;
             vTemp           = NULL;
@@ -230,7 +236,7 @@ namespace lsp
             dsp::packed_direct_fft(vFft, vFft, nFirRank);                   // Perform FFT
             dsp::pcomplex_mod(vTemp, vFft, nFirSize);                       // Now we have FFT magnitude in vTemp
         }
-        else if (nMode == EQM_FFT)
+        else if ((nMode == EQM_FFT) || (nMode == EQM_SPM))
         {
             size_t num_filters  = 0;
             size_t freq_size    = half_size + 1;
@@ -263,39 +269,6 @@ namespace lsp
             else
                 dsp::fill_one(vTemp, nFirSize);
         }
-        else if (nMode == EQM_SPM)
-        {
-            size_t num_filters  = 0;
-            size_t freq_size    = nFirSize + 1;
-            dsp::lin_inter_set(vConv, 0, 0.0f, nFirSize, 0.5f * nSampleRate, 0, freq_size); // Compute frequencies
-
-            // Build frequency chart for all filters
-            for (size_t i=0; i<nFilters; ++i)
-            {
-                // Skip inactive filters
-                if (vFilters[i].inactive())
-                    continue;
-
-                // Get the frequency chart of the filter
-                if ((num_filters++) > 0)
-                {
-                    vFilters[i].freq_chart(vFft, vConv, freq_size);
-                    dsp::pcomplex_mod(vFft, vFft, freq_size);
-                    dsp::mul2(vTemp, vFft, freq_size);
-                }
-                else
-                {
-                    vFilters[i].freq_chart(vFft, vConv, freq_size);
-                    dsp::pcomplex_mod(vTemp, vFft, freq_size);
-                }
-            }
-
-            // Finally, build the correct frequency chart for reverse FFT
-            if (num_filters > 0)
-                dsp::reverse2(&vTemp[freq_size], &vTemp[1], nFirSize-1);
-            else
-                dsp::fill_one(vTemp, fft_size);
-        }
         else
             dsp::fill_one(vTemp, nFirSize);                                 // Flat response
 
@@ -316,10 +289,10 @@ namespace lsp
         }
         else // EQM_SPM
         {
-            dsp::pcomplex_r2c(vConv, vTemp, fft_size);                          // Convert magnitude to complex value
-            windows::sqr_cosine(vFft, fft_size);                                // Also provide window
+            dsp::pcomplex_r2c(vConv, vTemp, nFirSize);                          // Convert magnitude to complex value
+            windows::sqr_cosine(vFft, nFirSize);                                // Also provide window
 
-            nLatency    = fft_size;
+            nLatency    = nFirSize;
         }
     }
 
@@ -435,16 +408,15 @@ namespace lsp
             case EQM_FFT:
             {
                 size_t conv_rank    = nFirRank + 1;
-                size_t conv_len     = 1 << conv_rank;
 
                 while (samples > 0)
                 {
                     if (nBufSize >= nFirSize)
                     {
                         // Apply FIR processing
-                        dsp::move(vBuffer, &vBuffer[nFirSize], nFirSize);   // Shift buffer
-                        dsp::fill_zero(&vBuffer[nFirSize], nFirSize);       // Empty tail
-                        dsp::fastconv_parse_apply(vBuffer, vTemp, vConv, &vBuffer[conv_len], conv_rank); // Apply convolution
+                        dsp::move(vOutBuffer, &vOutBuffer[nFirSize], nFirSize);     // Shift output buffer
+                        dsp::fill_zero(&vOutBuffer[nFirSize], nFirSize);            // Empty tail of output buffer
+                        dsp::fastconv_parse_apply(vOutBuffer, vTemp, vConv, vInBuffer, conv_rank); // Apply convolution
                         nBufSize    = 0; // Reset buffer size
                     }
 
@@ -452,8 +424,8 @@ namespace lsp
                     size_t to_process = lsp_min(samples, nFirSize - nBufSize);
 
                     // Push new data for processing and emit processed data
-                    dsp::copy(&vBuffer[conv_len + nBufSize], in, to_process);
-                    dsp::copy(out, &vBuffer[nBufSize], to_process);
+                    dsp::copy(&vInBuffer[nBufSize], in, to_process);
+                    dsp::copy(out, &vOutBuffer[nBufSize], to_process);
 
                     // Update pointers and counters
                     nBufSize       += to_process;
@@ -467,35 +439,34 @@ namespace lsp
 
             case EQM_SPM:
             {
-                size_t conv_rank    = nFirRank + 1;
-                size_t conv_len     = 1 << conv_rank;
+                size_t half_len     = nFirSize >> 1;
 
                 while (samples > 0)
                 {
-                    if (nBufSize >= nFirSize)
+                    if (nBufSize >= half_len)
                     {
                         // Apply FIR processing
-                        dsp::move(vBuffer, &vBuffer[nFirSize], nFirSize);           // Shift output buffer
-                        dsp::fill_zero(&vBuffer[nFirSize], nFirSize);               // Empty tail of destination buffer
+                        dsp::move(vOutBuffer, &vOutBuffer[half_len], half_len);     // Shift output buffer
+                        dsp::fill_zero(&vOutBuffer[half_len], half_len);            // Empty tail of destination buffer
 
-                        dsp::pcomplex_r2c(vTemp, &vBuffer[conv_len], conv_len);     // Convert source buffer to complex numbers
-                        dsp::packed_direct_fft(vTemp, vTemp, conv_rank);            // Perform FFT
-                        dsp::pcomplex_mul2(vTemp, vConv, conv_len);                 // Apply magnitude
-                        dsp::packed_reverse_fft(vTemp, vTemp, conv_rank);           // Transform back
-                        dsp::pcomplex_c2r(vTemp, vTemp, conv_len);                  // Add result of convolution to output
-                        dsp::fmadd3(vBuffer, vTemp, vFft, conv_len);                // Apply window to the signal and add to buffer
+                        dsp::pcomplex_r2c(vTemp, vInBuffer, nFirSize);              // Convert source buffer to complex numbers
+                        dsp::packed_direct_fft(vTemp, vTemp, nFirRank);             // Perform FFT
+                        dsp::pcomplex_mul2(vTemp, vConv, nFirSize);                 // Apply magnitude
+                        dsp::packed_reverse_fft(vTemp, vTemp, nFirRank);            // Transform back
+                        dsp::pcomplex_c2r(vTemp, vTemp, nFirSize);                  // Add result of convolution to output
+                        dsp::fmadd3(vOutBuffer, vTemp, vFft, nFirSize);             // Apply window to the signal and add to buffer
 
-                        dsp::move(&vBuffer[conv_len], &vBuffer[conv_len + nFirSize], nFirSize); // Shift input buffer
+                        dsp::move(vInBuffer, &vInBuffer[half_len], half_len);       // Shift input buffer
 
                         nBufSize    = 0; // Reset buffer size
                     }
 
                     // Determine number of samples to process
-                    size_t to_process = lsp_min(samples, nFirSize - nBufSize);
+                    size_t to_process = lsp_min(samples, half_len - nBufSize);
 
                     // Push new data for processing and emit processed data
-                    dsp::copy(&vBuffer[conv_len + nFirSize + nBufSize], in, to_process);
-                    dsp::copy(out, &vBuffer[nBufSize], to_process);
+                    dsp::copy(&vInBuffer[half_len + nBufSize], in, to_process);
+                    dsp::copy(out, &vOutBuffer[nBufSize], to_process);
 
                     // Update pointers and counters
                     nBufSize       += to_process;
@@ -532,7 +503,8 @@ namespace lsp
         v->write("nLatency", nLatency);
         v->write("nBufSize", nBufSize);
         v->write("nMode", nMode);
-        v->write("vBuffer", vBuffer);
+        v->write("vInBuffer", vInBuffer);
+        v->write("vOutBuffer", vOutBuffer);
         v->write("vConv", vConv);
         v->write("vFft", vFft);
         v->write("vTemp", vTemp);
