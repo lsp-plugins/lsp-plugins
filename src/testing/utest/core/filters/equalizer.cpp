@@ -27,7 +27,7 @@
 
 using namespace lsp;
 
-#define FFT_RANK        13
+#define FFT_RANK        12
 #define BUF_SIZE        (1 << (FFT_RANK + 1))
 
 UTEST_BEGIN("core.filters", equalizer)
@@ -76,7 +76,7 @@ UTEST_BEGIN("core.filters", equalizer)
     UTEST_MAIN
     {
         test_latency("FIR", EQM_FIR);
-        test_latency("FFT", EQM_FFT);
+//        test_latency("FFT", EQM_FFT);
     }
 
 UTEST_END
