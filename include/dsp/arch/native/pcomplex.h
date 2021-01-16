@@ -117,6 +117,43 @@ namespace native
         }
     }
 
+    void pcomplex_i2c(float *dst, const float *src, size_t count)
+    {
+        if (dst == src)
+        {
+            // Do backward copy
+            dst        += (count-1) << 1;
+            src        += (count-1);
+            while (count--)
+            {
+                dst[0]      = 0.0f;
+                dst[1]      = *(src--);
+                dst        -= 2;
+            }
+        }
+        else
+        {
+            // Do forward copy
+            while (count--)
+            {
+                dst[0]      = 0.0f;
+                dst[1]      = *(src++);
+                dst        += 2;
+            }
+        }
+    }
+
+    void pcomplex_ri2c(float *dst, const float *re, const float *im, size_t count)
+    {
+        // Do forward copy
+        while (count--)
+        {
+            dst[0]      = *(re++);
+            dst[1]      = *(im++);
+            dst        += 2;
+        }
+    }
+
     void pcomplex_fill_ri(float *dst, float re, float im, size_t count)
     {
         while (count --)
@@ -131,7 +168,26 @@ namespace native
     {
         while (count --)
         {
-            *(dst++)    = *src;
+            *(dst++)    = src[0];
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2i(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(dst++)    = src[1];
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2ri(float *re, float *im, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(re++)     = src[0];
+            *(im++)     = src[1];
             src        += 2;
         }
     }

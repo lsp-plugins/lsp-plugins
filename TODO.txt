@@ -31,6 +31,8 @@
 === 1.1.29 ===
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
+* Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
+* Implemented SPM mode for Parameteric and Graphic Equalizer plugin series.
 * Fixed improper VST call handling for several calls.
 * Several typo fixes in documentation (contributed by Olivier Humbert).
 * Fixed improper output MIDI event sorting for all plugins.
@@ -40,7 +42,6 @@
   plugin series.
 * Updated OBJ file parsing for support less strict file format.
 * Fixed improper behaviour of File Open Dialog widget related to file name input.
-- Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
 
 *******************************************************************************
 * New plugin check list before release
