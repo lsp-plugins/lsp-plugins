@@ -344,6 +344,7 @@ namespace lsp
             case para_equalizer_base_metadata::PEM_IIR: return EQM_IIR;
             case para_equalizer_base_metadata::PEM_FIR: return EQM_FIR;
             case para_equalizer_base_metadata::PEM_FFT: return EQM_FFT;
+            case para_equalizer_base_metadata::PEM_SPM: return EQM_SPM;
             default:
                 break;
         }

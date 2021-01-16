@@ -23,12 +23,13 @@
 #include <test/helpers.h>
 #include <core/filters/Equalizer.h>
 #include <test/FloatBuffer.h>
+#include <core/io/Path.h>
 #include <dsp/dsp.h>
 
 using namespace lsp;
 
 #define FFT_RANK        12
-#define BUF_SIZE        (1 << (FFT_RANK + 1))
+#define BUF_SIZE        (1 << (FFT_RANK + 2))
 
 UTEST_BEGIN("core.filters", equalizer)
 
@@ -60,6 +61,19 @@ UTEST_BEGIN("core.filters", equalizer)
         src[0] = 1.0f;
         dst.fill_zero();
         eq.process(dst, src, BUF_SIZE);
+        UTEST_ASSERT(!src.corrupted());
+        UTEST_ASSERT(!dst.corrupted());
+
+        // Save result
+        io::Path path;
+        UTEST_ASSERT(path.fmt("tmp/%s-%s.csv", full_name(), label) > 0);
+        printf("  output results: %s\n", path.as_utf8());
+        FILE *out = fopen(path.as_native(), "w");
+        UTEST_ASSERT(out != NULL);
+        fprintf(out, "samples;in;out\n");
+        for (size_t i=0; i<BUF_SIZE; ++i)
+            fprintf(out, "%d;%.g;%.g\n", int(i), src[i], dst[i]);
+        fclose(out);
 
         // Check that latency matches
         size_t latency  = eq.get_latency();
@@ -76,7 +90,8 @@ UTEST_BEGIN("core.filters", equalizer)
     UTEST_MAIN
     {
         test_latency("FIR", EQM_FIR);
-//        test_latency("FFT", EQM_FFT);
+        test_latency("FFT", EQM_FFT);
+        test_latency("SPM", EQM_SPM);
     }
 
 UTEST_END

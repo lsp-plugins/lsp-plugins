@@ -30,6 +30,7 @@ namespace lsp
 {
     #define EQ_BUFFER_SIZE          0x1000
     #define EQ_RANK                 12
+//    #define EQ_RANK                 5
     #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
     //-------------------------------------------------------------------------
@@ -346,6 +347,7 @@ namespace lsp
             case para_equalizer_base_metadata::PEM_IIR: return EQM_IIR;
             case para_equalizer_base_metadata::PEM_FIR: return EQM_FIR;
             case para_equalizer_base_metadata::PEM_FFT: return EQM_FFT;
+            case para_equalizer_base_metadata::PEM_SPM: return EQM_SPM;
             default:
                 break;
         }

@@ -80,10 +80,9 @@ namespace lsp
         {
             nFirSize            = 1 << fir_rank;
             nFirRank            = fir_rank;
-            size_t fft_size     = nFirSize << 1;
             size_t conv_size    = nFirSize << 2;
             size_t tmp_size     = lsp_max(conv_size, BUFFER_SIZE);
-            size_t allocate     = fft_size * 3 + conv_size * 2 + tmp_size + nFirSize;
+            size_t allocate     = conv_size*3 + tmp_size + nFirSize;
 
             float *ptr          = alloc_aligned<float>(pData, allocate);
             if (ptr == NULL)
@@ -96,13 +95,13 @@ namespace lsp
 
             // Assign pointers
             vBuffer             = ptr;
-            ptr                += fft_size + nFirSize; // nFirSize * 4
+            ptr                += conv_size;            // nFirSize * 4
             vConv               = ptr;
-            ptr                += conv_size;    // nFirSize * 4
+            ptr                += conv_size;            // nFirSize * 4
             vFft                = ptr;
-            ptr                += fft_size;     // nFirSize * 2
+            ptr                += conv_size;            // nFirSize * 4
             vTemp               = ptr;
-            ptr                += tmp_size;     // nFirSize * 2
+            ptr                += tmp_size;             // nFirSize * 4
         }
         else
         {
@@ -224,7 +223,7 @@ namespace lsp
         // Build filter's magnitude characteristics
         if (nMode == EQM_FIR)
         {
-            windows::window(vConv, fft_size, windows::BLACKMAN_NUTTALL);
+            windows::blackman_nuttall(vConv, fft_size);
             sBank.impulse_response(vTemp, nFirSize);                        // Generate impulse response of the filter
             dsp::mul2(vTemp, &vConv[nFirSize], nFirSize);                   // Apply window function to the impulse response
             dsp::pcomplex_r2c(vFft, vTemp, nFirSize);                       // Prepare for FFT transform
@@ -260,24 +259,68 @@ namespace lsp
 
             // Finally, build the correct frequency chart for reverse FFT
             if (num_filters > 0)
-                dsp::reverse2(&vTemp[half_size+1], &vTemp[1], half_size-1);
+                dsp::reverse2(&vTemp[freq_size], &vTemp[1], half_size-1);
             else
                 dsp::fill_one(vTemp, nFirSize);
+        }
+        else if (nMode == EQM_SPM)
+        {
+            size_t num_filters  = 0;
+            size_t freq_size    = nFirSize + 1;
+            dsp::lin_inter_set(vConv, 0, 0.0f, nFirSize, 0.5f * nSampleRate, 0, freq_size); // Compute frequencies
+
+            // Build frequency chart for all filters
+            for (size_t i=0; i<nFilters; ++i)
+            {
+                // Skip inactive filters
+                if (vFilters[i].inactive())
+                    continue;
+
+                // Get the frequency chart of the filter
+                if ((num_filters++) > 0)
+                {
+                    vFilters[i].freq_chart(vFft, vConv, freq_size);
+                    dsp::pcomplex_mod(vFft, vFft, freq_size);
+                    dsp::mul2(vTemp, vFft, freq_size);
+                }
+                else
+                {
+                    vFilters[i].freq_chart(vFft, vConv, freq_size);
+                    dsp::pcomplex_mod(vTemp, vFft, freq_size);
+                }
+            }
+
+            // Finally, build the correct frequency chart for reverse FFT
+            if (num_filters > 0)
+                dsp::reverse2(&vTemp[freq_size], &vTemp[1], nFirSize-1);
+            else
+                dsp::fill_one(vTemp, fft_size);
         }
         else
             dsp::fill_one(vTemp, nFirSize);                                 // Flat response
 
-        // Transform the magnitude into linear-phase filter
-        dsp::pcomplex_r2c(vFft, vTemp, nFirSize);                           // Set phase to 0 for all frequencies
-        dsp::packed_reverse_fft(vFft, vFft, nFirRank);                      // Get the synthesized impulse response
-        dsp::pcomplex_c2r(&vTemp[half_size], vFft, nFirSize);               // Get real part of the impulse response
-        dsp::copy(vTemp, &vTemp[nFirSize], half_size);                      // Make impulse response symmetric
-        windows::window(vConv, nFirSize, windows::BLACKMAN_NUTTALL);        // Compute the window function
-        dsp::mul2(vTemp, vConv, nFirSize);                                  // Apply the window function
+        if (nMode != EQM_SPM)
+        {
+            // Transform the magnitude into linear-phase filter
+            dsp::pcomplex_r2c(vFft, vTemp, nFirSize);                           // Set phase to 0 for all frequencies
+            dsp::packed_reverse_fft(vFft, vFft, nFirRank);                      // Get the synthesized impulse response
+            dsp::pcomplex_c2r(&vTemp[half_size], vFft, nFirSize);               // Get real part of the impulse response
+            dsp::copy(vTemp, &vTemp[nFirSize], half_size);                      // Make impulse response symmetric
+            windows::blackman_nuttall(vConv, nFirSize);                         // Compute the window function
+            dsp::mul2(vTemp, vConv, nFirSize);                                  // Apply the window function
 
-        // Get the final impulse response data
-        dsp::fastconv_parse(vConv, vTemp, nFirRank + 1);                    // Get the IR function
-        nLatency    = nFirSize + half_size;
+            // Get the final impulse response data
+            dsp::fastconv_parse(vConv, vTemp, nFirRank + 1);                    // Get the IR function
+
+            nLatency    = nFirSize + half_size;
+        }
+        else // EQM_SPM
+        {
+            dsp::pcomplex_r2c(vConv, vTemp, fft_size);                          // Convert magnitude to complex value
+            windows::sqr_cosine(vFft, fft_size);                                // Also provide window
+
+            nLatency    = fft_size;
+        }
     }
 
     void Equalizer::set_mode(equalizer_mode_t mode)
@@ -382,12 +425,6 @@ namespace lsp
 
         switch (nMode)
         {
-            case EQM_BYPASS:
-            {
-                dsp::copy(out, in, samples);
-                break;
-            }
-
             case EQM_IIR:
             {
                 sBank.process(out, in, samples);
@@ -396,7 +433,6 @@ namespace lsp
 
             case EQM_FIR:
             case EQM_FFT:
-            default:
             {
                 size_t conv_rank    = nFirRank + 1;
                 size_t conv_len     = 1 << conv_rank;
@@ -426,6 +462,55 @@ namespace lsp
                     samples        -= to_process;
                 }
 
+                break;
+            }
+
+            case EQM_SPM:
+            {
+                size_t conv_rank    = nFirRank + 1;
+                size_t conv_len     = 1 << conv_rank;
+
+                while (samples > 0)
+                {
+                    if (nBufSize >= nFirSize)
+                    {
+                        // Apply FIR processing
+                        dsp::move(vBuffer, &vBuffer[nFirSize], nFirSize);           // Shift output buffer
+                        dsp::fill_zero(&vBuffer[nFirSize], nFirSize);               // Empty tail of destination buffer
+
+                        dsp::pcomplex_r2c(vTemp, &vBuffer[conv_len], conv_len);     // Convert source buffer to complex numbers
+                        dsp::packed_direct_fft(vTemp, vTemp, conv_rank);            // Perform FFT
+                        dsp::pcomplex_mul2(vTemp, vConv, conv_len);                 // Apply magnitude
+                        dsp::packed_reverse_fft(vTemp, vTemp, conv_rank);           // Transform back
+                        dsp::pcomplex_c2r(vTemp, vTemp, conv_len);                  // Add result of convolution to output
+                        dsp::fmadd3(vBuffer, vTemp, vFft, conv_len);                // Apply window to the signal and add to buffer
+
+                        dsp::move(&vBuffer[conv_len], &vBuffer[conv_len + nFirSize], nFirSize); // Shift input buffer
+
+                        nBufSize    = 0; // Reset buffer size
+                    }
+
+                    // Determine number of samples to process
+                    size_t to_process = lsp_min(samples, nFirSize - nBufSize);
+
+                    // Push new data for processing and emit processed data
+                    dsp::copy(&vBuffer[conv_len + nFirSize + nBufSize], in, to_process);
+                    dsp::copy(out, &vBuffer[nBufSize], to_process);
+
+                    // Update pointers and counters
+                    nBufSize       += to_process;
+                    out            += to_process;
+                    in             += to_process;
+                    samples        -= to_process;
+                }
+
+                break;
+            }
+
+            case EQM_BYPASS:
+            default:
+            {
+                dsp::copy(out, in, samples);
                 break;
             }
         }
