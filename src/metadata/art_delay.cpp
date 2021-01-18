@@ -160,7 +160,7 @@ namespace lsp
         COMBO("tref" #id, "Delay " #id " tempo reference", 0, art_delay_tempo), \
         CONTROL("treff" #id, "Delay " #id " bar fraction", U_BAR, art_delay_base_metadata::DFRACTION), \
         INT_CONTROL("trefd" #id, "Delay " #id " bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        INT_CONTROL("trefm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
+        CONTROL("trefm" #id, "Delay " #id " bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
         CONTROL("frac" #id, "Delay " #id " fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("den" #id, "Delay " #id " denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
         CONTROL("dadd" #id, "Delay " #id " time addition", U_SEC, art_delay_base_metadata::TIME), \
@@ -182,7 +182,7 @@ namespace lsp
         COMBO("fbtr" #id, "Delay " #id " feedback tempo reference", 0, art_delay_tempo), \
         CONTROL("fbbf" #id, "Delay " #id " feedback bar fraction", U_BAR, art_delay_base_metadata::DFRACTION), \
         INT_CONTROL("fbbd" #id, "Delay " #id " feedback bar denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
-        INT_CONTROL("fbbm" #id, "Delay " #id " feedback bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
+        CONTROL("fbbm" #id, "Delay " #id " feedback bar multiplier", U_NONE, art_delay_base_metadata::BAR_MULT), \
         CONTROL("fbf" #id, "Delay " #id " feedback fraction", U_BAR, art_delay_base_metadata::FRACTION), \
         INT_CONTROL("fbd" #id, "Delay " #id " feedback denominator", U_BEAT, art_delay_base_metadata::DENOMINATOR), \
         CONTROL("fbadd" #id, "Delay " #id " feedback time addition", U_SEC, art_delay_base_metadata::TIME), \

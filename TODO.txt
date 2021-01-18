@@ -42,6 +42,8 @@
   plugin series.
 * Updated OBJ file parsing for support less strict file format.
 * Fixed improper behaviour of File Open Dialog widget related to file name input.
+* Art Delay plugin settings changed: by default multipliers are now set to 1, BPM multiplier allows now
+  to step with 0.5 values allowing to set dotted notes.
 
 *******************************************************************************
 * New plugin check list before release
