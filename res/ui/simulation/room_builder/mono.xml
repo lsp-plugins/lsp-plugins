@@ -627,44 +627,46 @@
 			
 			<!-- Equalizer -->
 			<grid rows="5" cols="10">
-				<label text="labels.flt.low_cut" />
-				<label text="50" />
-				<label text="107" />
-				<label text="227" />
-				<label text="484" />
-				<label text="labels.values.x_k" text:value="1" />
-				<label text="labels.values.x_k" text:value="2.2" />
-				<label text="labels.values.x_k" text:value="4.7" />
-				<label text="labels.values.x_k" text:value="10" />
-				<label text="labels.flt.high_cut" />
-				
-				<combo id="lcm" />
-				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_1" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_2" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_3" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_4" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_5" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_6" angle="1" /></cell>
-				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
-				<combo id="hcm" />
-				
-				<label text="labels.frequency" />
-				<label text="labels.frequency" />
-				
-				<knob id="lcf" logarithmic="true" />
-				<knob id="hcf" logarithmic="true" />
-				
-				<value id="lcf" />
-				<value id="eq_0" />
-				<value id="eq_1" />
-				<value id="eq_2" />
-				<value id="eq_3" />
-				<value id="eq_4" />
-				<value id="eq_5" />
-				<value id="eq_6" />
-				<value id="eq_7" />
-				<value id="hcf" />
+				<ui:attributes bright="(:wpp) ? 1 : 0.5">
+					<label text="labels.flt.low_cut" />
+					<label text="50" />
+					<label text="107" />
+					<label text="227" />
+					<label text="484" />
+					<label text="labels.values.x_k" text:value="1" />
+					<label text="labels.values.x_k" text:value="2.2" />
+					<label text="labels.values.x_k" text:value="4.7" />
+					<label text="labels.values.x_k" text:value="10" />
+					<label text="labels.flt.high_cut" />
+					
+					<combo id="lcm" />
+					<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+					<combo id="hcm" />
+					
+					<label text="labels.frequency" />
+					<label text="labels.frequency" />
+					
+					<knob id="lcf" logarithmic="true" />
+					<knob id="hcf" logarithmic="true" />
+					
+					<value id="lcf" />
+					<value id="eq_0" />
+					<value id="eq_1" />
+					<value id="eq_2" />
+					<value id="eq_3" />
+					<value id="eq_4" />
+					<value id="eq_5" />
+					<value id="eq_6" />
+					<value id="eq_7" />
+					<value id="hcf" />
+				</ui:attributes>
 			</grid>
 		</cgroup>
 	</vbox>

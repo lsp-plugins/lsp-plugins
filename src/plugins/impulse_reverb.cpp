@@ -418,6 +418,8 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             c->pWetEq           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
+            port_id++;          // Skip equalizer visibility port
+            TRACE_PORT(vPorts[port_id]);
             c->pLowCut          = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pLowFreq         = vPorts[port_id++];

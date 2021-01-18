@@ -55,13 +55,13 @@ namespace lsp
 
         static const float  BAR_MULT_MIN        = 0.0f;
         static const float  BAR_MULT_MAX        = 1000.0f;
-        static const float  BAR_MULT_STEP       = 1.0f;
-        static const float  BAR_MULT_DFL        = 0.0f;
+        static const float  BAR_MULT_STEP       = 0.5f;
+        static const float  BAR_MULT_DFL        = 1.0f;
 
         static const float  DELAY_MULT_MIN      = 0.0f;
         static const float  DELAY_MULT_MAX      = 1000.0f;
         static const float  DELAY_MULT_STEP     = 0.1f;
-        static const float  DELAY_MULT_DFL      = 0.0f;
+        static const float  DELAY_MULT_DFL      = 1.0f;
 
         static const float  ATEMPO_MIN          = 0.0f;
         static const float  ATEMPO_MAX          = 9000.0f;

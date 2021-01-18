@@ -54,6 +54,7 @@ namespace lsp
         { "IIR",        "eq.type.iir" },
         { "FIR",        "eq.type.fir" },
         { "FFT",        "eq.type.fft" },
+        { "SPM",        "eq.type.spm" },
         { NULL, NULL }
     };
 

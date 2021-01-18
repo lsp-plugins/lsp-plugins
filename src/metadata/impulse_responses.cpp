@@ -104,6 +104,7 @@ namespace lsp
 
     #define IR_EQUALIZER    \
         SWITCH("wpp", "Wet post-process", 0),    \
+        SWITCH("eqv", "Equalizer visibility", 0),    \
         COMBO("lcm", "Low-cut mode", 0, filter_slope),      \
         CONTROL("lcf", "Low-cut frequency", U_HZ, impulse_responses_base_metadata::LCF),   \
         IR_EQ_BAND(0, "50"), \

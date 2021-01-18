@@ -22,6 +22,7 @@
 #ifndef CORE_FILTERS_FILTERBANK_H_
 #define CORE_FILTERS_FILTERBANK_H_
 
+#include <dsp/dsp.h>
 #include <core/IStateDumper.h>
 
 namespace lsp

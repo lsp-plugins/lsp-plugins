@@ -33,7 +33,8 @@ namespace lsp
         EQM_BYPASS, // Bypass signal
         EQM_IIR,    // All filters are recursive filters with infinite impulse response filters
         EQM_FIR,    // All filters are non-recursive filters with finite impulse response filters
-        EQM_FFT     // Approximation of the frequency chart in the frequency range
+        EQM_FFT,    // Approximation of the frequency chart in the frequency range
+        EQM_SPM     // Equalizer acts as a Spectral Processing Module
     };
 
     /**
@@ -56,19 +57,20 @@ namespace lsp
             Filter             *vFilters;           // List of filters
             size_t              nFilters;           // Number of filters
             size_t              nSampleRate;        // Sample rate
-            size_t              nConvSize;          // Convolution size
-            size_t              nFftRank;           // FFT rank
+            size_t              nFirSize;           // FIR filter size
+            size_t              nFirRank;           // FFT rank
             size_t              nLatency;           // Equalizer latency
             size_t              nBufSize;           // Buffer size
             equalizer_mode_t    nMode;              // Equalizer mode
-            float              *vFftRe;             // FFT buffer (real part)
-            float              *vFftIm;             // FFT buffer (imaginary part)
-            float              *vConvRe;            // Convolution (real part)
-            float              *vConvIm;            // Convolution (imaginary part)
-            float              *vBuffer;            // Processing buffer
-            float              *vTmp;               // Temporary buffer for various calculations
-            float              *pData;              // Allocation data
+
+            float              *vInBuffer;          // Input buffer data
+            float              *vOutBuffer;         // Output buffer data
+            float              *vConv;              // Convolution data
+            float              *vFft;               // FFT transform data buffer (real + imaginary)
+            float              *vTemp;              // Temporary buffer for miscellaneous calculations
+
             size_t              nFlags;             // Flag that identifies that equalizer has to be rebuilt
+            uint8_t            *pData;              // Allocation data
 
         protected:
             void                reconfigure();
@@ -85,10 +87,10 @@ namespace lsp
             /** Initialize equalizer
              *
              * @param filters number of filters
-             * @param conv_rank convolution size rank
+             * @param fir FIR filter rank (impulse response size)
              * @return true on success
              */
-            bool                init(size_t filters, size_t conv_rank);
+            bool                init(size_t filters, size_t fir_rank);
 
             /** Destroy equalizer
              *

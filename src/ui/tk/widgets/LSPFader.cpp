@@ -411,6 +411,7 @@ namespace lsp
             {
                 float bright = (hlb - hld) * (3 - i) / 3 + hld;
                 hole.lightness(bright);
+                hole.scale_lightness(brightness());
 
                 if (nAngle & 1) // Vertical
                 {
@@ -460,6 +461,7 @@ namespace lsp
 
                 Color cl(color);
                 cl.lightness(bright);
+                cl.scale_lightness(brightness());
                 gr->add_color(0.0f, cl);
                 cl.darken(0.9f);
                 gr->add_color(1.0f, cl);

@@ -82,13 +82,13 @@
 	<li><b>Shift</b> - allows to adjust the overall gain of the analysis.</li>
 </ul>
 <?php if ($m == 'lr') {?>
-	<p><b>'Split Left' and 'Split Right' sections</b> - allow to quckly control all bands and provides most frequently
+	<p><b>'Split Left' and 'Split Right' sections</b> - allow to quickly control all bands and provides most frequently
 	used controls for Left and Right channels of stereo signal independently:</p>
 <?php } elseif ($m == 'ms') {?>
-	<p><b>'Split Mid' and 'Split Side' sections</b> - allow to quckly control all bands and provides most frequently
+	<p><b>'Split Mid' and 'Split Side' sections</b> - allow to quickly control all bands and provides most frequently
 	used controls for Middle and Side parts of stereo signal independently:</p>
 <?php } else {?>
-	<p><b>'Split' section</b> - allows to quckly control all bands and provides most frequently used controls:</p>
+	<p><b>'Split' section</b> - allows to quickly control all bands and provides most frequently used controls:</p>
 <?php }?>
 <ul>
 	<li><b>Band</b> - allows to enable the corresponding band, band #0 is <b>always</b> enabled.</li>
@@ -155,4 +155,3 @@
 	<li><b>Gate Hysteresis Thresh</b> - the threshold of additional hysteresis curve</li>
 	<li><b>Gate Hysteresis Zone</b> - the size of the transition zone below the hysteresis threshold</li>
 </ul>
-
