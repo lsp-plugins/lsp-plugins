@@ -384,16 +384,14 @@ namespace lsp
                             s   = skip_spaces(s);
                             if (!parse_int(&v, &s))
                                 break;
-                            s   = skip_spaces(s);
                             if (*s == '/')
                             {
-                                s   = skip_spaces(s+1);
+                                ++s;
                                 if (!parse_int(&vt, &s))
                                     vt  = 0;
-                                s   = skip_spaces(s);
                                 if (*s == '/')
                                 {
-                                    s   = skip_spaces(s+1);
+                                    ++s;
                                     if (!parse_int(&vn, &s))
                                         vn = 0;
                                 }
