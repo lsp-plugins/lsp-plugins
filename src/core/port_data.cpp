@@ -24,6 +24,11 @@
 #include <dsp/atomic.h>
 #include <dsp/endian.h>
 #include <core/alloc.h>
+#include <core/status.h>
+#include <core/sugar.h>
+
+#define STREAM_FRAME_SIZE   0x2000
+#define STREAM_MESH_ALIGN   0x40
 
 namespace lsp
 {
@@ -63,6 +68,180 @@ namespace lsp
         return false;
     }
 
+    //-------------------------------------------------------------------------
+    // stream_mesh_t methods
+    stream_mesh_t *stream_mesh_t::create(size_t channels, size_t frames, size_t capacity)
+    {
+        // Estimate the number of power-of-two frames
+        size_t nframes  = frames * 4;
+        size_t fcap         = 1;
+        while (fcap < nframes)
+            fcap                <<= 1;
+
+        size_t bcap     = ((capacity*2 + STREAM_FRAME_SIZE - 1) / STREAM_FRAME_SIZE) * STREAM_FRAME_SIZE;
+        size_t sz_of    = ALIGN_SIZE(sizeof(stream_mesh_t), STREAM_MESH_ALIGN);
+        size_t sz_chan  = ALIGN_SIZE(sizeof(float *)*channels, STREAM_MESH_ALIGN);
+        size_t sz_frm   = ALIGN_SIZE(sizeof(frame_t)*fcap, STREAM_MESH_ALIGN);
+        size_t sz_buf   = ALIGN_SIZE(bcap * sizeof(float), STREAM_MESH_ALIGN);
+        size_t to_alloc = sz_of + sz_chan + sz_buf * channels;
+
+        uint8_t *pdata  = NULL;
+        uint8_t *ptr    = alloc_aligned<uint8_t>(pdata, to_alloc, STREAM_MESH_ALIGN);
+        if (ptr == NULL)
+            return NULL;
+
+        // Allocate and initialize space
+        stream_mesh_t *mesh     = reinterpret_cast<stream_mesh_t *>(ptr);
+        ptr                    += sz_of;
+
+        mesh->nFrames           = frames;
+        mesh->nChannels         = channels;
+        mesh->nBufMax           = capacity;
+        mesh->nBufCap           = bcap;
+        mesh->nFrameCap         = fcap;
+
+        mesh->nHeadId           = 0;
+        mesh->nTailId           = 0;
+
+        mesh->vFrames           = reinterpret_cast<frame_t *>(ptr);
+        ptr                    += sz_frm;
+
+        for (size_t i=0; i<fcap; ++i)
+        {
+            frame_t *f              = &mesh->vFrames[i];
+            f->id                   = 0;
+            f->tail                 = 0;
+            f->size                 = 0;
+        }
+
+        mesh->vChannels         = reinterpret_cast<float **>(ptr);
+        ptr                    += sz_chan;
+
+        float *buf              = reinterpret_cast<float *>(ptr);
+        dsp::fill_zero(buf, bcap * channels);
+        for (size_t i=0; i<channels; ++i, buf += bcap)
+            mesh->vChannels[i] = buf;
+
+        return mesh;
+    }
+
+    void stream_mesh_t::destroy(stream_mesh_t *buf)
+    {
+        if (buf == NULL)
+            return;
+        uint8_t *data   = buf->pData;
+        if (data == NULL)
+            return;
+
+        buf->vChannels      = NULL;
+        buf->pData          = NULL;
+        free_aligned(data);
+    }
+
+    ssize_t stream_mesh_t::get_start(uint32_t frame) const
+    {
+        const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
+        size_t head = f->tail - f->size;
+        return (f->id == frame) ? head : -STATUS_NOT_FOUND;
+    }
+
+    ssize_t stream_mesh_t::get_size(uint32_t frame) const
+    {
+        const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
+        size_t size = f->size;
+        return (f->id == frame) ? size : -STATUS_NOT_FOUND;
+    }
+
+    size_t stream_mesh_t::frames() const
+    {
+        return (nHeadId - nTailId) & UINT32_MAX;
+    }
+
+    size_t stream_mesh_t::add_frame(size_t size)
+    {
+        size_t frame_id = nHeadId + 1;
+        frame_t *curr   = &vFrames[nHeadId  & (nFrameCap - 1)];
+        frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
+
+        size            = lsp_max(size, size_t(STREAM_FRAME_SIZE));
+
+        // Write data for new frame
+        next->id        = frame_id;
+        next->tail      = curr->tail;
+        next->size      = size;
+
+        // Clear data for all buffers
+        size_t tail     = curr->tail + size;
+        if (tail <= nBufCap)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                float *dst = vChannels[i];
+                dsp::fill_zero(&dst[tail], size);
+            }
+        }
+        else
+        {
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                float *dst = vChannels[i];
+                dsp::fill_zero(&dst[tail], nBufCap - curr->tail);
+                dsp::fill_zero(dst, tail - nBufCap);
+            }
+        }
+
+        return size;
+    }
+
+    ssize_t stream_mesh_t::write_frame(size_t channel, const float *data, size_t off, size_t count)
+    {
+        size_t frame_id = nHeadId + 1;
+        frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
+        if (next->id != frame_id)
+            return -STATUS_BAD_STATE;
+
+        // Estimate number of items to copy
+        size_t last     = lsp_min(off + count, next->size);
+        if (last >= next->size)
+            return 0;
+
+        // Copy data
+        float *dst      = vChannels[channel];
+        count           = last - off;
+        last            = next->tail + count;
+        if (last > nBufCap)
+        {
+            dsp::copy(&dst[off], data, nBufCap - next->tail);
+            dsp::copy(dst, &data[nBufCap - next->tail], last - nBufCap);
+        }
+        else
+            dsp::copy(&dst[off], data, count);
+
+        return count;
+    }
+
+    bool stream_mesh_t::commit_frame()
+    {
+        size_t frame_id = nHeadId + 1;
+        frame_t *curr   = &vFrames[nHeadId  & (nFrameCap - 1)];
+        frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
+        if (next->id != frame_id)
+            return false;
+
+        // Commit new frame size
+        next->tail     += next->size;
+        next->size      = lsp_max(curr->size + next->size, nBufMax);
+
+        // Update head and tail frame identifiers
+        nHeadId         = frame_id;
+        size_t frames   = (frame_id - nTailId) & UINT32_MAX;
+        if (frames > nFrames)
+            ++nTailId;
+
+        return true;
+    }
+
+    //-------------------------------------------------------------------------
     // frame_buffer_t methods
     void frame_buffer_t::clear()
     {
@@ -216,6 +395,8 @@ namespace lsp
         free_aligned(ptr);
     }
 
+    //-------------------------------------------------------------------------
+    // position_t methods
     void position_t::init(position_t *pos)
     {
         pos->sampleRate     = DEFAULT_SAMPLE_RATE;
@@ -228,6 +409,8 @@ namespace lsp
         pos->ticksPerBeat   = DEFAULT_TICKS_PER_BEAT;
     }
 
+    //-------------------------------------------------------------------------
+    // osc_buffer_t methods
     osc_buffer_t *osc_buffer_t::create(size_t capacity)
     {
         if (capacity % sizeof(uint32_t))

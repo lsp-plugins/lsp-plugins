@@ -74,6 +74,91 @@ namespace lsp
         }
     } mesh_t;
 
+    // Streaming mesh
+    typedef struct stream_mesh_t
+    {
+        protected:
+            typedef struct frame_t
+            {
+                volatile uint32_t   id;         // Unique frame identifier
+                size_t              tail;       // The tail of frame
+                size_t              size;       // The size of frame
+            } frame_t;
+
+            size_t                  nFrames;    // Number of frames
+            size_t                  nChannels;  // Number of channels
+            size_t                  nBufMax;    // Maximum size of buffer
+            size_t                  nBufCap;    // Buffer capacity
+            size_t                  nFrameCap;  // Capacity in frames
+
+            volatile uint32_t       nHeadId;    // Frame identifier (head)
+            volatile uint32_t       nTailId;    // Frame identifier (tail)
+
+            frame_t                *vFrames;    // List of frames
+            float                 **vChannels;  // Channel data
+
+            uint8_t                *pData;      // Allocated channel data
+
+        public:
+            static stream_mesh_t   *create(size_t channels, size_t frames, size_t capacity);
+            static void             destroy(stream_mesh_t *buf);
+
+        public:
+            /**
+             * Get start position of the frame
+             * @return start the start position of the frame
+             */
+            ssize_t                 get_start(uint32_t frame) const;
+
+            /**
+             * Get size of the frame
+             * @param frame frame identifier
+             * @return size of the frame
+             */
+            ssize_t                 get_size(uint32_t frame) const;
+
+            /**
+             * Get the identifier of head frame
+             * @return identifier of head frame
+             */
+            inline uint32_t         head() const            { return nHeadId;      }
+
+            /**
+             * Get the identifier of tail frame
+             * @return identifier of tail frame
+             */
+            inline uint32_t         tail() const            { return nTailId;      }
+
+            /**
+             * Get actual number of frames
+             * @return actual number of frames
+             */
+            size_t                  frames() const;
+
+            /**
+             * Begin write of frame data
+             * @param size the required size of frame
+             * @return the actual size of allocated frame
+             */
+            size_t                  add_frame(size_t size);
+
+            /**
+             * Write data to the channel
+             * @param channel channel to write data
+             * @param data source buffer to write
+             * @param off the offset inside the frame
+             * @param count number of elements to write
+             * @return number of bytes written or negative error code
+             */
+            ssize_t                 write_frame(size_t channel, const float *data, size_t off, size_t count);
+
+            /**
+             * Commit the new frame to the list of frames
+             * @return true if frame has been committed
+             */
+            bool                    commit_frame();
+    } stream_mesh_t;
+
     /**
      * This interface describes frame buffer. All data is stored as a single rolling frame.
      * The frame consists of M data rows, each row contains N floating-point numbers.
