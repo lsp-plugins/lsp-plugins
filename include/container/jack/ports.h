@@ -487,6 +487,44 @@ namespace lsp
             }
     };
 
+    class JACKStreamPort: public JACKPort
+    {
+        private:
+            stream_t       *pStream;
+
+        public:
+            explicit JACKStreamPort(const port_t *meta, JACKWrapper *w): JACKPort(meta, w)
+            {
+                pStream     = NULL;
+            }
+
+            virtual ~JACKStreamPort()
+            {
+                pStream     = NULL;
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pStream;
+            }
+
+            virtual int init()
+            {
+                pStream = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->step);
+                return (pStream == NULL) ? STATUS_NO_MEM : STATUS_OK;
+            }
+
+            virtual void destroy()
+            {
+                if (pStream == NULL)
+                    return;
+
+                stream_t::destroy(pStream);
+                pStream     = NULL;
+            }
+    };
+
     class JACKFrameBufferPort: public JACKPort
     {
         private:

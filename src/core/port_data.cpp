@@ -70,7 +70,7 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // stream_mesh_t methods
-    stream_mesh_t *stream_mesh_t::create(size_t channels, size_t frames, size_t capacity)
+    stream_t *stream_t::create(size_t channels, size_t frames, size_t capacity)
     {
         // Estimate the number of power-of-two frames
         size_t nframes  = frames * 4;
@@ -79,7 +79,7 @@ namespace lsp
             fcap                <<= 1;
 
         size_t bcap     = ((capacity*2 + STREAM_FRAME_SIZE - 1) / STREAM_FRAME_SIZE) * STREAM_FRAME_SIZE;
-        size_t sz_of    = ALIGN_SIZE(sizeof(stream_mesh_t), STREAM_MESH_ALIGN);
+        size_t sz_of    = ALIGN_SIZE(sizeof(stream_t), STREAM_MESH_ALIGN);
         size_t sz_chan  = ALIGN_SIZE(sizeof(float *)*channels, STREAM_MESH_ALIGN);
         size_t sz_frm   = ALIGN_SIZE(sizeof(frame_t)*fcap, STREAM_MESH_ALIGN);
         size_t sz_buf   = ALIGN_SIZE(bcap * sizeof(float), STREAM_MESH_ALIGN);
@@ -91,7 +91,7 @@ namespace lsp
             return NULL;
 
         // Allocate and initialize space
-        stream_mesh_t *mesh     = reinterpret_cast<stream_mesh_t *>(ptr);
+        stream_t *mesh     = reinterpret_cast<stream_t *>(ptr);
         ptr                    += sz_of;
 
         mesh->nFrames           = frames;
@@ -100,8 +100,7 @@ namespace lsp
         mesh->nBufCap           = bcap;
         mesh->nFrameCap         = fcap;
 
-        mesh->nHeadId           = 0;
-        mesh->nTailId           = 0;
+        mesh->nFrameId          = 0;
 
         mesh->vFrames           = reinterpret_cast<frame_t *>(ptr);
         ptr                    += sz_frm;
@@ -110,8 +109,9 @@ namespace lsp
         {
             frame_t *f              = &mesh->vFrames[i];
             f->id                   = 0;
+            f->head                 = 0;
             f->tail                 = 0;
-            f->size                 = 0;
+            f->length               = 0;
         }
 
         mesh->vChannels         = reinterpret_cast<float **>(ptr);
@@ -125,7 +125,7 @@ namespace lsp
         return mesh;
     }
 
-    void stream_mesh_t::destroy(stream_mesh_t *buf)
+    void stream_t::destroy(stream_t *buf)
     {
         if (buf == NULL)
             return;
@@ -138,71 +138,93 @@ namespace lsp
         free_aligned(data);
     }
 
-    ssize_t stream_mesh_t::get_start(uint32_t frame) const
+    ssize_t stream_t::get_tail(uint32_t frame) const
     {
         const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
-        size_t head = f->tail - f->size;
+        size_t tail = f->tail;
+        return (f->id == frame) ? tail : -STATUS_NOT_FOUND;
+    }
+
+    ssize_t stream_t::get_head(uint32_t frame) const
+    {
+        const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
+        size_t head = f->head;
         return (f->id == frame) ? head : -STATUS_NOT_FOUND;
     }
 
-    ssize_t stream_mesh_t::get_size(uint32_t frame) const
+    ssize_t stream_t::get_size(uint32_t frame) const
     {
         const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
-        size_t size = f->size;
+        ssize_t size = f->tail - f->head;
+        if (size < 0)
+            size       += nBufCap;
         return (f->id == frame) ? size : -STATUS_NOT_FOUND;
     }
 
-    size_t stream_mesh_t::frames() const
+    ssize_t stream_t::get_position(uint32_t frame) const
     {
-        return (nHeadId - nTailId) & UINT32_MAX;
+        const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
+        ssize_t pos = f->tail - f->length;
+        if (pos < 0)
+            pos        += nBufCap;
+        return (f->id == frame) ? pos : -STATUS_NOT_FOUND;
     }
 
-    size_t stream_mesh_t::add_frame(size_t size)
+    ssize_t stream_t::get_length(uint32_t frame) const
     {
-        size_t frame_id = nHeadId + 1;
-        frame_t *curr   = &vFrames[nHeadId  & (nFrameCap - 1)];
+        const frame_t *f = &vFrames[frame & (nFrameCap - 1)];
+        size_t size = f->length;
+        return (f->id == frame) ? size : -STATUS_NOT_FOUND;
+    }
+
+    size_t stream_t::add_frame(size_t size)
+    {
+        size_t frame_id = nFrameId + 1;
+        frame_t *curr   = &vFrames[nFrameId & (nFrameCap - 1)];
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
 
         size            = lsp_max(size, size_t(STREAM_FRAME_SIZE));
 
         // Write data for new frame
         next->id        = frame_id;
-        next->tail      = curr->tail;
-        next->size      = size;
+        next->head      = curr->tail;
+        next->tail      = next->head + size;
+        next->length    = size;
 
         // Clear data for all buffers
-        size_t tail     = curr->tail + size;
-        if (tail <= nBufCap)
+        if (next->tail < nBufCap)
         {
             for (size_t i=0; i<nChannels; ++i)
             {
                 float *dst = vChannels[i];
-                dsp::fill_zero(&dst[tail], size);
+                dsp::fill_zero(&dst[next->head], size);
             }
         }
         else
         {
+            next->tail     -= nBufCap;
+
             for (size_t i=0; i<nChannels; ++i)
             {
                 float *dst = vChannels[i];
-                dsp::fill_zero(&dst[tail], nBufCap - curr->tail);
-                dsp::fill_zero(dst, tail - nBufCap);
+                dsp::fill_zero(&dst[next->head], nBufCap - curr->head);
+                dsp::fill_zero(dst, curr->tail);
             }
         }
 
         return size;
     }
 
-    ssize_t stream_mesh_t::write_frame(size_t channel, const float *data, size_t off, size_t count)
+    ssize_t stream_t::write_frame(size_t channel, const float *data, size_t off, size_t count)
     {
-        size_t frame_id = nHeadId + 1;
+        size_t frame_id = nFrameId + 1;
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
         if (next->id != frame_id)
             return -STATUS_BAD_STATE;
 
         // Estimate number of items to copy
-        size_t last     = lsp_min(off + count, next->size);
-        if (last >= next->size)
+        size_t last     = lsp_min(off + count, next->length);
+        if (last >= next->length)
             return 0;
 
         // Copy data
@@ -220,23 +242,122 @@ namespace lsp
         return count;
     }
 
-    bool stream_mesh_t::commit_frame()
+    bool stream_t::commit_frame()
     {
-        size_t frame_id = nHeadId + 1;
-        frame_t *curr   = &vFrames[nHeadId  & (nFrameCap - 1)];
+        size_t frame_id = nFrameId + 1;
+        frame_t *curr   = &vFrames[nFrameId & (nFrameCap - 1)];
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
         if (next->id != frame_id)
             return false;
 
-        // Commit new frame size
-        next->tail     += next->size;
-        next->size      = lsp_max(curr->size + next->size, nBufMax);
+        // Commit new frame size and update frame identifier
+        next->length    = lsp_max(curr->length + next->length, nBufMax);
+        nFrameId        = frame_id;
 
-        // Update head and tail frame identifiers
-        nHeadId         = frame_id;
-        size_t frames   = (frame_id - nTailId) & UINT32_MAX;
-        if (frames > nFrames)
-            ++nTailId;
+        return true;
+    }
+
+    bool stream_t::sync(const stream_t *src)
+    {
+        // Check if there is data to sync
+        if ((src == NULL) || (src->nChannels != nChannels))
+            return false;
+
+        // Estimate what to do
+        uint32_t src_frm = src->nFrameId, dst_frm = nFrameId;
+        uint32_t delta = src_frm - dst_frm;
+        if (delta == 0)
+            return false; // No changes
+
+        if (delta > nFrames)
+        {
+            // Need to perform full sync
+            frame_t *df         = &vFrames[src_frm & (nFrameCap - 1)];
+            frame_t sf          = src->vFrames[src_frm & (src->nFrameCap - 1)];
+
+            df->id              = src_frm;
+            df->tail            = lsp_min(sf.length, nBufMax);
+            df->head            = lsp_min(df->tail, size_t(STREAM_FRAME_SIZE));
+            df->length          = df->tail;
+
+            // Copy data from the source frame
+            ssize_t head        = sf.tail - sf.length;
+            if (head < 0)
+            {
+                head += src->nBufMax;
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    const float *s  = src->vChannels[i];
+                    float *d        = vChannels[i];
+
+                    dsp::copy(d, &s[head], src->nBufMax - head);
+                    dsp::copy(&d[src->nBufMax - head], s, sf.tail);
+                }
+            }
+            else
+            {
+                for (size_t i=0; i<nChannels; ++i)
+                {
+                    const float *s  = src->vChannels[i];
+                    float *d        = vChannels[i];
+                    dsp::copy(d, &s[head], df->length);
+                }
+            }
+        }
+        else
+        {
+            // Need to perform incremental sync
+            while (dst_frm != src_frm)
+            {
+                // Determine the frames to sync
+                frame_t *pf         = &vFrames[(dst_frm - 1) & (nFrameCap - 1)];
+                frame_t *df         = &vFrames[dst_frm & (nFrameCap - 1)];
+                frame_t sf          = src->vFrames[src_frm & (src->nFrameCap - 1)];
+
+                ssize_t fsize       = sf.tail - sf.head;
+                if (fsize < 0)
+                    fsize              += src->nBufCap;
+
+                df->id          = dst_frm;
+                df->head        = pf->tail;
+                df->tail        = df->head;
+                df->length      = fsize;
+
+                // Copy frame data
+                for (ssize_t n=0; n<fsize; )
+                {
+                    // Estimate the amount of samples to copy
+                    size_t ns   = (sf.tail >= sf.head) ? sf.tail - sf.head : src->nBufCap - sf.head;
+                    size_t nd   = nBufCap - sf.tail;
+                    size_t count= lsp_min(ns, nd);
+
+                    // Synchronously copy samples for each channel
+                    for (size_t i=0; i<nChannels; ++i)
+                    {
+                        const float *s  = src->vChannels[i];
+                        float *d        = vChannels[i];
+                        dsp::copy(&d[df->tail], &s[sf.head], count);
+                    }
+
+                    // Update positions
+                    sf.head        += count;
+                    df->tail       += count;
+                    n              += count;
+
+                    // Fixup positions
+                    if (sf.head >= src->nBufCap)
+                        sf.head        -= src->nBufCap;
+                    if (df->tail >= nBufCap)
+                        df->tail       -= nBufCap;
+                }
+
+                // Increment frame number
+                ++dst_frm;
+            }
+        }
+
+        // Update current frame
+        nFrameId    = src_frm;
 
         return true;
     }

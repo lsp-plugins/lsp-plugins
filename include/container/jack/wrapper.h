@@ -386,6 +386,13 @@ namespace lsp
                     vSyncPorts.add(jup);
                 break;
 
+            case R_STREAM:
+                jp      = new JACKStreamPort(port, this);
+                jup     = new JACKUIStreamPort(jp);
+                if (IS_OUT_PORT(port))
+                    vSyncPorts.add(jup);
+                break;
+
             case R_MIDI:
             case R_AUDIO:
             {
