@@ -91,6 +91,10 @@ namespace lsp
         vOsc[2].W0      = 1.33f;
         vOsc[2].P0      = 0.5f;
         vOsc[2].R0      = 0.05f;
+
+        nLisCounter     = 0;
+        nLisPhase       = 0;
+        nLisStep        = 0;
     }
 
     test_plugin::~test_plugin()
@@ -293,6 +297,19 @@ namespace lsp
         }
 
         pStatus->setValue(nStatus);
+
+        // Output the Lissajous figure
+        nLisCounter    += samples;
+        while (nLisCounter >= LIS_BUFFER_SIZE)
+        {
+            stream_t *stream    = pStream->getBuffer<stream_t>();
+            if (stream != NULL)
+            {
+                // TODO: draw figure
+            }
+
+            nLisCounter        -= LIS_BUFFER_SIZE;
+        }
 
         // Query inline display for redraw
         pWrapper->query_display_draw();
@@ -498,6 +515,8 @@ namespace lsp
     void filter_analyzer::set_sample_rate(long sr)
     {
         plugin_t::set_sample_rate(sr);
+
+
 
         // Update filter parameters
         for (size_t i=0; i<2; ++i)

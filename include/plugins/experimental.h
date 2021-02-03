@@ -27,6 +27,7 @@
 
 #include <core/plugin.h>
 #include <core/filters/Filter.h>
+#include <core/util/Counter.h>
 
 namespace lsp
 {
@@ -47,6 +48,7 @@ namespace lsp
             IPort      *pIn[2];
             IPort      *pOut[2];
             IPort      *pMesh;
+            IPort      *pStream;
             IPort      *pFB;
             IPort      *pGain;
             IPort      *pFileName;
@@ -77,6 +79,10 @@ namespace lsp
             float       vBuffer[FRM_BUFFER_SIZE];
 
             osc_t       vOsc[3];
+
+            uint32_t    nLisCounter;        // Lissajous counter
+            uint32_t    nLisPhase;          // Lissajous phase
+            uint32_t    nLisStep;           // Lissajous phase step
 
         protected:
             void        oscillate(float *dst, const osc_t *osc, float t, ssize_t n);
