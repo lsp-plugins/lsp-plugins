@@ -80,11 +80,13 @@ namespace lsp
                 AFLoader           *pLoader;                // Audio file loader task
 
                 bool                bDirty;                 // Dirty flag
+                bool                bSync;                  // Sync flag
                 float               fVelocity;              // Velocity
                 float               fHeadCut;               // Head cut (ms)
                 float               fTailCut;               // Tail cut (ms)
                 float               fFadeIn;                // Fade In (ms)
                 float               fFadeOut;               // Fade Out (ms)
+                bool                bReverse;               // Reverse sample
                 float               fPreDelay;              // Pre-delay
                 Toggle              sListen;                // Listen toggle
                 float               fMakeup;                // Makeup gain
@@ -103,6 +105,7 @@ namespace lsp
                 IPort              *pVelocity;              // Velocity range top
                 IPort              *pPreDelay;              // Pre-delay
                 IPort              *pListen;                // Listen trigger
+                IPort              *pReverse;               // Reverse sample
                 IPort              *pGains[TRACKS_MAX];     // List of gain ports
                 IPort              *pLength;                // Length of the file
                 IPort              *pStatus;                // Status of the file
@@ -176,6 +179,7 @@ namespace lsp
 
             void    update_settings();
             void    update_sample_rate(long sr);
+            void    sync_samples_with_ui();
 
             /** Process the sampler kernel
              *
@@ -285,6 +289,7 @@ namespace lsp
 
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
+            virtual void ui_activated();
 
             virtual void process(size_t samples);
     };

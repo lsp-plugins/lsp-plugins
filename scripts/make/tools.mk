@@ -37,6 +37,10 @@ ifeq ($(BUILD_PLATFORM), Linux)
   SO_FLAGS                 += -Wl,--no-undefined
 endif
 
+ifeq ($(BUILD_PLATFORM),BSD)
+  EXE_FLAGS                += -L/usr/local/lib
+endif
+
 ifneq ($(LD_PATH),)
   SO_FLAGS                 += -Wl,-rpath,$(LD_PATH)
   EXE_TEST_FLAGS           += -Wl,-rpath,$(LD_PATH)

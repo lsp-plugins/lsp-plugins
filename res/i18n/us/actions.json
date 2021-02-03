@@ -33,6 +33,7 @@
 	
 	"import": "Import",
 	"import_hydrogen_drumkit_file": "Hydrogen drumkit file...",
+	"import_installed_hydrogen_drumkit": "Installed Hydrogen drumkit",
 	"import_settings_from_clipboard": "Import settings from clipboard",
 	"import_settings_from_file": "Import settings from file...",
 	"import_rew_filter_file": "REW filter file...",
@@ -55,7 +56,7 @@
 	
 	"ok": "OK",
 	"open": "Open",
-	
+
 	"plugin_manual": "Plugin manual",
 	"postprocess": "Post-process",
 	"profile": "Profile",
@@ -65,7 +66,7 @@
 	"save": "Save",
 	
 	"select_language": "Select language",
-	
+
 	"tap": "Tap",
 	"to_bookmarks": "+Bookmarks",
 	"toggle_rack_mount": "Toggle rack mount",

@@ -99,6 +99,7 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/filters/transfer.h>
 
 #include <dsp/arch/x86/sse/3dmath.h>
+#include <dsp/arch/x86/sse/interpolate.h>
 
 #undef DSP_ARCH_X86_SSE_IMPL
 
@@ -470,6 +471,13 @@ namespace sse
         EXPORT1(cull_triangle_raw);
 
         EXPORT1(convolve);
+
+        EXPORT1(lin_inter_set);
+        EXPORT1(lin_inter_mul2);
+        EXPORT1(lin_inter_mul3);
+        EXPORT1(lin_inter_fmadd2);
+        EXPORT1(lin_inter_frmadd2);
+        EXPORT1(lin_inter_fmadd3);
     }
 
     #undef EXPORT1

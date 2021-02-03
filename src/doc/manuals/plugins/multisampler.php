@@ -29,7 +29,7 @@ Also each instrument has it's own stereo output that makes possible to record in
 	<?php } ?>
 	<li><b>Pan Left</b> - the panorama of the left channel of the corresponding instrument.</li>
 	<li><b>Pan Right</b> - the panorama of the right channel of the corresponding instrument.</li>
-	<li><b>MIDI #</b> - the MIDI number of the note associated with the corresponding instrument.</li>
+	<li><b>MIDI #</b> - the MIDI number of the note associated with the corresponding instrument. Allows to change the number with mouse scroll or mouse double click.</li>
 	<li><b>Note on</b> - indicates that the corresponding instrument has triggered the MIDI Note On event.</li>
 	<li><b>Listen</b> - forces the corresponding instrument to trigger the Note On event.</li>
 </ul>

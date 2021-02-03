@@ -51,6 +51,8 @@ namespace lsp
                  * @param child child widget to add
                  */
                 virtual status_t add(CtlWidget *child);
+
+                virtual void end();
         };
     
     } /* namespace ctl */

@@ -91,6 +91,7 @@ namespace lsp
         CONTROL("pd", "Sample pre-delay", U_MSEC, sampler_kernel_metadata::PREDELAY), \
         { "on", "Sample enabled", U_BOOL, R_CONTROL, F_IN, 0, 0, 1.0f, 0, NULL }, \
         TRIGGER("ls", "Sample listen"), \
+        SWITCH("rs", "Sample reverse", 0.0f), \
         gain, \
         BLINK("ac", "Sample activity"), \
         BLINK("no", "Sample note on event"), \

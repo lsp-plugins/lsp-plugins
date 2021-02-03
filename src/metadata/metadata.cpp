@@ -106,6 +106,12 @@ namespace lsp
         { "°K",     "units.degk" },
         { "°R",     "units.degr" },
 
+        { "B",      "units.bytes" },
+        { "kB",     "units.kbytes" },
+        { "MB",     "units.mbytes" },
+        { "GB",     "units.gbytes" },
+        { "TB",     "units.tbytes" },
+
         NULL
     };
 

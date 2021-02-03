@@ -5,6 +5,8 @@
 === Planned ===
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
+- Implemented dynamic equalizer plugin.
+- Implemented soundfont-based sampler.
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
@@ -20,21 +22,11 @@
 - Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Implemented Multiband Dynamic Processor plugin series.
-
-=== 1.1.28 ===
-
-- Implemented Long Delay plugin.
-- Added delay and phase inversion controls to the crossover plugin.
-- Added possibility to change the note number in the sampler.
-- Added sample reversal feature to the Sampler and Multisampler plugin series.
-- Added possibility to use relative paths in file configurations.
-* Fixed bug in improper RGB -> HSL conversion for UI.
-* Added 'Plugin Manual' menu item to show the documentation to plugin in the browser.
-* Added 'UI Manual' menu item to show the documentation to UI in the browser.
-* MIDI octave numbering now starts with "-1", previously it started with "-2".
-* Refactored ipc::Process for better work with vfork() system call.
-* Fixed regression in led indication for the Compensation Delay plugin series.
-* Fixed drag&drop regression after code refactoring.
+- Changed channel/device numbering to start with 1 in the UI.
+- Added support of auto-mute feature for plugins.
+- Added 'Reset to default' button.
+- Added possibility to change themes in runtime.
+- Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
 *******************************************************************************
 * New plugin check list before release

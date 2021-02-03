@@ -96,11 +96,11 @@ words: the more work should be done, the more CPU resources will be used. Beware
 <ul>
 	<li>
 		<b>Attack</b> - allows to control how the raise of the input signal affects the ALR envelope curve. 
-		The more value, the more quckly the envelope goes to it's maximum.
+		The more value, the more quickly the envelope goes to it's maximum.
 	</li>
 	<li>
 		<b>Release</b> - allows to control how the fall of the input signal affect the ALR envelope curve. 
-		The more value, the more quckly the envelope goes to it's minimum.
+		The more value, the more quickly the envelope goes to it's minimum.
 	</li>
 	<li>
 		<b>Knee</b> - allows to control the threshold of the ALR gain curve and, in fact, adjust the balance between
@@ -128,4 +128,3 @@ words: the more work should be done, the more CPU resources will be used. Beware
 	<li><b>Input</b> - overall input signal gain adjustment.</li>
 	<li><b>Output</b> - overall output signal gain adjustment.</li>
 </ul>
-

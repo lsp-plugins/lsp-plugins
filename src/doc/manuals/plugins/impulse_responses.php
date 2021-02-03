@@ -19,6 +19,7 @@
 	<li><b>File</b> - file selector, allows to load additional file that can be taken as impulse response for one of audio channels.</li>
 	<?php } ?>
 	<li><b>IR equalizer</b> - enables wet (processed) signal equalization in additional <b>Wet Signal Equalization</b> section</li>
+	<li><b>Show</b> - Displays the additional <b>Wet Signal Equalization</b> section in the UI</li>
 	<li><b>Head cut</b> - cut amount of milliseconds from the beginning of the impulse files, can be used to remove early reflections of reverb.</li>
 	<li><b>Tail cut</b> - cut amount of milliseconds from the end of the impulse files, can be used to remove large reverberation tail.</li>
 	<li><b>Fade in</b> - adds additional fading at the beginning of the impulse file.</li>

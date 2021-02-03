@@ -69,6 +69,8 @@
 #include <dsp/arch/native/3dmath.h>
 
 #include <dsp/arch/native/coding.h>
+#include <dsp/arch/native/interpolate.h>
+#include <dsp/arch/native/crossfade.h>
 
 #undef __DSP_NATIVE_IMPL
 
@@ -289,7 +291,11 @@ namespace native
         EXPORT1(pcomplex_rcp2);
         EXPORT1(pcomplex_fill_ri);
         EXPORT1(pcomplex_r2c);
+        EXPORT1(pcomplex_i2c);
+        EXPORT1(pcomplex_ri2c);
         EXPORT1(pcomplex_c2r);
+        EXPORT1(pcomplex_c2i);
+        EXPORT1(pcomplex_c2ri);
         EXPORT1(pcomplex_add_r);
         EXPORT1(pcomplex_mod);
         EXPORT1(pcomplex_arg);
@@ -525,6 +531,17 @@ namespace native
 
         EXPORT1(base64_enc);
         EXPORT1(base64_dec);
+
+        EXPORT1(lin_inter_set);
+        EXPORT1(lin_inter_mul2);
+        EXPORT1(lin_inter_mul3);
+        EXPORT1(lin_inter_fmadd2);
+        EXPORT1(lin_inter_frmadd2);
+        EXPORT1(lin_inter_fmadd3);
+
+        EXPORT1(lin_xfade2);
+        EXPORT1(lin_xfade3);
+        EXPORT1(lin_xfade_add3);
     }
 
     #undef EXPORT1

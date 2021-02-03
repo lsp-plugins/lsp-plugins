@@ -148,6 +148,9 @@
 	
 	"delay": "Задержка",
 	"delay:ms": "Задержка (мс)",
+	"delay_line_processing": "Обработка линии задержки",
+	"delay_time_formula": "Формула времени задержки",
+	"delay_reference": "Ссылка на задержку",
 	
 	"direct_out": "Прямой вых",
 	"direct_output": "Прямой выход",
@@ -181,6 +184,10 @@
 	},
 
 	"file": "Файл",
+	"file_display": {
+		"system": "{@title} /",
+		"user": "{@title} ~"
+	},
 	"file_list": "Список файлов",
 	"file_name": "Имя файла",
 	"filter": "Фильтр",
@@ -203,6 +210,7 @@
 		"low_cut": "НЧ срез",
 		"middle": "Середина",
 		"presence": "Присутствие",
+		"show_": "Показ",
 		"subs": "Суббас",
 		"treble": "Верха"
 	},
@@ -218,6 +226,7 @@
 		"compression": "КОМПРЕССИЯ",
 		"correlation": "ГРАФИК КОРРЕЛЯЦИИ",
 		"curve": "КРИВАЯ",
+		"delay_graph": "ГРАФИК ЗАДЕРЖЕК",
 		"delay_line": "ЛИНИЯ ЗАДЕРЖКИ",
 		"expansion": "РАСШИРЕНИЕ",
 		"frequency": "ЧАСТОТНЫЙ ГРАФИК",
@@ -272,10 +281,13 @@
 		"sound_speed": "Скорость звука",
 		"transparency": "Проницаемость"
 	},
+	"max_delay": "Макс задержка",
+	"max_delay:s": "Макс задержка (с)",
 	"max_latency": "Макс задержка",
 	"max_time": "Макс время",
 	
 	"measure": "Измерить",
+	"memory:mb": "Память (МБ)",
 	"metering": {
 		"channel": "Канал",
 		"frequency": "Частота",
@@ -389,10 +401,12 @@
 	
 	"reflections": "Отражения",
 	
+	"relative_paths": "Относительные пути",
 	"rel_ease": "Выкл",
 	"release": "Выключение",
 	"release:db_ms": "Выключение\n(дБ, мс)",
 	"reset": "Сбросить",
+	"result": "Результат",
 	
 	"reverberation_time:s": "Время\nреверберации (с)",
 	
@@ -511,6 +525,8 @@
 	
 	"temperature": "Температура",
 	"tempo": "Темп",
+	"tempo_based_delay": "Задержка по темпу",
+	"tempo_based_feedback_delay": "Задержка по темпу обратной связи",
 	
 	"thr_eshold": "Пор",
 	"threads": "Потоков",
@@ -556,6 +572,13 @@
 		"worst": "Худшее",
 		"x_k": "{@value}к",
 		"x_khz": "{@value} кГц"
+	},
+	
+	"warning": {
+		"all_values_good": "Все параметры в допустимых пределах.",
+		"delay_out_of_range": "Внимание! Задержка вне допустимого диапазона.",
+		"feedback_out_of_range": "Внимание! Задержка обратной связи\nвне допустимого дипазона.",
+		"loop_in_delay": "Внимание! Циклическая ссылка в цепочке\nссылок на линии задержки."
 	},
 	
 	"working_area": "Рабочая область",

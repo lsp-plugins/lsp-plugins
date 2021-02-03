@@ -10,7 +10,7 @@ After some contributions to other open source projects the decision
 was made to implement separate and independent plugin distribution.
 
 All supplementary information you will find on official web site:
-  http://lsp-plug.in/
+  https://lsp-plug.in/
 
 ==== LICENSING ====
 
@@ -194,8 +194,8 @@ from any location. After execution, the gprof profiling file 'gmon.out' is creat
 You may build plugins from scratch.
 
 For successful build you need the following packages to be installed:
-  * gcc >= 4.7
-  * gcc-c++ >= 4.7
+  * gcc >= 4.7 OR clang >= 10.0.1
+  * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
   * libstdc++-devel >= 4.7
   * jack-devel >= 1.9.5
@@ -431,7 +431,7 @@ GitHub.com page of the project:
   https://github.com/sadko4u/lsp-plugins/issues
 
 You may contact us on the special feedback page:
-  http://lsp-plug.in/?page=feedback
+  https://lsp-plug.in/?page=feedback
 
 Hope you have enjoyed our work!
 

@@ -78,6 +78,7 @@ namespace lsp
             WC_MARKER,
             WC_MESH,
             WC_METER,
+            WC_MIDINOTE,
             WC_MSTUD,
             WC_PARAM,
             WC_PLUGIN,
@@ -183,6 +184,8 @@ namespace lsp
             A_MIN_WIDTH,
             A_MODE,
             A_MODE_ID,
+            A_NOTE_ID,
+            A_OCTAVE_ID,
             A_OFFSET,
             A_OPACITY,
             A_ORIENTATION_ID,
@@ -199,6 +202,7 @@ namespace lsp
             A_PROPORTIONAL,
             A_RADIUS,
             A_RADIUS_ID,
+            A_READ_ONLY,
             A_RESIZABLE,
             A_REVERSIVE,
             A_ROLL_ID,
@@ -324,6 +328,7 @@ namespace lsp
 #include <ui/ctl/CtlLabel.h>
 #include <ui/ctl/CtlHyperlink.h>
 #include <ui/ctl/CtlIndicator.h>
+#include <ui/ctl/CtlMidiNote.h>
 #include <ui/ctl/CtlSeparator.h>
 #include <ui/ctl/CtlLed.h>
 #include <ui/ctl/CtlKnob.h>

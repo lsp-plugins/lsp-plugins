@@ -175,11 +175,13 @@ namespace lsp
         private:
             cvector<LSPString>      vAtts;
             size_t                  nLevel;
+            ssize_t                 nRecursion;
 
         public:
             explicit ui_attribute_handler(ui_builder *bld, XMLNode *handler) : ui_recording_handler(bld, handler)
             {
-                nLevel = 0;
+                nLevel     = 0;
+                nRecursion = 0;
             }
 
             virtual ~ui_attribute_handler()
@@ -197,35 +199,45 @@ namespace lsp
             virtual status_t init(const LSPString * const *atts)
             {
                 status_t res;
-                LSPString *attr;
 
                 // Generate list of appended properties
-                for (size_t i=0; *atts != NULL; ++atts, ++i)
+                for ( ; *atts != NULL; atts += 2)
                 {
-                    if (i & 1)
-                    {
-                        // Evaluate attribute value
-                        attr    = new LSPString;
-                        if (attr != NULL)
-                        {
-                            if ((res = pBuilder->eval_string(attr, *atts)) != STATUS_OK)
-                            {
-                                delete attr;
-                                return res;
-                            }
-                        }
-                    }
-                    else // Copy attribute name
-                        attr     = (*atts)->clone();
+                    const LSPString *name   = atts[0];
+                    const LSPString *value  = atts[1];
 
-                    // Append attribute
-                    if (attr == NULL)
-                        return STATUS_NO_MEM;
-                    else if (!vAtts.add(attr))
+                    if ((name == NULL) || (value == NULL))
+                        continue;
+
+                    if ((*atts)->equals_ascii("ui:recursion"))
                     {
-                        delete attr;
+                        if ((res = pBuilder->eval_int(&nRecursion, value)) != STATUS_OK)
+                            return res;
+                    }
+
+                    // Process name
+                    LSPString *xname        = name->clone();
+                    if (xname == NULL)
+                        return STATUS_NO_MEM;
+                    else if (!vAtts.add(xname))
+                    {
+                        delete xname;
                         return STATUS_NO_MEM;
                     }
+
+                    // Process value
+                    LSPString *xattr        = new LSPString();
+                    if (xattr == NULL)
+                        return STATUS_NO_MEM;
+                    else if (!vAtts.add(xattr))
+                    {
+                        delete xattr;
+                        return STATUS_NO_MEM;
+                    }
+
+                    // Evaluate string
+                    if ((res = pBuilder->eval_string(xattr, value)) != STATUS_OK)
+                        return res;
                 }
 
                 return STATUS_OK;
@@ -233,10 +245,16 @@ namespace lsp
 
             virtual status_t playback_start_element(xml::IXMLHandler *handler, const LSPString *name, const LSPString * const *atts)
             {
+                size_t level = nLevel++;
+
+                // Skip parameter substitution for control tags
+                if (name->starts_with_ascii("ui:"))
+                    return ui_recording_handler::playback_start_element(handler, name, atts);
+
                 cvector<LSPString> tmp;
 
                 // Need to override attributes?
-                if ((nLevel++) == 0)
+                if ((nRecursion < 0) || (level <= size_t(nRecursion)))
                 {
                     // Copy attributes
                     for (size_t i=0; atts[i] != NULL; ++i)

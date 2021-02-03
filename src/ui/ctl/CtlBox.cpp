@@ -67,5 +67,18 @@ namespace lsp
             return (box != NULL) ? box->add(child->widget()) : STATUS_BAD_STATE;
         }
 
+        void CtlBox::end()
+        {
+            // Get label widget
+            LSPBox *box     = widget_cast<LSPBox>(pWidget);
+            if (box != NULL)
+            {
+                box->set_min_width(nMinWidth);
+                box->set_min_height(nMinHeight);
+            }
+
+            CtlWidget::end();
+        }
+
     } /* namespace ctl */
 } /* namespace lsp */

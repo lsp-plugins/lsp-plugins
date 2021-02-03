@@ -32,11 +32,22 @@ namespace lsp
     class multisampler_ui: public plugin_ui
     {
         protected:
+            typedef struct h2drumkit_t
+            {
+                LSPString           sName;      // Name of the drumkit
+                io::Path            sPath;      // Location of the drumkit
+                bool                bSystem;    // System directory
+                LSPMenuItem        *pMenu;      // Corresponding menu item
+            } h2drumkit_t;
+
+        protected:
             CtlPort            *pHydrogenPath;
             LSPFileDialog      *pHydrogenImport;
+            cvector<h2drumkit_t> vDrumkits;
 
         protected:
             static status_t     slot_start_import_hydrogen_file(LSPWidget *sender, void *ptr, void *data);
+            static status_t     slot_import_hydrogen_file(LSPWidget *sender, void *ptr, void *data);
             static status_t     slot_call_import_hydrogen_file(LSPWidget *sender, void *ptr, void *data);
             static status_t     slot_fetch_hydrogen_path(LSPWidget *sender, void *ptr, void *data);
             static status_t     slot_commit_hydrogen_path(LSPWidget *sender, void *ptr, void *data);
@@ -47,6 +58,12 @@ namespace lsp
             status_t            add_instrument(int id, const hydrogen::instrument_t *inst);
             void                set_float_value(float value, const char *fmt...);
             void                set_path_value(const char *path, const char *fmt...);
+
+            void                lookup_hydrogen_files();
+            void                sort_hydrogen_files();
+            void                add_hydrogen_files_to_menu(LSPMenu *menu);
+            status_t            scan_hydrogen_directory(const io::Path *path, bool system);
+            status_t            add_drumkit(const io::Path *path, const hydrogen::drumkit_t *dk, bool system);
 
         public:
             explicit multisampler_ui(const plugin_metadata_t *mdata, void *root_widget);

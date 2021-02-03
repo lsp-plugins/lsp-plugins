@@ -104,6 +104,7 @@ namespace lsp
                 LSPButton           sWAction;
                 LSPButton           sWCancel;
                 LSPGrid             sMainGrid;
+                LSPBox              sOptions;
                 LSPScrollBox        sSBBookmarks;
                 LSPAlign            sSBAlign;
                 LSPBox              sBookmarks;
@@ -253,6 +254,8 @@ namespace lsp
 
                 inline status_t    bind_action(ui_event_handler_t handler, void *arg = NULL) { return sAction.bind(handler, arg); };
                 inline status_t    bind_cancel(ui_event_handler_t handler, void *arg = NULL) { return sCancel.bind(handler, arg); };
+
+                status_t add_option(LSPWidget *option);
 
                 inline void set_auto_extension(bool set = true) { wAutoExt.set_down(set); }
 

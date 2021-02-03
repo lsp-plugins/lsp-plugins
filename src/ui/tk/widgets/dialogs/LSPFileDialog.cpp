@@ -83,6 +83,7 @@ namespace lsp
             sWAction(dpy),
             sWCancel(dpy),
             sMainGrid(dpy),
+            sOptions(dpy),
             sSBBookmarks(dpy),
             sSBAlign(dpy),
             sBookmarks(dpy),
@@ -297,6 +298,11 @@ namespace lsp
             sWarnBox.set_horizontal();
             sWarnBox.set_spacing(8);
 
+            LSP_STATUS_ASSERT(sOptions.init());
+            sOptions.set_spacing(4);
+            sOptions.set_vertical(true);
+            sOptions.set_expand(true);
+
             LSP_STATUS_ASSERT(sSBBookmarks.init());
             sSBBookmarks.set_vertical();
             sSBBookmarks.set_spacing(4);
@@ -306,6 +312,7 @@ namespace lsp
             sSBBookmarks.set_vscroll_bypass(false);
             sSBBookmarks.set_hscroll(SCROLL_NONE);
             sSBBookmarks.set_hscroll_bypass(false);
+            LSP_STATUS_ASSERT(sOptions.add(&sSBBookmarks));
 
             LSP_STATUS_ASSERT(sSBAlign.init());
             sSBAlign.set_pos(0.0f, -1.0f); // Middle, Top
@@ -344,7 +351,7 @@ namespace lsp
             LSP_STATUS_ASSERT(add_label(&sMainGrid, "labels.bookmark_list"));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWarnBox));
             // Row 3
-            LSP_STATUS_ASSERT(sMainGrid.add(&sSBBookmarks));
+            LSP_STATUS_ASSERT(sMainGrid.add(&sOptions));
             LSP_STATUS_ASSERT(sMainGrid.add(&sWFiles));
             // Row 4
             LSP_STATUS_ASSERT(sMainGrid.add(NULL));
@@ -439,6 +446,7 @@ namespace lsp
             sWCancel.destroy();
             sHBox.destroy();
             sWarnBox.destroy();
+            sOptions.destroy();
             sSBBookmarks.destroy();
             sSBAlign.destroy();
             sBookmarks.destroy();
@@ -1093,6 +1101,7 @@ namespace lsp
             if (invisible())
                 return STATUS_OK;
 
+            sWFiles.selection()->clear();
             return apply_filters();
         }
 
@@ -1141,12 +1150,12 @@ namespace lsp
         status_t LSPFileDialog::on_dlg_action(void *data)
         {
             bool committed = false;
+            file_entry_t *ent = selected_entry();
+            LSPString fname;
+            LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
 
             if (enMode == FDM_SAVE_FILE) // Use 'File name' field
             {
-                LSPString fname;
-                LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
-
                 if (wAutoExt.is_down())
                 {
                     LSPString ext;
@@ -1170,21 +1179,15 @@ namespace lsp
                 LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
                 committed = true;
             }
-            else
+            else if ((ent == NULL) && (!LSPFileMask::is_dots(&fname)) && (LSPFileMask::valid_file_name(&fname)))
             {
-                LSPString fname;
-                LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
-                if ((!LSPFileMask::is_dots(&fname)) && (LSPFileMask::valid_file_name(&fname)))
-                {
-                    LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
-                    committed = true;
-                }
+                LSP_STATUS_ASSERT(build_full_path(&sSelected, &fname));
+                committed = true;
             }
 
             // Use selection
             if (!committed)
             {
-                file_entry_t *ent = selected_entry();
                 if (ent == NULL)
                     return show_message("titles.attention", "headings.attention", "messages.file.not_specified");
 
@@ -1683,6 +1686,11 @@ namespace lsp
             ent->sHlink.set_popup(&sBMPopup);
 
             return STATUS_OK;
+        }
+
+        status_t LSPFileDialog::add_option(LSPWidget *option)
+        {
+            return sOptions.add(option);
         }
 
     } /* namespace ctl */

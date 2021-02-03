@@ -52,6 +52,7 @@
 #include <plugins/loud_comp.h>
 #include <plugins/surge_filter.h>
 #include <plugins/crossover.h>
+#include <plugins/art_delay.h>
 
 #include <plugins/nonlinear_convolver.h>
 

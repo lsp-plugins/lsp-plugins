@@ -44,6 +44,8 @@
 #include <dsp/common/float.h>
 #include <dsp/common/graphics.h>
 #include <dsp/common/smath.h>
+#include <dsp/common/interpolate.h>
+#include <dsp/common/crossfade.h>
 
 #include <dsp/common/search/minmax.h>
 #include <dsp/common/search/iminmax.h>

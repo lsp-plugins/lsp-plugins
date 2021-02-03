@@ -30,6 +30,7 @@ namespace lsp
 {
     #define EQ_BUFFER_SIZE          0x1000
     #define EQ_RANK                 12
+//    #define EQ_RANK                 5
     #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
     //-------------------------------------------------------------------------
@@ -346,6 +347,7 @@ namespace lsp
             case para_equalizer_base_metadata::PEM_IIR: return EQM_IIR;
             case para_equalizer_base_metadata::PEM_FIR: return EQM_FIR;
             case para_equalizer_base_metadata::PEM_FFT: return EQM_FFT;
+            case para_equalizer_base_metadata::PEM_SPM: return EQM_SPM;
             default:
                 break;
         }
@@ -361,7 +363,8 @@ namespace lsp
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
 
         // Initialize analyzer
-        if (!sAnalyzer.init(channels, para_equalizer_base_metadata::FFT_RANK))
+        if (!sAnalyzer.init(channels, para_equalizer_base_metadata::FFT_RANK,
+                            MAX_SAMPLE_RATE, para_equalizer_base_metadata::REFRESH_RATE))
             return;
 
         sAnalyzer.set_rank(para_equalizer_base_metadata::FFT_RANK);
@@ -825,6 +828,7 @@ namespace lsp
     void para_equalizer_base::process(size_t samples)
     {
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
+        float *analyze[2];
 
         // Initialize buffer pointers
         for (size_t i=0; i<channels; ++i)
@@ -832,6 +836,7 @@ namespace lsp
             eq_channel_t *c     = &vChannels[i];
             c->vIn              = c->pIn->getBuffer<float>();
             c->vOut             = c->pOut->getBuffer<float>();
+            analyze[i]          = c->vBuffer;
         }
 
         size_t fft_pos          = (ui_active()) ? nFftPosition : FFTP_NONE;
@@ -885,24 +890,24 @@ namespace lsp
                 }
             }
 
+            // Do FFT in 'PRE'-position
+            if (fft_pos == FFTP_PRE)
+                sAnalyzer.process(analyze, to_process);
+
             // Process each channel individually
             for (size_t i=0; i<channels; ++i)
             {
                 eq_channel_t *c     = &vChannels[i];
 
-                // Do FFT in 'PRE'-position
-                if (fft_pos == FFTP_PRE)
-                    sAnalyzer.process(i, c->vBuffer, to_process);
-
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
                 if (c->fInGain != 1.0f)
                     dsp::mul_k2(c->vBuffer, c->fInGain, to_process);
-
-                // Do FFT in 'POST'-position
-                if (fft_pos == FFTP_POST)
-                    sAnalyzer.process(i, c->vBuffer, to_process);
             }
+
+            // Do FFT in 'POST'-position
+            if (fft_pos == FFTP_POST)
+                sAnalyzer.process(analyze, to_process);
 
             // Post-process data (if needed)
             if ((nMode == EQ_MID_SIDE) && (!bListen))

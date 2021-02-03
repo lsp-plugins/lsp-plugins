@@ -135,8 +135,7 @@ namespace lsp
         { "solo_" #x, "Solo " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
         { "frz_" #x, "Freeze " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
         { "hue_" #x, "Hue " #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_CYCLIC, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
-        AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
-        MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
+        AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f)
 
     #define SA_COMMON(c) \
         BYPASS, \
@@ -156,7 +155,8 @@ namespace lsp
              spectrum_analyzer_base_metadata::SELECTOR_MIN, spectrum_analyzer_base_metadata::SELECTOR_MAX, spectrum_analyzer_base_metadata::SELECTOR_DFL, spectrum_analyzer_base_metadata::SELECTOR_STEP, NULL }, \
         { "freq", "Frequency", U_HZ, R_METER, F_OUT | F_UPPER | F_LOWER, \
             spectrum_analyzer_base_metadata::FREQ_MIN, spectrum_analyzer_base_metadata::FREQ_MAX, spectrum_analyzer_base_metadata::FREQ_DFL, 0, NULL }, \
-        { "lvl", "Level", U_GAIN_AMP, R_METER, F_OUT | F_UPPER | F_LOWER, 0, 10000, 0, 0, NULL }
+        { "lvl", "Level", U_GAIN_AMP, R_METER, F_OUT | F_UPPER | F_LOWER, 0, 10000, 0, 0, NULL }, \
+        MESH("spd", "Spectrum Data", c + 1, spectrum_analyzer_base_metadata::MESH_POINTS)
 
     static const port_t spectrum_analyzer_x1_ports[] =
     {

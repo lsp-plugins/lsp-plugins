@@ -32,6 +32,9 @@ namespace lsp
             nSpacing        = 0;
             bProportional   = false;
             enOrientation   = (horizontal) ? O_HORIZONTAL : O_VERTICAL;
+            nMinWidth       = -1;
+            nMinHeight      = -1;
+
             pClass          = &metadata;
         }
         
@@ -118,6 +121,22 @@ namespace lsp
 
         void LSPBox::set_border(size_t value)
         {
+            query_resize();
+        }
+
+        void LSPBox::set_min_width(ssize_t value)
+        {
+            if (nMinWidth == value)
+                return;
+            nMinWidth   = value;
+            query_resize();
+        }
+
+        void LSPBox::set_min_height(ssize_t value)
+        {
+            if (nMinHeight == value)
+                return;
+            nMinHeight  = value;
             query_resize();
         }
 
@@ -307,7 +326,7 @@ namespace lsp
                     if (w->pWidget->expand())
                     {
                         expand      ++;
-                        n_expand   += w->a.nWidth;
+                        n_expand   += lsp_max(0, w->a.nWidth);
                     }
                 }
                 else    // VBOX
@@ -322,7 +341,7 @@ namespace lsp
                     if (w->pWidget->expand())
                     {
                         expand      ++;
-                        n_expand   += w->a.nHeight;
+                        n_expand   += lsp_max(0, w->a.nHeight);
                     }
                 }
             }
@@ -595,6 +614,12 @@ namespace lsp
 
             r->nMinWidth        = e_width;
             r->nMinHeight       = e_height;
+
+            // Apply size constraints
+            if ((nMinWidth >= 0) && (r->nMinWidth < nMinWidth))
+                r->nMinWidth    = nMinWidth;
+            if ((nMinHeight >= 0) && (r->nMinHeight < nMinHeight))
+                r->nMinHeight   = nMinHeight;
         }
     
     } /* namespace tk */

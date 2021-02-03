@@ -86,6 +86,7 @@ namespace lsp
                 float               fValue;
                 bool                bDetailed;
                 bool                bSameLine;
+                bool                bReadOnly;
                 ssize_t             nUnits;
                 ssize_t             nPrecision;
                 ssize_t             nAtomID;
