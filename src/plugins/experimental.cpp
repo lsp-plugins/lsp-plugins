@@ -94,7 +94,7 @@ namespace lsp
 
         nLisCounter     = 0;
         nLisPhase       = 0;
-        nLisStep        = 0;
+        nLisSteps       = 0;
     }
 
     test_plugin::~test_plugin()
@@ -132,6 +132,8 @@ namespace lsp
 
             path->accept();
         }
+
+        nLisSteps       = fSampleRate / LIS_BUFFER_SIZE;
     }
 
     void test_plugin::init(IWrapper *wrapper)
@@ -298,17 +300,40 @@ namespace lsp
 
         pStatus->setValue(nStatus);
 
-        // Output the Lissajous figure
+        // Time to generate new lissajous figure?
         nLisCounter    += samples;
         while (nLisCounter >= LIS_BUFFER_SIZE)
         {
+            // Output the Lissajous figure
+            float wb = 2.0f * M_PI / LIS_BUFFER_SIZE;
+            float w0 = 3.0f * wb, w1 = 2.0f *wb;
+            float dw = (2.0f * M_PI * nLisPhase)/float(nLisSteps);
+
+            for (size_t i=0; i<LIS_BUFFER_SIZE; ++i)
+            {
+                vLisX[i]    = sinf(w0 * i + dw);
+                vLisY[i]    = sinf(w1 * i);
+            }
+            dsp::fill_zero(vLisS, LIS_BUFFER_SIZE);
+            vLisS[0] = 1.0f;    // Strobe signal
+
+            if ((++nLisPhase) > nLisSteps)
+                nLisPhase          -= nLisSteps;
+            nLisCounter        -= LIS_BUFFER_SIZE;
+
             stream_t *stream    = pStream->getBuffer<stream_t>();
             if (stream != NULL)
             {
-                // TODO: draw figure
+                // Emit the figure data with fixed-size frames
+                for (size_t i=0; i<LIS_BUFFER_SIZE; )
+                {
+                    size_t count = stream->add_frame(LIS_BUFFER_SIZE - i);  // Add a frame
+                    stream->write_frame(0, &vLisX[i], 0, count);            // X'es
+                    stream->write_frame(1, &vLisY[i], 0, count);            // Y's
+                    stream->write_frame(2, &vLisS[i], 0, count);            // Strobe signal
+                    stream->commit_frame();                                 // Commit the frame
+                }
             }
-
-            nLisCounter        -= LIS_BUFFER_SIZE;
         }
 
         // Query inline display for redraw
