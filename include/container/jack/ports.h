@@ -511,7 +511,7 @@ namespace lsp
 
             virtual int init()
             {
-                pStream = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->step);
+                pStream = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
                 return (pStream == NULL) ? STATUS_NO_MEM : STATUS_OK;
             }
 

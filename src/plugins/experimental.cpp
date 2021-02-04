@@ -45,6 +45,7 @@ namespace lsp
             pOut[i]         = NULL;
         }
         pMesh           = NULL;
+        pStream         = NULL;
         pFB             = NULL;
         pGain           = NULL;
         fGain           = 1.0f;
@@ -133,7 +134,7 @@ namespace lsp
             path->accept();
         }
 
-        nLisSteps       = fSampleRate / LIS_BUFFER_SIZE;
+        nLisSteps       = (fSampleRate * 2) / LIS_BUFFER_SIZE;
     }
 
     void test_plugin::init(IWrapper *wrapper)
@@ -148,6 +149,7 @@ namespace lsp
             pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
+        pStream         = vPorts[port_id++];
         pFB             = vPorts[port_id++];
         port_id        += 4; // skip modes
 
@@ -332,6 +334,9 @@ namespace lsp
                     stream->write_frame(1, &vLisY[i], 0, count);            // Y's
                     stream->write_frame(2, &vLisS[i], 0, count);            // Strobe signal
                     stream->commit_frame();                                 // Commit the frame
+
+                    // Move the index in the source buffer
+                    i += count;
                 }
             }
         }

@@ -83,7 +83,7 @@ namespace lsp
         size_t sz_chan  = ALIGN_SIZE(sizeof(float *)*channels, STREAM_MESH_ALIGN);
         size_t sz_frm   = ALIGN_SIZE(sizeof(frame_t)*fcap, STREAM_MESH_ALIGN);
         size_t sz_buf   = ALIGN_SIZE(bcap * sizeof(float), STREAM_MESH_ALIGN);
-        size_t to_alloc = sz_of + sz_chan + sz_buf * channels;
+        size_t to_alloc = sz_of + sz_frm + sz_chan + sz_buf * channels;
 
         uint8_t *pdata  = NULL;
         uint8_t *ptr    = alloc_aligned<uint8_t>(pdata, to_alloc, STREAM_MESH_ALIGN);
@@ -91,7 +91,7 @@ namespace lsp
             return NULL;
 
         // Allocate and initialize space
-        stream_t *mesh     = reinterpret_cast<stream_t *>(ptr);
+        stream_t *mesh          = reinterpret_cast<stream_t *>(ptr);
         ptr                    += sz_of;
 
         mesh->nFrames           = frames;
@@ -183,7 +183,7 @@ namespace lsp
         frame_t *curr   = &vFrames[nFrameId & (nFrameCap - 1)];
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
 
-        size            = lsp_max(size, size_t(STREAM_FRAME_SIZE));
+        size            = lsp_min(size, size_t(STREAM_FRAME_SIZE));
 
         // Write data for new frame
         next->id        = frame_id;
@@ -224,13 +224,13 @@ namespace lsp
 
         // Estimate number of items to copy
         size_t last     = lsp_min(off + count, next->length);
-        if (last >= next->length)
+        if (last > next->length)
             return 0;
 
         // Copy data
         float *dst      = vChannels[channel];
         count           = last - off;
-        last            = next->tail + count;
+        last            = next->head + count;
         if (last > nBufCap)
         {
             dsp::copy(&dst[off], data, nBufCap - next->tail);
@@ -251,7 +251,7 @@ namespace lsp
             return false;
 
         // Commit new frame size and update frame identifier
-        next->length    = lsp_max(curr->length + next->length, nBufMax);
+        next->length    = lsp_min(curr->length + next->length, nBufMax);
         nFrameId        = frame_id;
 
         return true;
