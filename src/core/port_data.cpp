@@ -207,8 +207,8 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 float *dst = vChannels[i];
-                dsp::fill_zero(&dst[next->head], nBufCap - curr->head);
-                dsp::fill_zero(dst, curr->tail);
+                dsp::fill_zero(&dst[next->head], nBufCap - next->head);
+                dsp::fill_zero(dst, next->tail);
             }
         }
 
@@ -231,10 +231,11 @@ namespace lsp
         float *dst      = vChannels[channel];
         count           = last - off;
         last            = next->head + count;
+        off            += next->head;
         if (last > nBufCap)
         {
-            dsp::copy(&dst[off], data, nBufCap - next->tail);
-            dsp::copy(dst, &data[nBufCap - next->tail], last - nBufCap);
+            dsp::copy(&dst[off], data, nBufCap - off);
+            dsp::copy(dst, &data[nBufCap - off], last - nBufCap);
         }
         else
             dsp::copy(&dst[off], data, count);
@@ -276,12 +277,11 @@ namespace lsp
             frame_t sf          = src->vFrames[src_frm & (src->nFrameCap - 1)];
 
             df->id              = src_frm;
-            df->tail            = lsp_min(sf.length, nBufMax);
-            df->head            = lsp_min(df->tail, size_t(STREAM_FRAME_SIZE));
-            df->length          = df->tail;
+            df->length          = lsp_min(sf.length, nBufMax);
+            df->tail            = df->length;
 
             // Copy data from the source frame
-            ssize_t head        = sf.tail - sf.length;
+            ssize_t head        = sf.tail - df->length;
             if (head < 0)
             {
                 head += src->nBufMax;
@@ -303,6 +303,14 @@ namespace lsp
                     dsp::copy(d, &s[head], df->length);
                 }
             }
+
+            // Compute destination frame size and compute the head value of the frame
+            ssize_t df_sz       = sf.tail - sf.head;
+            if (df_sz < 0)
+                df_sz              += src->nBufMax;
+            df_sz               = lsp_min(df_sz, ssize_t(df->length));
+            df_sz               = lsp_min(df_sz, ssize_t(STREAM_FRAME_SIZE));
+            df->head            = df->tail - df_sz;
         }
         else
         {
@@ -328,7 +336,7 @@ namespace lsp
                 {
                     // Estimate the amount of samples to copy
                     size_t ns   = (sf.tail >= sf.head) ? sf.tail - sf.head : src->nBufCap - sf.head;
-                    size_t nd   = nBufCap - sf.tail;
+                    size_t nd   = nBufCap - df->tail;
                     size_t count= lsp_min(ns, nd);
 
                     // Synchronously copy samples for each channel
@@ -351,7 +359,8 @@ namespace lsp
                         df->tail       -= nBufCap;
                 }
 
-                // Increment frame number
+                // Update frame size and increment frame number
+                df->length      = lsp_min(df->length + pf->length, nBufCap);
                 ++dst_frm;
             }
         }
