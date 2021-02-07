@@ -69,6 +69,46 @@ namespace lsp
     }
 
     //-------------------------------------------------------------------------
+    // mesh_t methods
+    mesh_t *mesh_t::create(size_t buffers, size_t length)
+    {
+        size_t buf_size     = length * sizeof(float);
+        size_t mesh_size    = sizeof(mesh_t) + sizeof(float *) * buffers;
+
+        // Align values to 64-byte boundaries
+        buf_size            = ALIGN_SIZE(buf_size, 0x40);
+        mesh_size           = ALIGN_SIZE(mesh_size, 0x40);
+
+        // Allocate pointer
+        uint8_t *ptr        = reinterpret_cast<uint8_t *>(lsp_malloc(mesh_size + buf_size * buffers));
+        if (ptr == NULL)
+            return NULL;
+
+        // Initialize references
+        mesh_t *mesh        = reinterpret_cast<mesh_t *>(ptr);
+        mesh->nState        = M_EMPTY;
+        mesh->nBuffers      = 0;
+        mesh->nItems        = 0;
+        ptr                += mesh_size;
+        for (size_t i=0; i<buffers; ++i)
+        {
+            mesh->pvData[i]    = reinterpret_cast<float *>(ptr);
+            ptr                += buf_size;
+        }
+
+        return mesh;
+    }
+
+    void mesh_t::destroy(mesh_t *mesh)
+    {
+        if (mesh == NULL)
+            return;
+
+        lsp_free(mesh);
+        mesh = NULL;
+    }
+
+    //-------------------------------------------------------------------------
     // stream_mesh_t methods
     stream_t *stream_t::create(size_t channels, size_t frames, size_t capacity)
     {
@@ -351,13 +391,15 @@ namespace lsp
         }
         else
         {
+            uint32_t last_frm = src_frm + 1;
+
             // Need to perform incremental sync
-            while (dst_frm != src_frm)
+            while (dst_frm != last_frm)
             {
                 // Determine the frames to sync
                 frame_t *pf         = &vFrames[(dst_frm - 1) & (nFrameCap - 1)];
                 frame_t *df         = &vFrames[dst_frm & (nFrameCap - 1)];
-                frame_t sf          = src->vFrames[src_frm & (src->nFrameCap - 1)];
+                frame_t sf          = src->vFrames[dst_frm & (src->nFrameCap - 1)];
 
                 ssize_t fsize       = sf.tail - sf.head;
                 if (fsize < 0)
@@ -397,7 +439,7 @@ namespace lsp
                 }
 
                 // Update frame size and increment frame number
-                df->length      = lsp_min(df->length + pf->length, nBufCap);
+                df->length      = lsp_min(df->length + pf->length, nBufMax);
                 ++dst_frm;
             }
         }

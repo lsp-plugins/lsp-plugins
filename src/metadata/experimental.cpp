@@ -197,7 +197,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         AMP_GAIN10("gain", "Output gain", 1.0f),
         MESH("fftg", "Some graph", 2, 320),
-        STREAM("lis", "Stream buffer", 3, 64, 0x20000),
+        STREAM("lis", "Stream buffer", 3, 64, 0x2000),
         FBUFFER("fb0", "Frame buffer 0", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
         COMBO("fbm0", "Frame buffer mode 0", 0, fb_modes),
         COMBO("fbm1", "Frame buffer mode 1", 0, fb_modes),

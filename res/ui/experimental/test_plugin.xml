@@ -234,6 +234,8 @@
 				
 				<axis min="-2" max="2" color="g_white" angle="0.0" />
 				<axis min="-2" max="2" color="g_white" angle="0.5" />
+				
+				<stream id="lis" width="3" color="middle_channel" smooth="true" />
 			</graph>
 		</hsbox>
 	</hbox>

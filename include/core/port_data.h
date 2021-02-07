@@ -40,38 +40,45 @@ namespace lsp
     // Mesh port structure
     typedef struct mesh_t
     {
-        volatile mesh_state_t   nState;
-        size_t                  nBuffers;
-        size_t                  nItems;
-        float                  *pvData[];
+        public:
+            volatile mesh_state_t   nState;
+            size_t                  nBuffers;
+            size_t                  nItems;
+            float                  *pvData[];
 
-        inline bool isEmpty() const         { return nState == M_EMPTY; };
-        inline bool containsData() const    { return nState == M_DATA; };
-        inline bool isWaiting() const       { return nState == M_WAIT;  };
+        public:
+            static mesh_t *create(size_t buffers, size_t length);
+            static void destroy(mesh_t *mesh);
 
-        inline void data(size_t bufs, size_t items)
-        {
-            nBuffers    = bufs;
-            nItems      = items;
-            nState      = M_DATA; // This should be the last operation
-        }
+        public:
+            inline bool isEmpty() const         { return nState == M_EMPTY; };
+            inline bool containsData() const    { return nState == M_DATA; };
+            inline bool isWaiting() const       { return nState == M_WAIT;  };
 
-        inline void cleanup()
-        {
-            nBuffers    = 0;
-            nItems      = 0;
-            nState      = M_EMPTY; // This should be the last operation
-        }
+            inline void data(size_t bufs, size_t items)
+            {
+                nBuffers    = bufs;
+                nItems      = items;
+                nState      = M_DATA; // This should be the last operation
+            }
 
-        inline void markEmpty()
-        {
-            nState      = M_EMPTY; // This should be the last operation
-        }
+            inline void cleanup()
+            {
+                nBuffers    = 0;
+                nItems      = 0;
+                nState      = M_EMPTY; // This should be the last operation
+            }
 
-        inline void setWaiting()
-        {
-            nState      = M_WAIT; // This should be the last operation
-        }
+            inline void markEmpty()
+            {
+                nState      = M_EMPTY; // This should be the last operation
+            }
+
+            inline void setWaiting()
+            {
+                nState      = M_WAIT; // This should be the last operation
+            }
+
     } mesh_t;
 
     // Streaming mesh
@@ -115,6 +122,12 @@ namespace lsp
              * @return actual number of frames
              */
             inline size_t           frames() const      { return nFrames;       }
+
+            /**
+             * Get capacity of the mesh
+             * @return capacity of the mesh
+             */
+            inline size_t           capacity() const    { return nBufMax;       }
 
             /**
              * Get head position of the incremental frame block

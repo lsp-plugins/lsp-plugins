@@ -91,6 +91,7 @@ namespace lsp
             WC_SEP,
             WC_SOURCE3D,
             WC_STATUS,
+            WC_STREAM,
             WC_SWITCH,
             WC_TEXT,
             WC_THREADCOMBO,
@@ -353,6 +354,7 @@ namespace lsp
 #include <ui/ctl/CtlCenter.h>
 #include <ui/ctl/CtlMarker.h>
 #include <ui/ctl/CtlMesh.h>
+#include <ui/ctl/CtlStream.h>
 #include <ui/ctl/CtlDot.h>
 #include <ui/ctl/CtlText.h>
 #include <ui/ctl/CtlFrameBuffer.h>

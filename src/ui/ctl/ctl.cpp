@@ -75,6 +75,7 @@ namespace lsp
             "sep",
             "source3d",
             "status",
+            "stream",
             "switch",
             "text",
             "threadcombo",
