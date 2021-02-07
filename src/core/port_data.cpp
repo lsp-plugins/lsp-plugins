@@ -217,6 +217,9 @@ namespace lsp
 
     ssize_t stream_t::write_frame(size_t channel, const float *data, size_t off, size_t count)
     {
+        if (channel >= nChannels)
+            return -STATUS_INVALID_VALUE;
+
         size_t frame_id = nFrameId + 1;
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
         if (next->id != frame_id)
@@ -239,6 +242,40 @@ namespace lsp
         }
         else
             dsp::copy(&dst[off], data, count);
+
+        return count;
+    }
+
+    ssize_t stream_t::read(size_t channel, float *data, size_t off, size_t count)
+    {
+        if (channel >= nChannels)
+            return -STATUS_INVALID_VALUE;
+
+        // Check that we're reading proper frame
+        size_t frame_id     = nFrameId;
+        frame_t *frm        = &vFrames[frame_id & (nFrameCap - 1)];
+        if (frm->id != frame_id)
+            return -STATUS_BAD_STATE;
+
+        // Estimate the offset and number of items to read
+        if (off >= frm->length)
+            return -STATUS_EOF;
+        count               = lsp_min(count, frm->length - off);
+
+        // Determine position of head
+        ssize_t head        = frm->tail - frm->length + off;
+        if (head < 0)
+            head               += nBufCap;
+
+        size_t tail         = head + count;
+        const float *s      = vChannels[channel];
+        if (tail > nBufCap)
+        {
+            dsp::copy(data, &s[head], nBufCap - head);
+            dsp::copy(&data[nBufCap - head], s, tail - nBufCap);
+        }
+        else
+            dsp::copy(data, &s[head], count);
 
         return count;
     }

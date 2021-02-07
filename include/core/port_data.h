@@ -166,9 +166,19 @@ namespace lsp
              * @param data source buffer to write
              * @param off the offset inside the frame
              * @param count number of elements to write
-             * @return number of bytes written or negative error code
+             * @return number of elements written or negative error code
              */
             ssize_t                 write_frame(size_t channel, const float *data, size_t off, size_t count);
+
+            /**
+             * Read frame data of the last frame
+             * @param channel channel number
+             * @param data destination buffer
+             * @param off offset in the source frame
+             * @param count number of elements to read
+             * @return number of elements read or negative error code
+             */
+            ssize_t                 read(size_t channel, float *data, size_t off, size_t count);
 
             /**
              * Commit the new frame to the list of frames

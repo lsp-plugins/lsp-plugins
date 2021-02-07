@@ -51,50 +51,6 @@ namespace lsp
             SCROLL_ALWAYS       //!< SCROLL_ALWAYS scrolling is permitted but in optional state
         };
 
-        /** Widget classes
-         *
-         */
-        enum wclass_t
-        {
-            W_UNKNOWN = -1,//!< W_UNKNOWN
-            W_ALIGN,
-            W_AXIS,
-            W_BASIS,
-            W_BODY,
-            W_BOX,
-            W_BUTTON,
-            W_CELL,
-            W_CENTER,
-            W_COMBO,
-            W_DOT,
-            W_EDIT,
-            W_FILE,
-            W_GRAPH,
-            W_GRID,
-            W_GROUP,
-            W_INDICATOR,
-            W_KNOB,
-            W_LABEL,
-            W_LED,
-            W_LISTBOX,
-            W_MARKER,
-            W_MENU,
-            W_MENUITEM,
-            W_MESH,
-            W_METER,
-            W_MSGBOX,
-            W_MSTUD,
-            W_PARAM,
-            W_PLUGIN,
-            W_PORT,
-            W_SBAR,
-            W_SEP,
-            W_SWITCH,
-            W_TEXT,
-            W_VALUE,
-            W_WINDOW
-        };
-
         // List of colors
         enum color_t
         {
