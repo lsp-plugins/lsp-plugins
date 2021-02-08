@@ -477,6 +477,33 @@ namespace lsp
             }
     };
 
+    class VSTStreamPort: public VSTPort
+    {
+        private:
+            stream_t       *pStream;
+
+        public:
+            explicit VSTStreamPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            {
+                pStream     = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
+            }
+
+            virtual ~VSTStreamPort()
+            {
+                if (pStream != NULL)
+                {
+                    stream_t::destroy(pStream);
+                    pStream     = NULL;
+                }
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pStream;
+            }
+    };
+
     class VSTFrameBufferPort: public VSTPort
     {
         private:

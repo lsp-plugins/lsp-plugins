@@ -240,6 +240,37 @@ namespace lsp
             }
     };
 
+    class VSTUIStreamPort: public VSTUIPort
+    {
+        private:
+            stream_t   *pStream;
+
+        public:
+            explicit VSTUIStreamPort(const port_t *meta, VSTPort *port):
+                VSTUIPort(meta, port)
+            {
+                pStream     = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
+            }
+
+            virtual ~VSTUIStreamPort()
+            {
+                stream_t::destroy(pStream);
+                pStream     = NULL;
+            }
+
+        public:
+            virtual bool sync()
+            {
+                stream_t *stream = pPort->getBuffer<stream_t>();
+                return (stream != NULL) ? pStream->sync(stream) : false;
+            }
+
+            virtual void *get_buffer()
+            {
+                return pStream;
+            }
+    };
+
     class VSTUIFrameBufferPort: public VSTUIPort
     {
         private:
