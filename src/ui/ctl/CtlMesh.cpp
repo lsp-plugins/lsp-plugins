@@ -79,6 +79,18 @@ namespace lsp
                     if (mesh != NULL)
                         PARSE_INT(value, mesh->set_y_index(__));
                     break;
+                case A_S_INDEX:
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_s_index(__));
+                    break;
+                case A_STROBE:
+                    if (mesh != NULL)
+                        PARSE_BOOL(value, mesh->set_strobes(__));
+                    break;
+                case A_STROBES:
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_num_strobes(__));
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
