@@ -28,6 +28,8 @@
 #include <core/status.h>
 #include <core/protocol/osc.h>
 
+#define STREAM_MAX_FRAME_SIZE       0x2000
+
 namespace lsp
 {
     enum mesh_state_t

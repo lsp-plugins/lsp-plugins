@@ -564,6 +564,104 @@ namespace lsp
             }
     };
 
+    class LV2StreamPort: public LV2Port
+    {
+        protected:
+            stream_t           *pStream;
+            uint32_t            nFrameID;
+            float              *pData;
+
+        public:
+            explicit LV2StreamPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, false)
+            {
+                pStream     = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
+                pData       = (float *)(::malloc(sizeof(float) * STREAM_MAX_FRAME_SIZE));
+                nFrameID    = 0;
+            }
+
+            virtual ~LV2StreamPort()
+            {
+                stream_t::destroy(pStream);
+                pStream     = NULL;
+
+                if (pData != NULL)
+                {
+                    ::free(pData);
+                    pData       = NULL;
+                }
+            };
+
+        public:
+            virtual LV2_URID get_type_urid()        { return pExt->uridFrameBufferType; };
+
+            virtual void *getBuffer()
+            {
+                return pStream;
+            }
+
+            virtual bool tx_pending()
+            {
+                return pStream->frame_id() != nFrameID;
+            }
+
+            virtual void ui_connected()
+            {
+                // We need to replay buffer contents for the connected client
+                lsp_trace("UI connected event");
+                nFrameID    = pStream->frame_id() - pStream->frames();
+            }
+
+            virtual void serialize()
+            {
+                // Serialize not more than 4 rows
+                size_t delta = pStream->frame_id() - nFrameID;
+                uint32_t frame_id = (delta > pStream->frames()) ? pStream->frame_id() - pStream->frames() : nFrameID;
+                if (delta > STREAM_BULK_MAX)
+                    delta = STREAM_BULK_MAX;
+                uint32_t last_frame = frame_id + delta + 1;
+
+                lsp_trace("id = %s, first=%d, last=%d", pMetadata->id, int(frame_id), int(last_frame));
+
+                // Forge frame buffer parameters
+                size_t nbuffers = pStream->channels();
+
+                pExt->forge_key(pExt->uridStreamDimensions);
+                pExt->forge_int(nbuffers);
+
+                // Forge vectors
+                while (frame_id != last_frame)
+                {
+                    LV2_Atom_Forge_Frame frame;
+                    size_t size = pStream->get_size(frame_id);
+                    size_t off  = pStream->get_head(frame_id);
+
+                    pExt->forge_key(pExt->uridStreamFrame);
+                    pExt->forge_object(&frame, pExt->uridBlank, pExt->uridStreamFrameType);
+                    {
+                        pExt->forge_key(pExt->uridStreamFrameId);
+                        pExt->forge_int(frame_id);
+
+                        pExt->forge_key(pExt->uridStreamFrameSize);
+                        pExt->forge_int(size);
+
+                        // Forge vectors
+                        for (size_t i=0; i < nbuffers; ++i)
+                        {
+                            pStream->read(i, pData, off, size);
+
+                            pExt->forge_key(pExt->uridStreamFrameData);
+                            pExt->forge_vector(sizeof(float), pExt->forge.Float, size, pData);
+                        }
+                    }
+                    pExt->forge_pop(&frame);
+                }
+
+                // Update current RowID
+                nFrameID    = last_frame - 1;
+            }
+    };
+
+
     class LV2FrameBufferPort: public LV2Port
     {
         protected:

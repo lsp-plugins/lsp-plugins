@@ -27,7 +27,6 @@
 #include <core/status.h>
 #include <core/sugar.h>
 
-#define STREAM_FRAME_SIZE   0x2000
 #define STREAM_MESH_ALIGN   0x40
 
 namespace lsp
@@ -118,7 +117,7 @@ namespace lsp
         while (fcap < nframes)
             fcap                <<= 1;
 
-        size_t bcap     = ((capacity*2 + STREAM_FRAME_SIZE - 1) / STREAM_FRAME_SIZE) * STREAM_FRAME_SIZE;
+        size_t bcap     = ((capacity*2 + STREAM_MAX_FRAME_SIZE - 1) / STREAM_MAX_FRAME_SIZE) * STREAM_MAX_FRAME_SIZE;
         size_t sz_of    = ALIGN_SIZE(sizeof(stream_t), STREAM_MESH_ALIGN);
         size_t sz_chan  = ALIGN_SIZE(sizeof(float *)*channels, STREAM_MESH_ALIGN);
         size_t sz_frm   = ALIGN_SIZE(sizeof(frame_t)*fcap, STREAM_MESH_ALIGN);
@@ -223,7 +222,7 @@ namespace lsp
         frame_t *curr   = &vFrames[nFrameId & (nFrameCap - 1)];
         frame_t *next   = &vFrames[frame_id & (nFrameCap - 1)];
 
-        size            = lsp_min(size, size_t(STREAM_FRAME_SIZE));
+        size            = lsp_min(size, size_t(STREAM_MAX_FRAME_SIZE));
 
         // Write data for new frame
         next->id        = frame_id;
@@ -386,7 +385,7 @@ namespace lsp
             if (df_sz < 0)
                 df_sz              += src->nBufMax;
             df_sz               = lsp_min(df_sz, ssize_t(df->length));
-            df_sz               = lsp_min(df_sz, ssize_t(STREAM_FRAME_SIZE));
+            df_sz               = lsp_min(df_sz, ssize_t(STREAM_MAX_FRAME_SIZE));
             df->head            = df->tail - df_sz;
         }
         else
