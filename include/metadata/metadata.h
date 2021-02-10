@@ -165,7 +165,8 @@ namespace lsp
         R_MIDI,                 // MIDI events
         R_PORT_SET,             // Set of ports
         R_OSC,                  // OSC events
-        R_BYPASS                // Bypass
+        R_BYPASS,               // Bypass
+        R_STREAM                // Stream
     };
 
     enum flags_t

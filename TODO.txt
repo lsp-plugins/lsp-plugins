@@ -28,6 +28,12 @@
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
+=== 1.1.30 ===
+
+* Added streaming port support to plugin framework.
+* Added strobe feature to mesh primitives that allows to draw
+  multiple streamed meshes together.
+
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************

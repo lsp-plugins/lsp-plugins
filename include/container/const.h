@@ -26,6 +26,7 @@ namespace lsp
 {
     static const size_t MESH_REFRESH_RATE       = 20; // 20 frames per second
     static const size_t FRAMEBUFFER_BULK_MAX    = 16; // Maximum 16 rows per framebuffer change
+    static const size_t STREAM_BULK_MAX         = 32; // Maximum 16 frames per stream change
 }
 
 #endif /* CONTAINER_CONST_H_ */

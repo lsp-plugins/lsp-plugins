@@ -224,6 +224,36 @@ namespace lsp
             }
     };
 
+    class JACKUIStreamPort: public JACKUIPort
+    {
+        private:
+            stream_t   *pStream;
+
+        public:
+            explicit JACKUIStreamPort(JACKPort *port): JACKUIPort(port)
+            {
+                pStream     = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
+            }
+
+            virtual ~JACKUIStreamPort()
+            {
+                stream_t::destroy(pStream);
+                pStream     = NULL;
+            }
+
+        public:
+            virtual bool sync()
+            {
+                stream_t *stream = pPort->getBuffer<stream_t>();
+                return (stream != NULL) ? pStream->sync(stream) : false;
+            }
+
+            virtual void *get_buffer()
+            {
+                return pStream;
+            }
+    };
+
     class JACKUIFrameBufferPort: public JACKUIPort
     {
         private:

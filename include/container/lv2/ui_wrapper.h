@@ -29,6 +29,7 @@ namespace lsp
         private:
             cvector<LV2UIPort>      vExtPorts;
             cvector<LV2UIPort>      vMeshPorts;
+            cvector<LV2UIPort>      vStreamPorts;
             cvector<LV2UIPort>      vFrameBufferPorts;
             cvector<LV2UIPort>      vUIPorts;
             cvector<LV2UIPort>      vAllPorts;  // List of all created ports, for garbage collection
@@ -97,6 +98,7 @@ namespace lsp
                 // Sort plugin ports
                 sort_by_urid(vUIPorts);
                 sort_by_urid(vMeshPorts);
+                sort_by_urid(vStreamPorts);
                 sort_by_urid(vFrameBufferPorts);
 
                 // Create atom transport
@@ -256,6 +258,7 @@ namespace lsp
                 vAllPorts.clear();
                 vExtPorts.clear();
                 vMeshPorts.clear();
+                vStreamPorts.clear();
                 vFrameBufferPorts.clear();
 
                 if (pOscBuffer != NULL)
@@ -634,6 +637,15 @@ namespace lsp
                 else // Stub port
                     result = new LV2UIPort(p, pExt);
                 break;
+            case R_STREAM:
+                if (pExt->atom_supported())
+                {
+                    result = new LV2UIStreamPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
+                    vStreamPorts.add(result);
+                }
+                else // Stub port
+                    result = new LV2UIPort(p, pExt);
+                break;
             case R_FBUFFER:
                 if (pExt->atom_supported())
                 {
@@ -712,6 +724,7 @@ namespace lsp
 
                 case R_PATH:
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                     pUI->add_port(p);
                     vUIPorts.add(p);
@@ -849,6 +862,16 @@ namespace lsp
         {
             // Try to find the corresponding mesh port
             LV2UIPort *p    = find_by_urid(vMeshPorts, obj->body.id);
+            if (p != NULL)
+            {
+                p->deserialize(obj);
+                p->notify_all();
+            }
+        }
+        else if (obj->body.otype == pExt->uridStreamType)
+        {
+            // Try to find the corresponding mesh port
+            LV2UIPort *p    = find_by_urid(vStreamPorts, obj->body.id);
             if (p != NULL)
             {
                 p->deserialize(obj);
