@@ -517,9 +517,6 @@ namespace lsp
 
             virtual void destroy()
             {
-                if (pStream == NULL)
-                    return;
-
                 stream_t::destroy(pStream);
                 pStream     = NULL;
             }

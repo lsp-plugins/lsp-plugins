@@ -161,7 +161,24 @@ namespace lsp
         for (size_t i=0; i<channels; ++i, buf += bcap)
             mesh->vChannels[i] = buf;
 
+        mesh->pData             = pdata;
+
         return mesh;
+    }
+
+    void stream_t::clear(uint32_t current)
+    {
+        frame_t *f;
+        for (size_t i=0; i<nFrameCap; ++i)
+        {
+            f                       = &vFrames[i];
+            f->id                   = 0;
+            f->head                 = 0;
+            f->tail                 = 0;
+            f->length               = 0;
+        }
+
+        nFrameId                = current;
     }
 
     void stream_t::destroy(stream_t *buf)

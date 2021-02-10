@@ -323,11 +323,6 @@ namespace lsp
                 return fPrev != old; // Value has changed?
             }
 
-//            virtual void post_process(size_t samples)
-//            {
-//                fPrev       = fValue;
-//            };
-
             virtual void save()
             {
                 if (nID >= 0)
@@ -575,7 +570,7 @@ namespace lsp
             explicit LV2StreamPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext, false)
             {
                 pStream     = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
-                pData       = (float *)(::malloc(sizeof(float) * STREAM_MAX_FRAME_SIZE));
+                pData       = reinterpret_cast<float *>(::malloc(sizeof(float) * STREAM_MAX_FRAME_SIZE));
                 nFrameID    = 0;
             }
 
@@ -601,7 +596,7 @@ namespace lsp
 
             virtual bool tx_pending()
             {
-                return pStream->frame_id() != nFrameID;
+                return nFrameID != pStream->frame_id();
             }
 
             virtual void ui_connected()
@@ -613,14 +608,17 @@ namespace lsp
 
             virtual void serialize()
             {
-                // Serialize not more than 4 rows
-                size_t delta = pStream->frame_id() - nFrameID;
-                uint32_t frame_id = (delta > pStream->frames()) ? pStream->frame_id() - pStream->frames() : nFrameID;
+                // Serialize not more than number of predefined frames
+                uint32_t frame_id   = nFrameID;
+                size_t src_id       = pStream->frame_id();
+                size_t delta        = src_id - nFrameID;
+                if (delta > pStream->frames())
+                    frame_id            = src_id - pStream->frames();
                 if (delta > STREAM_BULK_MAX)
                     delta = STREAM_BULK_MAX;
-                uint32_t last_frame = frame_id + delta + 1;
+                size_t last_id          = frame_id + delta;
 
-                lsp_trace("id = %s, first=%d, last=%d", pMetadata->id, int(frame_id), int(last_frame));
+                lsp_trace("id = %s, first=%d, last=%d", pMetadata->id, int(frame_id), int(last_id));
 
                 // Forge frame buffer parameters
                 size_t nbuffers = pStream->channels();
@@ -629,11 +627,11 @@ namespace lsp
                 pExt->forge_int(nbuffers);
 
                 // Forge vectors
-                while (frame_id != last_frame)
+                for ( ; frame_id != last_id; ++frame_id)
                 {
                     LV2_Atom_Forge_Frame frame;
                     size_t size = pStream->get_size(frame_id);
-                    size_t off  = pStream->get_head(frame_id);
+//                    lsp_trace("frame id=%d, size=%d", int(frame_id), int(size));
 
                     pExt->forge_key(pExt->uridStreamFrame);
                     pExt->forge_object(&frame, pExt->uridBlank, pExt->uridStreamFrameType);
@@ -647,7 +645,7 @@ namespace lsp
                         // Forge vectors
                         for (size_t i=0; i < nbuffers; ++i)
                         {
-                            pStream->read(i, pData, off, size);
+                            pStream->read(i, pData, 0, size);
 
                             pExt->forge_key(pExt->uridStreamFrameData);
                             pExt->forge_vector(sizeof(float), pExt->forge.Float, size, pData);
@@ -657,7 +655,7 @@ namespace lsp
                 }
 
                 // Update current RowID
-                nFrameID    = last_frame - 1;
+                nFrameID    = frame_id;
             }
     };
 

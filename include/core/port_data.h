@@ -189,7 +189,7 @@ namespace lsp
              * Read frame data of the last frame
              * @param channel channel number
              * @param data destination buffer
-             * @param off offset in the source frame
+             * @param off offset relative to the beginning of the whole frame
              * @param count number of elements to read
              * @return number of elements read or negative error code
              */
@@ -207,6 +207,12 @@ namespace lsp
              * @return status of operation
              */
             bool                    sync(const stream_t *src);
+
+            /**
+             * Clear the stream and set current frame
+             * @param current current frame
+             */
+            void                    clear(uint32_t current);
     } stream_t;
 
     /**

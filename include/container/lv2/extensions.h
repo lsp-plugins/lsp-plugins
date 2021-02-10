@@ -356,7 +356,7 @@ namespace lsp
 
                 uridStreamType              = map_type("Stream");
                 uridStreamDimensions        = map_field("Stream#dimensions");
-                uridStreamFrame             = map_type("Stream#frame");
+                uridStreamFrame             = map_field("Stream#frame");
                 uridStreamFrameType         = map_type("StreamFrame");
                 uridStreamFrameId           = map_field("StreamFrame#id");
                 uridStreamFrameSize         = map_field("StreamFrame#size");
@@ -874,6 +874,19 @@ namespace lsp
                         break;
                     size            += LV2Mesh::size_of_port(p);
                     break;
+                case R_STREAM:
+                {
+                    if (IS_OUT_PORT(p) && (!out))
+                        break;
+                    else if (IS_IN_PORT(p) && (!in))
+                        break;
+
+                    size_t vector_len   = sizeof(LV2_Atom_Vector) + 4 * sizeof(LV2_Atom_Int) + sizeof(float) * STREAM_MAX_FRAME_SIZE;
+                    size_t frm_size     = sizeof(LV2_Atom_Object) + 8 * sizeof(LV2_Atom_Int) + size_t(p->min) * vector_len;
+                    size_t data_size    = sizeof(LV2_Atom_Object) + 8 * sizeof(LV2_Atom_Int) + STREAM_BULK_MAX * frm_size;
+                    size               += data_size;
+                    break;
+                }
                 case R_FBUFFER:
                     if (IS_OUT_PORT(p) && (!out))
                         break;

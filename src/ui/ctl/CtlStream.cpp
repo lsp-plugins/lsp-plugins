@@ -144,6 +144,8 @@ namespace lsp
             // Perform read from stream to mesh
             size_t last     = stream->frame_id();
             ssize_t length  = stream->get_length(last);
+            size_t head     = stream->get_head(last);
+            size_t tail     = stream->get_tail(last);
 
             for (size_t i=0, n=stream->channels(); i<n; ++i)
                 stream->read(i, pMesh->pvData[i], 0, length);
