@@ -1,9 +1,9 @@
 /*
- * Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
- *           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+ * Copyright (C) 2021 Linux Studio Plugins Project <https://lsp-plug.in/>
+ *           (C) 2021 Vladimir Sadovnikov <sadko4u@gmail.com>
  *
  * This file is part of lsp-plugins
- * Created on: 27 июл. 2017 г.
+ * Created on: 7 февр. 2021 г.
  *
  * lsp-plugins is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,20 +26,26 @@ namespace lsp
 {
     namespace ctl
     {
-        const ctl_class_t CtlMesh::metadata = { "CtlMesh", &CtlWidget::metadata };
+        const ctl_class_t CtlStream::metadata = { "CtlStream", &CtlWidget::metadata };
 
-        CtlMesh::CtlMesh(CtlRegistry *src, LSPMesh *mesh): CtlWidget(src, mesh)
+        CtlStream::CtlStream(CtlRegistry *src, LSPMesh *mesh): CtlWidget(src, mesh)
         {
             pClass          = &metadata;
             pPort           = NULL;
             fTransparency   = 0.0f;
+            pMesh           = NULL;
         }
 
-        CtlMesh::~CtlMesh()
+        CtlStream::~CtlStream()
         {
+            if (pMesh != NULL)
+            {
+                mesh_t::destroy(pMesh);
+                pMesh   = NULL;
+            }
         }
 
-        void CtlMesh::init()
+        void CtlStream::init()
         {
             CtlWidget::init();
 
@@ -51,7 +57,7 @@ namespace lsp
             sColor.init_hsl(pRegistry, mesh, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         }
 
-        void CtlMesh::set(widget_attribute_t att, const char *value)
+        void CtlStream::set(widget_attribute_t att, const char *value)
         {
             LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
 
@@ -101,13 +107,13 @@ namespace lsp
             }
         }
 
-        void CtlMesh::end()
+        void CtlStream::end()
         {
             sColor.set_alpha(fTransparency);
             CtlWidget::end();
         }
 
-        void CtlMesh::notify(CtlPort *port)
+        void CtlStream::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
 
@@ -115,16 +121,39 @@ namespace lsp
             if (mesh == NULL)
                 return;
 
-            if ((pPort == port) && (pPort != NULL))
+            if ((pPort != port) || (pPort == NULL))
+                return;
+
+            const port_t *mdata = pPort->metadata();
+            if ((mdata == NULL) || (mdata->role != R_STREAM))
+                return;
+
+            stream_t *stream  = pPort->get_buffer<stream_t>();
+            if (stream == NULL)
+                return;
+
+            // Need to create mesh?
+            if (pMesh == NULL)
             {
-                const port_t *mdata = pPort->metadata();
-                if ((mdata != NULL) && (mdata->role == R_MESH))
-                {
-                    mesh_t *data  = pPort->get_buffer<mesh_t>();
-                    if (data != NULL)
-                        mesh->set_data(data->nBuffers, data->nItems, const_cast<const float **>(data->pvData));
-                }
+                pMesh   = mesh_t::create(stream->channels(), stream->capacity());
+                if (pMesh == NULL)
+                    return;
+                pMesh->nBuffers = stream->channels();
             }
+
+            // Perform read from stream to mesh
+            size_t last     = stream->frame_id();
+            ssize_t length  = stream->get_length(last);
+            size_t head     = stream->get_head(last);
+            size_t tail     = stream->get_tail(last);
+
+            for (size_t i=0, n=stream->channels(); i<n; ++i)
+                stream->read(i, pMesh->pvData[i], 0, length);
+
+            // Set data to mesh
+            mesh->set_data(pMesh->nBuffers, length, const_cast<const float **>(pMesh->pvData));
         }
     } /* namespace ctl */
 } /* namespace lsp */
+
+

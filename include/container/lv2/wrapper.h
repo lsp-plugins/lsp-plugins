@@ -72,6 +72,7 @@ namespace lsp
             cvector<LV2Port>        vPluginPorts;   // All plugin ports sorted in urid order
             cvector<LV2Port>        vMeshPorts;
             cvector<LV2Port>        vFrameBufferPorts;
+            cvector<LV2Port>        vStreamPorts;
             cvector<LV2Port>        vMidiInPorts;
             cvector<LV2Port>        vMidiOutPorts;
             cvector<LV2Port>        vOscInPorts;
@@ -296,6 +297,15 @@ namespace lsp
                 else
                     result = new LV2Port(p, pExt, false);
                 break;
+            case R_STREAM:
+                if (pExt->atom_supported())
+                {
+                    result = new LV2StreamPort(p, pExt);
+                    vStreamPorts.add(result);
+                }
+                else
+                    result = new LV2Port(p, pExt, false);
+                break;
             case R_FBUFFER:
                 if (pExt->atom_supported())
                 {
@@ -428,6 +438,7 @@ namespace lsp
                         vOscInPorts.add(p);
                     break;
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                 case R_PATH:
                     pPlugin->add_port(p);
@@ -515,6 +526,7 @@ namespace lsp
         // Sort port lists
         sort_by_urid(vPluginPorts);
         sort_by_urid(vMeshPorts);
+        sort_by_urid(vStreamPorts);
         sort_by_urid(vFrameBufferPorts);
 
         // Need to create and start KVT dispatcher?
@@ -1220,6 +1232,7 @@ namespace lsp
                     case R_OSC:
                     case R_UI_SYNC:
                     case R_MESH:
+                    case R_STREAM:
                     case R_FBUFFER:
                         continue;
                     case R_PATH:
@@ -1282,6 +1295,23 @@ namespace lsp
 
                 // Cleanup data of the mesh for refill
                 mesh->markEmpty();
+            }
+
+            // Serialize streams (it's own primitive STREAM)
+            for (size_t i=0, n=vStreamPorts.size(); i<n; ++i)
+            {
+                LV2Port *p = vStreamPorts[i];
+                if ((p == NULL) || (!p->tx_pending()))
+                    continue;
+                stream_t *s = p->getBuffer<stream_t>();
+                if (s == NULL)
+                    continue;
+
+                pExt->forge_frame_time(0);  // Event header
+                msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridStreamType);
+                p->serialize();
+                pExt->forge_pop(&frame);
+                bytes_out   += lv2_atom_total_size(msg);
             }
 
             // Serialize frame buffers (it's own primitive FRAMEBUFFER)
@@ -1370,6 +1400,7 @@ namespace lsp
         vAllPorts.clear();
         vExtPorts.clear();
         vMeshPorts.clear();
+        vStreamPorts.clear();
         vMidiInPorts.clear();
         vMidiOutPorts.clear();
         vOscInPorts.clear();

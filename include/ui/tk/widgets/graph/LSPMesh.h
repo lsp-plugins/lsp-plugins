@@ -38,12 +38,17 @@ namespace lsp
                 size_t              nPoints;
                 ssize_t             nXIndex;
                 ssize_t             nYIndex;
+                ssize_t             nSIndex;
+                size_t              nStrobes;
+                bool                bStrobe;
                 float              *vBuffer;
                 size_t              nBufSize;
                 LSPColor            sColor;
 
             protected:
-                void        drop_data();
+                void                drop_data();
+                size_t              find_offset(const float *v, size_t count);
+                size_t              get_length(const float *v, size_t off, size_t count);
 
             public:
                 explicit LSPMesh(LSPDisplay *dpy);
@@ -53,13 +58,16 @@ namespace lsp
                 virtual void destroy();
 
             public:
-                inline size_t       line_width() const      { return nWidth; };
-                inline size_t       center_id() const       { return nCenter; };
+                inline size_t       line_width() const      { return nWidth;    };
+                inline size_t       center_id() const       { return nCenter;   };
                 inline size_t       dimensions() const      { return nDimensions; };
-                inline size_t       points() const          { return nPoints; };
-                inline LSPColor    *color()                 { return &sColor; };
-                inline ssize_t      x_index() const         { return nXIndex; };
-                inline ssize_t      y_index() const         { return nYIndex; };
+                inline size_t       points() const          { return nPoints;   };
+                inline LSPColor    *color()                 { return &sColor;   };
+                inline ssize_t      x_index() const         { return nXIndex;   };
+                inline ssize_t      y_index() const         { return nYIndex;   };
+                inline ssize_t      s_index() const         { return nSIndex;   };
+                inline size_t       num_strobes() const     { return nStrobes;  };
+                inline bool         strobes() const         { return bStrobe;   };
 
             public:
                 void                set_line_width(size_t value);
@@ -67,6 +75,9 @@ namespace lsp
                 status_t            set_data(size_t dimensions, size_t points, const float **data);
                 void                set_x_index(ssize_t value);
                 void                set_y_index(ssize_t value);
+                void                set_s_index(ssize_t value);
+                void                set_num_strobes(ssize_t value);
+                void                set_strobes(bool set);
 
             public:
                 virtual void render(ISurface *s, bool force);

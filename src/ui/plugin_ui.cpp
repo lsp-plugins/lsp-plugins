@@ -806,6 +806,13 @@ namespace lsp
                 vWidgets.add(mesh);
                 return new CtlMesh(this, mesh);
             }
+            case WC_STREAM:
+            {
+                LSPMesh *mesh = new LSPMesh(&sDisplay);
+                mesh->init();
+                vWidgets.add(mesh);
+                return new CtlStream(this, mesh);
+            }
             case WC_FBUFFER:
             {
                 LSPFrameBuffer *fb = new LSPFrameBuffer(&sDisplay);

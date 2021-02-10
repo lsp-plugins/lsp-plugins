@@ -406,6 +406,157 @@ namespace lsp
             }
     };
 
+    class LV2UIStreamPort: public LV2UIPort
+    {
+        protected:
+            stream_t               *pStream;
+            LV2StreamPort          *pPort;
+
+        public:
+            explicit LV2UIStreamPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) : LV2UIPort(meta, ext)
+            {
+                pStream         = stream_t::create(pMetadata->min, pMetadata->max, pMetadata->start);
+                pPort           = NULL;
+
+                // Try to perform direct access to the port using LV2:Instance interface
+                const port_t *xmeta = (xport != NULL) ? xport->metadata() : NULL;
+                if ((xmeta != NULL) && (xmeta->role == R_STREAM))
+                {
+                    pPort               = static_cast<LV2StreamPort *>(xport);
+                    lsp_trace("Connected direct stream port id=%s", xmeta->id);
+                }
+            }
+
+            virtual ~LV2UIStreamPort()
+            {
+                stream_t::destroy(pStream);
+                pStream         = NULL;
+            };
+
+        protected:
+            void deserialize_frame(LV2_Atom_Object *frame)
+            {
+                // Parse atom body
+                LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&frame->body);
+
+                // Get frame identifier
+                if (lv2_atom_object_is_end(&frame->body, frame->atom.size, body))
+                    return;
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+                if ((body->key != pExt->uridStreamFrameId) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t frame_id = (reinterpret_cast<const LV2_Atom_Int *>(&body->value))->body;
+//                lsp_trace("frame_id = %d", int(frame_id));
+
+                // Get frame size
+                body = lv2_atom_object_next(body);
+                if (lv2_atom_object_is_end(&frame->body, frame->atom.size, body))
+                    return;
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+                if ((body->key != pExt->uridStreamFrameSize) || (body->value.type != pExt->forge.Int))
+                    return;
+                ssize_t frame_size  = (reinterpret_cast<const LV2_Atom_Int *>(&body->value))->body;
+//                lsp_trace("frame_size = %d", int(frame_size));
+
+                frame_size          = lsp_min(frame_size, STREAM_MAX_FRAME_SIZE);
+//                lsp_trace("act_frame_size = %d", int(frame_size));
+
+                // If frame differs to the current one - clear the stream
+                uint32_t prev_id    = frame_id - 1;
+//                lsp_trace("prev_id = %d, frame_id=%d", int(prev_id), int(pStream->frame_id()));
+                if (pStream->frame_id() != prev_id)
+                {
+                    pStream->clear(prev_id);
+//                    lsp_trace("cleared stream to frame %d", int(pStream->frame_id()));
+                }
+
+                // Now we are able to commit the frame
+                frame_size          = pStream->add_frame(frame_size);
+                for (size_t i=0, n=pStream->channels(); i<n; ++i)
+                {
+                    // Read vector as array of floats
+                    body = lv2_atom_object_next(body);
+                    if (lv2_atom_object_is_end(&frame->body, frame->atom.size, body))
+                        break;
+//                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                    if ((body->key != pExt->uridStreamFrameData) || (body->value.type != pExt->forge.Vector))
+                        return;
+                    const LV2_Atom_Vector *v = reinterpret_cast<const LV2_Atom_Vector *>(&body->value);
+//                    lsp_trace("body->child_size = %d, body->child_type (%d) = %s", int(v->body.child_size), int(v->body.child_type), pExt->unmap_urid(v->body.child_type));
+                    if ((v->body.child_size != sizeof(float)) || (v->body.child_type != pExt->forge.Float))
+                        return;
+
+                    ssize_t v_items     = lsp_min(frame_size, ssize_t((v->atom.size - sizeof(LV2_Atom_Vector_Body)) / sizeof(float)));
+//                    lsp_trace("channel = %d, floats = %d", int(i), int(v_items));
+                    pStream->write_frame(i, reinterpret_cast<const float *>(v + 1), 0, v_items);
+                }
+
+                // Commit the frame
+                pStream->commit_frame();
+            }
+
+        public:
+            virtual LV2_URID        get_type_urid() const   { return pExt->uridStreamType; };
+
+            virtual void deserialize(const void *data)
+            {
+                const LV2_Atom_Object* obj = reinterpret_cast<const LV2_Atom_Object *>(data);
+//                lsp_trace("id = %s", pMetadata->id);
+
+                // Parse atom body
+                LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
+
+                // Get number of vectors (dimensions)
+                if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    return;
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                if ((body->key != pExt->uridStreamDimensions) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t dimensions = (reinterpret_cast<const LV2_Atom_Int *>(&body->value))->body;
+                if (dimensions != pStream->channels())
+                    return;
+
+                while (true)
+                {
+                    // Get size of each vector
+                    body = lv2_atom_object_next(body);
+                    if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                        break;
+
+//                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                    if ((body->key != pExt->uridStreamFrame) || (body->value.type != pExt->forge.Object))
+                        continue;
+
+                    LV2_Atom_Object *fobj       = (reinterpret_cast<LV2_Atom_Object *>(& body->value));
+                    if ((fobj->body.id != pExt->uridBlank) || (fobj->body.otype != pExt->uridStreamFrameType))
+                        continue;
+
+                    // Read frame data
+                    deserialize_frame(fobj);
+                }
+            }
+
+            virtual void *get_buffer()
+            {
+                return pStream;
+            }
+
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                stream_t *s = static_cast<stream_t *>(pPort->getBuffer());
+                return (s != NULL) ? pStream->sync(s) : false;
+            }
+    };
+
     class LV2UIFrameBufferPort: public LV2UIPort
     {
         protected:
