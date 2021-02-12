@@ -138,7 +138,7 @@ namespace lsp
             const lsp_wchar_t *v = pString->characters();
             v       += nOffset;
             nOffset += count;
-            ::memcpy(dst, v, avail * sizeof(lsp_wchar_t));
+            ::memcpy(dst, v, count * sizeof(lsp_wchar_t));
 
             set_error(STATUS_OK);
             return count;
