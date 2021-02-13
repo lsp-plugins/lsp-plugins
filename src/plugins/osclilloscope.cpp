@@ -19,10 +19,6 @@
 #define AC_BLOCK_CUTOFF_HZ  5.0
 #define AC_BLOCK_DFL_ALPHA  0.999f
 
-// Debug - Remove for production.
-#define DEBUG_BUF_SIZE      2985984
-//
-
 namespace lsp
 {
     over_mode_t oscilloscope_base::get_oversampler_mode(size_t portValue)
@@ -193,17 +189,18 @@ namespace lsp
         }
     }
 
-    void oscilloscope_base::do_sweep_step(channel_t *c)
+    void oscilloscope_base::do_sweep_step(channel_t *c, float strobe_value)
     {
         c->sSweepGenerator.process_overwrite(&c->vDisplay_x[c->nDisplayHead], 1);
         c->vDisplay_y[c->nDisplayHead] = c->vData_y_delay[c->nDataHead];
+        c->vDisplay_s[c->nDisplayHead] = strobe_value;
         ++c->nDataHead;
         ++c->nDisplayHead;
     }
 
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
-        // fill_zero is for DEBUG
+        // fill_zero is for DEBUG !!!
         dsp::fill_zero(c->vDisplay_x, BUF_LIM_SIZE);
         dsp::fill_zero(c->vDisplay_y, BUF_LIM_SIZE);
 
@@ -328,6 +325,7 @@ namespace lsp
                 c->vData_y_delay    = NULL;
                 c->vDisplay_x       = NULL;
                 c->vDisplay_y       = NULL;
+                c->vDisplay_s       = NULL;
             }
 
             delete [] vChannels;
@@ -343,12 +341,19 @@ namespace lsp
         if (vChannels == NULL)
             return;
 
-        // For each channel: 1X temp buffer + 1X external data buffer + 1X x data buffer + 1X y data buffer + 1X delayed y data buffer + 1X x display buffer + 1X y display buffer
-        size_t samples = nChannels * BUF_LIM_SIZE * 7;
-
-        // Debug - Remove for production.
-        samples += 3 * DEBUG_BUF_SIZE;
-        //
+        /** For each channel:
+         * 1X temp buffer +
+         * 1X external data buffer +
+         * 1X x data buffer +
+         * 1X y data buffer +
+         * 1X delayed y data buffer +
+         * 1X x display buffer +
+         * 1X y display buffer +
+         * 1X strobe display buffer
+         *
+         * All buffers size BUF_LIM_SIZE
+         */
+        size_t samples = nChannels * BUF_LIM_SIZE * 8;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -410,6 +415,9 @@ namespace lsp
             c->vDisplay_y       = ptr;
             ptr                += BUF_LIM_SIZE;
 
+            c->vDisplay_s       = ptr;
+            ptr                += BUF_LIM_SIZE;
+
             c->enState          = CH_STATE_LISTENING;
 
             c->vIn_x            = NULL;
@@ -447,7 +455,7 @@ namespace lsp
             c->pTrgInput        = NULL;
             c->pTrgReset        = NULL;
 
-            c->pMesh            = NULL;
+            c->pStream            = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -536,7 +544,7 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pMesh = vPorts[port_id++];
+            vChannels[ch].pStream = vPorts[port_id++];
         }
     }
 
@@ -669,6 +677,26 @@ namespace lsp
 
         // Clear the update flag
         c->nUpdate = 0;
+    }
+
+    void oscilloscope_base::graph_stream(channel_t * c)
+    {
+        stream_t *stream = c->pStream->getBuffer<stream_t>();
+        if (stream != NULL)
+        {
+            // Emit the figure data with fixed-size frames
+            for (size_t i = 0; i < c->nSweepSize; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
+            {
+                size_t count = stream->add_frame(BUF_LIM_SIZE - i);  // Add a frame
+                stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
+                stream->write_frame(1, &c->vDisplay_y[i], 0, count); // Y's
+                stream->write_frame(2, &c->vDisplay_s[i], 0, count); // Strobe signal
+                stream->commit_frame();                              // Commit the frame
+
+                // Move the index in the source buffer
+                i += count;
+            }
+        }
     }
 
     void oscilloscope_base::update_settings()
@@ -895,31 +923,20 @@ namespace lsp
                         {
                             if (c->nDisplayHead >= c->nSweepSize)
                             {
-                                // Plot stuff happens here
+                                // Plot time!
+                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
+                                graph_stream(c);
 
                                 reset_display_buffers(c);
                             }
 
                             c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
                             c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
+                            c->vDisplay_s[c->nDisplayHead] = 0.0f;
 
                             ++c->nDisplayHead;
                         }
 
-//                        size_t remaining = c->nSweepSize - c->nDisplayHead;
-//                        size_t to_copy = (to_do_upsample < remaining) ? to_do_upsample : remaining;
-//
-//                        dsp::copy(&c->vDisplay_x[c->nDisplayHead], c->vData_x, to_copy);
-//                        dsp::copy(&c->vDisplay_y[c->nDisplayHead], c->vData_y, to_copy);
-//
-//                        c->nDisplayHead += to_copy;
-//
-//                        if (c->nDisplayHead >= c->nSweepSize)
-//                        {
-//                            // Plot stuff happens here
-//
-//                            reset_display_buffers(c);
-//                        }
                     }
                     break;
 
@@ -963,18 +980,19 @@ namespace lsp
                                         c->sSweepGenerator.reset_phase_accumulator();
                                         c->nDataHead = n;
                                         c->enState = CH_STATE_SWEEPING;
-                                        do_sweep_step(c);
+                                        do_sweep_step(c, 1.0f);
                                     }
                                 }
                                 break;
 
                                 case CH_STATE_SWEEPING:
                                 {
-                                    do_sweep_step(c);
+                                    do_sweep_step(c, 0.0f);
 
                                     if (c->nDisplayHead >= c->nSweepSize)
                                     {
-                                        // Plot stuff happens here
+                                        // Plot time!
+                                        graph_stream(c);
 
                                         reset_display_buffers(c);
                                         c->enState = CH_STATE_LISTENING;
@@ -997,6 +1015,7 @@ namespace lsp
         }
     }
 
+    // THIS MUST BE UPDATED !!!
     void oscilloscope_base::dump(IStateDumper *v) const
     {
         v->begin_object("sACBlockParams", &sACBlockParams, sizeof(sACBlockParams));
@@ -1095,7 +1114,7 @@ namespace lsp
                 v->write("pTrgInput", &c->pTrgInput);
                 v->write("pTrgReset", &c->pTrgReset);
 
-                v->write("pMesh", &c->pMesh);
+                v->write("pMesh", &c->pStream);
             }
             v->end_object();
         }
@@ -1118,6 +1137,14 @@ namespace lsp
     }
 
     oscilloscope_x2::~oscilloscope_x2()
+    {
+    }
+
+    oscilloscope_x4::oscilloscope_x4(): oscilloscope_base(metadata, 4)
+    {
+    }
+
+    oscilloscope_x4::~oscilloscope_x4()
     {
     }
 }

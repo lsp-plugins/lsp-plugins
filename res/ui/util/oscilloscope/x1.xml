@@ -9,7 +9,7 @@
 	                <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
 	                <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
 	
-	                <mesh id="oscv_1" width="3" />
+	                <stream id="oscv_1" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
 	
 	                <marker value="-1" color="g_white" basis="1" parallel="0" />
 	                <marker value="-0.75" color="g_gray" basis="1" parallel="0" />

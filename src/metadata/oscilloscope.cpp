@@ -113,7 +113,7 @@ namespace lsp
         TRG_CONTROLS(id, label)
 
     #define OSC_VISUALOUTS(id, label) \
-        MESH("oscv" id, "Oscilloscope" label, 2, oscilloscope_base_metadata::SCOPE_MESH_SIZE)
+        STREAM("oscv" id, "Stream buffer" label, 3, 32, 0x4000)
 
     #define AUDIO_PORTS_X1 CHANNEL_AUDIO_PORTS("_1", " 1")
     #define CHANNEL_CONTROLS_X1 CHANNEL_CONTROLS("_1", " 1")
@@ -123,7 +123,9 @@ namespace lsp
     #define CHANNEL_CONTROLS_X2 CHANNEL_CONTROLS("_1", " 1"), CHANNEL_CONTROLS("_2", " 2")
     #define OSC_VISUALOUTS_X2 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2")
 
-//    #define OSC_VISUALOUTS_X4 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2"), OSC_VISUALOUTS("_3", " 3"), OSC_VISUALOUTS("_4", " 4")
+    #define AUDIO_PORTS_X4 CHANNEL_AUDIO_PORTS("_1", " 1"), CHANNEL_AUDIO_PORTS("_2", " 2"), CHANNEL_AUDIO_PORTS("_3", " 3"), CHANNEL_AUDIO_PORTS("_4", " 4")
+    #define CHANNEL_CONTROLS_X4 CHANNEL_CONTROLS("_1", " 1"), CHANNEL_CONTROLS("_2", " 2"), CHANNEL_CONTROLS("_3", " 3"), CHANNEL_CONTROLS("_4", " 4")
+    #define OSC_VISUALOUTS_X4 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2"), OSC_VISUALOUTS("_3", " 3"), OSC_VISUALOUTS("_4", " 4")
 
     static const port_t oscilloscope_x1_ports[] =
     {
@@ -141,47 +143,66 @@ namespace lsp
         PORTS_END
     };
 
-//    static const port_t oscilloscope_x4_ports[] =
-//    {
-//        PORTS_MONO_PLUGIN,
-//        OSC_COMMON,
-//        OSC_VISUALOUTS_X4,
-//        PORTS_END
-//    };
+    static const port_t oscilloscope_x4_ports[] =
+    {
+        AUDIO_PORTS_X4,
+        CHANNEL_CONTROLS_X4,
+        OSC_VISUALOUTS_X4,
+        PORTS_END
+    };
 
     const plugin_metadata_t oscilloscope_x1_metadata::metadata =
     {
         "Oscilloscope x1",
         "Oscilloscope x1",
-        "O11", // Profiler x1 Mono
+        "O1", // Oscilloscope x1
         &developers::s_tronci,
         "oscilloscope_x1",
         "",
-        0,
+        LSP_OSCILLOSCOPE_BASE + 0,
         LSP_VERSION(1, 0, 0),
         osclilloscope_classes,
         E_NONE,
         oscilloscope_x1_ports,
         "util/oscilloscope/x1.xml",
         NULL,
-        mono_plugin_port_groups
+        NULL
     };
 
     const plugin_metadata_t oscilloscope_x2_metadata::metadata =
     {
         "Oscilloscope x2",
         "Oscilloscope x2",
-        "P12", // Profiler x1 Stereo
+        "O2", // Oscilloscope x2
         &developers::s_tronci,
         "oscilloscope_x2",
         "",
-        0,
+        LSP_OSCILLOSCOPE_BASE + 1,
         LSP_VERSION(1, 0, 0),
         osclilloscope_classes,
         E_NONE,
         oscilloscope_x2_ports,
         "util/oscilloscope/x2.xml",
         NULL,
-        stereo_plugin_port_groups
+        NULL
     };
+
+    const plugin_metadata_t oscilloscope_x4_metadata::metadata =
+    {
+        "Oscilloscope x4",
+        "Oscilloscope x4",
+        "O4", // Profiler x4
+        &developers::s_tronci,
+        "oscilloscope_x4",
+        "",
+        LSP_OSCILLOSCOPE_BASE + 2,
+        LSP_VERSION(1, 0, 0),
+        osclilloscope_classes,
+        E_NONE,
+        oscilloscope_x4_ports,
+        "util/oscilloscope/x4.xml",
+        NULL,
+        NULL
+    };
+
 }

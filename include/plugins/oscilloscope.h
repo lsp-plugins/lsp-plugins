@@ -148,6 +148,7 @@ namespace lsp
                 float              *vData_y_delay;
                 float              *vDisplay_x;
                 float              *vDisplay_y;
+                float              *vDisplay_s; // Strobe
 
                 size_t              nDataHead;
                 size_t              nDisplayHead;
@@ -199,7 +200,7 @@ namespace lsp
                 IPort              *pTrgInput;
                 IPort              *pTrgReset;
 
-                IPort              *pMesh;
+                IPort              *pStream;
             } channel_t;
 
         protected:
@@ -223,7 +224,7 @@ namespace lsp
         protected:
             void update_dc_block_filter(FilterBank &rFilterBank);
             void reconfigure_dc_block_filters();
-            void do_sweep_step(channel_t *c);
+            void do_sweep_step(channel_t *c, float strobe_value);
             void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
@@ -231,6 +232,7 @@ namespace lsp
             inline void configure_oversamplers(channel_t *c, over_mode_t mode);
             void init_state_stage(channel_t *c);
             void commit_staged_state_change(channel_t *c);
+            void graph_stream(channel_t *c);
 
         public:
             explicit oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);
@@ -260,6 +262,13 @@ namespace lsp
         public:
             oscilloscope_x2();
             virtual ~oscilloscope_x2();
+    };
+
+    class oscilloscope_x4: public oscilloscope_base, public oscilloscope_x4_metadata
+    {
+        public:
+            oscilloscope_x4();
+            virtual ~oscilloscope_x4();
     };
 }
 

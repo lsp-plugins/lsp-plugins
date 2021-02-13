@@ -127,10 +127,10 @@ namespace lsp
         static const plugin_metadata_t metadata;
     };
 
-//    struct oscilloscope_x4_metadata: public oscilloscope_base_metadata
-//    {
-//        static const plugin_metadata_t metadata;
-//    };
+    struct oscilloscope_x4_metadata: public oscilloscope_base_metadata
+    {
+        static const plugin_metadata_t metadata;
+    };
 }
 
 #endif /* METADATA_OSCILLOSCOPE_H_ */
