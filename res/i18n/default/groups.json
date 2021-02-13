@@ -1,91 +1,101 @@
 {
-	"alr": "ALR",
-	"analysis": "Analysis",
-	"audio_channel": "Audio Channel",
-	"audio_channels": "Audio Channels",
-	"audio_output": "Audio Output",
+  "alr": "ALR",
+  "analysis": "Analysis",
+  "audio_channel": "Audio Channel",
+  "audio_channels": "Audio Channels",
+  "audio_output": "Audio Output",
 
-	"bands": "Bands",
+  "bands": "Bands",
 
-	"controls": "Controls",
+  "controls": "Controls",
 
-	"chan": {
-		"master": "Master Channel"
-	},
+  "chan": {
+    "master": "Master Channel"
+  },
 
-	"channel": "Channel",
-	"channel_n": "Channel {@id}",
-	"channels": "Channels",
+  "channel": "Channel",
+  "channel_n": "Channel {@id}",
+  "channels": "Channels",
 
-	"distance": "Distance",
+  "distance": "Distance",
 
-	"gain": "Gain",
-	"general": "General",
+  "gain": "Gain",
+  "general": "General",
 
-	"global_delay_ctr": "Global Delay Line Controls",
+  "global_delay_ctr": "Global Delay Line Controls",
 
-	"impulse_response": "Impulse Response",
-	"instrument_mixer": "Instrument mixer",
+  "impulse_response": "Impulse Response",
+  "instrument_mixer": "Instrument mixer",
 
-	"latency": "Latency",
+  "latency": "Latency",
 
-	"lchan": {
-		"distance": "Distance (left)",
-		"monitoring": "Monitoring (left)",
-		"samples": "Samples (left)",
-		"signal": "Signal (left)",
-		"time": "Time (left)"
-	},
+  "lchan": {
+    "distance": "Distance (left)",
+    "monitoring": "Monitoring (left)",
+    "samples": "Samples (left)",
+    "signal": "Signal (left)",
+    "time": "Time (left)"
+  },
 
-	"metering": "Metering",
-	"midi_setup": "MIDI Setup",
-	"monitoring": "Monitoring",
+  "metering": "Metering",
+  "midi_setup": "MIDI Setup",
+  "monitoring": "Monitoring",
+  "oscilloscope": {
+    "screen": "Screen",
+    "operation": "Operation",
+    "horizontal": "Horizontal",
+    "vertical": "Vertical",
+    "trigger": "Trigger",
+    "channel_1": "Channel 1",
+    "channel_2": "Channel 2",
+    "channel_3": "Channel 3",
+    "channel_4": "Channel 4"
+  },
+  "oscillator_function": "Oscillator Function",
+  "output": "Output",
+  "outputs": "Outputs",
 
-	"oscillator_function": "Oscillator Function",
-	"output": "Output",
-	"outputs": "Outputs",
+  "parameters": "Parameters",
 
-	"parameters": "Parameters",
+  "plug": {
+    "calibrator": "Calibrator",
+    "compressor": "Compressor",
+    "expander": "Expander",
+    "gate": "Gate",
+    "latency_detector": "Latency Detector",
+    "limiter": "Limiter",
+    "processor": "Processor",
+    "trigger": "Trigger"
+  },
 
-	"plug": {
-		"calibrator": "Calibrator",
-		"compressor": "Compressor",
-		"expander": "Expander",
-		"gate": "Gate",
-		"latency_detector": "Latency Detector",
-		"limiter": "Limiter",
-		"processor": "Processor",
-		"trigger": "Trigger"
-	},
+  "processor": "Processor",
+  "processors": "Processors",
 
-	"processor": "Processor",
-	"processors": "Processors",
+  "rendering": "Rendering",
 
-	"rendering": "Rendering",
+  "results": "Results",
 
-	"results": "Results",
+  "rchan": {
+    "distance": "Distance (right)",
+    "monitoring": "Monitoring (right)",
+    "samples": "Samples (right)",
+    "signal": "Signal (right)",
+    "time": "Time (right)"
+  },
 
-	"rchan": {
-		"distance": "Distance (right)",
-		"monitoring": "Monitoring (right)",
-		"samples": "Samples (right)",
-		"signal": "Signal (right)",
-		"time": "Time (right)"
-	},
+  "sample_matrix": "Sample Matrix",
+  "sample_n": "Sample {@id}",
+  "samples": "Samples",
 
-	"sample_matrix": "Sample Matrix",
-	"sample_n": "Sample {@id}",
-	"samples": "Samples",
+  "sidechain": "Sidechain",
+  "signal": "Signal",
+  "signal_n": "Signal {@id}",
+  "signals": "Signals",
 
-	"sidechain": "Sidechain",
-	"signal": "Signal",
-	"signal_n": "Signal {@id}",
-	"signals": "Signals",
+  "test_signal": "Test Signal",
+  "tempo_settings": "Tempo Settings",
 
-	"test_signal": "Test Signal",
-	"tempo_settings": "Tempo Settings",
+  "time": "Time",
 
-	"time": "Time",
-
-	"wet_signal_eq": "Wet Signal Equalization"
+  "wet_signal_eq": "Wet Signal Equalization"
 }

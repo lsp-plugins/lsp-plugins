@@ -174,7 +174,7 @@
 
 	"feedback": "Feedback",
 	"feed_gain": "Feed Gain",
-	
+
 	"fft": {
 		"envelope": "Envelope",
 		"fft": "FFT",
@@ -348,6 +348,22 @@
 	"output": "Output",
 	"output:db": "Output (dB)",
 	"oversampling": "Oversampling",
+
+	"oscilloscope": {
+	    "oversampler_mode": "Oversampler",
+	    "mode": "Mode",
+	    "coupling": "Coupling",
+	    "sweep_type": "Sweep Type",
+	    "division": "Division",
+	    "position": "Position",
+	    "trigger_hysteresis": "Hysteresis",
+	    "trigger_level": "Level",
+	    "trigger_hold_time": "Hold Time",
+	    "trigger_mode": "Mode",
+	    "trigger_type": "Edge Type",
+	    "trigger_input": "Input",
+	    "trigger_reset": "Reset"
+	},
 
 	"panning": "Panning",
 	"panorama": "Panorama",

@@ -5,10 +5,7 @@
       <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false"/>
       <axis min="-1.0" max="1.0" color="g_white" visible="0" angle="0.5" logarithmic="false"/>
 
-      <stream id="oscv_1" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
-      <stream id="oscv_2" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
-      <stream id="oscv_3" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
-      <stream id="oscv_4" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
+      <mesh id="oscv_1" width="3"/>
 
       <!--<marker value="-1" color="g_white" basis="1" parallel="0" />-->
       <marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
@@ -40,229 +37,608 @@
       <text text="-0.5" coord="0;-0.5" halign="1" valign="-1"/>
     </graph>
 
-    <group text="Controls" expand="true" fill="true" spacing="4">
-      <grid rows="24" cols="11" spacing="2">
+    <!--<group text="Controls" expand="true" fill="true" spacing="4">-->
+    <vbox>
 
-        <!-- row1 -->
-        <void/>
-        <void/>
-        <label text="Global"/>
-        <void/>
-        <label text="groups.oscilloscope.channel_1"/>
-        <void/>
-        <label text="groups.oscilloscope.channel_2"/>
-        <void/>
-        <label text="groups.oscilloscope.channel_3"/>
-        <void/>
-        <label text="groups.oscilloscope.channel_4"/>
+      <hbox pad_bottom="4">
+        <grid rows="24" cols="3" spacing="2">
 
-        <!-- row2 -->
-        <cell cols="11">
-          <hsep color="gray" />
-        </cell>
+          <!-- row1 -->
+          <void/>
+          <void/>
+          <vbox bg_color="osc_bg_gray" pad_left="4" pad_right="4"><label text="Global"/><void min_height="9"/></vbox>
 
-        <!-- row3 -->
-        <void/>
-      <cell rows="25"><vsep color="gray" /></cell>
-      <cell><align hpos="0" pad_bottom="4"><hbox><button id="on${i}" led="true" color="yellow" size="12"/><label text="labels.chan.on"/></hbox></align></cell>
-      <cell rows="25"><vsep color="gray" /></cell>
-      <cell ><align hpos="0" pad_bottom="4"><hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
-        <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox></align></cell>
-      <cell rows="25"><vsep color="gray" /></cell>
-      <cell><align hpos="0" pad_bottom="4"><hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
-        <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox></align></cell>
-      <cell rows="25"><vsep color="gray" /></cell>
-      <cell><align hpos="0" pad_bottom="4"><hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
-        <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox></align></cell>
-      <cell rows="25"><vsep color="gray" /></cell>
-      <cell><align hpos="0" pad_bottom="4"><hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
-        <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox></align></cell>
+          <!-- row2 -->
+          <cell cols="3">
+            <void color="bg" min_height="4"/>
+          </cell>
 
-        <!-- row4 -->
+          <!-- row3 -->
+          <void/>
+          <cell rows="24"><void color="bg" width="4"/></cell>
+          <cell bg_color="osc_bg_gray">
+            <align hpos="0" pad_bottom="4">
+              <hbox><button id="on${i}" led="true" color="yellow" size="12"/><label text="labels.chan.on"/></hbox>
+            </align>
+          </cell>
 
-        <align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.sweep_type" pad_bottom="4"/></align>
-        <combo id="scmo_1" pad_bottom="4"/>
-        <combo id="scmo_1" pad_bottom="4"/>
-        <combo id="scmo_1" pad_bottom="4"/>
-        <combo id="scmo_1" pad_bottom="4"/>
-        <combo id="scmo_1" pad_bottom="4"/>
+          <!-- row4 -->
 
-<!-- row5 -->
+          <align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.sweep_type"/></align>
+          <combo pad_left="4" pad_right="4" id="scmo_1" bg_color="osc_bg_gray" pad_bottom="4"/>
 
-<void/>
-<cell ><hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox></cell>
-<cell ><hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox></cell>
-<cell><hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox></cell>
-<cell><hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox></cell>
-<cell><hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox></cell>
+          <!-- row5 -->
 
-<!-- row6-->
+          <void/>
+          <cell bg_color="osc_bg_gray">
+            <hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox>
+          </cell>
 
-<align hpos="1"><label text="groups.oscilloscope.horizontal"/></align>
-<cell ><hbox><knob id="hzdv_0" size="25" /><knob id="hzps_0" size="25" /></hbox></cell>
-<cell ><hbox><knob id="hzdv_1" size="25" scale_color="g_red"/><knob id="hzps_1" size="25" scale_color="g_red" /></hbox></cell>
-<cell><hbox><knob id="hzdv_2" size="25" scale_color="g_green" /><knob id="hzps_2" size="25" scale_color="g_green" /></hbox></cell>
-<cell><hbox><knob id="hzdv_3" size="25" scale_color="g_cyan" /><knob id="hzps_3" size="25" scale_color="g_cyan" /></hbox></cell>
-<cell><hbox><knob id="hzdv_4" size="25" scale_color="g_magenta" /><knob id="hzps_4" size="25" scale_color="g_magenta" /></hbox></cell>
+          <!-- row6-->
 
-<!-- row7 -->
+          <align hpos="1"><label text="groups.oscilloscope.horizontal"/></align>
+          <cell bg_color="osc_bg_gray">
+            <hbox><knob id="hzdv_0" size="25"/><knob id="hzps_0" size="25"/></hbox>
+          </cell>
 
-<void/>
-<cell ><hbox><value id="hzdv_2" width="50" same_line="true"  /><value id="hzps_2" width="50" same_line="true" /></hbox></cell>
-<cell ><hbox><value id="hzdv_1" width="50" same_line="true" /><value id="hzps_1" width="50" same_line="true" /></hbox></cell>
-<cell><hbox><value id="hzdv_2" width="50" same_line="true" /><value id="hzps_2" width="50" same_line="true" /></hbox></cell>
-<cell><hbox><value id="hzdv_1" width="50" same_line="true" /><value id="hzps_1" width="50" same_line="true" /></hbox></cell>
-<cell><hbox><value id="hzdv_2" width="50" same_line="true" /><value id="hzps_2" width="50" same_line="true" /></hbox></cell>
+          <!-- row7 -->
 
-<!-- row8 -->
+          <void/>
+          <cell bg_color="osc_bg_gray">
+            <hbox><value id="hzdv_2" width="50" same_line="true"/><value id="hzps_2" width="50" same_line="true"/></hbox>
+          </cell>
 
-<align hpos="1"><label text="groups.oscilloscope.vertical"/></align>
-<cell ><hbox><knob id="vedv_0" size="25" /> <knob id="veps_0" size="25" /></hbox></cell>
-<cell ><hbox><knob id="vedv_1" size="25" scale_color="g_red" /> <knob id="veps_1" size="25" scale_color="g_red" /></hbox></cell>
-<cell><hbox><knob id="vedv_2" size="25" scale_color="g_green" /> <knob id="veps_2" size="25" scale_color="g_green" /></hbox></cell>
-<cell><hbox><knob id="vedv_3" size="25" scale_color="g_cyan" /> <knob id="veps_3" size="25" scale_color="g_cyan" /></hbox></cell>
-<cell><hbox><knob id="vedv_4" size="25" scale_color="g_magenta"  /> <knob id="veps_4" size="25" scale_color="g_magenta"  /></hbox></cell>
+          <!-- row8 -->
 
-<!-- row9 -->
+          <align hpos="1"><label text="groups.oscilloscope.vertical"/></align>
+          <cell bg_color="osc_bg_gray">
+            <hbox><knob id="vedv_0" size="25"/>
+              <knob id="veps_0" size="25"/></hbox>
+          </cell>
 
-<void/>
-<cell ><hbox><value id="vedv_2" same_line="true" /> <value id="veps_2" same_line="true" /></hbox></cell>
-<cell ><hbox><value id="vedv_1" same_line="true" /> <value id="veps_1" same_line="true" /></hbox></cell>
-<cell><hbox><value id="vedv_2" same_line="true" /> <value id="veps_2" same_line="true" /></hbox></cell>
-<cell><hbox><value id="vedv_1" same_line="true" /> <value id="veps_1" same_line="true" /></hbox></cell>
-<cell><hbox><value id="vedv_2" same_line="true" /> <value id="veps_2" same_line="true" /></hbox></cell>
+          <!-- row9 -->
 
-<!-- row10 -->
-<cell cols="11">
-  <hsep color="gray" />
-</cell>
+          <void/>
+          <cell bg_color="osc_bg_gray">
+            <hbox><value id="vedv_2" same_line="true"/>
+              <value id="veps_2" same_line="true"/></hbox>
+          </cell>
 
-<!-- row11 -->
+          <!-- row10 -->
+          <cell cols="3">
+            <void color="bg" min_height="4"/>
+          </cell>
 
-<align hpos="1"><label text="groups.oscilloscope.trigger"/></align>
-<void />
-<void />
-<void/>
-<void/>
-<void/>
+          <!-- row11 -->
 
-<!-- row12 -->
+          <align hpos="1"><label text="groups.oscilloscope.trigger"/></align>
+          <void bg_color="osc_bg_gray"/>
 
-<align hpos="1"><label text="labels.oscilloscope.trigger_level"/></align>
-<cell ><hbox><align hpos="0" pad_left="7"><knob id="trlv_0" size="25" /></align><align hpos="0"><value id="trlv_1" same_line="true" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_red" /></align><align hpos="0"><value id="trlv_1" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_green" /></align><align hpos="0"><value id="trlv_1" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_cyan" /></align><align hpos="0"><value id="trlv_1" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_magenta"  /></align><align hpos="0"><value id="trlv_1" same_line="true" /></align></hbox></cell>
+          <!-- row12 -->
 
-<!-- row13 -->
+          <align hpos="1"><label text="labels.oscilloscope.trigger_level"/></align>
+          <cell bg_color="osc_bg_gray">
+            <hbox>
+              <align hpos="0" pad_left="7"><knob id="trlv_0" size="25"/></align>
+              <align hpos="0"><value id="trlv_1" same_line="true"/></align>
+            </hbox>
+          </cell>
 
-<align hpos="1"><label text="labels.oscilloscope.trigger_hysteresis"/></align>
-<cell ><hbox><align hpos="0" pad_left="7"><knob id="trhy_1" size="25" /></align><align hpos="0"><value id="trhy_2" same_line="true" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_left="7"><knob id="trhy_1" size="25" scale_color="g_red" /></align><align hpos="0"><value id="trhy_2" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trhy_1" size="25" scale_color="g_green" /></align><align hpos="0"><value id="trhy_2" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trhy_1" size="25" scale_color="g_cyan" /></align><align hpos="0"><value id="trhy_2" same_line="true" /></align></hbox></cell>
-<cell><hbox><align hpos="0" pad_left="7"><knob id="trhy_1" size="25" scale_color="g_magenta"  /></align><align hpos="0"><value id="trhy_2" same_line="true" /></align></hbox></cell>
+          <!-- row13 -->
 
-<!-- row14 -->
+          <align hpos="1"><label text="labels.oscilloscope.trigger_hysteresis"/></align>
+          <cell bg_color="osc_bg_gray">
+            <hbox>
+              <align hpos="0" pad_left="7"><knob id="trhy_1" size="25"/></align>
+              <align hpos="0"><value id="trhy_2" same_line="true"/></align>
+            </hbox>
+          </cell>
 
-<align hpos="1" pad_bottom="5"><label text="labels.oscilloscope.trigger_hold_time"/></align>
-<cell  pad_bottom="5"><hbox><align hpos="0" pad_left="7"><knob id="trho_0" size="25" /></align><align hpos="0"><value id="trho_2" same_line="true" /></align> </hbox></cell>
-<cell  pad_bottom="5"><hbox><align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_red" /></align><align hpos="0"><value id="trho_2" same_line="true" /></align> </hbox></cell>
-<cell pad_bottom="5"><hbox><align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_green" /></align><align hpos="0"><value id="trho_2" same_line="true" /></align> </hbox></cell>
-<cell pad_bottom="5"><hbox><align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_cyan" /></align><align hpos="0"><value id="trho_2" same_line="true" /></align> </hbox></cell>
-<cell pad_bottom="5"><hbox><align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_magenta" /></align><align hpos="0"><value id="trho_2" same_line="true" /></align></hbox></cell>
+          <!-- row14 -->
 
-<!-- row15 -->
+          <align hpos="1" pad_bottom="5"><label text="labels.oscilloscope.trigger_hold_time"/></align>
+          <cell bg_color="osc_bg_gray" pad_bottom="5">
+            <hbox>
+              <align hpos="0" pad_left="7"><knob id="trho_0" size="25"/></align>
+              <align hpos="0"><value id="trho_2" same_line="true"/></align>
+            </hbox>
+          </cell>
 
-<align hpos="1" pad_bottom="1"><label text="labels.oscilloscope.trigger_input"/></align>
-<cell ><hbox><align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align><align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align><align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align><align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align><align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60" /></align></hbox></cell>
-<cell ><hbox><align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align><align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60" /></align></hbox></cell>
+          <!-- row15 -->
 
-<!-- row16 -->
+          <align hpos="1" pad_bottom="1"><label text="labels.oscilloscope.trigger_input"/></align>
+          <cell bg_color="osc_bg_gray" pad_left="4" pad_right="4">
+            <hbox>
+              <align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align>
+              <align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60"/></align>
+            </hbox>
+          </cell>
 
-<align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.trigger_mode"/></align>
-<combo id="trmo_1" pad_bottom="4" />
-<combo id="trmo_1" pad_bottom="4" />
-<combo id="trmo_1" pad_bottom="4" />
-<combo id="trmo_1" pad_bottom="4" />
-<combo id="trmo_1" pad_bottom="4" />
+          <!-- row16 -->
 
-<!-- row17 -->
+          <align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.trigger_mode"/></align>
+          <combo pad_left="4" pad_right="4" bg_color="osc_bg_gray" id="trmo_1" pad_bottom="4"/>
 
-<align hpos="1" pad_bottom="2"><label text="labels.oscilloscope.trigger_type"/></align>
-<combo id="trtp_1" pad_bottom="2"  />
-<combo id="trtp_1" pad_bottom="2"  />
-<combo id="trtp_1" pad_bottom="2" />
-<combo id="trtp_1" pad_bottom="2" />
-<combo id="trtp_1" pad_bottom="2" />
+          <!-- row17 -->
 
-<!-- row18 -->
-<cell cols="11">
-  <hsep color="gray" />
-</cell>
+          <align hpos="1" pad_bottom="2"><label text="labels.oscilloscope.trigger_type"/></align>
+          <combo pad_left="4" pad_right="4" bg_color="osc_bg_gray" id="trtp_1" pad_bottom="2"/>
 
-<!-- row19 -->
+          <!-- row18 -->
+          <cell cols="3">
+            <void color="bg" min_height="4"/>
+          </cell>
 
-<align hpos="1"><label text="groups.oscilloscope.operation"/></align>
-<void />
-<void />
-<void/>
-<void/>
-<void/>
+          <!-- row19 -->
 
-<!-- row20 -->
+          <align hpos="1"><label text="groups.oscilloscope.operation"/></align>
+          <void bg_color="osc_bg_gray"/>
 
-<align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.oversampler_mode"/></align>
-<combo id="ovmo_1"  pad_bottom="4" />
-<combo id="ovmo_1"  pad_bottom="4" />
-<combo id="ovmo_1" pad_bottom="4" />
-<combo id="ovmo_1" pad_bottom="4" />
-<combo id="ovmo_1" pad_bottom="4" />
+          <!-- row20 -->
 
-<!-- row21 -->
+          <align hpos="1" pad_bottom="4"><label text="labels.oscilloscope.oversampler_mode"/></align>
+          <combo pad_left="4" pad_right="4" bg_color="osc_bg_gray" id="ovmo_1" pad_bottom="4"/>
 
-<align hpos="1" pad_bottom="2"><label text="labels.oscilloscope.mode"/></align>
-<combo id="scmo_1"  pad_bottom="2" />
-<combo id="scmo_1"  pad_bottom="2" />
-<combo id="scmo_1" pad_bottom="2" />
-<combo id="scmo_1" pad_bottom="2" />
-<combo id="scmo_1" pad_bottom="2" />
+          <!-- row21 -->
 
-<!-- row22 -->
+          <align hpos="1" pad_bottom="2"><label text="labels.oscilloscope.mode"/></align>
+          <combo pad_left="4" pad_right="4" bg_color="osc_bg_gray" id="scmo_1" pad_bottom="2"/>
 
-<cell cols="11">
-  <hsep color="gray" />
-</cell>
+          <!-- row22 -->
 
-<!-- row23 -->
+          <cell cols="3">
+            <void color="bg" min_height="4"/>
+          </cell>
 
-<align hpos="1"><label text="labels.oscilloscope.coupling"/></align>
-<void/>
-<void/>
-<void/>
-<void/>
-<void/>
+          <!-- row23 -->
 
-<!-- row24 -->
+          <align hpos="1"><label text="labels.oscilloscope.coupling"/></align>
+          <void bg_color="osc_bg_gray"/>
 
-<align hpos="1"><label text="X | Y | EXT" align="0"/></align>
-<cell ><hbox><align hpos="0"><combo id="sccx_1" width="18" fill="false"/></align><combo id="sccy_1" /><align hpos="1"><combo id="scce_1" width="18" fill="false" /></align></hbox></cell>
-<cell ><hbox><align hpos="0"><combo id="sccx_1" width="18" fill="false" /></align><combo id="sccy_1" /><align hpos="1"><combo id="scce_1" width="18" fill="false" /></align></hbox></cell>
-<cell><hbox><align hpos="0"><combo id="sccx_1" width="18" fill="false" /></align><combo id="sccy_1" /><align hpos="1"><combo id="scce_1" width="18" fill="false" /></align></hbox></cell>
-<cell><hbox><align hpos="0"><combo id="sccx_1" width="18" fill="false" /></align><combo id="sccy_1" /><align hpos="1"><combo id="scce_1" width="18" fill="false" /></align></hbox></cell>
-<cell><hbox><align hpos="0"><combo id="sccx_1" width="18" fill="false" /></align><combo id="sccy_1" /><align hpos="1"><combo id="scce_1" width="18" fill="false" /></align></hbox></cell>
+          <!-- row24 -->
+
+          <align hpos="1"><label text="X | Y | EXT" align="0"/></align>
+          <cell bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4">
+            <hbox>
+              <align hpos="0"><combo id="sccx_1" width="18" fill="false"/></align><combo id="sccy_1"/>
+              <align hpos="1"><combo id="scce_1" width="18" fill="false"/></align>
+            </hbox>
+          </cell>
+
+        </grid>
 
 
+        <void bg_color="bg" min_width="6"/>
+
+        <!-- Header of Channels -->
+
+        <grid rows="2" cols="1" spacing="2">
+
+          <!-- row1 -->
+
+          <hbox pad_bottom="-3">
+            <vbox bg_color="osc_bg_red"><label text="Ch1"/><button id="osc_ch1_${i}" led="true" color="osc_btn_red" height="8" width="28"/></vbox><void bg_color="bg" pad_right="6"/>
+            <vbox bg_color="osc_bg_green"><label text="Ch2"/><button id="osc_ch2_${i}" led="true" color="osc_btn_green" height="8" width="28"/></vbox><void bg_color="bg" pad_right="6"/>
+            <vbox bg_color="osc_bg_cyan"><label text="Ch3"/><button id="osc_ch3_${i}" led="true" color="osc_btn_cyan" height="8" width="28"/></vbox><void bg_color="bg" pad_right="6"/>
+            <vbox bg_color="osc_bg_magenta"><label text="Ch4"/><button id="osc_ch4_${i}" led="true" color="osc_btn_magenta" height="8" width="28"/></vbox>
+          </hbox>
+
+          <!-- row2 -->
+
+          <cell>
+
+            <!-- Channel 1 -->
+
+            <grid rows="23" cols="1" spacing="2" visibility="osc_ch4_${i}">
+
+              <hbox pad_bottom="-3"><void bg_color="osc_bg_red" min_height="7" width="26"/><void /><void /><void/></hbox>
+
+              <cell bg_color="osc_bg_red">
+                <align hpos="0" pad_bottom="4">
+                  <hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
+                    <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox>
+                </align>
+              </cell>
+
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_red" id="scmo_1" pad_bottom="4"/>
+
+              <cell bg_color="osc_bg_red">
+                <hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red">
+                <hbox><knob id="hzdv_1" size="25" scale_color="g_red"/><knob id="hzps_1" size="25" scale_color="g_red"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red">
+                <hbox><value id="hzdv_1" width="50" same_line="true"/><value id="hzps_1" width="50" same_line="true"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red">
+                <hbox><knob id="vedv_1" size="25" scale_color="g_red"/>
+                  <knob id="veps_1" size="25" scale_color="g_red"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red">
+                <hbox><value id="vedv_1" same_line="true"/>
+                  <value id="veps_1" same_line="true"/></hbox>
+              </cell>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_red" min_height="16"/>
+
+              <cell bg_color="osc_bg_red">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_red"/></align>
+                  <align hpos="0"><value id="trlv_1" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trhy_1" size="25" scale_color="g_red"/></align>
+                  <align hpos="0"><value id="trhy_1" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_red" pad_bottom="5">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_red"/></align>
+                  <align hpos="0"><value id="trho_1" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell pad_left="4" pad_right="4" bg_color="osc_bg_red">
+                <hbox>
+                  <align hpos="0" pad_bottom="1"><combo id="trin_1" width="24" fill="false"/></align>
+                  <align hpos="1" pad_bottom="1"><button id="trre_1" text="actions.reset" color="gray" fill="false" width="60"/></align>
+                </hbox>
+              </cell>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_red" id="trmo_1" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_red" id="trtp_1" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_red" min_height="16"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_red" id="ovmo_1" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_red" id="scmo_1" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_red" min_height="16"/>
+
+              <cell pad_left="4" pad_right="4" pad_bottom="4" bg_color="osc_bg_red">
+                <hbox>
+                  <align hpos="0"><combo id="sccx_1" width="18" fill="false"/></align><combo id="sccy_1"/>
+                  <align hpos="1"><combo id="scce_1" width="18" fill="false"/></align>
+                </hbox>
+              </cell>
+
+            </grid>
+
+            <!-- Channel 2 -->
+
+            <grid rows="23" cols="1" spacing="2" visibility="osc_ch4_${i}">
+
+              <hbox pad_bottom="-3"><void /><void bg_color="osc_bg_green" min_height="7" width="26"/><void /><void/></hbox>
+
+              <cell bg_color="osc_bg_green">
+                <align hpos="0" pad_bottom="4">
+                  <hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
+                    <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox>
+                </align>
+              </cell>
+
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_green" id="scmo_2" pad_bottom="4"/>
+
+              <cell bg_color="osc_bg_green">
+                <hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green">
+                <hbox><knob id="hzdv_2" size="25" scale_color="g_green"/><knob id="hzps_2" size="25" scale_color="g_green"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green">
+                <hbox><value id="hzdv_2" width="50" same_line="true"/><value id="hzps_2" width="50" same_line="true"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green">
+                <hbox><knob id="vedv_2" size="25" scale_color="g_green"/>
+                  <knob id="veps_2" size="25" scale_color="g_green"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green">
+                <hbox><value id="vedv_2" same_line="true"/>
+                  <value id="veps_2" same_line="true"/></hbox>
+              </cell>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_green" min_height="16"/>
+
+              <cell bg_color="osc_bg_green">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_green"/></align>
+                  <align hpos="0"><value id="trlv_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trhy_2" size="25" scale_color="g_green"/></align>
+                  <align hpos="0"><value id="trhy_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_green" pad_bottom="5">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_green"/></align>
+                  <align hpos="0"><value id="trho_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell pad_left="4" pad_right="4" bg_color="osc_bg_green">
+                <hbox>
+                  <align hpos="0" pad_bottom="1"><combo id="trin_2" width="24" fill="false"/></align>
+                  <align hpos="1" pad_bottom="1"><button id="trre_2" text="actions.reset" color="gray" fill="false" width="60"/></align>
+                </hbox>
+              </cell>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_green" id="trmo_2" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_green" id="trtp_2" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_green" min_height="16"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_green" id="ovmo_2" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_green" id="scmo_2" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_green" min_height="16"/>
+
+              <cell pad_left="4" pad_right="4" pad_bottom="4" bg_color="osc_bg_green">
+                <hbox>
+                  <align hpos="0"><combo id="sccx_2" width="18" fill="false"/></align><combo id="sccy_2"/>
+                  <align hpos="1"><combo id="scce_2" width="18" fill="false"/></align>
+                </hbox>
+              </cell>
+
+            </grid>
+
+            <!-- Channel 3 -->
+
+            <grid rows="23" cols="1" spacing="2" visibility="osc_ch4_${i}">
+
+              <hbox pad_bottom="-3"><void /><void /><void bg_color="osc_bg_cyan" min_height="7" width="26"/><void/></hbox>
+
+              <cell bg_color="osc_bg_cyan">
+                <align hpos="0" pad_bottom="4">
+                  <hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
+                    <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox>
+                </align>
+              </cell>
+
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_cyan" id="scmo_3" pad_bottom="4"/>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox><knob id="hzdv_3" size="25" scale_color="g_cyan"/><knob id="hzps_3" size="25" scale_color="g_cyan"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox><value id="hzdv_3" width="50" same_line="true"/><value id="hzps_3" width="50" same_line="true"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox><knob id="vedv_3" size="25" scale_color="g_cyan"/>
+                  <knob id="veps_3" size="25" scale_color="g_cyan"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox><value id="vedv_3" same_line="true"/>
+                  <value id="veps_3" same_line="true"/></hbox>
+              </cell>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_cyan" min_height="16"/>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_cyan"/></align>
+                  <align hpos="0"><value id="trlv_3" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trhy_3" size="25" scale_color="g_cyan"/></align>
+                  <align hpos="0"><value id="trhy_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_cyan" pad_bottom="5">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_cyan"/></align>
+                  <align hpos="0"><value id="trho_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell pad_left="4" pad_right="4" bg_color="osc_bg_cyan">
+                <hbox>
+                  <align hpos="0" pad_bottom="1"><combo id="trin_3" width="24" fill="false"/></align>
+                  <align hpos="1" pad_bottom="1"><button id="trre_3" text="actions.reset" color="gray" fill="false" width="60"/></align>
+                </hbox>
+              </cell>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_cyan" id="trmo_3" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_cyan" id="trtp_3" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_cyan" min_height="16"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_cyan" id="ovmo_3" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_cyan" id="scmo_3" pad_bottom="2"/>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_cyan" min_height="16"/>
+
+              <cell pad_left="4" pad_right="4" pad_bottom="4" bg_color="osc_bg_cyan">
+                <hbox>
+                  <align hpos="0"><combo id="sccx_3" width="18" fill="false"/></align><combo id="sccy_3"/>
+                  <align hpos="1"><combo id="scce_3" width="18" fill="false"/></align>
+                </hbox>
+              </cell>
+
+            </grid>
 
 
 
+            <!-- Channel 4 -->
 
-      </grid>
-    </group>
+            <grid rows="23" cols="1" spacing="2" visibility="osc_ch4_${i}">
+
+              <hbox pad_bottom="-3"><void /><void /><void/><void bg_color="osc_bg_magenta" min_height="7" width="26"/></hbox>
+
+              <cell bg_color="osc_bg_magenta">
+                <align hpos="0" pad_bottom="4">
+                  <hbox><button id="on${i}" led="true" color="green" size="12"/><label text="labels.chan.solo" pad_right="4"/>
+                    <button id="on${i}" led="true" color="red" size="12"/><label text="labels.chan.mute"/></hbox>
+                </align>
+              </cell>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_magenta" id="scmo_4" pad_bottom="4"/>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox><label text="labels.oscilloscope.division"/><label text="labels.oscilloscope.position"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox><knob id="hzdv_4" size="25" scale_color="g_magenta"/><knob id="hzps_4" size="25" scale_color="g_magenta"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox><value id="hzdv_4" width="50" same_line="true"/><value id="hzps_4" width="50" same_line="true"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox><knob id="vedv_4" size="25" scale_color="g_magenta"/>
+                  <knob id="veps_4" size="25" scale_color="g_magenta"/></hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox><value id="vedv_4" same_line="true"/>
+                  <value id="veps_4" same_line="true"/></hbox>
+              </cell>
+
+              <cell>
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_magenta" min_height="16"/>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trlv_0" size="25" scale_color="g_magenta"/></align>
+                  <align hpos="0"><value id="trlv_4" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trhy_4" size="25" scale_color="g_magenta"/></align>
+                  <align hpos="0"><value id="trhy_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell bg_color="osc_bg_magenta" pad_bottom="5">
+                <hbox>
+                  <align hpos="0" pad_left="7"><knob id="trho_0" size="25" scale_color="g_magenta"/></align>
+                  <align hpos="0"><value id="trho_2" same_line="true"/></align>
+                </hbox>
+              </cell>
+
+              <cell pad_left="4" pad_right="4" bg_color="osc_bg_magenta">
+                <hbox>
+                  <align hpos="0" pad_bottom="1"><combo id="trin_4" width="24" fill="false"/></align>
+                  <align hpos="1" pad_bottom="1"><button id="trre_4" text="actions.reset" color="gray" fill="false" width="60"/></align>
+                </hbox>
+              </cell>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_magenta" id="trmo_4" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_magenta" id="trtp_4" pad_bottom="2"/>
+
+              <cell >
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_magenta" min_height="16"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_magenta" id="ovmo_4" pad_bottom="4"/>
+
+              <combo pad_left="4" pad_right="4" bg_color="osc_bg_magenta" id="scmo_4" pad_bottom="2"/>
+
+              <cell >
+                <void color="bg" min_height="4"/>
+              </cell>
+
+              <void bg_color="osc_bg_magenta" min_height="16"/>
+
+              <cell pad_left="4" pad_right="4" pad_bottom="4" bg_color="osc_bg_magenta">
+                <hbox>
+                  <align hpos="0"><combo id="sccx_4" width="18" fill="false"/></align><combo id="sccy_4"/>
+                  <align hpos="1"><combo id="scce_4" width="18" fill="false"/></align>
+                </hbox>
+              </cell>
+
+            </grid>
+
+          </cell>
+
+        </grid>
+
+      </hbox>
+    </vbox>
+    <!--</group>-->
 
   </hbox>
 </plugin>
