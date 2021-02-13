@@ -24,6 +24,8 @@
 #include <core/util/Color.h>
 #include <core/colors.h>
 
+#define DECIM_PRECISION         1e-4
+
 namespace lsp
 {
 #ifndef LSP_NO_EXPERIMENTAL
@@ -134,7 +136,7 @@ namespace lsp
             path->accept();
         }
 
-        nLisSteps       = (fSampleRate * 2) / LIS_BUFFER_SIZE;
+        nLisSteps       = (fSampleRate * 2) / LIS_BUFFER_PERIOD;
     }
 
     void test_plugin::init(IWrapper *wrapper)
@@ -304,7 +306,7 @@ namespace lsp
 
         // Time to generate new lissajous figure?
         nLisCounter    += samples;
-        while (nLisCounter >= LIS_BUFFER_SIZE)
+        while (nLisCounter >= LIS_BUFFER_PERIOD)
         {
             // Output the Lissajous figure
             float wb = 2.0f * M_PI / LIS_BUFFER_SIZE;
@@ -321,18 +323,43 @@ namespace lsp
 
             if ((++nLisPhase) > nLisSteps)
                 nLisPhase          -= nLisSteps;
-            nLisCounter        -= LIS_BUFFER_SIZE;
+            nLisCounter        -= LIS_BUFFER_PERIOD;
 
             stream_t *stream    = pStream->getBuffer<stream_t>();
             if (stream != NULL)
             {
-                // Emit the figure data with fixed-size frames
-                for (size_t i=0; i<LIS_BUFFER_SIZE; )
+                // Decimate the signal
+                size_t j    = 0;
+                vDLisX[0]   = vLisX[0];
+                vDLisY[0]   = vLisY[0];
+                vDLisS[0]   = vLisS[0];
+
+                for (size_t i=1; i<LIS_BUFFER_SIZE; ++i)
                 {
-                    size_t count = stream->add_frame(LIS_BUFFER_SIZE - i);  // Add a frame
-                    stream->write_frame(0, &vLisX[i], 0, count);            // X'es
-                    stream->write_frame(1, &vLisY[i], 0, count);            // Y's
-                    stream->write_frame(2, &vLisS[i], 0, count);            // Strobe signal
+                    float dx    = vLisX[i] - vDLisX[j];
+                    float dy    = vLisY[i] - vDLisY[j];
+                    float s     = dx*dx + dy*dy;
+                    vDLisS[j]   = lsp_max(vLisS[i], vDLisS[j]); // Keep the strobe signal
+
+                    if (s < DECIM_PRECISION) // Skip point
+                        continue;
+
+                    // Add point to decimated array
+                    ++j;
+                    vDLisX[j]   = vLisX[i];
+                    vDLisY[j]   = vLisY[i];
+                }
+                ++j;
+
+                lsp_trace("frame size = %d", int(j));
+
+                // Emit the figure data with fixed-size frames
+                for (size_t i=0; i<j; )
+                {
+                    size_t count = stream->add_frame(j - i);                // Add a frame
+                    stream->write_frame(0, &vDLisX[i], 0, count);           // X'es
+                    stream->write_frame(1, &vDLisY[i], 0, count);           // Y's
+                    stream->write_frame(2, &vDLisS[i], 0, count);           // Strobe signal
                     stream->commit_frame();                                 // Commit the frame
 
                     // Move the index in the source buffer

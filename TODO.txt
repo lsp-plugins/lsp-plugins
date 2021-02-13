@@ -33,6 +33,7 @@
 * Added streaming port support to plugin framework.
 * Added strobe feature to mesh primitives that allows to draw
   multiple streamed meshes together.
+* Minor bugfixes in the core library.
 
 *******************************************************************************
 * New plugin check list before release
