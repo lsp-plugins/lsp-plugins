@@ -18,6 +18,7 @@
 #define SWEEP_GEN_PEAK      1.0f
 #define AC_BLOCK_CUTOFF_HZ  5.0
 #define AC_BLOCK_DFL_ALPHA  0.999f
+#define DECIM_PRECISION     1e-4 // For development, this should be calculated from screen size !!!
 
 namespace lsp
 {
@@ -200,9 +201,11 @@ namespace lsp
 
     void oscilloscope_base::reset_display_buffers(channel_t *c)
     {
-        // fill_zero is for DEBUG !!!
+        // fill_zero is for DEBUG !!! Should not be necessary as they are constantly overwritten.
         dsp::fill_zero(c->vDisplay_x, BUF_LIM_SIZE);
         dsp::fill_zero(c->vDisplay_y, BUF_LIM_SIZE);
+        dsp::fill_zero(c->vDisplay_s, BUF_LIM_SIZE);
+        ///
 
         c->nDisplayHead = 0;
     }
@@ -684,8 +687,31 @@ namespace lsp
         stream_t *stream = c->pStream->getBuffer<stream_t>();
         if (stream != NULL)
         {
-            // Emit the figure data with fixed-size frames
-            for (size_t i = 0; i < c->nSweepSize; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
+            // Inline decimation:
+            size_t j = 0;
+
+            for (size_t i = 1; i < c->nSweepSize; ++i)
+            {
+                float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
+                float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
+                float s     = dx*dx + dy*dy;
+
+                if (s < DECIM_PRECISION) // Skip point
+                {
+                    c->vDisplay_s[j] = lsp_max(c->vDisplay_s[i], c->vDisplay_s[j]); // Keep the strobe signal
+                    continue;
+                }
+
+                // Add point to decimated array
+                ++j;
+                c->vDisplay_x[j] = c->vDisplay_x[i];
+                c->vDisplay_y[j] = c->vDisplay_y[i];
+            }
+
+            size_t to_submit = j + 1; // Total number of decimated samples.
+
+            // Submit data for plotting (emit the figure data with fixed-size frames):
+            for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
             {
                 size_t count = stream->add_frame(BUF_LIM_SIZE - i);  // Add a frame
                 stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
