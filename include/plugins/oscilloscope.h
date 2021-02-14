@@ -35,7 +35,7 @@ namespace lsp
                 UPD_OVERSAMPLER_Y       = 1 << 5,
                 UPD_OVERSAMPLER_EXT     = 1 << 6,
 
-                UPD_PRETRG_DELAY        = 1 << 8,
+                UPD_PRETRG_DELAY        = 1 << 7,
 
                 UPD_SWEEP_GENERATOR     = 1 << 8,
 
@@ -164,6 +164,7 @@ namespace lsp
 
                 size_t              nUpdate;
                 ch_state_stage_t    sStateStage;
+                bool                bUseGlobal;
 
                 float              *vIn_x;
                 float              *vIn_y;
@@ -200,6 +201,10 @@ namespace lsp
                 IPort              *pTrgInput;
                 IPort              *pTrgReset;
 
+                IPort              *pGlobalSwitch;
+                IPort              *pSoloSwitch;
+                IPort              *pMuteSwitch;
+
                 IPort              *pStream;
             } channel_t;
 
@@ -211,6 +216,28 @@ namespace lsp
             size_t      nSampleRate;
 
             uint8_t    *pData;
+
+            // Global ports:
+            IPort   *pOvsMode;
+            IPort   *pScpMode;
+            IPort   *pCoupling_x;
+            IPort   *pCoupling_y;
+            IPort   *pCoupling_ext;
+
+            IPort   *pSweepType;
+            IPort   *pHorDiv;
+            IPort   *pHorPos;
+
+            IPort   *pVerDiv;
+            IPort   *pVerPos;
+
+            IPort   *pTrgHys;
+            IPort   *pTrgLev;
+            IPort   *pTrgHold;
+            IPort   *pTrgMode;
+            IPort   *pTrgType;
+            IPort   *pTrgInput;
+            IPort   *pTrgReset;
 
         protected:
             over_mode_t get_oversampler_mode(size_t portValue);
