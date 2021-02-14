@@ -3,7 +3,7 @@
 		<vbox spacing="4">
 			<!-- Fast Control -->
 
-			<!-- Version with two ROWS
+			<!-- Version with two rows
 			<align hpos="1">
 			  <grid rows="3" cols="11" width="200" fill="false">
 			    <void/>
