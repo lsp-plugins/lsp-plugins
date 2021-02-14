@@ -1,45 +1,139 @@
 <plugin resizable="true">
 	<hbox spacing="4">
-		<graph width="429" height="320" expand="true" fill="true">
-			<center hpos="-1.0" vpos="0.0" visible="false" />
-			<axis min="0" max="2.0" color="g_white" angle="0.0"
-				logarithmic="false" />
-			<axis min="-1.0" max="1.0" color="g_white" visible="0"
-				angle="0.5" logarithmic="false" />
+		<vbox spacing="4">
+			<!-- Fast Control -->
 
-			<mesh id="oscv_1" width="3" />
+			<align hpos="1"><grid rows="5" cols="11"  width="200" fill="false" >
 
-			<!--<marker value="-1" color="g_white" basis="1" parallel="0" /> -->
-			<marker value="-0.75" color="g_gray" basis="1" parallel="0" />
-			<marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
-			<marker value="-0.25" color="g_gray" basis="1" parallel="0" />
-			<marker value="0.25" color="g_gray" basis="1" parallel="0" />
-			<marker value="0.5" color="g_yellow" basis="1" parallel="0" />
-			<marker value="0.75" color="g_gray" basis="1" parallel="0" />
-			<!--<marker value="1" color="g_white" basis="1" parallel="0" /> -->
+				<!-- Row 1 -->
+				<void/>
 
-			<marker value="0.25" color="g_gray" basis="0" parallel="1" />
-			<marker value="0.5" color="g_yellow" basis="0" parallel="1" />
-			<marker value="0.75" color="g_gray" basis="0" parallel="1" />
-			<marker value="1" color="g_white" basis="0" parallel="1" />
-			<marker value="1.25" color="g_gray" basis="0" parallel="1" />
-			<marker value="1.5" color="g_yellow" basis="0" parallel="1" />
-			<marker value="1.75" color="g_gray" basis="0" parallel="1" />
-			<!--<marker value="2" color="g_white" basis="0" parallel="1" /> -->
+				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
 
-			<text text="X" coord="0;-1" halign="1" valign="1" />
-			<text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
-			<text text="0.5" coord="1;-1" halign="-1" valign="1" />
-			<text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
-			<text text="1.0" coord="2;-1" halign="-1" valign="1" />
+				<label text="Glbl" font_size="10" bg_color="osc_bg_gray"/>
 
-			<text text="Y" coord="0;1" halign="1" valign="-1" />
-			<text text="0.5" coord="0;0.5" halign="1" valign="-1" />
-			<text text="0" coord="0;0" halign="1" valign="-1" />
-			<text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
-		</graph>
+				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
 
-		<hbox>
+				<label text="Ch1" font_size="10" bg_color="osc_bg_red"/>
+
+				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+
+				<label text="Ch2" font_size="10" bg_color="osc_bg_green"/>
+
+				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+
+				<label text="Ch3" font_size="10" bg_color="osc_bg_cyan"/>
+
+				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+
+				<label text="Ch4" font_size="10" bg_color="osc_bg_magenta"/>
+
+				<!-- Row 2 -->
+				<void/>
+				<cell cols="10"><void bg_color="bg" min_height="4"/></cell>
+
+				<!-- Row 3 -->
+
+				<!-- Час над этим багом мучался, <cell rows="3">	</cell> работать не хочет, по этому так-->
+					<align hpos="1"><label text="labels.chan.on" font_size="10"/></align>
+					<button id="on_0" led="true" color="yellow" bg_color="osc_bg_gray" size="12" height="8" width="20"/>
+					<button id="on_1" led="true" color="yellow" bg_color="osc_bg_red" size="12" height="8" width="20"/>
+					<button id="on_2" led="true" color="yellow" bg_color="osc_bg_green" size="12" height="8" width="20"/>
+					<button id="on_3" led="true" color="yellow" bg_color="osc_bg_cyan" size="12" height="8" width="20"/>
+					<button id="on_4" led="true" color="yellow" bg_color="osc_bg_magenta" size="12" height="8" width="20"/>
+
+					<align hpos="1"><label text="labels.chan.solo" font_size="10"/></align>
+					<void bg_color="osc_bg_gray" />
+						<button id="solo_1" led="true" color="green" bg_color="osc_bg_red" size="12" height="8" width="20"/>
+							<button id="solo_2" led="true" color="green" bg_color="osc_bg_green" size="12" height="8" width="20"/>
+								<button id="solo_3" led="true" color="green" bg_color="osc_bg_cyan" size="12" height="8" width="20"/>
+									<button id="solo_4" led="true" color="green" bg_color="osc_bg_magenta" size="12" height="8" width="20"/>
+
+					<align hpos="1"><label text="labels.chan.mute" font_size="10"/></align>
+				<void bg_color="osc_bg_gray" />
+				<button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_red" height="8" width="20"/>
+					<button id="mute_2" led="true" color="red" size="12" bg_color="osc_bg_green" height="8" width="20"/>
+						<button id="mute_3" led="true" color="red" size="12" bg_color="osc_bg_cyan" height="8" width="20"/>
+						<button id="mute_4" led="true" color="red" size="12" bg_color="osc_bg_magenta" height="8" width="20"/>
+
+
+
+			<!--	<cell rows="3">
+					<label text="labels.chan.on" font_size="10"/>
+					<label text="labels.chan.solo" font_size="10"/>
+					<label text="labels.chan.mute" font_size="10"/>
+				</cell>
+
+				<cell rows="3" bg_color="osc_bg_gray">
+					<button id="on_${i}" led="true" color="yellow" size="12"/>
+					<void/>
+					<void/>
+				</cell>
+
+				<cell rows="3" bg_color="osc_bg_gray">
+					<button id="on_${i}" led="true" color="yellow" size="12"/>
+					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
+					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
+				</cell>
+
+				<cell rows="3" bg_color="osc_bg_gray">
+					<button id="on_${i}" led="true" color="yellow" size="12"/>
+					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
+					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
+				</cell>
+
+				<cell rows="3" bg_color="osc_bg_gray">
+					<button id="on_${i}" led="true" color="yellow" size="12"/>
+					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
+					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
+				</cell>
+
+				<cell rows="3" bg_color="osc_bg_gray">
+					<button id="on_${i}" led="true" color="yellow" size="12"/>
+					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
+					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
+				</cell>-->
+			</grid></align>
+
+			<graph width="550" height="100" expand="true" fill="true">
+				<center hpos="-1.0" vpos="0.0" visible="false"/>
+				<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false"/>
+				<axis min="-1.0" max="1.0" color="g_white" visible="0" angle="0.5" logarithmic="false"/>
+
+				<mesh id="oscv_1" width="3"/>
+
+				<!--<marker value="-1" color="g_white" basis="1" parallel="0" /> -->
+				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
+				<marker value="-0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="-0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="0.75" color="g_gray" basis="1" parallel="0"/>
+				<!--<marker value="1" color="g_white" basis="1" parallel="0" /> -->
+
+				<marker value="0.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="0.5" color="g_yellow" basis="0" parallel="1"/>
+				<marker value="0.75" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1" color="g_white" basis="0" parallel="1"/>
+				<marker value="1.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1.5" color="g_yellow" basis="0" parallel="1"/>
+				<marker value="1.75" color="g_gray" basis="0" parallel="1"/>
+				<!--<marker value="2" color="g_white" basis="0" parallel="1" /> -->
+
+				<text text="X" coord="0;-1" halign="1" valign="1"/>
+				<text text="0.25" coord="0.5;-1" halign="-1" valign="1"/>
+				<text text="0.5" coord="1;-1" halign="-1" valign="1"/>
+				<text text="0.75" coord="1.5;-1" halign="-1" valign="1"/>
+				<text text="1.0" coord="2;-1" halign="-1" valign="1"/>
+
+				<text text="Y" coord="0;1" halign="1" valign="-1"/>
+				<text text="0.5" coord="0;0.5" halign="1" valign="-1"/>
+				<text text="0" coord="0;0" halign="1" valign="-1"/>
+				<text text="-0.5" coord="0;-0.5" halign="1" valign="-1"/>
+			</graph>
+		</vbox>
+
+		<hbox pad_bottom="4" pad_top="4">
 			<!-- Channels -->
 			<ui:for id="i" first="1" last="4">
 				<ui:set id="bgcol" value="${
@@ -47,287 +141,285 @@
 					(:i ieq 2) ? 'osc_bg_green' :
 					(:i ieq 3) ? 'osc_bg_cyan' :
 					'osc_bg_magenta'
-					}"
-				/>
-				
+					}"/>
+
 				<ui:set id="col" value="${
 					(:i ieq 1) ? 'red' :
 					(:i ieq 2) ? 'green' :
 					(:i ieq 3) ? 'cyan' :
 					'magenta'
-					}"
-				/>
-				
+					}"/>
+
 				<!-- Channel i -->
-				<grid rows="23" cols="7" visibility=":osc_cs ieq ${:i - 1}" >
+				<grid rows="23" cols="7" visibility=":osc_cs ieq ${:i - 1}">
 					<!-- Row 1 -->
-					<void />
+					<void/>
 					<cell rows="23">
-						<void color="bg" min_width="4" />
+						<void color="bg" min_width="8"/>
 					</cell>
 					<cell cols="2">
-						<vbox>
-							<label bg_color="osc_bg_gray" pad_right="4" text="Global" expand="true" />
-							<void min_height="7" />
-						</vbox>
+						<hbox width="150">
+							<vbox>
+								<label bg_color="osc_bg_gray" pad_right="4" text="Global" height="29" expand="true"/>
+								<void min_height="4" expand="true"/>
+							</vbox>
+						</hbox>
 					</cell>
 					<cell rows="23">
-						<void color="bg" min_width="4" />
+						<void color="bg" min_width="8"/>
 					</cell>
 					<cell cols="2">
 						<grid rows="3" cols="8">
-							<label text="Ch1" bg_color="osc_bg_red" />
-							<cell rows="3"><void min_width="6" /></cell>
-							<label text="Ch2" bg_color="osc_bg_green" />
-							<cell rows="3"><void min_width="6" /></cell>
-							<label text="Ch3" bg_color="osc_bg_cyan" />
-							<cell rows="3"><void min_width="6" /></cell>
-							<label text="Ch4" bg_color="osc_bg_magenta" />
-							<cell rows="3"><void min_width="6" expand="true" /></cell>
-							
-							<button id="osc_cs" value="0" led="true" color="osc_btn_red" bg_color="osc_bg_red" height="16" width="28" />
-							<button id="osc_cs" value="1" led="true" color="osc_bg_green" bg_color="osc_bg_green" height="16" width="28" />
-							<button id="osc_cs" value="2" led="true" color="osc_bg_cyan" bg_color="osc_bg_cyan" height="16" width="28" />
-							<button id="osc_cs" value="3" led="true" color="osc_bg_magenta" bg_color="osc_bg_magenta" height="16" width="28" />
-							
-							<void bg_color="${(:i ieq 1) ? 'osc_bg_red' : 'bg'}" min_height="7" width="26" />
-							<void bg_color="${(:i ieq 2) ? 'osc_bg_green' : 'bg'}" min_height="7" width="26" />
-							<void bg_color="${(:i ieq 3) ? 'osc_bg_cyan' : 'bg'}" min_height="7" width="26" />
-							<void bg_color="${(:i ieq 4) ? 'osc_bg_magenta' : 'bg'}" min_height="7" width="26" />
+							<label text="Ch1" bg_color="osc_bg_red"/>
+							<cell rows="3"><void min_width="4"/></cell>
+							<label text="Ch2" bg_color="osc_bg_green"/>
+							<cell rows="3"><void min_width="4"/></cell>
+							<label text="Ch3" bg_color="osc_bg_cyan"/>
+							<cell rows="3"><void min_width="4"/></cell>
+							<label text="Ch4" bg_color="osc_bg_magenta"/>
+							<cell rows="3"><void/></cell>
+
+							<button id="osc_cs" value="0" led="true" color="osc_btn_red" bg_color="osc_bg_red" height="8" width="28"/>
+							<button id="osc_cs" value="1" led="true" color="osc_bg_green" bg_color="osc_bg_green" height="8" width="28"/>
+							<button id="osc_cs" value="2" led="true" color="osc_bg_cyan" bg_color="osc_bg_cyan" height="8" width="28"/>
+							<button id="osc_cs" value="3" led="true" color="osc_bg_magenta" bg_color="osc_bg_magenta" height="8" width="28"/>
+
+							<void bg_color="${(:i ieq 1) ? 'osc_bg_red' : 'bg'}" min_height="4" width="26"/>
+							<void bg_color="${(:i ieq 2) ? 'osc_bg_green' : 'bg'}" min_height="4" width="26"/>
+							<void bg_color="${(:i ieq 3) ? 'osc_bg_cyan' : 'bg'}" min_height="4" width="26"/>
+							<void bg_color="${(:i ieq 4) ? 'osc_bg_magenta' : 'bg'}" min_height="4" width="26"/>
 						</grid>
 					</cell>
-					
+
 					<!-- Row 2 -->
-					<void />
+					<void/>
 					<cell bg_color="osc_bg_gray" cols="2">
-						<align hpos="0" pad_bottom="4">
+						<align hpos="0" padding="4">
 							<hbox>
-								<button id="on_${i}" led="true" color="yellow" size="12" />
-								<label text="labels.chan.on" />
+								<button id="on_${i}" led="true" color="yellow" size="12"/>
+								<label text="labels.chan.on"/>
 							</hbox>
 						</align>
 					</cell>
 					<cell bg_color="${bgcol}" cols="2">
-						<align hpos="0" pad_bottom="4">
-							<hbox>
-								<button id="solo_${i}" led="true" color="green" size="12" />
-								<label text="labels.chan.solo" pad_right="4" />
-								<button id="mute_${i}" led="true" color="red" size="12" />
-								<label text="labels.chan.mute" />
-							</hbox>
-						</align>
+						<hbox width="150">
+							<align hpos="0" padding="4">
+								<hbox>
+									<button id="solo_${i}" led="true" color="green" size="12"/>
+									<label text="labels.chan.solo" pad_right="4"/>
+									<button id="mute_${i}" led="true" color="red" size="12"/>
+									<label text="labels.chan.mute"/>
+								</hbox>
+							</align>
+						</hbox>
 					</cell>
-					
+
 					<!-- Row 3 -->
 					<align hpos="1" pad_bottom="4">
-						<label text="labels.oscilloscope.sweep_type" />
+						<label text="labels.oscilloscope.sweep_type"/>
 					</align>
 					<cell cols="2">
-						<combo pad_left="4" pad_right="4" id="scmo" bg_color="osc_bg_gray" pad_bottom="4" />
+						<combo pad_left="4" pad_right="4" id="scmo" bg_color="osc_bg_gray" pad_bottom="12"/>
 					</cell>
 					<cell cols="2">
-						<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="scmo_${i}" pad_bottom="4" />
+						<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="scmo_${i}" pad_bottom="12"/>
 					</cell>
-					
+
 					<!-- Row 4 -->
-					<void />
-					<label text="labels.oscilloscope.division" bg_color="osc_bg_gray" />
-					<label text="labels.oscilloscope.position" bg_color="osc_bg_gray" />
-					<label text="labels.oscilloscope.division" bg_color="${bgcol}" />
-					<label text="labels.oscilloscope.position" bg_color="${bgcol}" />
+					<void/>
+					<label text="labels.oscilloscope.division" bg_color="osc_bg_gray" pad_left="19" pad_bottom="4"/>
+					<label text="labels.oscilloscope.position" bg_color="osc_bg_gray" pad_bottom="4"/>
+					<label text="labels.oscilloscope.division" bg_color="${bgcol}" pad_left="19" pad_bottom="4"/>
+					<label text="labels.oscilloscope.position" bg_color="${bgcol}" pad_bottom="4"/>
 
 					<!-- Row 5 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.horizontal" />
+						<label text="groups.oscilloscope.horizontal"/>
 					</align>
-					<knob id="hzdv" size="25" bg_color="osc_bg_gray" />
-					<knob id="hzps" size="25" bg_color="osc_bg_gray" />
-					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					
+					<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<knob id="hzps" size="25" bg_color="osc_bg_gray"/>
+					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+					<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
+
 					<!-- Row 6 -->
-					<void />
-					<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" />
-					<value id="hzps" width="50" same_line="true" bg_color="osc_bg_gray" />
-					<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" />
-					<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" />
+					<void/>
+					<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8"/>
+					<value id="hzps" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8"/>
+					<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8"/>
+					<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
 					<!-- Row 7 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.vertical" />
+						<label text="groups.oscilloscope.vertical"/>
 					</align>
-					<knob id="vedv_${i}" size="25" bg_color="osc_bg_gray"  />
-					<knob id="veps_${i}" size="25" bg_color="osc_bg_gray"  />
-					<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					
+					<knob id="vedv_${i}" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<knob id="veps_${i}" size="25" bg_color="osc_bg_gray"/>
+					<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+					<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
+
 					<!-- Row 8 -->
-					<void />
-					<value id="vedv" width="50" same_line="true" bg_color="osc_bg_gray" />
-					<value id="veps" width="50" same_line="true" bg_color="osc_bg_gray" />
-					<value id="vedv_${i}" width="50" same_line="true" bg_color="${bgcol}" />
-					<value id="veps_${i}" width="50" same_line="true" bg_color="${bgcol}" />
-					
+					<void/>
+					<value id="vedv" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8" pad_left="19"/>
+					<value id="veps" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8"/>
+					<value id="vedv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8" pad_left="19"/>
+					<value id="veps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
+
 					<!-- Row 9 -->
-					<void color="bg" min_height="4" />
+					<void color="bg" min_height="4"/>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 
 					<!-- Row 10 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.trigger" />
+						<label text="groups.oscilloscope.trigger"/>
 					</align>
 					<cell cols="2" bg_color="osc_bg_gray">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2" bg_color="${bgcol}">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
-					
+
 					<!-- Row 11 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.trigger_level" />
+						<label text="labels.oscilloscope.trigger_level"/>
 					</align>
-					<knob id="trlv" size="25" bg_color="osc_bg_gray" />
-					<value id="trlv" same_line="true" bg_color="osc_bg_gray" />
-					<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					<value id="trlv_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" />
-					
+					<knob id="trlv" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<value id="trlv" same_line="true" bg_color="osc_bg_gray"/>
+					<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+					<value id="trlv_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
+
 					<!-- Row 12 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.trigger_hysteresis" />
+						<label text="labels.oscilloscope.trigger_hysteresis"/>
 					</align>
-					<knob id="trhy" size="25" bg_color="osc_bg_gray" />
-					<value id="trhy" same_line="true" bg_color="osc_bg_gray" />
-					<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					<value id="trhy_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" />
-					
+					<knob id="trhy" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<value id="trhy" same_line="true" bg_color="osc_bg_gray"/>
+					<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+					<value id="trhy_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
+
 					<!-- Row 13 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.trigger_hold_time" />
+						<label text="labels.oscilloscope.trigger_hold_time"/>
 					</align>
-					<knob id="trho" size="25" bg_color="osc_bg_gray" />
-					<value id="trho" same_line="true" bg_color="osc_bg_gray" />
-					<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" />
-					<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" />
-					
+					<knob id="trho" size="25" bg_color="osc_bg_gray" pad_bottom="4" pad_left="19"/>
+					<value id="trho" same_line="true" bg_color="osc_bg_gray" pad_bottom="4"/>
+					<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="19"/>
+					<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4"/>
+
 					<!-- Row 14 -->
 					<align hpos="1" pad_bottom="1">
-						<label text="labels.oscilloscope.trigger_input" />
+						<label text="labels.oscilloscope.trigger_input"/>
 					</align>
-					<combo id="trin" width="24" fill="false" bg_color="osc_bg_gray" />
-					<button id="trre" text="actions.reset" color="gray" fill="false" width="60" bg_color="osc_bg_gray" />
-					<combo id="trin_${i}" width="24" fill="false" bg_color="${bgcol}" />
-					<button id="trre_${i}" text="actions.reset" color="gray" fill="false" width="60" bg_color="${bgcol}" />
-					
+					<align hpos="0" bg_color="osc_bg_gray" pad_left="4" pad_bottom="6"><combo id="trin" width="36" fill="false"/></align>
+					<align hpos="1" bg_color="osc_bg_gray" pad_right="4" pad_bottom="6"><button id="trre" text="actions.reset" color="gray" fill="false" width="77" bg_color="osc_bg_gray" pad_bottom="6"/></align>
+					<align hpos="0" bg_color="${bgcol}" pad_left="4" pad_bottom="6"><combo id="trin_${i}" width="36" fill="false"/></align>
+					<align hpos="1" bg_color="${bgcol}" pad_right="4" pad_bottom="6"><button id="trre_${i}" text="actions.reset" color="${col}" fill="false" width="77"/></align>
+
 					<!-- Row 15 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.trigger_mode" />
+						<label text="labels.oscilloscope.trigger_mode"/>
 					</align>
 					<cell cols="2">
-						<combo id="trmo" pad_left="4" pad_right="4" bg_color="osc_bg_gray" pad_bottom="4" />
+						<combo id="trmo" pad_left="4" pad_right="4" bg_color="osc_bg_gray" pad_bottom="4"/>
 					</cell>
 					<cell cols="2">
-						<combo id="trmo_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4" />
+						<combo id="trmo_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
 					</cell>
-					
+
 					<!-- Row 16 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.trigger_type" />
+						<label text="labels.oscilloscope.trigger_type"/>
 					</align>
 					<cell cols="2">
-						<combo id="trtp" pad_left="4" pad_right="4" bg_color="osc_bg_gray" pad_bottom="4" />
+						<combo id="trtp" pad_left="4" pad_right="4" bg_color="osc_bg_gray" pad_bottom="4"/>
 					</cell>
 					<cell cols="2">
-						<combo id="trtp_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4" />
+						<combo id="trtp_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
 					</cell>
-					
+
 					<!-- Row 17 -->
-					<void color="bg" min_height="4" />
+					<void color="bg" min_height="4"/>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
-					
+
 					<!-- Row 18 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.operation" />
+						<label text="groups.oscilloscope.operation"/>
 					</align>
 					<cell cols="2" bg_color="osc_bg_gray">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2" bg_color="${bgcol}">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
-					
+
 					<!-- Row 19 -->
 					<align hpos="1" pad_bottom="4">
-						<label text="labels.oscilloscope.oversampler_mode" />
+						<label text="labels.oscilloscope.oversampler_mode"/>
 					</align>
 					<cell cols="2">
-						<combo id="ovmo" bg_color="osc_bg_gray"
-							pad_left="4" pad_right="4" pad_bottom="4" />
+						<combo id="ovmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
 					</cell>
 					<cell cols="2">
-						<combo id="ovmo_${i}" bg_color="${bgcol}"
-							pad_left="4" pad_right="4" pad_bottom="4" />
+						<combo id="ovmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
 					</cell>
-					
+
 					<!-- Row 20 -->
 					<align hpos="1" pad_bottom="4">
-						<label text="labels.oscilloscope.mode" />
+						<label text="labels.oscilloscope.mode"/>
 					</align>
 					<cell cols="2">
-						<combo id="scmo" bg_color="osc_bg_gray"
-							pad_left="4" pad_right="4" pad_bottom="4" />
+						<combo id="scmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
 					</cell>
 					<cell cols="2">
-						<combo id="scmo_${i}" bg_color="${bgcol}"
-							pad_left="4" pad_right="4" pad_bottom="4" />
+						<combo id="scmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
 					</cell>
-					
+
 					<!-- Row 21 -->
-					<void color="bg" min_height="4" />
+					<void color="bg" min_height="4"/>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
-					
+
 					<!-- Row 22 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.coupling" />
+						<label text="labels.oscilloscope.coupling"/>
 					</align>
 					<cell cols="2" bg_color="osc_bg_gray">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
 					<cell cols="2" bg_color="${bgcol}">
-						<void color="bg" min_height="4" />
+						<void color="bg" min_height="4"/>
 					</cell>
-					
+
 					<!-- Row 23 -->
 					<align hpos="1">
-						<label text="X | Y | EXT" align="0" />
+						<label text="X | Y | EXT" align="0"/>
 					</align>
-					<cell cols="2" bg_color="osc_bg_gray" >
-						<hbox>
-							<combo id="sccx" width="18" fill="false" />
-							<combo id="sccy" />
-							<combo id="scce" width="18" fill="false" />
+					<cell cols="2" bg_color="osc_bg_gray" pad_bottom="4">
+						<hbox fill="false">
+							<combo id="sccx" width="22" fill="false"/>
+							<combo id="sccy" width="22" fill="false" pad_left="12" pad_right="12"/>
+							<combo id="scce" width="22" fill="false"/>
 						</hbox>
 					</cell>
-					<cell cols="2" bg_color="${bgcol}" >
-						<hbox>
-							<combo id="sccx_${i}" width="18" fill="false" />
-							<combo id="sccy_${i}" />
-							<combo id="scce_${i}" width="18" fill="false" />
+					<cell cols="2" bg_color="${bgcol}" pad_bottom="4">
+						<hbox fill="false">
+							<combo id="sccx_${i}" width="22" fill="false"/>
+							<combo id="sccy_${i}" width="22" fill="false" pad_left="12" pad_right="12"/>
+							<combo id="scce_${i}" width="22" fill="false"/>
 						</hbox>
 					</cell>
 				</grid>
