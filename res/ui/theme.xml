@@ -60,11 +60,17 @@
 		<osc_bg_green value="#1a5021" />
 		<osc_bg_cyan value="#1a5052" />
 		<osc_bg_magenta value="#501b52" />
+		<osc_bg_blue value="#1a3452" />
+		<osc_bg_yellow value="#4b4621" />
 
 		<osc_btn_red value="#8d171c" />
 		<osc_btn_green value="#168d1c" />
 		<osc_btn_cyan value="#168d8e" />
 		<osc_btn_magenta value="#8d178e" />
+		<osc_btn_blue value="#16568c" />
+		<osc_btn_yellow value="#83791d" />
+
+		<osc_blue value="#009dff" />
 
 		<!-- Button colors -->
 		<button_face value="#ffffff" />

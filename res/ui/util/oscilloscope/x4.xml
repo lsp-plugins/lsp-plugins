@@ -3,104 +3,74 @@
 		<vbox spacing="4">
 			<!-- Fast Control -->
 
-			<align hpos="1"><grid rows="5" cols="11"  width="200" fill="false" >
+			<!-- Version with two ROWS
+			<align hpos="1">
+			  <grid rows="3" cols="11" width="200" fill="false">
+			    <void/>
+			    <cell rows="5"><void bg_color="bg" min_width="12"/></cell>
+			    <label text="Gl" font_size="10" bg_color="osc_bg_gray"/>
+			    <cell rows="5"><void bg_color="bg" min_width="12"/></cell>
+			    <label text="Ch1" font_size="10" bg_color="osc_bg_red"/>
+			    <cell rows="5"><void bg_color="bg" min_width="12"/></cell>
+			    <label text="Ch2" font_size="10" bg_color="osc_bg_green"/>
+			    <cell rows="5"><void bg_color="bg" min_width="12"/></cell>
+			    <label text="Ch3" font_size="10" bg_color="osc_bg_yellow"/>
+			    <cell rows="5"><void bg_color="bg" min_width="12"/></cell>
+			    <label text="Ch4" font_size="10" bg_color="osc_bg_blue"/>
+			    <void/>
+			    <cell cols="10"><void bg_color="bg" min_height="4"/></cell>
+			    <align hpos="1">
+			      <hbox><label text="labels.chan.on" font_size="10" pad_right="4"/><vsep pad_right="4"/><label text="labels.chan.solo" font_size="10" pad_right="4"/><vsep pad_right="4"/><label text="labels.chan.mute" font_size="10"/></hbox>
+			    </align>
+			    <button id="glsw_0" led="true" color="yellow" bg_color="osc_bg_gray" size="12" height="8" width="12"/>
+			    <hbox><button id="on_1" led="true" color="yellow" bg_color="osc_bg_red" size="12" height="8" width="12"/><button id="solo_1" led="true" color="green" bg_color="osc_bg_red" size="12" height="8" width="12"/><button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_red" height="8" width="12"/></hbox>
+			    <hbox><button id="on_2" led="true" color="yellow" bg_color="osc_bg_green" size="12" height="8" width="12"/><button id="solo_1" led="true" color="green" bg_color="osc_bg_green" size="12" height="8" width="12"/><button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_green" height="8" width="12"/></hbox>
+			    <hbox><button id="on_3" led="true" color="yellow" bg_color="osc_bg_yellow" size="12" height="8" width="12"/><button id="solo_1" led="true" color="green" bg_color="osc_bg_yellow" size="12" height="8" width="12"/><button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_yellow" height="8" width="12"/></hbox>
+			    <hbox><button id="on_4" led="true" color="yellow" bg_color="osc_bg_blue" size="12" height="8" width="12"/><button id="solo_1" led="true" color="green" bg_color="osc_bg_blue" size="12" height="8" width="12"/><button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_blue" height="8" width="12"/></hbox>
+			  </grid>
+			</align> -->
 
-				<!-- Row 1 -->
-				<void/>
+			<!-- Version with one ROW -->
 
-				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+			<align hpos="1" pad_top="4">
+				<hbox>
 
-				<label text="Glbl" font_size="10" bg_color="osc_bg_gray"/>
+					<align hpos="1" >
+						<hbox height="17"><label text="labels.chan.on" font_size="10" pad_right="4"/><vsep pad_right="4"/><label text="labels.chan.solo" font_size="10" pad_right="4"/><vsep pad_right="4"/><label text="labels.chan.mute" font_size="10"/></hbox>
+					</align>
 
-				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+					<void bg_color="bg" min_width="8"/>
 
-				<label text="Ch1" font_size="10" bg_color="osc_bg_red"/>
+					<hbox bg_color="osc_bg_gray"><label text="Global" font_size="10" pad_left="4" pad_right="4"/>
+						<button id="glsw_0" led="true" color="yellow" size="12" height="12" width="12"/>
+					</hbox>
 
-				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+					<void bg_color="bg" min_width="8"/>
 
-				<label text="Ch2" font_size="10" bg_color="osc_bg_green"/>
+					<hbox bg_color="osc_bg_red"><label text="Ch1" font_size="10" pad_left="4" pad_right="4"/><button id="on_1" led="true" color="yellow" size="12" height="12" width="12"/><button id="solo_1" led="true" color="green" size="12" height="12" width="12"/><button id="mute_1" led="true" color="red" size="12" height="12" width="12"/></hbox>
 
-				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+					<void bg_color="bg" min_width="8"/>
 
-				<label text="Ch3" font_size="10" bg_color="osc_bg_cyan"/>
+					<hbox bg_color="osc_bg_green"><label text="Ch2" font_size="10" pad_left="4" pad_right="4"/><button id="on_2" led="true" color="yellow" size="12" height="12" width="12"/><button id="solo_1" led="true" color="green" size="12" height="12" width="12"/><button id="mute_1" led="true" color="red" size="12" height="12" width="12"/></hbox>
 
-				<cell rows="5"><void bg_color="bg" min_width="4"/></cell>
+					<void bg_color="bg" min_width="8"/>
 
-				<label text="Ch4" font_size="10" bg_color="osc_bg_magenta"/>
+					<hbox bg_color="osc_bg_yellow"><label text="Ch3" font_size="10" pad_left="4" pad_right="4"/><button id="on_3" led="true" color="yellow" size="12" height="12" width="12"/><button id="solo_1" led="true" color="green" size="12" height="12" width="12"/><button id="mute_1" led="true" color="red" size="12" height="12" width="12"/></hbox>
 
-				<!-- Row 2 -->
-				<void/>
-				<cell cols="10"><void bg_color="bg" min_height="4"/></cell>
+					<void bg_color="bg" min_width="8"/>
+					<hbox bg_color="osc_bg_blue"><label text="Ch4" font_size="10" pad_left="4" pad_right="4"/><button id="on_4" led="true" color="yellow" size="12" height="12" width="12"/><button id="solo_1" led="true" color="green" size="12" height="12" width="12"/><button id="mute_1" led="true" color="red" size="12" height="12" width="12"/></hbox>
+				</hbox>
+			</align>
+			<hsep color="gray"/>
 
-				<!-- Row 3 -->
-
-				<!-- Час над этим багом мучался, <cell rows="3">	</cell> работать не хочет, по этому так-->
-					<align hpos="1"><label text="labels.chan.on" font_size="10"/></align>
-					<button id="on_0" led="true" color="yellow" bg_color="osc_bg_gray" size="12" height="8" width="20"/>
-					<button id="on_1" led="true" color="yellow" bg_color="osc_bg_red" size="12" height="8" width="20"/>
-					<button id="on_2" led="true" color="yellow" bg_color="osc_bg_green" size="12" height="8" width="20"/>
-					<button id="on_3" led="true" color="yellow" bg_color="osc_bg_cyan" size="12" height="8" width="20"/>
-					<button id="on_4" led="true" color="yellow" bg_color="osc_bg_magenta" size="12" height="8" width="20"/>
-
-					<align hpos="1"><label text="labels.chan.solo" font_size="10"/></align>
-					<void bg_color="osc_bg_gray" />
-						<button id="solo_1" led="true" color="green" bg_color="osc_bg_red" size="12" height="8" width="20"/>
-							<button id="solo_2" led="true" color="green" bg_color="osc_bg_green" size="12" height="8" width="20"/>
-								<button id="solo_3" led="true" color="green" bg_color="osc_bg_cyan" size="12" height="8" width="20"/>
-									<button id="solo_4" led="true" color="green" bg_color="osc_bg_magenta" size="12" height="8" width="20"/>
-
-					<align hpos="1"><label text="labels.chan.mute" font_size="10"/></align>
-				<void bg_color="osc_bg_gray" />
-				<button id="mute_1" led="true" color="red" size="12" bg_color="osc_bg_red" height="8" width="20"/>
-					<button id="mute_2" led="true" color="red" size="12" bg_color="osc_bg_green" height="8" width="20"/>
-						<button id="mute_3" led="true" color="red" size="12" bg_color="osc_bg_cyan" height="8" width="20"/>
-						<button id="mute_4" led="true" color="red" size="12" bg_color="osc_bg_magenta" height="8" width="20"/>
-
-
-
-			<!--	<cell rows="3">
-					<label text="labels.chan.on" font_size="10"/>
-					<label text="labels.chan.solo" font_size="10"/>
-					<label text="labels.chan.mute" font_size="10"/>
-				</cell>
-
-				<cell rows="3" bg_color="osc_bg_gray">
-					<button id="on_${i}" led="true" color="yellow" size="12"/>
-					<void/>
-					<void/>
-				</cell>
-
-				<cell rows="3" bg_color="osc_bg_gray">
-					<button id="on_${i}" led="true" color="yellow" size="12"/>
-					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
-					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
-				</cell>
-
-				<cell rows="3" bg_color="osc_bg_gray">
-					<button id="on_${i}" led="true" color="yellow" size="12"/>
-					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
-					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
-				</cell>
-
-				<cell rows="3" bg_color="osc_bg_gray">
-					<button id="on_${i}" led="true" color="yellow" size="12"/>
-					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
-					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
-				</cell>
-
-				<cell rows="3" bg_color="osc_bg_gray">
-					<button id="on_${i}" led="true" color="yellow" size="12"/>
-					<button id="solo_${i}" led="true" color="green" size="12" height="8" width="28"/>
-					<button id="mute_${i}" led="true" color="red" size="12" height="8" width="28"/>
-				</cell>-->
-			</grid></align>
+			<align hpos="1"><label text="OSCILLOSCOPE GRAPH"/></align>
 
 			<graph width="550" height="100" expand="true" fill="true">
 				<center hpos="-1.0" vpos="0.0" visible="false"/>
 				<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false"/>
 				<axis min="-1.0" max="1.0" color="g_white" visible="0" angle="0.5" logarithmic="false"/>
 
-				<mesh id="oscv_1" width="3"/>
+				<stream id="oscv_1" width="3"/>
 
 				<!--<marker value="-1" color="g_white" basis="1" parallel="0" /> -->
 				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
@@ -139,15 +109,15 @@
 				<ui:set id="bgcol" value="${
 					(:i ieq 1) ? 'osc_bg_red' :
 					(:i ieq 2) ? 'osc_bg_green' :
-					(:i ieq 3) ? 'osc_bg_cyan' :
-					'osc_bg_magenta'
+					(:i ieq 3) ? 'osc_bg_yellow' :
+					'osc_bg_blue'
 					}"/>
 
 				<ui:set id="col" value="${
 					(:i ieq 1) ? 'red' :
 					(:i ieq 2) ? 'green' :
-					(:i ieq 3) ? 'cyan' :
-					'magenta'
+					(:i ieq 3) ? 'yellow' :
+					'osc_blue'
 					}"/>
 
 				<!-- Channel i -->
@@ -174,20 +144,20 @@
 							<cell rows="3"><void min_width="4"/></cell>
 							<label text="Ch2" bg_color="osc_bg_green"/>
 							<cell rows="3"><void min_width="4"/></cell>
-							<label text="Ch3" bg_color="osc_bg_cyan"/>
+							<label text="Ch3" bg_color="osc_bg_yellow"/>
 							<cell rows="3"><void min_width="4"/></cell>
-							<label text="Ch4" bg_color="osc_bg_magenta"/>
+							<label text="Ch4" bg_color="osc_bg_blue"/>
 							<cell rows="3"><void/></cell>
 
 							<button id="osc_cs" value="0" led="true" color="osc_btn_red" bg_color="osc_bg_red" height="8" width="28"/>
-							<button id="osc_cs" value="1" led="true" color="osc_bg_green" bg_color="osc_bg_green" height="8" width="28"/>
-							<button id="osc_cs" value="2" led="true" color="osc_bg_cyan" bg_color="osc_bg_cyan" height="8" width="28"/>
-							<button id="osc_cs" value="3" led="true" color="osc_bg_magenta" bg_color="osc_bg_magenta" height="8" width="28"/>
+							<button id="osc_cs" value="1" led="true" color="osc_btn_green" bg_color="osc_bg_green" height="8" width="28"/>
+							<button id="osc_cs" value="2" led="true" color="osc_btn_yellow" bg_color="osc_bg_yellow" height="8" width="28"/>
+							<button id="osc_cs" value="3" led="true" color="osc_btn_blue" bg_color="osc_bg_blue" height="8" width="28"/>
 
 							<void bg_color="${(:i ieq 1) ? 'osc_bg_red' : 'bg'}" min_height="4" width="26"/>
 							<void bg_color="${(:i ieq 2) ? 'osc_bg_green' : 'bg'}" min_height="4" width="26"/>
-							<void bg_color="${(:i ieq 3) ? 'osc_bg_cyan' : 'bg'}" min_height="4" width="26"/>
-							<void bg_color="${(:i ieq 4) ? 'osc_bg_magenta' : 'bg'}" min_height="4" width="26"/>
+							<void bg_color="${(:i ieq 3) ? 'osc_bg_yellow' : 'bg'}" min_height="4" width="26"/>
+							<void bg_color="${(:i ieq 4) ? 'osc_bg_blue' : 'bg'}" min_height="4" width="26"/>
 						</grid>
 					</cell>
 
@@ -205,6 +175,8 @@
 						<hbox width="150">
 							<align hpos="0" padding="4">
 								<hbox>
+									<button id="glsw_${i}" led="true" color="yellow" size="12"/>
+									<label text="labels.chan.on" pad_right="4"/>
 									<button id="solo_${i}" led="true" color="green" size="12"/>
 									<label text="labels.chan.solo" pad_right="4"/>
 									<button id="mute_${i}" led="true" color="red" size="12"/>
@@ -219,10 +191,10 @@
 						<label text="labels.oscilloscope.sweep_type"/>
 					</align>
 					<cell cols="2">
-						<combo pad_left="4" pad_right="4" id="scmo" bg_color="osc_bg_gray" pad_bottom="12"/>
+						<combo pad_left="4" pad_right="4" id="swtp" bg_color="osc_bg_gray" pad_bottom="12"/>
 					</cell>
 					<cell cols="2">
-						<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="scmo_${i}" pad_bottom="12"/>
+						<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="swtp_${i}" pad_bottom="12"/>
 					</cell>
 
 					<!-- Row 4 -->
