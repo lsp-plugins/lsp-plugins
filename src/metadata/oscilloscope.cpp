@@ -15,12 +15,12 @@ namespace lsp
 
     static const port_item_t ovs_mode[] =
     {
-        {"None",    "oscilloscope.oversampler.none"},
-        {"2X",      "oscilloscope.oversampler.2x"},
-        {"3X",      "oscilloscope.oversampler.3x"},
-        {"4X",      "oscilloscope.oversampler.4x"},
-        {"6X",      "oscilloscope.oversampler.6x"},
-        {"8X",      "oscilloscope.oversampler.8x"},
+        {"None",        "oscilloscope.oversampler.none"},
+        {"2X",          "oscilloscope.oversampler.2x"},
+        {"3X",          "oscilloscope.oversampler.3x"},
+        {"4X",          "oscilloscope.oversampler.4x"},
+        {"6X",          "oscilloscope.oversampler.6x"},
+        {"8X",          "oscilloscope.oversampler.8x"},
         {NULL,          NULL}
     };
 
@@ -28,6 +28,22 @@ namespace lsp
     {
         {"XY",          "oscilloscope.mode.xy"},
         {"Triggered",   "oscilloscope.mode.triggered"},
+        {NULL,          NULL}
+    };
+
+    static const port_item_t osc_channels_x2[] =
+    {
+        {"1",           NULL },
+        {"2",           NULL },
+        {NULL,          NULL}
+    };
+
+    static const port_item_t osc_channels_x4[] =
+    {
+        {"1",           NULL },
+        {"2",           NULL },
+        {"3",           NULL },
+        {"4",           NULL },
         {NULL,          NULL}
     };
 
@@ -78,6 +94,9 @@ namespace lsp
         AUDIO_OUTPUT("out_x" id, "Output x" label), \
         AUDIO_OUTPUT("out_y" id, "Output y" label)
 
+    #define CHANNEL_SELECTOR(osc_channels) \
+        COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)
+
     #define OP_CONTROLS(id, label) \
         COMBO("ovmo" id, "Oversampler Mode" label, oscilloscope_base_metadata::OSC_OVS_DFL, ovs_mode), \
         COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode)
@@ -115,39 +134,50 @@ namespace lsp
     #define OSC_VISUALOUTS(id, label) \
         STREAM("oscv" id, "Stream buffer" label, 3, 32, 0x4000)
 
-    #define AUDIO_PORTS_X1 CHANNEL_AUDIO_PORTS("_1", " 1")
-    #define CHANNEL_CONTROLS_X1 CHANNEL_CONTROLS("_1", " 1")
-    #define OSC_VISUALOUTS_X1 OSC_VISUALOUTS("_1", " 1")
-
-    #define AUDIO_PORTS_X2 CHANNEL_AUDIO_PORTS("_1", " 1"), CHANNEL_AUDIO_PORTS("_2", " 2")
-    #define CHANNEL_CONTROLS_X2 CHANNEL_CONTROLS("_1", " 1"), CHANNEL_CONTROLS("_2", " 2")
-    #define OSC_VISUALOUTS_X2 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2")
-
-    #define AUDIO_PORTS_X4 CHANNEL_AUDIO_PORTS("_1", " 1"), CHANNEL_AUDIO_PORTS("_2", " 2"), CHANNEL_AUDIO_PORTS("_3", " 3"), CHANNEL_AUDIO_PORTS("_4", " 4")
-    #define CHANNEL_CONTROLS_X4 CHANNEL_CONTROLS("_1", " 1"), CHANNEL_CONTROLS("_2", " 2"), CHANNEL_CONTROLS("_3", " 3"), CHANNEL_CONTROLS("_4", " 4")
-    #define OSC_VISUALOUTS_X4 OSC_VISUALOUTS("_1", " 1"), OSC_VISUALOUTS("_2", " 2"), OSC_VISUALOUTS("_3", " 3"), OSC_VISUALOUTS("_4", " 4")
-
     static const port_t oscilloscope_x1_ports[] =
     {
-        AUDIO_PORTS_X1,
-        CHANNEL_CONTROLS_X1,
-        OSC_VISUALOUTS_X1,
+        CHANNEL_AUDIO_PORTS("_1", " 1"),
+        CHANNEL_CONTROLS("", " Global"),
+        CHANNEL_CONTROLS("_1", " 1"),
+        OSC_VISUALOUTS("_1", " 1"),
         PORTS_END
     };
 
     static const port_t oscilloscope_x2_ports[] =
     {
-        AUDIO_PORTS_X2,
-        CHANNEL_CONTROLS_X2,
-        OSC_VISUALOUTS_X2,
+        CHANNEL_SELECTOR(osc_channels_x2),
+        CHANNEL_AUDIO_PORTS("_1", " 1"),
+        CHANNEL_AUDIO_PORTS("_2", " 2"),
+
+        CHANNEL_CONTROLS("", " Global"),
+        CHANNEL_CONTROLS("_1", " 1"),
+        CHANNEL_CONTROLS("_2", " 2"),
+
+        OSC_VISUALOUTS("_1", " 1"),
+        OSC_VISUALOUTS("_2", " 2"),
+
         PORTS_END
     };
 
     static const port_t oscilloscope_x4_ports[] =
     {
-        AUDIO_PORTS_X4,
-        CHANNEL_CONTROLS_X4,
-        OSC_VISUALOUTS_X4,
+        CHANNEL_AUDIO_PORTS("_1", " 1"),
+        CHANNEL_AUDIO_PORTS("_2", " 2"),
+        CHANNEL_AUDIO_PORTS("_3", " 3"),
+        CHANNEL_AUDIO_PORTS("_4", " 4"),
+
+        CHANNEL_SELECTOR(osc_channels_x4),
+        CHANNEL_CONTROLS("", " Global"),
+        CHANNEL_CONTROLS("_1", " 1"),
+        CHANNEL_CONTROLS("_2", " 2"),
+        CHANNEL_CONTROLS("_3", " 3"),
+        CHANNEL_CONTROLS("_4", " 4"),
+
+        OSC_VISUALOUTS("_1", " 1"),
+        OSC_VISUALOUTS("_2", " 2"),
+        OSC_VISUALOUTS("_3", " 3"),
+        OSC_VISUALOUTS("_4", " 4"),
+
         PORTS_END
     };
 

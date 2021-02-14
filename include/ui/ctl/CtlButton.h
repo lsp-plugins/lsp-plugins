@@ -33,6 +33,8 @@ namespace lsp
 
             protected:
                 float           fValue;
+                float           fDflValue;
+                bool            bValueSet;
                 CtlPort        *pPort;
                 CtlColor        sColor;
                 CtlColor        sTextColor;

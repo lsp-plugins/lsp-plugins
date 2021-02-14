@@ -486,7 +486,14 @@ namespace lsp
             vChannels[ch].pOut_y = vPorts[port_id++];
         }
 
+        // Skip channel selector
+        if (nChannels > 0)
+            ++port_id;
+
         lsp_trace("Binding channel control ports");
+
+        // TODO: bind global controls
+        port_id    += 17;
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
