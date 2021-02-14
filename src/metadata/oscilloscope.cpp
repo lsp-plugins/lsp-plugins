@@ -97,6 +97,11 @@ namespace lsp
     #define CHANNEL_SELECTOR(osc_channels) \
         COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)
 
+    #define CHANNEL_SWITCHES(id, label) \
+        SWITCH("glsw" id, "Global Switch" label, 0.0f), \
+        SWITCH("chsl" id, "Solo Switch" label, 0.0f), \
+        SWITCH("chmt" id, "Mute Switch" label, 0.0f)
+
     #define OP_CONTROLS(id, label) \
         COMBO("ovmo" id, "Oversampler Mode" label, oscilloscope_base_metadata::OSC_OVS_DFL, ovs_mode), \
         COMBO("scmo" id, "Mode" label, oscilloscope_base_metadata::MODE_DFL, osc_mode)
@@ -139,6 +144,7 @@ namespace lsp
         CHANNEL_AUDIO_PORTS("_1", " 1"),
         CHANNEL_CONTROLS("", " Global"),
         CHANNEL_CONTROLS("_1", " 1"),
+        CHANNEL_SWITCHES("_1", " 1"),
         OSC_VISUALOUTS("_1", " 1"),
         PORTS_END
     };
@@ -152,6 +158,9 @@ namespace lsp
         CHANNEL_CONTROLS("", " Global"),
         CHANNEL_CONTROLS("_1", " 1"),
         CHANNEL_CONTROLS("_2", " 2"),
+
+        CHANNEL_SWITCHES("_1", " 1"),
+        CHANNEL_SWITCHES("_2", " 2"),
 
         OSC_VISUALOUTS("_1", " 1"),
         OSC_VISUALOUTS("_2", " 2"),
@@ -172,6 +181,11 @@ namespace lsp
         CHANNEL_CONTROLS("_2", " 2"),
         CHANNEL_CONTROLS("_3", " 3"),
         CHANNEL_CONTROLS("_4", " 4"),
+
+        CHANNEL_SWITCHES("_1", " 1"),
+        CHANNEL_SWITCHES("_2", " 2"),
+        CHANNEL_SWITCHES("_3", " 3"),
+        CHANNEL_SWITCHES("_4", " 4"),
 
         OSC_VISUALOUTS("_1", " 1"),
         OSC_VISUALOUTS("_2", " 2"),

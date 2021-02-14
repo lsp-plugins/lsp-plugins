@@ -292,6 +292,27 @@ namespace lsp
         nSampleRate         = 0;
 
         pData               = NULL;
+
+        pOvsMode            = NULL;
+        pScpMode            = NULL;
+        pCoupling_x         = NULL;
+        pCoupling_y         = NULL;
+        pCoupling_ext       = NULL;
+
+        pSweepType          = NULL;
+        pHorDiv             = NULL;
+        pHorPos             = NULL;
+
+        pVerDiv             = NULL;
+        pVerPos             = NULL;
+
+        pTrgHys             = NULL;
+        pTrgLev             = NULL;
+        pTrgHold            = NULL;
+        pTrgMode            = NULL;
+        pTrgType            = NULL;
+        pTrgInput           = NULL;
+        pTrgReset           = NULL;
     }
 
     oscilloscope_base::~oscilloscope_base()
@@ -458,7 +479,11 @@ namespace lsp
             c->pTrgInput        = NULL;
             c->pTrgReset        = NULL;
 
-            c->pStream            = NULL;
+            c->pGlobalSwitch    = NULL;
+            c->pSoloSwitch      = NULL;
+            c->pMuteSwitch      = NULL;
+
+            c->pStream          = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -490,10 +515,61 @@ namespace lsp
         if (nChannels > 0)
             ++port_id;
 
+        lsp_trace("Binding global control ports");
+
+        TRACE_PORT(vPorts[port_id]);
+        pOvsMode = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pScpMode = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pCoupling_x = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pCoupling_y = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pCoupling_ext = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pSweepType = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pHorDiv = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pHorPos = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pVerDiv = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pVerPos = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgHys = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgLev = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgHold = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgMode = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgType = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgInput = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pTrgReset = vPorts[port_id++];
+
         lsp_trace("Binding channel control ports");
 
-        // TODO: bind global controls
-        port_id    += 17;
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -547,6 +623,20 @@ namespace lsp
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pTrgReset = vPorts[port_id++];
+        }
+
+        lsp_trace("Binding channel switches ports");
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pGlobalSwitch = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pSoloSwitch = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pMuteSwitch = vPorts[port_id++];
         }
 
         lsp_trace("Binding channel visual outputs ports");
@@ -694,7 +784,7 @@ namespace lsp
         stream_t *stream = c->pStream->getBuffer<stream_t>();
         if (stream != NULL)
         {
-            // Inline decimation:
+            // In-place decimation:
             size_t j = 0;
 
             for (size_t i = 1; i < c->nSweepSize; ++i)
@@ -720,6 +810,9 @@ namespace lsp
             // Submit data for plotting (emit the figure data with fixed-size frames):
             for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
             {
+                // Apply scaling and offset:
+                c->vDisplay_y[i] = c->fScale * c->vDisplay_y[i] + c->fOffset;
+
                 size_t count = stream->add_frame(BUF_LIM_SIZE - i);  // Add a frame
                 stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
                 stream->write_frame(1, &c->vDisplay_y[i], 0, count); // Y's
@@ -738,35 +831,63 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            size_t scpmode = c->pScpMode->getValue();
+//            if (nChannels == 1)
+//                c->bUseGlobal = false;
+//            else
+//              c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+
+//            if (nChannels > 1)
+            c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+
+            size_t scpmode;
+            if (c->bUseGlobal)
+                scpmode = pScpMode->getValue();
+            else
+                scpmode = c->pScpMode->getValue();
             if (scpmode != c->sStateStage.nPV_pScpMode)
             {
                 c->sStateStage.nPV_pScpMode = scpmode;
                 c->nUpdate |= UPD_SCPMODE;
             }
 
-            size_t coupling_x = c->pCoupling_x->getValue();
+            size_t coupling_x;
+            if (c->bUseGlobal)
+                coupling_x = pCoupling_x->getValue();
+            else
+                coupling_x = c->pCoupling_x->getValue();
             if (coupling_x != c->sStateStage.nPV_pCoupling_x)
             {
                 c->sStateStage.nPV_pCoupling_x = coupling_x;
                 c->nUpdate |= UPD_ACBLOCK_X;
             }
 
-            size_t coupling_y = c->pCoupling_y->getValue();
+            size_t coupling_y;
+            if (c->bUseGlobal)
+                coupling_y = pCoupling_y->getValue();
+            else
+                coupling_y = c->pCoupling_y->getValue();
             if (coupling_y != c->sStateStage.nPV_pCoupling_y)
             {
                 c->sStateStage.nPV_pCoupling_y = coupling_y;
                 c->nUpdate |= UPD_ACBLOCK_Y;
             }
 
-            size_t coupling_ext = c->pCoupling_ext->getValue();
+            size_t coupling_ext;
+            if (c->bUseGlobal)
+                coupling_ext = pCoupling_ext->getValue();
+            else
+                coupling_ext = c->pCoupling_ext->getValue();
             if (coupling_ext != c->sStateStage.nPV_pCoupling_ext)
             {
                 c->sStateStage.nPV_pCoupling_ext = coupling_ext;
                 c->nUpdate |= UPD_ACBLOCK_EXT;
             }
 
-            size_t overmode = c->pOvsMode->getValue();
+            size_t overmode;
+            if (c->bUseGlobal)
+                overmode = pOvsMode->getValue();
+            else
+                overmode = c->pOvsMode->getValue();
             if (overmode != c->sStateStage.nPV_pOvsMode)
             {
                 c->sStateStage.nPV_pOvsMode = overmode;
@@ -775,15 +896,29 @@ namespace lsp
                 c->nUpdate |= UPD_OVERSAMPLER_EXT;
             }
 
-            size_t trginput = c->pTrgInput->getValue();
+            size_t trginput;
+            if (c->bUseGlobal)
+                trginput = pTrgInput->getValue();
+            else
+                trginput = c->pTrgInput->getValue();
             if (trginput != c->sStateStage.nPV_pTrgInput)
             {
                 c->sStateStage.nPV_pTrgInput = trginput;
                 c->nUpdate |= UPD_TRIGGER_INPUT;
             }
 
-            float verDiv = c->pVerDiv->getValue();
-            float verPos = c->pVerPos->getValue();
+            float verDiv;
+            float verPos;
+            if (c->bUseGlobal)
+            {
+                verDiv = pVerDiv->getValue();
+                verPos = pVerPos->getValue();
+            }
+            else
+            {
+                verDiv = c->pVerDiv->getValue();
+                verPos = c->pVerPos->getValue();
+            }
             if ((verDiv != c->sStateStage.fPV_pVerDiv) || (verPos != c->sStateStage.fPV_pVerPos))
             {
                 c->sStateStage.fPV_pVerDiv = verDiv;
@@ -791,52 +926,88 @@ namespace lsp
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            float trgHys = c->pTrgHys->getValue();
+            float trgHys;
+            if (c->bUseGlobal)
+                trgHys = pTrgHys->getValue();
+            else
+                trgHys = c->pTrgHys->getValue();
             if (trgHys != c->sStateStage.fPV_pTrgHys)
             {
                 c->sStateStage.fPV_pTrgHys = trgHys;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            float trgLevel = c->pTrgLev->getValue();
+            float trgLevel;
+            if (c->bUseGlobal)
+                trgLevel = pTrgLev->getValue();
+            else
+                trgLevel = c->pTrgLev->getValue();
             if (trgLevel != c->sStateStage.fPV_pTrgLevel)
             {
                 c->sStateStage.fPV_pTrgLevel = trgLevel;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            size_t trgmode = c->pTrgMode->getValue();
+            size_t trgmode;
+            if (c->bUseGlobal)
+                trgmode = pTrgMode->getValue();
+            else
+                trgmode = c->pTrgMode->getValue();
             if (trgmode != c->sStateStage.nPV_pTrgMode)
             {
                 c->sStateStage.nPV_pTrgMode = trgmode;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            float trghold = c->pTrgHold->getValue();
+            float trghold;
+            if (c->bUseGlobal)
+                trghold = pTrgHold->getValue();
+            else
+                trghold = c->pTrgHold->getValue();
             if (trghold != c->sStateStage.fPV_pTrgHold)
             {
                 c->sStateStage.fPV_pTrgHold = trghold;
                 c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
-            size_t trgtype = c->pTrgType->getValue();
+            size_t trgtype;
+            if (c->bUseGlobal)
+                trgtype = pTrgType->getValue();
+            else
+                trgtype = c->pTrgType->getValue();
             if (trgtype != c->sStateStage.nPV_pTrgType)
             {
                 c->sStateStage.nPV_pTrgType = trgtype;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            if (c->pTrgReset->getValue() >= 0.5f)
-                c->nUpdate |= UPD_TRGGER_RESET;
+            if (c->bUseGlobal)
+            {
+                if (pTrgReset->getValue() >= 0.5f)
+                    c->nUpdate |= UPD_TRGGER_RESET;
+            }
+            else
+            {
+                if (c->pTrgReset->getValue() >= 0.5f)
+                    c->nUpdate |= UPD_TRGGER_RESET;
+            }
 
-            float horDiv = c->pHorDiv->getValue();
+            float horDiv;
+            if (c->bUseGlobal)
+                horDiv = pHorDiv->getValue();
+            else
+                horDiv = c->pHorDiv->getValue();
             if (horDiv != c->sStateStage.fPV_pHorDiv)
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
             }
 
-            float horPos = c->pHorPos->getValue();
+            float horPos;
+            if (c->bUseGlobal)
+                horPos = pHorPos->getValue();
+            else
+                horPos = c->pHorPos->getValue();
             if (horPos != c->sStateStage.fPV_pHorPos)
             {
                 c->sStateStage.fPV_pHorPos = horPos;
@@ -844,7 +1015,11 @@ namespace lsp
                 c->nUpdate |= UPD_PRETRG_DELAY;
             }
 
-            size_t sweeptype = c->pSweepType->getValue();
+            size_t sweeptype;
+            if (c->bUseGlobal)
+                sweeptype = pSweepType->getValue();
+            else
+                sweeptype = c->pSweepType->getValue();
             if (sweeptype != c->sStateStage.nPV_pSweepType)
             {
                 c->sStateStage.nPV_pSweepType = sweeptype;
