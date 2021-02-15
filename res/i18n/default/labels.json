@@ -72,6 +72,8 @@
 	"chan": {
 		":db": "(dB)",
 		"Ext_ernal": "Ext",
+		"freeze": "Freeze",
+		"frz": "Frz",
 		"H_old": "H",
 		"L_eft": "L",
 		"L_eft:": "L:",
@@ -222,6 +224,7 @@
 	"gain": "Gain",
 	"gain_": "Gain",
 	"gain:db": "Gain\n(dB)",
+	"global": "Global",
 
 	"graphs": {
 		"compression": "COMPRESSION",
@@ -234,6 +237,7 @@
 		"gating": "GATING",
 		"left_channel": "LEFT CHANNEL",
 		"oscillator_waveform": "OSCILLATOR_WAVEFORM",
+		"oscilloscope" : "OSCILLOSCOPE GRAPH",
 		"right_channel": "RIGHT CHANNEL",
 		"spectrum": "SPECTRUM GRAPH",
 		"time": "TIME GRAPH",
