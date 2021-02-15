@@ -142,7 +142,6 @@ namespace lsp
     static const port_t oscilloscope_x1_ports[] =
     {
         CHANNEL_AUDIO_PORTS("_1", " 1"),
-        CHANNEL_CONTROLS("", " Global"),
         CHANNEL_CONTROLS("_1", " 1"),
         CHANNEL_SWITCHES("_1", " 1"),
         OSC_VISUALOUTS("_1", " 1"),

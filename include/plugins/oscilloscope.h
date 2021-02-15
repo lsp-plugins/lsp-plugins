@@ -84,11 +84,11 @@ namespace lsp
                 CH_STATE_SWEEPING
             };
 
-            typedef struct ac_block_t
+            typedef struct dc_block_t
             {
-                float               fAlpha;
-                float               fGain;
-            } ac_block_t;
+                float   fAlpha;
+                float   fGain;
+            } dc_block_t;
 
             typedef struct ch_state_stage_t
             {
@@ -123,9 +123,9 @@ namespace lsp
                 ch_coupling_t       enCoupling_y;
                 ch_coupling_t       enCoupling_ext;
 
-                FilterBank          sACBlockBank_x;
-                FilterBank          sACBlockBank_y;
-                FilterBank          sACBlockBank_ext;
+                FilterBank          sDCBlockBank_x;
+                FilterBank          sDCBlockBank_y;
+                FilterBank          sDCBlockBank_ext;
 
                 over_mode_t         enOverMode;
                 size_t              nOversampling;
@@ -209,13 +209,16 @@ namespace lsp
             } channel_t;
 
         protected:
-            ac_block_t  sACBlockParams;
+            dc_block_t  sDCBlockParams;
             size_t      nChannels;
             channel_t  *vChannels;
 
             size_t      nSampleRate;
 
             uint8_t    *pData;
+
+            // Channel Selector
+            IPort   *pChannelSelector;
 
             // Global ports:
             IPort   *pOvsMode;

@@ -16,8 +16,8 @@
 #define VER_FULL_SCALE_AMP  1.0f
 #define SWEEP_GEN_N_BITS    32
 #define SWEEP_GEN_PEAK      1.0f
-#define AC_BLOCK_CUTOFF_HZ  5.0
-#define AC_BLOCK_DFL_ALPHA  0.999f
+#define DC_BLOCK_CUTOFF_HZ  5.0
+#define DC_BLOCK_DFL_ALPHA  0.999f
 #define DECIM_PRECISION     1e-4 // For development, this should be calculated from screen size !!!
 
 namespace lsp
@@ -139,7 +139,7 @@ namespace lsp
          * H(z) = ----------------
          *          1 - a * z^-1
          *
-         * With g = sACBlockParams.fGain, a = sACBlockParams.fAlpha
+         * With g = sDCBlockParams.fGain, a = sACBlockParams.fAlpha
          */
 
         rFilterBank.begin();
@@ -148,10 +148,10 @@ namespace lsp
         if (f == NULL)
             return;
 
-        f->b0   = sACBlockParams.fGain;
-        f->b1   = -sACBlockParams.fGain;
+        f->b0   = sDCBlockParams.fGain;
+        f->b1   = -sDCBlockParams.fGain;
         f->b2   = 0.0f;
-        f->a1   = sACBlockParams.fAlpha;
+        f->a1   = sDCBlockParams.fAlpha;
         f->a2   = 0.0f;
         f->p0   = 0.0f;
         f->p1   = 0.0f;
@@ -162,7 +162,7 @@ namespace lsp
 
     void oscilloscope_base::reconfigure_dc_block_filters()
     {
-        double omega = 2.0 * M_PI * AC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
+        double omega = 2.0 * M_PI * DC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
 
         double c = cos(omega);
         double g = 1.9952623149688795; // This is 10^(3/10), used to calculate the parameter alpha so that it is exactly associated to the cutoff frequency (-3 dB).
@@ -172,21 +172,21 @@ namespace lsp
         double alpha2 = c - r;
 
         if ((alpha1 >= 0.0) && (alpha1 < 1.0))
-            sACBlockParams.fAlpha = alpha1;
+            sDCBlockParams.fAlpha = alpha1;
         else if ((alpha2 >= 0.0) && (alpha2 < 1.0))
-            sACBlockParams.fAlpha = alpha2;
+            sDCBlockParams.fAlpha = alpha2;
         else
-            sACBlockParams.fAlpha = AC_BLOCK_DFL_ALPHA;
+            sDCBlockParams.fAlpha = DC_BLOCK_DFL_ALPHA;
 
-        sACBlockParams.fGain = 0.5f * (1.0f + sACBlockParams.fAlpha);
+        sDCBlockParams.fGain = 0.5f * (1.0f + sDCBlockParams.fAlpha);
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
 
-            update_dc_block_filter(c->sACBlockBank_x);
-            update_dc_block_filter(c->sACBlockBank_y);
-            update_dc_block_filter(c->sACBlockBank_ext);
+            update_dc_block_filter(c->sDCBlockBank_x);
+            update_dc_block_filter(c->sDCBlockBank_y);
+            update_dc_block_filter(c->sDCBlockBank_ext);
         }
     }
 
@@ -241,8 +241,8 @@ namespace lsp
             {
                 c->sSweepGenerator.set_function(FG_SAWTOOTH);
                 c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
-                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
-                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_amplitude(SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.0f);
                 c->sSweepGenerator.set_width(0.5f);
             }
             break;
@@ -251,8 +251,8 @@ namespace lsp
             {
                 c->sSweepGenerator.set_function(FG_SINE);
                 c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
-                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
-                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_amplitude(SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.0f);
             }
             break;
 
@@ -261,8 +261,8 @@ namespace lsp
             {
                 c->sSweepGenerator.set_function(FG_SAWTOOTH);
                 c->sSweepGenerator.set_dc_reference(DC_WAVEDC);
-                c->sSweepGenerator.set_amplitude(0.5f * SWEEP_GEN_PEAK);
-                c->sSweepGenerator.set_dc_offset(0.5f * SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_amplitude(SWEEP_GEN_PEAK);
+                c->sSweepGenerator.set_dc_offset(0.0f);
                 c->sSweepGenerator.set_width(1.0f);
             }
             break;
@@ -292,6 +292,8 @@ namespace lsp
         nSampleRate         = 0;
 
         pData               = NULL;
+
+        pChannelSelector    = NULL;
 
         pOvsMode            = NULL;
         pScpMode            = NULL;
@@ -330,9 +332,9 @@ namespace lsp
             {
                 channel_t *c = &vChannels[ch];
 
-                c->sACBlockBank_x.destroy();
-                c->sACBlockBank_y.destroy();
-                c->sACBlockBank_ext.destroy();
+                c->sDCBlockBank_x.destroy();
+                c->sDCBlockBank_y.destroy();
+                c->sDCBlockBank_ext.destroy();
 
                 c->sOversampler_x.destroy();
                 c->sOversampler_y.destroy();
@@ -391,13 +393,13 @@ namespace lsp
 
             init_state_stage(c);
 
-            if (!c->sACBlockBank_x.init(FILTER_CHAINS_MAX))
+            if (!c->sDCBlockBank_x.init(FILTER_CHAINS_MAX))
                 return;
 
-            if (!c->sACBlockBank_y.init(FILTER_CHAINS_MAX))
+            if (!c->sDCBlockBank_y.init(FILTER_CHAINS_MAX))
                 return;
 
-            if (!c->sACBlockBank_ext.init(FILTER_CHAINS_MAX))
+            if (!c->sDCBlockBank_ext.init(FILTER_CHAINS_MAX))
                 return;
 
             if (!c->sOversampler_x.init())
@@ -441,6 +443,16 @@ namespace lsp
 
             c->vDisplay_s       = ptr;
             ptr                += BUF_LIM_SIZE;
+
+            c->nDataHead        = 0;
+            c->nDisplayHead     = 0;
+            c->nSamplesCounter  = 0;
+
+            c->nPreTrigger      = 0;
+            c->nSweepSize       = 0;
+
+            c->fScale           = 0.0f;
+            c->fOffset          = 0.0f;
 
             c->enState          = CH_STATE_LISTENING;
 
@@ -511,62 +523,70 @@ namespace lsp
             vChannels[ch].pOut_y = vPorts[port_id++];
         }
 
-        // Skip channel selector
-        if (nChannels > 0)
-            ++port_id;
+        // Channel selector only exists on multi-channel versions. Skip for 1X plugin.
+        if (nChannels > 1)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            pChannelSelector = vPorts[port_id++];
+        }
 
-        lsp_trace("Binding global control ports");
+        // Global ports only exists on multi-channel versions. Skip for 1X plugin.
 
-        TRACE_PORT(vPorts[port_id]);
-        pOvsMode = vPorts[port_id++];
+        if (nChannels > 1)
+        {
+            lsp_trace("Binding global control ports");
 
-        TRACE_PORT(vPorts[port_id]);
-        pScpMode = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pOvsMode = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pCoupling_x = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pScpMode = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pCoupling_y = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pCoupling_x = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pCoupling_ext = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pCoupling_y = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pSweepType = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pCoupling_ext = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pHorDiv = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pSweepType = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pHorPos = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pHorDiv = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pVerDiv = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pHorPos = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pVerPos = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pVerDiv = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgHys = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pVerPos = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgLev = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgHys = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgHold = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgLev = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgMode = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgHold = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgType = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgMode = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgInput = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgType = vPorts[port_id++];
 
-        TRACE_PORT(vPorts[port_id]);
-        pTrgReset = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pTrgInput = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            pTrgReset = vPorts[port_id++];
+        }
 
         lsp_trace("Binding channel control ports");
 
@@ -700,6 +720,9 @@ namespace lsp
 
         c->sStateStage.nPV_pSweepType = oscilloscope_base_metadata::SWEEP_TYPE_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
+
+        // By default, this must be false.
+        c->bUseGlobal = false;
     }
 
     void oscilloscope_base::commit_staged_state_change(channel_t *c)
@@ -831,13 +854,9 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-//            if (nChannels == 1)
-//                c->bUseGlobal = false;
-//            else
-//              c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
-
-//            if (nChannels > 1)
-            c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+            // Global controls only actually exist for mult-channel plugins. Do not use for 1X.
+            if (nChannels > 1)
+                c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
 
             size_t scpmode;
             if (c->bUseGlobal)
@@ -1109,7 +1128,7 @@ namespace lsp
                     {
                         if (c->enCoupling_x == CH_COUPLING_AC)
                         {
-                            c->sACBlockBank_x.process(c->vTemp, c->vIn_x, to_do);
+                            c->sDCBlockBank_x.process(c->vTemp, c->vIn_x, to_do);
                             c->sOversampler_x.upsample(c->vData_x, c->vTemp, to_do);
                         }
                         else
@@ -1119,7 +1138,7 @@ namespace lsp
 
                         if (c->enCoupling_y == CH_COUPLING_AC)
                         {
-                            c->sACBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
+                            c->sDCBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
                             c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
                         }
                         else
@@ -1152,7 +1171,7 @@ namespace lsp
                     {
                         if (c->enCoupling_y == CH_COUPLING_AC)
                         {
-                            c->sACBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
+                            c->sDCBlockBank_y.process(c->vTemp, c->vIn_y, to_do);
                             c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
                         }
                         else
@@ -1163,7 +1182,7 @@ namespace lsp
 
                         if (c->enCoupling_ext == CH_COUPLING_AC)
                         {
-                            c->sACBlockBank_ext.process(c->vTemp, c->vIn_ext, to_do);
+                            c->sDCBlockBank_ext.process(c->vTemp, c->vIn_ext, to_do);
                             c->sOversampler_ext.upsample(c->vData_ext, c->vTemp, to_do);
                         }
                         else
@@ -1226,17 +1245,17 @@ namespace lsp
     // THIS MUST BE UPDATED !!!
     void oscilloscope_base::dump(IStateDumper *v) const
     {
-        v->begin_object("sACBlockParams", &sACBlockParams, sizeof(sACBlockParams));
+        v->begin_object("sDCBlockParams", &sDCBlockParams, sizeof(sDCBlockParams));
         {
-            v->write("fAlpha", sACBlockParams.fAlpha);
-            v->write("fGain", sACBlockParams.fGain);
+            v->write("fAlpha", sDCBlockParams.fAlpha);
+            v->write("fGain", sDCBlockParams.fGain);
         }
         v->end_object();
 
         v->write("nChannels", nChannels);
 
         v->begin_array("vChannels", vChannels, nChannels);
-        for (size_t i=0; i<nChannels; ++i)
+        for (size_t i = 0; i < nChannels; ++i)
         {
             const channel_t *c = &vChannels[i];
 
@@ -1249,9 +1268,9 @@ namespace lsp
                 v->write("enCoupling_y", &c->enCoupling_y);
                 v->write("enCoupling_ext", &c->enCoupling_ext);
 
-                v->write_object("sACBlockBank_x", &c->sACBlockBank_x);
-                v->write_object("sACBlockBank_y", &c->sACBlockBank_y);
-                v->write_object("sACBlockBank_ext", &c->sACBlockBank_ext);
+                v->write_object("sDCBlockBank_x", &c->sDCBlockBank_x);
+                v->write_object("sDCBlockBank_y", &c->sDCBlockBank_y);
+                v->write_object("sDCBlockBank_ext", &c->sDCBlockBank_ext);
 
                 v->write("enOverMode", &c->enOverMode);
                 v->write("nOversampling", &c->nOversampling);
@@ -1274,6 +1293,7 @@ namespace lsp
                 v->write("vData_y_delay", &c->vData_y_delay);
                 v->write("vDisplay_x", &c->vDisplay_x);
                 v->write("vDisplay_y", &c->vDisplay_y);
+                v->write("vDisplay_s", &c->vDisplay_s);
 
                 v->write("nDataHead", &c->nDataHead);
                 v->write("nDisplayHead", &c->nDisplayHead);
@@ -1286,6 +1306,10 @@ namespace lsp
                 v->write("fOffset", &c->fOffset);
 
                 v->write("enState", &c->enState);
+
+                v->write("nUpdate", &c->nUpdate);
+                v->write("sStateStage", &c->sStateStage);
+                v->write("bUseGlobal", &c->bUseGlobal);
 
                 v->write("vIn_x", &c->vIn_x);
                 v->write("vIn_y", &c->vIn_y);
@@ -1322,7 +1346,11 @@ namespace lsp
                 v->write("pTrgInput", &c->pTrgInput);
                 v->write("pTrgReset", &c->pTrgReset);
 
-                v->write("pMesh", &c->pStream);
+                v->write("pGlobalSwitch", &c->pGlobalSwitch);
+                v->write("pSoloSwitch", &c->pSoloSwitch);
+                v->write("pMuteSwitch", &c->pMuteSwitch);
+
+                v->write("pStream", &c->pStream);
             }
             v->end_object();
         }
@@ -1330,6 +1358,29 @@ namespace lsp
 
         v->write("nSampleRate", nSampleRate);
         v->write("pData", pData);
+
+        v->write("pChannelSelector", pChannelSelector);
+
+        v->write("pOvsMode", pOvsMode);
+        v->write("pScpMode", pScpMode);
+        v->write("pCoupling_x", pCoupling_x);
+        v->write("pCoupling_y", pCoupling_y);
+        v->write("pCoupling_ext", pCoupling_ext);
+
+        v->write("pSweepType", pSweepType);
+        v->write("pHorDiv", pHorDiv);
+        v->write("pHorPos", pHorPos);
+
+        v->write("pVerDiv", pVerDiv);
+        v->write("pVerPos", pVerPos);
+
+        v->write("pTrgHys", pTrgHys);
+        v->write("pTrgLev", pTrgLev);
+        v->write("pTrgHold", pTrgHold);
+        v->write("pTrgMode", pTrgMode);
+        v->write("pTrgType", pTrgType);
+        v->write("pTrgInput", pTrgInput);
+        v->write("pTrgReset", pTrgReset);
     }
 
     oscilloscope_x1::oscilloscope_x1(): oscilloscope_base(metadata, 1)
