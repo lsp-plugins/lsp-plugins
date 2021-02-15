@@ -65,6 +65,31 @@ namespace dsp
      */
     extern void (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count);
 
+    /**
+     * Do logarithmic vectro apply for the 1D-schema with keeping sign:
+     *  x[i] = x[i] + sign(v[i]) * norm_x * min(logf(absf(v[i]*zero)), 0)
+     *
+     * @param x destination vector for X coordinate
+     * @param v delta vector to apply
+     * @param zero graphics zero point
+     * @param norm_x X norming factor
+     * @param count number of elements to process
+     */
+    extern void (* axis_apply_slog1)(float *x, const float *v, float zero, float norm_x, size_t count);
+
+    /** Do logarithmic vector apply for 2D-schema:
+     *  x[i] = x[i] + sign(v[i]) * norm_x * min(logf(absf(v[i]*zero)), 0)
+     *  y[i] = y[i] + sign(v[i]) * norm_y * min(logf(absf(v[i]*zero)), 0)
+     *
+     * @param x destination vector for X coordinate
+     * @param y destination vector for Y coordinate
+     * @param v delta vector to apply
+     * @param zero graphics zero point
+     * @param norm_x X norming factor
+     * @param norm_y Y norming factor
+     */
+    extern void (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
+
     /** Do logarithmic vector apply for 2D-schema:
      *  x[i] = x[i] + norm_x * logf(absf(v[i]*zero))
      *  y[i] = y[i] + norm_y * logf(absf(v[i]*zero))
@@ -76,7 +101,7 @@ namespace dsp
      * @param norm_x X norming factor
      * @param norm_y Y norming factor
      */
-    extern void (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
+    extern void (* axis_apply_slog2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
 
     /** Convert RGBA32 -> BGRA32 color
      *

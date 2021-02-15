@@ -32,12 +32,26 @@ namespace native
     {
         for (size_t i=0; i<count; ++i)
         {
-            float vec    = v[i];
-            if (vec < 0.0f)
-                vec     = -vec;
+            float vec   = fabs(v[i]);
             if (vec < AMPLIFICATION_THRESH)
                 vec     = AMPLIFICATION_THRESH;
             float k     = logf(vec * zero);
+            x[i]       += norm_x * k;
+            y[i]       += norm_y * k;
+        }
+    }
+
+    void axis_apply_slog2(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float s     = (v[i]) < 0.0f ? -1.0f : 1.0f;
+            float vec   = fabs(v[i]);
+            if (vec < AMPLIFICATION_THRESH)
+                vec     = AMPLIFICATION_THRESH;
+            float k     = logf(vec * zero);
+            k           = (k < 0.0f) ? k*s : 0.0f;
+
             x[i]       += norm_x * k;
             y[i]       += norm_y * k;
         }
@@ -47,12 +61,25 @@ namespace native
     {
         for (size_t i=0; i<count; ++i)
         {
-            float vec    = v[i];
-            if (vec < 0.0f)
-                vec     = -vec;
+            float vec   = fabs(v[i]);
             if (vec < AMPLIFICATION_THRESH)
                 vec     = AMPLIFICATION_THRESH;
             float k     = logf(vec * zero);
+            x[i]       += norm_x * k;
+        }
+    }
+
+    void axis_apply_slog1(float *x, const float *v, float zero, float norm_x, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float s     = (v[i]) < 0.0f ? -1.0f : 1.0f;
+            float vec   = fabs(v[i]);
+            if (vec < AMPLIFICATION_THRESH)
+                vec     = AMPLIFICATION_THRESH;
+            float k     = logf(vec * zero);
+            k           = (k < 0.0f) ? k*s : 0.0f;
+
             x[i]       += norm_x * k;
         }
     }
