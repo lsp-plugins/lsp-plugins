@@ -41,16 +41,17 @@
   "midi_setup": "MIDI Setup",
   "monitoring": "Monitoring",
   "oscilloscope": {
-    "screen": "Screen",
-    "operation": "Operation",
-    "horizontal": "Horizontal",
-    "vertical": "Vertical",
-    "trigger": "Trigger",
     "channel_1": "Channel 1",
     "channel_2": "Channel 2",
     "channel_3": "Channel 3",
-    "channel_4": "Channel 4"
+    "channel_4": "Channel 4",
+    "horizontal": "Horizontal",
+    "operation": "Operation",
+    "screen": "Screen",
+    "trigger": "Trigger",
+    "vertical": "Vertical"
   },
+
   "oscillator_function": "Oscillator Function",
   "output": "Output",
   "outputs": "Outputs",

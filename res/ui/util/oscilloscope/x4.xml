@@ -7,33 +7,40 @@
 				<align hpos="0" pad_top="4">
 					<hbox >
 						<button id="frz_0" led="true" text="labels.chan.freeze" font_size="10" color="cyan" height="24"/>
-						<button id="frz_1" led="true" text="Ch1" font_size="10" color="cyan" height="24"/>
-						<button id="frz_2" led="true" text="Ch2" font_size="10" color="cyan" height="24"/>
-						<button id="frz_3" led="true" text="Ch3" font_size="10" color="cyan" height="24"/>
-						<button id="frz_4" led="true" text="Ch4" font_size="10" color="cyan" height="24"/>
+						<button id="frz_1" led="true" text="labels.chan.Ch_1" font_size="10" color="cyan" height="24"/>
+						<button id="frz_2" led="true" text="labels.chan.Ch_2" font_size="10" color="cyan" height="24"/>
+						<button id="frz_3" led="true" text="labels.chan.Ch_3" font_size="10" color="cyan" height="24"/>
+						<button id="frz_4" led="true" text="labels.chan.Ch_4" font_size="10" color="cyan" height="24"/>
 					</hbox>
 				</align>
 
 				<align hpos="1" pad_top="4">
 					<hbox>
 						<void bg_color="bg" min_width="8"/>
-
-						<!-- <hbox height="17"><label text="labels.chan.solo" font_size="10" pad_right="4"/><label text="|" font_size="10" pad_right="4"/><label text="labels.chan.mute" font_size="10"/></hbox>-->
-
 						<void bg_color="bg" min_width="8"/>
-
-						<hbox bg_color="osc_bg_red" height="18"><label text="Ch1" font_size="12" pad_top="2" pad_left="4" pad_right="4"/><button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/><button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/></hbox>
-
+						<hbox bg_color="osc_bg_red" height="18">
+							<label text="labels.chan.Ch_1" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
+							<button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/>
+							<button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/>
+						</hbox>
 						<void bg_color="bg" min_width="8"/>
-
-						<hbox bg_color="osc_bg_green"><label text="Ch2" font_size="12" pad_top="2" pad_left="4" pad_right="4"/><button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/><button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/></hbox>
-
+						<hbox bg_color="osc_bg_green">
+							<label text="labels.chan.Ch_2" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
+							<button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/>
+							<button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/>
+						</hbox>
 						<void bg_color="bg" min_width="8"/>
-
-						<hbox bg_color="osc_bg_yellow"><label text="Ch3" font_size="12" pad_top="2" pad_left="4" pad_right="4"/><button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/><button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/></hbox>
-
+						<hbox bg_color="osc_bg_yellow">
+							<label text="labels.chan.Ch_3" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
+							<button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/>
+							<button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/>
+						</hbox>
 						<void bg_color="bg" min_width="8"/>
-						<hbox bg_color="osc_bg_blue"><label text="Ch4" font_size="12" pad_top="2" pad_left="4" pad_right="4"/><button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/><button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/></hbox>
+						<hbox bg_color="osc_bg_blue">
+							<label text="labels.chan.Ch_4" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
+							<button id="solo_1" led="true" color="green" size="18" text="S" font_size="8"/>
+							<button id="mute_1" led="true" color="red" size="18" text="M" font_size="8"/>
+						</hbox>
 					</hbox>
 				</align>
 			</hbox>
@@ -46,21 +53,37 @@
 				<stream id="oscv_1" width="3"/>
 
 				<!--<marker value="-1" color="g_white" basis="1" parallel="0" /> -->
+				<marker value="-0.875" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
+				<marker value="-0.625" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="-0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="-0.375" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="-0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="-0.125" color="g_dark_gray" basis="1" parallel="0"/>
+				<marker value="0.125" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.375" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="0.625" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="0.75" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.875" color="g_dark_gray" basis="1" parallel="0"/>
 				<!--<marker value="1" color="g_white" basis="1" parallel="0" /> -->
 
+        <marker value="0.125" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="0.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="0.375" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="0.5" color="g_yellow" basis="0" parallel="1"/>
+				<marker value="0.625" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="0.75" color="g_gray" basis="0" parallel="1"/>
+				<marker value="0.875" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="1" color="g_white" basis="0" parallel="1"/>
+				<marker value="1.125" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="1.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1.375" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="1.5" color="g_yellow" basis="0" parallel="1"/>
+				<marker value="1.625" color="g_dark_gray" basis="0" parallel="1"/>
 				<marker value="1.75" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1.875" color="g_dark_gray" basis="0" parallel="1"/>
 				<!--<marker value="2" color="g_white" basis="0" parallel="1" /> -->
 
 				<text text="X" coord="0;-1" halign="1" valign="1"/>
@@ -120,13 +143,13 @@
 					</cell>
 					<cell cols="2">
 						<grid rows="3" cols="8">
-							<label text="Ch1" bg_color="osc_bg_red"/>
+							<label text="labels.chan.Ch_1" bg_color="osc_bg_red"/>
 							<cell rows="3"><void min_width="4"/></cell>
-							<label text="Ch2" bg_color="osc_bg_green"/>
+							<label text="labels.chan.Ch_2" bg_color="osc_bg_green"/>
 							<cell rows="3"><void min_width="4"/></cell>
-							<label text="Ch3" bg_color="osc_bg_yellow"/>
+							<label text="labels.chan.Ch_3" bg_color="osc_bg_yellow"/>
 							<cell rows="3"><void min_width="4"/></cell>
-							<label text="Ch4" bg_color="osc_bg_blue"/>
+							<label text="labels.chan.Ch_4" bg_color="osc_bg_blue"/>
 							<cell rows="3"><void/></cell>
 
 							<button id="osc_cs" value="0" led="true" color="osc_btn_red" bg_color="osc_bg_red" height="8" width="28"/>
@@ -358,7 +381,7 @@
 
 					<!-- Row 23 -->
 					<align hpos="1">
-						<label text="X | Y | EXT" align="0"/>
+						<label text="labels.X_Y_EXT" align="0"/>
 					</align>
 					<cell cols="2" bg_color="osc_bg_gray" pad_bottom="4">
 						<hbox fill="false">
