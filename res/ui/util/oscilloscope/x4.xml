@@ -90,6 +90,7 @@
 				<text text="0.25" coord="0.25;-1" halign="1" valign="1"/>
 				<text text="0.5" coord="0.5;-1" halign="1" valign="1"/>
 				<text text="0.75" coord="0.75;-1" halign="1" valign="1"/>
+				<text text="1" coord="1;-1" halign="-1" valign="1"/>
 
 				<text text="Y" coord="-1;1" halign="1" valign="-1"/>
 				<text text="-0.75" coord="-1;-0.75" halign="1" valign="-1"/>
