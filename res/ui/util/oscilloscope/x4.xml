@@ -5,7 +5,7 @@
 
 			<hbox>
 				<align hpos="0" pad_top="4">
-					<hbox >
+					<hbox>
 						<button id="frz_0" led="true" text="labels.chan.freeze" font_size="10" color="cyan" height="24"/>
 						<button id="frz_1" led="true" text="labels.chan.Ch_1" font_size="10" color="cyan" height="24"/>
 						<button id="frz_2" led="true" text="labels.chan.Ch_2" font_size="10" color="cyan" height="24"/>
@@ -46,58 +46,59 @@
 			</hbox>
 
 			<graph width="550" height="100" expand="true" fill="true">
-				<center hpos="-1.0" vpos="0.0" visible="false"/>
-				<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false"/>
-				<axis min="-1.0" max="1.0" color="g_white" visible="0" angle="0.5" logarithmic="false"/>
+				<!-- Origin -->
+				<center hpos="0.0" vpos="0.0" visible="false"/>
 
-				<stream id="oscv_1" width="3"/>
+				<!-- Marker lines -->
+				<ui:for id="i" first="-31" last="31">
+					<ui:if test="${:i mod 4}">
+						<marker value="${:i * 0.03125}" color="g_dark_gray" basis="1" parallel="0" />
+						<marker value="${:i * 0.03125}" color="g_dark_gray" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
 				
-				<marker value="-0.875" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.625" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.375" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.125" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.125" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.375" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.625" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.875" color="g_dark_gray" basis="1" parallel="0"/>
-        <marker value="0.125" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.375" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.625" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.875" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.125" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.375" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.625" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.875" color="g_dark_gray" basis="0" parallel="1"/>
+				<ui:for id="i" first="-7" last="7">
+					<ui:if test="${:i mod 4}">
+						<marker value="${:i * 0.125}" color="g_gray" basis="1" parallel="0" />
+						<marker value="${:i * 0.125}" color="g_gray" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
+				
+				<ui:for id="i" first="-1" last="1">
+					<ui:if test="${:i mod 2}">
+						<marker value="${:i * 0.5}" color="g_yellow" basis="1" parallel="0" />
+						<marker value="${:i * 0.5}" color="g_yellow" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
 
+				<!-- Axes -->
+				<axis min="-1.0" max="1.0" color="g_white" angle="0.0" logarithmic="false"/>
+				<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false"/>
 
-				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
-				<marker value="-0.25" color="g_gray" basis="1" parallel="0"/>
-				<marker value="0.25" color="g_gray" basis="1" parallel="0"/>
-				<marker value="0.75" color="g_gray" basis="1" parallel="0"/>
-				<marker value="0.25" color="g_gray" basis="0" parallel="1"/>
-				<marker value="0.75" color="g_gray" basis="0" parallel="1"/>
-				<marker value="1.25" color="g_gray" basis="0" parallel="1"/>
-				<marker value="1.75" color="g_gray" basis="0" parallel="1"/>
+				<!-- Streams -->
+				<stream id="oscv_1" width="3" color="red" />
+				<stream id="oscv_2" width="3" color="green" />
+				<stream id="oscv_3" width="3" color="yellow" />
+				<stream id="oscv_4" width="3" color="blue" />
 
-				<marker value="-0.5" color="g_yellow" basis="1" parallel="0"/>
-				<marker value="0.5" color="g_yellow" basis="0" parallel="1"/>
-				<marker value="0.5" color="g_yellow" basis="1" parallel="0"/>
-				<marker value="1.5" color="g_yellow" basis="0" parallel="1"/>
+				<!-- Text -->
+				<text text="X" coord="-1;-1" halign="1" valign="1"/>
+				<text text="-0.75" coord="-0.75;-1" halign="1" valign="1"/>
+				<text text="-0.5" coord="-0.5;-1" halign="1" valign="1"/>
+				<text text="-0.25" coord="-0.25;-1" halign="1" valign="1"/>
+				<text text="0" coord="0;-1" halign="1" valign="1"/>
+				<text text="0.25" coord="0.25;-1" halign="1" valign="1"/>
+				<text text="0.5" coord="0.5;-1" halign="1" valign="1"/>
+				<text text="0.75" coord="0.75;-1" halign="1" valign="1"/>
 
-					<marker value="1" color="g_white" basis="0" parallel="1"/>
-					<marker value="0" color="g_white" basis="1" parallel="0"/>
-
-
-				<text text="X" coord="0;-1" halign="1" valign="1"/>
-				<text text="0.25" coord="0.5;-1" halign="-1" valign="1"/>
-				<text text="0.5" coord="1;-1" halign="-1" valign="1"/>
-				<text text="0.75" coord="1.5;-1" halign="-1" valign="1"/>
-				<text text="1.0" coord="2;-1" halign="-1" valign="1"/>
-
-				<text text="Y" coord="0;1" halign="1" valign="-1"/>
-				<text text="0.5" coord="0;0.5" halign="1" valign="-1"/>
-				<text text="0" coord="0;0" halign="1" valign="-1"/>
-				<text text="-0.5" coord="0;-0.5" halign="1" valign="-1"/>
+				<text text="Y" coord="-1;1" halign="1" valign="-1"/>
+				<text text="-0.75" coord="-1;-0.75" halign="1" valign="-1"/>
+				<text text="-0.5" coord="-1;-0.5" halign="1" valign="-1"/>
+				<text text="-0.25" coord="-1;-0.25" halign="1" valign="-1"/>
+				<text text="0" coord="-1;0" halign="1" valign="-1"/>
+				<text text="0.25" coord="-1;0.25" halign="1" valign="-1"/>
+				<text text="0.5" coord="-1;0.5" halign="1" valign="-1"/>
+				<text text="0.75" coord="-1;0.75" halign="1" valign="-1"/>
 			</graph>
 
 			<align hpos="1"><label text="labels.graphs.oscilloscope"/></align>
