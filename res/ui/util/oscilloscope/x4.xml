@@ -51,40 +51,42 @@
 				<axis min="-1.0" max="1.0" color="g_white" visible="0" angle="0.5" logarithmic="false"/>
 
 				<stream id="oscv_1" width="3"/>
-
-				<!--<marker value="-1" color="g_white" basis="1" parallel="0" /> -->
+				
 				<marker value="-0.875" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
 				<marker value="-0.625" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.5" color="g_yellow" basis="1" parallel="0"/>
 				<marker value="-0.375" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="-0.25" color="g_gray" basis="1" parallel="0"/>
 				<marker value="-0.125" color="g_dark_gray" basis="1" parallel="0"/>
 				<marker value="0.125" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.25" color="g_gray" basis="1" parallel="0"/>
 				<marker value="0.375" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.5" color="g_yellow" basis="1" parallel="0"/>
 				<marker value="0.625" color="g_dark_gray" basis="1" parallel="0"/>
-				<marker value="0.75" color="g_gray" basis="1" parallel="0"/>
 				<marker value="0.875" color="g_dark_gray" basis="1" parallel="0"/>
-				<!--<marker value="1" color="g_white" basis="1" parallel="0" /> -->
-
         <marker value="0.125" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.25" color="g_gray" basis="0" parallel="1"/>
 				<marker value="0.375" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.5" color="g_yellow" basis="0" parallel="1"/>
 				<marker value="0.625" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="0.75" color="g_gray" basis="0" parallel="1"/>
 				<marker value="0.875" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1" color="g_white" basis="0" parallel="1"/>
 				<marker value="1.125" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.25" color="g_gray" basis="0" parallel="1"/>
 				<marker value="1.375" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.5" color="g_yellow" basis="0" parallel="1"/>
 				<marker value="1.625" color="g_dark_gray" basis="0" parallel="1"/>
-				<marker value="1.75" color="g_gray" basis="0" parallel="1"/>
 				<marker value="1.875" color="g_dark_gray" basis="0" parallel="1"/>
-				<!--<marker value="2" color="g_white" basis="0" parallel="1" /> -->
+
+
+				<marker value="-0.75" color="g_gray" basis="1" parallel="0"/>
+				<marker value="-0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.25" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.75" color="g_gray" basis="1" parallel="0"/>
+				<marker value="0.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="0.75" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1.25" color="g_gray" basis="0" parallel="1"/>
+				<marker value="1.75" color="g_gray" basis="0" parallel="1"/>
+
+				<marker value="-0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="0.5" color="g_yellow" basis="0" parallel="1"/>
+				<marker value="0.5" color="g_yellow" basis="1" parallel="0"/>
+				<marker value="1.5" color="g_yellow" basis="0" parallel="1"/>
+
+					<marker value="1" color="g_white" basis="0" parallel="1"/>
+					<marker value="0" color="g_white" basis="1" parallel="0"/>
+
 
 				<text text="X" coord="0;-1" halign="1" valign="1"/>
 				<text text="0.25" coord="0.5;-1" halign="-1" valign="1"/>
