@@ -18,7 +18,7 @@
 #define SWEEP_GEN_PEAK      1.0f
 #define DC_BLOCK_CUTOFF_HZ  5.0
 #define DC_BLOCK_DFL_ALPHA  0.999f
-#define DECIM_PRECISION     1e-4 // For development, this should be calculated from screen size !!!
+#define DECIM_PRECISION     0.25e-4 // For development, this should be calculated from screen size !!!
 
 namespace lsp
 {
@@ -805,46 +805,46 @@ namespace lsp
     void oscilloscope_base::graph_stream(channel_t * c)
     {
         stream_t *stream = c->pStream->getBuffer<stream_t>();
-        if (stream != NULL)
+        if (stream == NULL)
+            return;
+
+        // In-place decimation:
+        size_t j = 0;
+
+        for (size_t i = 1; i < c->nSweepSize; ++i)
         {
-            // In-place decimation:
-            size_t j = 0;
+            float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
+            float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
+            float s     = dx*dx + dy*dy;
 
-            for (size_t i = 1; i < c->nSweepSize; ++i)
+            if (s < DECIM_PRECISION) // Skip point
             {
-                float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
-                float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
-                float s     = dx*dx + dy*dy;
-
-                if (s < DECIM_PRECISION) // Skip point
-                {
-                    c->vDisplay_s[j] = lsp_max(c->vDisplay_s[i], c->vDisplay_s[j]); // Keep the strobe signal
-                    continue;
-                }
-
-                // Add point to decimated array
-                ++j;
-                c->vDisplay_x[j] = c->vDisplay_x[i];
-                c->vDisplay_y[j] = c->vDisplay_y[i];
+                c->vDisplay_s[j] = lsp_max(c->vDisplay_s[i], c->vDisplay_s[j]); // Keep the strobe signal
+                continue;
             }
 
-            size_t to_submit = j + 1; // Total number of decimated samples.
+            // Add point to decimated array
+            ++j;
+            c->vDisplay_x[j] = c->vDisplay_x[i];
+            c->vDisplay_y[j] = c->vDisplay_y[i];
+        }
 
-            // Submit data for plotting (emit the figure data with fixed-size frames):
-            for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
-            {
-                // Apply scaling and offset:
-                c->vDisplay_y[i] = c->fScale * c->vDisplay_y[i] + c->fOffset;
+        size_t to_submit = j + 1; // Total number of decimated samples.
 
-                size_t count = stream->add_frame(BUF_LIM_SIZE - i);  // Add a frame
-                stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
-                stream->write_frame(1, &c->vDisplay_y[i], 0, count); // Y's
-                stream->write_frame(2, &c->vDisplay_s[i], 0, count); // Strobe signal
-                stream->commit_frame();                              // Commit the frame
+        // Submit data for plotting (emit the figure data with fixed-size frames):
+        for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
+        {
+            // Apply scaling and offset:
+            c->vDisplay_y[i] = c->fScale * c->vDisplay_y[i] + c->fOffset;
 
-                // Move the index in the source buffer
-                i += count;
-            }
+            size_t count = stream->add_frame(to_submit - i);     // Add a frame
+            stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
+            stream->write_frame(1, &c->vDisplay_y[i], 0, count); // Y's
+            stream->write_frame(2, &c->vDisplay_s[i], 0, count); // Strobe signal
+            stream->commit_frame();                              // Commit the frame
+
+            // Move the index in the source buffer
+            i += count;
         }
     }
 
