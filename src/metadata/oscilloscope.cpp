@@ -99,6 +99,7 @@ namespace lsp
 
     #define CHANNEL_SWITCHES(id, label) \
         SWITCH("glsw" id, "Global Switch" label, 0.0f), \
+        SWITCH("frz" id, "Freeze Switch" label, 0.0f), \
         SWITCH("chsl" id, "Solo Switch" label, 0.0f), \
         SWITCH("chmt" id, "Mute Switch" label, 0.0f)
 

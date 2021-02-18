@@ -492,6 +492,7 @@ namespace lsp
             c->pTrgReset        = NULL;
 
             c->pGlobalSwitch    = NULL;
+            c->pFreezeSwitch    = NULL;
             c->pSoloSwitch      = NULL;
             c->pMuteSwitch      = NULL;
 
@@ -651,6 +652,9 @@ namespace lsp
         {
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pGlobalSwitch = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pFreezeSwitch = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pSoloSwitch = vPorts[port_id++];
@@ -1347,6 +1351,7 @@ namespace lsp
                 v->write("pTrgReset", &c->pTrgReset);
 
                 v->write("pGlobalSwitch", &c->pGlobalSwitch);
+                v->write("pFreezeSwitch", &c->pFreezeSwitch);
                 v->write("pSoloSwitch", &c->pSoloSwitch);
                 v->write("pMuteSwitch", &c->pMuteSwitch);
 

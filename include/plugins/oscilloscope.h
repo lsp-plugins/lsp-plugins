@@ -202,6 +202,7 @@ namespace lsp
                 IPort              *pTrgReset;
 
                 IPort              *pGlobalSwitch;
+                IPort              *pFreezeSwitch;
                 IPort              *pSoloSwitch;
                 IPort              *pMuteSwitch;
 

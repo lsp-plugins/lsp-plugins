@@ -173,7 +173,7 @@
 					<cell bg_color="osc_bg_gray" cols="2">
 						<align hpos="0" padding="4">
 							<hbox>
-								<button id="on_${i}" led="true" color="yellow" size="12"/>
+								<button id="glsw_${i}" led="true" color="yellow" size="12"/>
 								<label text="labels.chan.on"/>
 							</hbox>
 						</align>
@@ -184,9 +184,9 @@
 								<hbox>
 									<button id="frz_${i}" led="true" color="cyan" size="12"/>
 									<label text="labels.chan.freeze" pad_right="4"/>
-									<button id="solo_${i}" led="true" color="green" size="12"/>
+									<button id="chsl_${i}" led="true" color="green" size="12"/>
 									<label text="labels.chan.solo" pad_right="4"/>
-									<button id="mute_${i}" led="true" color="red" size="12"/>
+									<button id="chmt_${i}" led="true" color="red" size="12"/>
 									<label text="labels.chan.mute"/>
 								</hbox>
 							</align>
