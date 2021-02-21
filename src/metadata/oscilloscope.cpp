@@ -114,7 +114,7 @@ namespace lsp
 
     #define HOR_CONTROLS(id, label) \
         COMBO("swtp" id, "Sweep Type" label, oscilloscope_base_metadata::SWEEP_TYPE_DFL, sweep_type), \
-        CONTROL("hzdv" id, "Horizontal Division" label, U_SEC, oscilloscope_base_metadata::TIME_DIVISION), \
+        CONTROL("hzdv" id, "Horizontal Division" label, U_MSEC, oscilloscope_base_metadata::TIME_DIVISION), \
         CONTROL("hzps" id, "Horizontal Position" label, U_PERCENT, oscilloscope_base_metadata::TIME_POSITION)
 
     #define VER_CONTROLS(id, label) \

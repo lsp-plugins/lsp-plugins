@@ -157,8 +157,8 @@ namespace lsp
                 size_t              nPreTrigger;
                 size_t              nSweepSize;
 
-                float               fScale;
-                float               fOffset;
+                float               fStreamScale;
+                float               fStreamOffset;
 
                 ch_state_t          enState;
 

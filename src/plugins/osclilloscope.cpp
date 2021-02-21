@@ -11,13 +11,17 @@
 #define TRACE_PORT(p)       lsp_trace("  port id=%s", (p)->metadata()->id);
 #define BUF_LIM_SIZE        196608
 #define PRE_TRG_MAX_SIZE    196608
-#define N_HOR_DIVISIONS     4
-#define N_VER_DIVISIONS     2
-#define VER_FULL_SCALE_AMP  1.0f
+
 #define SWEEP_GEN_N_BITS    32
-#define SWEEP_GEN_PEAK      1.0f
+#define SWEEP_GEN_PEAK      1.0f // Stream min x coordinate should be -SWEEP_GEN_PEAK and max x coordinate should be +SWEEP_GEN_PEAK
+
 #define DC_BLOCK_CUTOFF_HZ  5.0
 #define DC_BLOCK_DFL_ALPHA  0.999f
+
+#define STREAM_MAX_Y        1.0f
+#define STREAM_MIN_Y       -1.0f
+#define STREAM_N_VER_DIV    4
+#define STREAM_N_HOR_DIV    4
 #define DECIM_PRECISION     0.25e-4 // For development, this should be calculated from screen size !!!
 
 namespace lsp
@@ -451,8 +455,8 @@ namespace lsp
             c->nPreTrigger      = 0;
             c->nSweepSize       = 0;
 
-            c->fScale           = 0.0f;
-            c->fOffset          = 0.0f;
+            c->fStreamScale     = 0.0f;
+            c->fStreamOffset    = 0.0f;
 
             c->enState          = CH_STATE_LISTENING;
 
@@ -757,13 +761,14 @@ namespace lsp
 
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
-             c->nSweepSize = N_HOR_DIVISIONS * seconds_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pHorDiv);
+             c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pHorDiv);
              c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
         }
 
         if (c->nUpdate & UPD_PRETRG_DELAY)
         {
-             c->nPreTrigger = (0.01f * c->sStateStage.fPV_pHorPos  + 1) * (c->nSweepSize - 1) / 2;
+             c->nPreTrigger = 0.5f * (0.01f * c->sStateStage.fPV_pHorPos  + 1) * (c->nSweepSize - 1);
+             c->nPreTrigger = (c->nPreTrigger < PRE_TRG_MAX_SIZE) ? c->nPreTrigger : PRE_TRG_MAX_SIZE;
              c->sPreTrgDelay.set_delay(c->nPreTrigger);
              c->sPreTrgDelay.clear();
         }
@@ -786,13 +791,13 @@ namespace lsp
 
         if (c->nUpdate & UPD_TRIGGER)
         {
-            c->fScale = VER_FULL_SCALE_AMP / (c->sStateStage.fPV_pVerDiv * N_VER_DIVISIONS);
-            c->fOffset = 0.01f * c->sStateStage.fPV_pVerPos * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv;
+            c->fStreamScale = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
+            c->fStreamOffset = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
 
             c->sTrigger.set_trigger_mode(get_trigger_mode(c->sStateStage.nPV_pTrgMode));
-            c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv);
+            c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
             c->sTrigger.set_trigger_type(get_trigger_type(c->sStateStage.nPV_pTrgType));
-            c->sTrigger.set_trigger_threshold(0.01f * c->sStateStage.fPV_pTrgLevel * N_VER_DIVISIONS * c->sStateStage.fPV_pVerDiv);
+            c->sTrigger.set_trigger_threshold(0.5f * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv * 0.01f * c->sStateStage.fPV_pTrgLevel);
             c->sTrigger.update_settings();
         }
 
@@ -835,11 +840,13 @@ namespace lsp
 
         size_t to_submit = j + 1; // Total number of decimated samples.
 
+        // Apply scaling and offset:
+        for (size_t i = 0; i < to_submit; ++i)
+            c->vDisplay_y[i] = c->fStreamScale * c->vDisplay_y[i] + c->fStreamOffset;
+
         // Submit data for plotting (emit the figure data with fixed-size frames):
         for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
         {
-            // Apply scaling and offset:
-            c->vDisplay_y[i] = c->fScale * c->vDisplay_y[i] + c->fOffset;
 
             size_t count = stream->add_frame(to_submit - i);     // Add a frame
             stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
@@ -1202,6 +1209,33 @@ namespace lsp
                         {
                             c->sTrigger.single_sample_processor(trg_input[n]);
 
+
+
+
+//                            if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
+//                            {
+//                                reset_display_buffers(c);
+//                                c->sSweepGenerator.reset_phase_accumulator();
+////                                c->nDataHead = n;
+////                                c->enState = CH_STATE_SWEEPING;
+//                                do_sweep_step(c, 1.0f);
+//                            }
+//                            else
+//                            {
+//                                do_sweep_step(c, 0.0f);
+//                            }
+//
+//                            if (c->nDisplayHead >= c->nSweepSize)
+//                            {
+//                                // Plot time!
+//                                graph_stream(c);
+//
+//                                reset_display_buffers(c);
+////                                c->enState = CH_STATE_LISTENING;
+//                            }
+
+
+
                             switch (c->enState)
                             {
                                 case CH_STATE_LISTENING:
@@ -1231,6 +1265,9 @@ namespace lsp
                                 }
                                 break;
                             }
+
+
+
                         }
                     }
                     break;
@@ -1306,8 +1343,8 @@ namespace lsp
                 v->write("nPreTrigger", &c->nPreTrigger);
                 v->write("nSweepSize", &c->nSweepSize);
 
-                v->write("fScale", &c->fScale);
-                v->write("fOffset", &c->fOffset);
+                v->write("fStreamScale", &c->fStreamScale);
+                v->write("fStreamOffset", &c->fStreamOffset);
 
                 v->write("enState", &c->enState);
 
