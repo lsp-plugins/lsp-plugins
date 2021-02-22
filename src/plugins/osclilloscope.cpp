@@ -784,8 +784,9 @@ namespace lsp
 
         if (c->nUpdate & UPD_TRIGGER_HOLD)
         {
+            size_t minHold = c->nSweepSize;
             size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pTrgHold);
-            trgHold = trgHold > c->nSweepSize ? trgHold : c->nSweepSize;
+            trgHold = trgHold > minHold ? trgHold : minHold;
             c->sTrigger.set_trigger_hold_samples(trgHold);
         }
 
@@ -924,6 +925,9 @@ namespace lsp
                 c->nUpdate |= UPD_OVERSAMPLER_X;
                 c->nUpdate |= UPD_OVERSAMPLER_Y;
                 c->nUpdate |= UPD_OVERSAMPLER_EXT;
+                c->nUpdate |= UPD_PRETRG_DELAY;
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
             size_t trginput;
@@ -1031,6 +1035,7 @@ namespace lsp
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_PRETRG_DELAY;
             }
 
             float horPos;
