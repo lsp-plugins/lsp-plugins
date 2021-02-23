@@ -88,12 +88,12 @@ namespace lsp
             TRIGGER_TYPE_ADVANCED_RISING_EDGE,
             TRIGGER_TYPE_ADVANCED_FALLING_EDGE,
 
-            TRIGGER_TYPE_DFL = TRIGGER_TYPE_SIMPLE_RISING_EDGE
+            TRIGGER_TYPE_DFL = TRIGGER_TYPE_ADVANCED_RISING_EDGE
         };
 
         static const float TRIGGER_HYSTERESIS_MAX = 100.0f;
         static const float TRIGGER_HYSTERESIS_MIN = 0.0f;
-        static const float TRIGGER_HYSTERESIS_DFL = 0.0f;
+        static const float TRIGGER_HYSTERESIS_DFL = 1.0f;
         static const float TRIGGER_HYSTERESIS_STEP = 0.01f;
 
         static const float TRIGGER_LEVEL_MAX = 100.0f;

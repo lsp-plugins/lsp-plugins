@@ -24,6 +24,8 @@
 #define STREAM_N_HOR_DIV    4
 #define DECIM_PRECISION     0.25e-4 // For development, this should be calculated from screen size !!!
 
+#define AUTO_SWEEP_TIME     1.0f
+
 namespace lsp
 {
     over_mode_t oscilloscope_base::get_oversampler_mode(size_t portValue)
@@ -458,6 +460,10 @@ namespace lsp
             c->fStreamScale     = 0.0f;
             c->fStreamOffset    = 0.0f;
 
+            c->bAutoSweep       = true;
+            c->nAutoSweepLimit  = 0;
+            c->nAutoSweepCounter = 0;
+
             c->enState          = CH_STATE_LISTENING;
 
             c->vIn_x            = NULL;
@@ -788,6 +794,10 @@ namespace lsp
             size_t trgHold = seconds_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pTrgHold);
             trgHold = trgHold > minHold ? trgHold : minHold;
             c->sTrigger.set_trigger_hold_samples(trgHold);
+
+            c->nAutoSweepLimit = seconds_to_samples(c->nOverSampleRate, AUTO_SWEEP_TIME);
+            c->nAutoSweepLimit = (c->nAutoSweepLimit < trgHold) ? c->nAutoSweepLimit : trgHold;
+            c->nAutoSweepCounter = 0;
         }
 
         if (c->nUpdate & UPD_TRIGGER)
@@ -795,7 +805,14 @@ namespace lsp
             c->fStreamScale = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
             c->fStreamOffset = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
 
-            c->sTrigger.set_trigger_mode(get_trigger_mode(c->sStateStage.nPV_pTrgMode));
+            trg_mode_t trgMode = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
+
+            if ((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL))
+                c->bAutoSweep = false;
+            else
+                c->bAutoSweep = true;
+
+            c->sTrigger.set_trigger_mode(trgMode);
             c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
             c->sTrigger.set_trigger_type(get_trigger_type(c->sStateStage.nPV_pTrgType));
             c->sTrigger.set_trigger_threshold(0.5f * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv * 0.01f * c->sStateStage.fPV_pTrgLevel);
@@ -1035,6 +1052,7 @@ namespace lsp
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_TRIGGER_HOLD;
                 c->nUpdate |= UPD_PRETRG_DELAY;
             }
 
@@ -1214,43 +1232,29 @@ namespace lsp
                         {
                             c->sTrigger.single_sample_processor(trg_input[n]);
 
-
-
-
-//                            if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
-//                            {
-//                                reset_display_buffers(c);
-//                                c->sSweepGenerator.reset_phase_accumulator();
-////                                c->nDataHead = n;
-////                                c->enState = CH_STATE_SWEEPING;
-//                                do_sweep_step(c, 1.0f);
-//                            }
-//                            else
-//                            {
-//                                do_sweep_step(c, 0.0f);
-//                            }
-//
-//                            if (c->nDisplayHead >= c->nSweepSize)
-//                            {
-//                                // Plot time!
-//                                graph_stream(c);
-//
-//                                reset_display_buffers(c);
-////                                c->enState = CH_STATE_LISTENING;
-//                            }
-
-
-
                             switch (c->enState)
                             {
                                 case CH_STATE_LISTENING:
                                 {
+                                    if (c->bAutoSweep)
+                                    {
+                                        if (c->nAutoSweepCounter > c->nAutoSweepLimit)
+                                        {
+                                            c->enState = CH_STATE_SWEEPING;
+                                            do_sweep_step(c, 1.0f);
+                                            c->nAutoSweepCounter = 0;
+                                        }
+
+                                        ++c->nAutoSweepCounter;
+                                    }
+
                                     if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
                                     {
                                         c->sSweepGenerator.reset_phase_accumulator();
                                         c->nDataHead = n;
                                         c->enState = CH_STATE_SWEEPING;
                                         do_sweep_step(c, 1.0f);
+                                        c->nAutoSweepCounter = 0;
                                     }
                                 }
                                 break;
@@ -1270,8 +1274,6 @@ namespace lsp
                                 }
                                 break;
                             }
-
-
 
                         }
                     }

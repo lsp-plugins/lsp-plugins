@@ -160,6 +160,10 @@ namespace lsp
                 float               fStreamScale;
                 float               fStreamOffset;
 
+                bool                bAutoSweep;
+                size_t              nAutoSweepLimit;
+                size_t              nAutoSweepCounter;
+
                 ch_state_t          enState;
 
                 size_t              nUpdate;
