@@ -1353,6 +1353,10 @@ namespace lsp
                 v->write("fStreamScale", &c->fStreamScale);
                 v->write("fStreamOffset", &c->fStreamOffset);
 
+                v->write("bAutoSweep", &c->bAutoSweep);
+                v->write("nAutoSweepLimit", &c->nAutoSweepLimit);
+                v->write("nAutoSweepCounter", &c->nAutoSweepCounter);
+
                 v->write("enState", &c->enState);
 
                 v->write("nUpdate", &c->nUpdate);
