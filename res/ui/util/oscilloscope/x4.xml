@@ -76,10 +76,10 @@
 				<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false"/>
 
 				<!-- Streams -->
-				<stream id="oscv_1" width="3" color="red" strobes="1"/>
-				<stream id="oscv_2" width="3" color="green" strobes="1"/>
-				<stream id="oscv_3" width="3" color="yellow" strobes="1"/>
-				<stream id="oscv_4" width="3" color="blue" strobes="1"/>
+				<stream id="oscv_1" width="3" color="red" smooth="true" strobe="true" strobes="1"/>
+				<stream id="oscv_2" width="3" color="green" smooth="true" strobe="true" strobes="1"/>
+				<stream id="oscv_3" width="3" color="yellow" smooth="true" strobe="true" strobes="1"/>
+				<stream id="oscv_4" width="3" color="blue" smooth="true" strobe="true" strobes="1"/>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
