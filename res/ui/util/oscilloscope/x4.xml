@@ -76,10 +76,10 @@
 				<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false"/>
 
 				<!-- Streams -->
-				<stream id="oscv_1" width="3" color="red" smooth="true" strobe="true" strobes="1"/>
-				<stream id="oscv_2" width="3" color="green" smooth="true" strobe="true" strobes="1"/>
-				<stream id="oscv_3" width="3" color="yellow" smooth="true" strobe="true" strobes="1"/>
-				<stream id="oscv_4" width="3" color="blue" smooth="true" strobe="true" strobes="1"/>
+				<stream id="oscv_1" width="3" color="red" smooth="true" strobe="true" strobes="0"/>
+				<stream id="oscv_2" width="3" color="green" smooth="true" strobe="true" strobes="0"/>
+				<stream id="oscv_3" width="3" color="yellow" smooth="true" strobe="true" strobes="0"/>
+				<stream id="oscv_4" width="3" color="blue" smooth="true" strobe="true" strobes="0"/>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
@@ -231,8 +231,8 @@
 					<align hpos="1">
 						<label text="groups.oscilloscope.vertical"/>
 					</align>
-					<knob id="vedv_${i}" size="25" bg_color="osc_bg_gray" pad_left="19"/>
-					<knob id="veps_${i}" size="25" bg_color="osc_bg_gray"/>
+					<knob id="vedv" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<knob id="veps" size="25" bg_color="osc_bg_gray"/>
 					<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
 					<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
