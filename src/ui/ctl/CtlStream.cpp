@@ -55,6 +55,9 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, mesh, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+
+            // Initialize expressions
+            sStrobes.init(pRegistry, this);
         }
 
         void CtlStream::set(widget_attribute_t att, const char *value)
@@ -94,8 +97,7 @@ namespace lsp
                         PARSE_BOOL(value, mesh->set_strobes(__));
                     break;
                 case A_STROBES:
-                    if (mesh != NULL)
-                        PARSE_INT(value, mesh->set_num_strobes(__));
+                    BIND_EXPR(sStrobes, value);
                     break;
                 default:
                 {
@@ -111,17 +113,39 @@ namespace lsp
         {
             sColor.set_alpha(fTransparency);
             CtlWidget::end();
+
+            trigger_expr();
+        }
+
+        void CtlStream::trigger_expr()
+        {
+            LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
+            if (mesh == NULL)
+                return;
+
+            if (sStrobes.valid())
+            {
+                ssize_t value = sStrobes.evaluate();
+                mesh->set_num_strobes(value);
+            }
         }
 
         void CtlStream::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
 
+            // Trigger expressions
+            trigger_expr();
+
+            // Commit stream data
+            if ((port != NULL) && (port == pPort))
+                commit_data();
+        }
+
+        void CtlStream::commit_data()
+        {
             LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
             if (mesh == NULL)
-                return;
-
-            if ((pPort != port) || (pPort == NULL))
                 return;
 
             const port_t *mdata = pPort->metadata();

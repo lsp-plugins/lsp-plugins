@@ -22,7 +22,7 @@
 #define STREAM_MIN_Y       -1.0f
 #define STREAM_N_VER_DIV    4
 #define STREAM_N_HOR_DIV    4
-#define DECIM_PRECISION     0.25e-4 // For development, this should be calculated from screen size !!!
+#define DECIM_PRECISION     0.1e-4 // For development, this should be calculated from screen size !!!
 
 #define AUTO_SWEEP_TIME     1.0f
 
@@ -533,6 +533,10 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pOut_y = vPorts[port_id++];
         }
+
+        // Common settings
+        TRACE_PORT(vPorts[port_id]);
+        port_id++; // Skip strobe history size
 
         // Channel selector only exists on multi-channel versions. Skip for 1X plugin.
         if (nChannels > 1)

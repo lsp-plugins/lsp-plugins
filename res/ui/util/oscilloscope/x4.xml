@@ -76,10 +76,23 @@
 				<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false"/>
 
 				<!-- Streams -->
-				<stream id="oscv_1" width="3" color="red" smooth="true" strobe="true" strobes="0"/>
-				<stream id="oscv_2" width="3" color="green" smooth="true" strobe="true" strobes="0"/>
-				<stream id="oscv_3" width="3" color="yellow" smooth="true" strobe="true" strobes="0"/>
-				<stream id="oscv_4" width="3" color="blue" smooth="true" strobe="true" strobes="0"/>
+				<ui:set id="has_solo" value=":chsl_1 or :chsl_2 or :chsl_3 or :chsl_4" />
+				<stream id="oscv_1" width="3" color="red"
+					visibility="(${has_solo}) ? :chsl_1 : !:chmt_1"
+					smooth="true" strobe="true" strobes=":sh_sz"
+				/>
+				<stream id="oscv_2" width="3" color="green"
+					visibility="(${has_solo}) ? :chsl_2 : !:chmt_2" 
+					smooth="true" strobe="true" strobes=":sh_sz" 
+				/>
+				<stream id="oscv_3" width="3" color="yellow"
+				 	visibility="(${has_solo}) ? :chsl_3 : !:chmt_3"
+					smooth="true" strobe="true" strobes=":sh_sz"
+				/>
+				<stream id="oscv_4" width="3" color="blue"
+					visibility="(${has_solo}) ? :chsl_4 : !:chmt_4"
+					smooth="true" strobe="true" strobes=":sh_sz"
+				/>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
@@ -102,7 +115,14 @@
 				<text text="0.75" coord="-1;0.75" halign="1" valign="-1"/>
 			</graph>
 
-			<align hpos="1"><label text="labels.graphs.oscilloscope"/></align>
+			<hbox>
+				<label text="labels.history" />
+				<fader id="sh_sz" angle="0" />
+				<value id="sh_sz" same_line="true" />
+				<align hpos="1" expand="true">
+					<label text="labels.graphs.oscilloscope"/>
+				</align>
+			</hbox>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">

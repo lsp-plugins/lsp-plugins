@@ -94,6 +94,9 @@ namespace lsp
         AUDIO_OUTPUT("out_x" id, "Output x" label), \
         AUDIO_OUTPUT("out_y" id, "Output y" label)
 
+    #define COMMON_CONTROLS \
+        CONTROL("sh_sz", "Strobe History Size", U_NONE, oscilloscope_base_metadata::STROBE_HISTORY)
+
     #define CHANNEL_SELECTOR(osc_channels) \
         COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)
 
@@ -143,6 +146,7 @@ namespace lsp
     static const port_t oscilloscope_x1_ports[] =
     {
         CHANNEL_AUDIO_PORTS("_1", " 1"),
+        COMMON_CONTROLS,
         CHANNEL_CONTROLS("_1", " 1"),
         CHANNEL_SWITCHES("_1", " 1"),
         OSC_VISUALOUTS("_1", " 1"),
@@ -151,9 +155,11 @@ namespace lsp
 
     static const port_t oscilloscope_x2_ports[] =
     {
-        CHANNEL_SELECTOR(osc_channels_x2),
         CHANNEL_AUDIO_PORTS("_1", " 1"),
         CHANNEL_AUDIO_PORTS("_2", " 2"),
+
+        COMMON_CONTROLS,
+        CHANNEL_SELECTOR(osc_channels_x2),
 
         CHANNEL_CONTROLS("", " Global"),
         CHANNEL_CONTROLS("_1", " 1"),
@@ -175,7 +181,9 @@ namespace lsp
         CHANNEL_AUDIO_PORTS("_3", " 3"),
         CHANNEL_AUDIO_PORTS("_4", " 4"),
 
+        COMMON_CONTROLS,
         CHANNEL_SELECTOR(osc_channels_x4),
+
         CHANNEL_CONTROLS("", " Global"),
         CHANNEL_CONTROLS("_1", " 1"),
         CHANNEL_CONTROLS("_2", " 2"),

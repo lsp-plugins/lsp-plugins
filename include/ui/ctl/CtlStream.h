@@ -36,9 +36,14 @@ namespace lsp
             protected:
                 CtlPort        *pPort;
                 CtlColor        sColor;
+                CtlExpression   sStrobes;
                 float           fTransparency;
 
                 mesh_t         *pMesh;
+
+            protected:
+                void            trigger_expr();
+                void            commit_data();
 
             public:
                 explicit CtlStream(CtlRegistry *src, LSPMesh *mesh);

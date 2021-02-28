@@ -34,6 +34,11 @@ namespace lsp
         static const float VERTICAL_POSITION_DFL = 0.0f;
         static const float VERTICAL_POSITION_STEP = 1.0f;
 
+        static const size_t STROBE_HISTORY_MAX  = 10;
+        static const size_t STROBE_HISTORY_MIN  = 0;
+        static const size_t STROBE_HISTORY_DFL  = 0;
+        static const size_t STROBE_HISTORY_STEP = 1;
+
         enum oversampler_mode_selector_t
         {
             OSC_OVS_NONE,
