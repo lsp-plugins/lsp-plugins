@@ -47,7 +47,7 @@ namespace lsp
 
             protected:
                 void                drop_data();
-                size_t              find_offset(const float *v, size_t count);
+                size_t              find_offset(size_t *found, const float *v, size_t count, size_t strobes);
                 size_t              get_length(const float *v, size_t off, size_t count);
 
             public:

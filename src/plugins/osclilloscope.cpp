@@ -35,16 +35,16 @@ namespace lsp
             case oscilloscope_base_metadata::OSC_OVS_NONE:
                 return OM_NONE;
             case oscilloscope_base_metadata::OSC_OVS_2X:
-                return OM_LANCZOS_2X2;
+                return OM_LANCZOS_2X3;
             case oscilloscope_base_metadata::OSC_OVS_3X:
-                return OM_LANCZOS_3X2;
+                return OM_LANCZOS_3X3;
             case oscilloscope_base_metadata::OSC_OVS_4X:
-                return OM_LANCZOS_4X2;
+                return OM_LANCZOS_4X3;
             case oscilloscope_base_metadata::OSC_OVS_6X:
-                return OM_LANCZOS_6X2;
+                return OM_LANCZOS_6X3;
             case oscilloscope_base_metadata::OSC_OVS_8X:
             default:
-                return OM_LANCZOS_8X2;
+                return OM_LANCZOS_8X3;
         }
     }
 
