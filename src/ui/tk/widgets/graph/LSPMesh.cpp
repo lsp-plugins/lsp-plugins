@@ -224,17 +224,21 @@ namespace lsp
             return STATUS_OK;
         }
 
-        size_t LSPMesh::find_offset(const float *v, size_t count)
+        size_t LSPMesh::find_offset(size_t *found, const float *v, size_t count, size_t strobes)
         {
-            size_t n        = nStrobes;
+            size_t nf       = 0;    // No strobes found
             while (count > 0)
             {
                 float s         = v[--count];
                 if (s < 0.5f)
                     continue;
-                if ((n--) <= 0) // We found start point?
+                if ((strobes--) <= 0)   // We found start point?
                     break;
+                ++nf;                   // Remember that we found the strobe
             }
+
+            if (found != NULL)
+                *found = nf;
 
             return count;
         }
@@ -279,8 +283,9 @@ namespace lsp
 
             // Ensure that we have enough buffer size
             size_t vec_size     = ALIGN_SIZE(nPoints, DEFAULT_ALIGN);
-
-            size_t off          = (bStrobe) ? find_offset(&vBuffer[dimensions*vec_size], nPoints) : 0;
+            size_t found        = 0;
+            size_t strobes      = nStrobes;
+            size_t off          = (bStrobe) ? find_offset(&found, &vBuffer[dimensions*vec_size], nPoints, strobes) : 0;
 
             // Initialize dimensions as zeros
             float *x_vec        = &vBuffer[nDimensions * vec_size];
@@ -317,8 +322,8 @@ namespace lsp
                 const float *svec   = &vBuffer[dimensions*vec_size];
 
                 // Draw mesh using strobes
-                ssize_t op  = 1; // Opacity coefficient
-                float kop   = 1.0f / (nStrobes + 1.0f); // Opacity coefficient
+                ssize_t op  = strobes - found + 1;      // Initial opacity coefficient
+                float kop   = 1.0f / (strobes + 1.0f);  // Opacity coefficient
                 Color line, wire;
 
                 while (off < nPoints)
