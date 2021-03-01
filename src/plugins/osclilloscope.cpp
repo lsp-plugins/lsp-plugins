@@ -1189,16 +1189,15 @@ namespace lsp
                             if (c->nDisplayHead >= c->nSweepSize)
                             {
                                 // Plot time!
-                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
                                 graph_stream(c);
-
                                 reset_display_buffers(c);
+                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
                             }
+                            else
+                                c->vDisplay_s[c->nDisplayHead] = 0.0f;
 
                             c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
                             c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
-                            c->vDisplay_s[c->nDisplayHead] = 0.0f;
-
                             ++c->nDisplayHead;
                         }
 
