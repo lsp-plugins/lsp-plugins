@@ -1184,7 +1184,7 @@ namespace lsp
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
                         }
 
-                        for (size_t n; n < to_do_upsample; ++n)
+                        for (size_t n=0; n < to_do_upsample; ++n)
                         {
                             if (c->nDisplayHead >= c->nSweepSize)
                             {
