@@ -1184,12 +1184,11 @@ namespace lsp
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
                         }
 
-                        for (size_t n; n < to_do_upsample; ++n)
+                        for (size_t n = 0; n < to_do_upsample; ++n)
                         {
                             if (c->nDisplayHead >= c->nSweepSize)
                             {
                                 // Plot time!
-                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
                                 graph_stream(c);
 
                                 reset_display_buffers(c);
@@ -1197,7 +1196,12 @@ namespace lsp
 
                             c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
                             c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
-                            c->vDisplay_s[c->nDisplayHead] = 0.0f;
+
+                            // This ensures the strobe has nSweepSize period and 0 phase shift.
+                            if (c->nDisplayHead == 0)
+                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
+                            else
+                                c->vDisplay_s[c->nDisplayHead] = 0.0f;
 
                             ++c->nDisplayHead;
                         }
