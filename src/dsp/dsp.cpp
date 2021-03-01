@@ -336,14 +336,19 @@ namespace dsp
 
     void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;
+    void    (* lanczos_resample_2x4)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_3x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_3x3)(float *dst, const float *src, size_t count) = NULL;
+    void    (* lanczos_resample_3x4)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_4x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_4x3)(float *dst, const float *src, size_t count) = NULL;
+    void    (* lanczos_resample_4x4)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_6x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_6x3)(float *dst, const float *src, size_t count) = NULL;
+    void    (* lanczos_resample_6x4)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_8x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_8x3)(float *dst, const float *src, size_t count) = NULL;
+    void    (* lanczos_resample_8x4)(float *dst, const float *src, size_t count) = NULL;
 
     void    (* downsample_2x)(float *dst, const float *src, size_t count) = NULL;
     void    (* downsample_3x)(float *dst, const float *src, size_t count) = NULL;

@@ -147,22 +147,27 @@ namespace lsp
         {
             case OM_LANCZOS_2X2:
             case OM_LANCZOS_2X3:
+            case OM_LANCZOS_2X4:
                 return 2;
 
             case OM_LANCZOS_3X2:
             case OM_LANCZOS_3X3:
+            case OM_LANCZOS_3X4:
                 return 3;
 
             case OM_LANCZOS_4X2:
             case OM_LANCZOS_4X3:
+            case OM_LANCZOS_4X4:
                 return 4;
 
             case OM_LANCZOS_6X2:
             case OM_LANCZOS_6X3:
+            case OM_LANCZOS_6X4:
                 return 6;
 
             case OM_LANCZOS_8X2:
             case OM_LANCZOS_8X3:
+            case OM_LANCZOS_8X4:
                 return 8;
 
             default:
@@ -172,12 +177,45 @@ namespace lsp
         return 1;
     }
 
+    size_t Oversampler::latency() const
+    {
+        switch (nMode)
+        {
+            case OM_LANCZOS_2X2:
+            case OM_LANCZOS_3X2:
+            case OM_LANCZOS_4X2:
+            case OM_LANCZOS_6X2:
+            case OM_LANCZOS_8X2:
+                return 2;
+
+            case OM_LANCZOS_2X3:
+            case OM_LANCZOS_3X3:
+            case OM_LANCZOS_4X3:
+            case OM_LANCZOS_6X3:
+            case OM_LANCZOS_8X3:
+                return 3;
+
+            case OM_LANCZOS_2X4:
+            case OM_LANCZOS_3X4:
+            case OM_LANCZOS_4X4:
+            case OM_LANCZOS_6X4:
+            case OM_LANCZOS_8X4:
+                return 4;
+
+            default:
+                break;
+        }
+
+        return 0;
+    }
+
     void Oversampler::upsample(float *dst, const float *src, size_t samples)
     {
         switch (nMode)
         {
             case OM_LANCZOS_2X2:
             case OM_LANCZOS_2X3:
+            case OM_LANCZOS_2X4:
             {
                 while (samples > 0)
                 {
@@ -211,6 +249,7 @@ namespace lsp
 
             case OM_LANCZOS_3X2:
             case OM_LANCZOS_3X3:
+            case OM_LANCZOS_3X4:
             {
                 while (samples > 0)
                 {
@@ -244,6 +283,7 @@ namespace lsp
 
             case OM_LANCZOS_4X2:
             case OM_LANCZOS_4X3:
+            case OM_LANCZOS_4X4:
             {
                 while (samples > 0)
                 {
@@ -277,6 +317,7 @@ namespace lsp
 
             case OM_LANCZOS_6X2:
             case OM_LANCZOS_6X3:
+            case OM_LANCZOS_6X4:
             {
                 while (samples > 0)
                 {
@@ -310,6 +351,7 @@ namespace lsp
 
             case OM_LANCZOS_8X2:
             case OM_LANCZOS_8X3:
+            case OM_LANCZOS_8X4:
             {
                 while (samples > 0)
                 {
@@ -355,6 +397,7 @@ namespace lsp
         {
             case OM_LANCZOS_2X2:
             case OM_LANCZOS_2X3:
+            case OM_LANCZOS_2X4:
             {
                 while (samples > 0)
                 {
@@ -380,6 +423,7 @@ namespace lsp
 
             case OM_LANCZOS_3X2:
             case OM_LANCZOS_3X3:
+            case OM_LANCZOS_3X4:
             {
                 while (samples > 0)
                 {
@@ -405,6 +449,7 @@ namespace lsp
 
             case OM_LANCZOS_4X2:
             case OM_LANCZOS_4X3:
+            case OM_LANCZOS_4X4:
             {
                 while (samples > 0)
                 {
@@ -430,6 +475,7 @@ namespace lsp
 
             case OM_LANCZOS_6X2:
             case OM_LANCZOS_6X3:
+            case OM_LANCZOS_6X4:
             {
                 while (samples > 0)
                 {
@@ -456,6 +502,7 @@ namespace lsp
 
             case OM_LANCZOS_8X2:
             case OM_LANCZOS_8X3:
+            case OM_LANCZOS_8X4:
             {
                 while (samples > 0)
                 {
@@ -493,6 +540,7 @@ namespace lsp
         {
             case OM_LANCZOS_2X2:
             case OM_LANCZOS_2X3:
+            case OM_LANCZOS_2X4:
             {
                 while (samples > 0)
                 {
@@ -534,6 +582,7 @@ namespace lsp
 
             case OM_LANCZOS_3X2:
             case OM_LANCZOS_3X3:
+            case OM_LANCZOS_3X4:
             {
                 while (samples > 0)
                 {
@@ -575,6 +624,7 @@ namespace lsp
 
             case OM_LANCZOS_4X2:
             case OM_LANCZOS_4X3:
+            case OM_LANCZOS_4X4:
             {
                 while (samples > 0)
                 {
@@ -616,6 +666,7 @@ namespace lsp
 
             case OM_LANCZOS_6X2:
             case OM_LANCZOS_6X3:
+            case OM_LANCZOS_6X4:
             {
                 while (samples > 0)
                 {
@@ -657,6 +708,7 @@ namespace lsp
 
             case OM_LANCZOS_8X2:
             case OM_LANCZOS_8X3:
+            case OM_LANCZOS_8X4:
             {
                 while (samples > 0)
                 {
@@ -704,31 +756,6 @@ namespace lsp
                     dsp::copy(dst, src, samples);
                 break;
         }
-    }
-
-    size_t Oversampler::latency() const
-    {
-        switch (nMode)
-        {
-            case OM_LANCZOS_2X2:
-            case OM_LANCZOS_3X2:
-            case OM_LANCZOS_4X2:
-            case OM_LANCZOS_6X2:
-            case OM_LANCZOS_8X2:
-                return 2;
-
-            case OM_LANCZOS_2X3:
-            case OM_LANCZOS_3X3:
-            case OM_LANCZOS_4X3:
-            case OM_LANCZOS_6X3:
-            case OM_LANCZOS_8X3:
-                return 3;
-
-            default:
-                break;
-        }
-
-        return 0;
     }
 
     void Oversampler::dump(IStateDumper *v) const
