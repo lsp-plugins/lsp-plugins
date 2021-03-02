@@ -59,7 +59,7 @@ IF_ARCH_X86(
         void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
-//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 
     namespace avx
@@ -192,7 +192,7 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         IF_ARCH_X86(CALL(native::lanczos_resample_6x4, sse::lanczos_resample_6x4, 16, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x2, sse::lanczos_resample_8x2, 16, 8));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x3, sse::lanczos_resample_8x3, 16, 8));
-//        IF_ARCH_X86(CALL(native::lanczos_resample_8x4, sse::lanczos_resample_8x4, 16, 8));
+        IF_ARCH_X86(CALL(native::lanczos_resample_8x4, sse::lanczos_resample_8x4, 16, 8));
 
         IF_ARCH_X86(CALL(native::lanczos_resample_2x2, avx::lanczos_resample_2x2, 32, 2));
         IF_ARCH_X86(CALL(native::lanczos_resample_2x3, avx::lanczos_resample_2x3, 32, 2));
