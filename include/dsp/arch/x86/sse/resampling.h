@@ -550,7 +550,7 @@ namespace sse
 
             -0.1458230329384726f,
             -0.0933267410806225f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             +0.0310789306368038f,
 
             +0.0126609519658153f,
@@ -674,14 +674,14 @@ namespace sse
         // Lanczos kernel 3x4: 12 SSE registers
         static const float lanczos_kernel_3x4[] __lsp_aligned16 =
         {
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             -0.0067568495254777f,
             -0.0157944094156391f,
             +0.0000000000000000f,
 
             +0.0427448743491113f,
             +0.0622703182267308f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             -0.1220498237243924f,
 
             -0.1709794973964449f,
@@ -696,7 +696,7 @@ namespace sse
 
             -0.1709794973964449f,
             -0.1220498237243924f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             +0.0622703182267308f,
 
             +0.0427448743491113f,
@@ -711,7 +711,7 @@ namespace sse
             +0.0427448743491113f,
 
             +0.0622703182267308f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             -0.1220498237243924f,
             -0.1709794973964449f,
 
@@ -726,7 +726,7 @@ namespace sse
             -0.1709794973964449f,
 
             -0.1220498237243924f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             +0.0622703182267308f,
             +0.0427448743491113f,
 
@@ -1145,6 +1145,128 @@ namespace sse
     }
 
     IF_ARCH_X86(
+        // Lanczos kernel 4x4: 8 SSE registers
+        static const float lanczos_kernel_4x4[] __lsp_aligned16 =
+        {
+            +0.0000000000000000f,
+            -0.0039757442382413f,
+            -0.0126608778212387f,
+            -0.0150736176408234f,
+
+            +0.0000000000000000f,
+            +0.0315083921595442f,
+            +0.0599094833772629f,
+            +0.0555206000541729f,
+
+            +0.0000000000000000f,
+            -0.0917789511099593f,
+            -0.1664152316035080f,
+            -0.1525006180521938f,
+
+            +0.0000000000000000f,
+            +0.2830490423665725f,
+            +0.6203830132406946f,
+            +0.8945424536042901f,
+
+            +1.0000000000000000f,
+            +0.8945424536042901f,
+            +0.6203830132406946f,
+            +0.2830490423665725f,
+
+            +0.0000000000000000f,
+            -0.1525006180521938f,
+            -0.1664152316035080f,
+            -0.0917789511099593f,
+
+            +0.0000000000000000f,
+            +0.0555206000541729f,
+            +0.0599094833772629f,
+            +0.0315083921595442f,
+
+            +0.0000000000000000f,
+            -0.0150736176408234f,
+            -0.0126608778212387f,
+            -0.0039757442382413f
+        };
+    )
+
+    void lanczos_resample_4x4(float *dst, const float *src, size_t count)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("test        %[count], %[count]")
+            __ASM_EMIT("jz          2f")
+
+            // Load samples
+            __ASM_EMIT(".align 16")
+            __ASM_EMIT("1:")
+
+            // Do convolution (part 1)
+            __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
+            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") // xmm0 = s0
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")        // xmm1 = s0
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
+            __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
+
+            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*k0
+            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*k1
+            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*k2
+            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*k3
+            __ASM_EMIT("movups      0x00(%[dst]), %%xmm4")  // xmm4 = d0
+            __ASM_EMIT("movups      0x10(%[dst]), %%xmm5")  // xmm5 = d1
+            __ASM_EMIT("movups      0x20(%[dst]), %%xmm6")  // xmm6 = d2
+            __ASM_EMIT("movups      0x30(%[dst]), %%xmm7")  // xmm7 = d3
+            __ASM_EMIT("addps       %%xmm4, %%xmm0")        // xmm0 = d0 + s0*k0
+            __ASM_EMIT("addps       %%xmm5, %%xmm1")        // xmm1 = d1 + s0*k1
+            __ASM_EMIT("addps       %%xmm6, %%xmm2")        // xmm2 = d2 + s0*k2
+            __ASM_EMIT("addps       %%xmm7, %%xmm3")        // xmm3 = d3 + s0*k3
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")  // d0  += s0*k0
+            __ASM_EMIT("movups      %%xmm1, 0x10(%[dst])")  // d1  += s0*k1
+            __ASM_EMIT("movups      %%xmm2, 0x20(%[dst])")  // d2  += s0*k2
+            __ASM_EMIT("movups      %%xmm3, 0x30(%[dst])")  // d3  += s0*k3
+
+            // Do convolution (part 2)
+            __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
+            __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") // xmm0 = s0
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")        // xmm1 = s0
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
+            __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
+
+            __ASM_EMIT("mulps       0x40(%[k]), %%xmm0")    // xmm0 = s0*k4
+            __ASM_EMIT("mulps       0x50(%[k]), %%xmm1")    // xmm1 = s0*k5
+            __ASM_EMIT("mulps       0x60(%[k]), %%xmm2")    // xmm2 = s0*k6
+            __ASM_EMIT("mulps       0x70(%[k]), %%xmm3")    // xmm3 = s0*k7
+            __ASM_EMIT("movups      0x40(%[dst]), %%xmm4")  // xmm4 = d4
+            __ASM_EMIT("movups      0x50(%[dst]), %%xmm5")  // xmm5 = d5
+            __ASM_EMIT("movups      0x60(%[dst]), %%xmm6")  // xmm6 = d6
+            __ASM_EMIT("movups      0x70(%[dst]), %%xmm7")  // xmm7 = d7
+            __ASM_EMIT("addps       %%xmm4, %%xmm0")        // xmm0 = d4 + s0*k4
+            __ASM_EMIT("addps       %%xmm5, %%xmm1")        // xmm1 = d5 + s0*k5
+            __ASM_EMIT("addps       %%xmm6, %%xmm2")        // xmm2 = d6 + s0*k6
+            __ASM_EMIT("addps       %%xmm7, %%xmm3")        // xmm3 = d7 + s0*k7
+            __ASM_EMIT("movups      %%xmm0, 0x40(%[dst])")  // d4  += s0*k4
+            __ASM_EMIT("movups      %%xmm1, 0x50(%[dst])")  // d5  += s0*k5
+            __ASM_EMIT("movups      %%xmm2, 0x60(%[dst])")  // d6  += s0*k6
+            __ASM_EMIT("movups      %%xmm3, 0x70(%[dst])")  // d7  += s0*k7
+
+            // Update pointers
+            __ASM_EMIT("add         $0x04, %[src]")
+            __ASM_EMIT("add         $0x10, %[dst]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jnz         1b")
+
+            // Complete loop
+            __ASM_EMIT("2:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [k] "r" (lanczos_kernel_4x4)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    IF_ARCH_X86(
         // Lanczos kernel 6x2: 6 SSE registers
         static const float lanczos_kernel_6x2[] __lsp_aligned16 =
         {
@@ -1254,7 +1376,7 @@ namespace sse
 
             +0.0310789306368038f,
             +0.0248005479513036f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             -0.0424907562338176f,
 
             -0.0933267410806225f,
@@ -1284,7 +1406,7 @@ namespace sse
 
             -0.0933267410806225f,
             -0.0424907562338176f,
-            -0.0000000000000000f,
+            +0.0000000000000000f,
             +0.0248005479513036f,
 
             +0.0310789306368038f,
