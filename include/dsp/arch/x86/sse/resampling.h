@@ -1702,6 +1702,7 @@ namespace sse
             -0.0043033145538298f
         };
     )
+
     void lanczos_resample_8x2(float *dst, const float *src, size_t count)
     {
         ARCH_X86_ASM

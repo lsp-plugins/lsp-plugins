@@ -1387,6 +1387,159 @@ namespace avx
         );
     }
 
+    // Lanczos kernel 6x4: 6 AVX registers
+    IF_ARCH_X86(
+        static const float lanczos_6x4[] __lsp_aligned32 =
+        {
+            +0.0000000000000000f,
+            -0.0018000092949500f,
+            -0.0067568495254777f,
+            -0.0126608778212387f,
+            -0.0157944094156391f,
+            -0.0123019137260206f,
+            +0.0000000000000000f,
+            +0.0200263389720192f,
+
+            +0.0427448743491113f,
+            +0.0599094833772629f,
+            +0.0622703182267308f,
+            +0.0427971267140625f,
+            +0.0000000000000000f,
+            -0.0597744992948478f,
+            -0.1220498237243924f,
+            -0.1664152316035080f,
+
+            -0.1709794973964449f,
+            -0.1181145298553785f,
+            +0.0000000000000000f,
+            +0.1776396342037379f,
+            +0.3948602353909778f,
+            +0.6203830132406946f,
+            +0.8175787925827955f,
+            +0.9522049170285306f,
+
+            +1.0000000000000000f,
+            +0.9522049170285306f,
+            +0.8175787925827955f,
+            +0.6203830132406946f,
+            +0.3948602353909778f,
+            +0.1776396342037379f,
+            +0.0000000000000000f,
+            -0.1181145298553785f,
+
+            -0.1709794973964449f,
+            -0.1664152316035080f,
+            -0.1220498237243924f,
+            -0.0597744992948478f,
+            +0.0000000000000000f,
+            +0.0427971267140625f,
+            +0.0622703182267308f,
+            +0.0599094833772629f,
+
+            +0.0427448743491113f,
+            +0.0200263389720192f,
+            +0.0000000000000000f,
+            -0.0123019137260206f,
+            -0.0157944094156391f,
+            -0.0126608778212387f,
+            -0.0067568495254777f,
+            -0.0018000092949500f
+        };
+    )
+
+    void lanczos_resample_6x4(float *dst, const float *src, size_t count)
+    {
+        ARCH_I386_ASM(
+            // 1x blocks
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("js              2f")
+            __ASM_EMIT(".align          16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vbroadcastss    0x00(%[src]), %%ymm7")
+
+            __ASM_EMIT("vmulps          0x00(%[k]), %%ymm7, %%ymm0")
+            __ASM_EMIT("vmulps          0x20(%[k]), %%ymm7, %%ymm1")
+            __ASM_EMIT("vmulps          0x40(%[k]), %%ymm7, %%ymm2")
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0")
+            __ASM_EMIT("vmulps          0x60(%[k]), %%ymm7, %%ymm3")
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1")
+            __ASM_EMIT("vmulps          0x80(%[k]), %%ymm7, %%ymm4")
+            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
+            __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
+            __ASM_EMIT("vmulps          0xa0(%[k]), %%ymm7, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm2, 0x40(%[dst])")
+            __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3")
+            __ASM_EMIT("vaddps          0x80(%[dst]), %%ymm4, %%ymm4")
+            __ASM_EMIT("vmovups         %%ymm3, 0x60(%[dst])")
+            __ASM_EMIT("vaddps          0xa0(%[dst]), %%ymm5, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm4, 0x80(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm5, 0xa0(%[dst])")
+
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("add             $0x18, %[dst]")
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("jns             1b")
+            __ASM_EMIT("2:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [k] "r" (lanczos_6x4)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm7"
+        );
+
+        ARCH_X86_64_ASM(
+            // 1x blocks
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("js              2f")
+
+            __ASM_EMIT("vmovaps         0x00(%[k]), %%ymm7")
+            __ASM_EMIT("vmovaps         0x20(%[k]), %%ymm8")
+            __ASM_EMIT("vmovaps         0x40(%[k]), %%ymm9")
+            __ASM_EMIT("vmovaps         0x60(%[k]), %%ymm10")
+            __ASM_EMIT("vmovaps         0x80(%[k]), %%ymm11")
+            __ASM_EMIT("vmovaps         0xa0(%[k]), %%ymm12")
+
+            __ASM_EMIT(".align          16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vbroadcastss    0x00(%[src]), %%ymm6")
+
+            __ASM_EMIT("vmulps          %%ymm7, %%ymm6, %%ymm0")
+            __ASM_EMIT("vmulps          %%ymm8, %%ymm6, %%ymm1")
+            __ASM_EMIT("vmulps          %%ymm9, %%ymm6, %%ymm2")
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0")
+            __ASM_EMIT("vmulps          %%ymm10, %%ymm6, %%ymm3")
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1")
+            __ASM_EMIT("vmulps          %%ymm11, %%ymm6, %%ymm4")
+            __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vmulps          %%ymm12, %%ymm6, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
+            __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3")
+            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
+            __ASM_EMIT("vaddps          0x80(%[dst]), %%ymm4, %%ymm4")
+            __ASM_EMIT("vmovups         %%ymm2, 0x40(%[dst])")
+            __ASM_EMIT("vaddps          0xa0(%[dst]), %%ymm5, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm3, 0x60(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm4, 0x80(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm5, 0xa0(%[dst])")
+
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("add             $0x18, %[dst]")
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("jns             1b")
+            __ASM_EMIT("2:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [k] "r" (lanczos_6x4)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm11",
+              "%xmm12"
+        );
+    }
+
     // Lanczos kernel 8x2: 4 AVX registers
     IF_ARCH_X86(
         static const float lanczos_8x2[] __lsp_aligned32 =
@@ -1718,6 +1871,192 @@ namespace avx
               "%xmm4", "%xmm5", "%xmm6", "%xmm7",
               "%xmm8", "%xmm9", "%xmm10", "%xmm11",
               "%xmm12", "%xmm13"
+        );
+    }
+
+    IF_ARCH_X86(
+        // Lanczos kernel 8x4: 8 AVX registers
+        static const float lanczos_8x4[] __lsp_aligned16 =
+        {
+            +0.0000000000000000f,
+            -0.0010124148822791f,
+            -0.0039757442382413f,
+            -0.0082714887261119f,
+            -0.0126608778212387f,
+            -0.0154958216565010f,
+            -0.0150736176408234f,
+            -0.0100753105205530f,
+
+            +0.0000000000000000f,
+            +0.0145047275409824f,
+            +0.0315083921595442f,
+            +0.0479233082326825f,
+            +0.0599094833772629f,
+            +0.0635233253590927f,
+            +0.0555206000541729f,
+            +0.0341810767869351f,
+
+            +0.0000000000000000f,
+            -0.0439036941841078f,
+            -0.0917789511099593f,
+            -0.1356918370096595f,
+            -0.1664152316035080f,
+            -0.1746626357901899f,
+            -0.1525006180521938f,
+            -0.0947284057923417f,
+
+            +0.0000000000000000f,
+            +0.1285116137825641f,
+            +0.2830490423665725f,
+            +0.4518581595035692f,
+            +0.6203830132406946f,
+            +0.7729246687400148f,
+            +0.8945424536042901f,
+            +0.9729307018702211f,
+
+            +1.0000000000000000f,
+            +0.9729307018702211f,
+            +0.8945424536042901f,
+            +0.7729246687400148f,
+            +0.6203830132406946f,
+            +0.4518581595035692f,
+            +0.2830490423665725f,
+            +0.1285116137825641f,
+
+            +0.0000000000000000f,
+            -0.0947284057923417f,
+            -0.1525006180521938f,
+            -0.1746626357901899f,
+            -0.1664152316035080f,
+            -0.1356918370096595f,
+            -0.0917789511099593f,
+            -0.0439036941841078f,
+
+            +0.0000000000000000f,
+            +0.0341810767869351f,
+            +0.0555206000541729f,
+            +0.0635233253590927f,
+            +0.0599094833772629f,
+            +0.0479233082326825f,
+            +0.0315083921595442f,
+            +0.0145047275409824f,
+
+            +0.0000000000000000f,
+            -0.0100753105205530f,
+            -0.0150736176408234f,
+            -0.0154958216565010f,
+            -0.0126608778212387f,
+            -0.0082714887261119f,
+            -0.0039757442382413f,
+            -0.0010124148822791f
+        };
+    )
+
+    void lanczos_resample_8x4(float *dst, const float *src, size_t count)
+    {
+        ARCH_I386_ASM(
+            // 1x blocks
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("js              2f")
+            __ASM_EMIT(".align          16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vbroadcastss    0x00(%[src]), %%ymm7")          // ymm7 = s0
+
+            __ASM_EMIT("vmulps          0x00(%[k]), %%ymm7, %%ymm0")
+            __ASM_EMIT("vmulps          0x20(%[k]), %%ymm7, %%ymm1")
+            __ASM_EMIT("vmulps          0x40(%[k]), %%ymm7, %%ymm2")
+            __ASM_EMIT("vmulps          0x60(%[k]), %%ymm7, %%ymm3")
+            __ASM_EMIT("vmulps          0x80(%[k]), %%ymm7, %%ymm4")
+            __ASM_EMIT("vmulps          0xa0(%[k]), %%ymm7, %%ymm5")
+            __ASM_EMIT("vmulps          0xc0(%[k]), %%ymm7, %%ymm6")
+            __ASM_EMIT("vmulps          0xe0(%[k]), %%ymm7, %%ymm7")
+
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0")
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1")
+            __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3")
+            __ASM_EMIT("vaddps          0x80(%[dst]), %%ymm4, %%ymm4")
+            __ASM_EMIT("vaddps          0xa0(%[dst]), %%ymm5, %%ymm5")
+            __ASM_EMIT("vaddps          0xc0(%[dst]), %%ymm6, %%ymm6")
+            __ASM_EMIT("vaddps          0xe0(%[dst]), %%ymm7, %%ymm7")
+
+            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm2, 0x40(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm3, 0x60(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm4, 0x80(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm5, 0xa0(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm6, 0xc0(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm7, 0xe0(%[dst])")
+
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("add             $0x20, %[dst]")
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("jns             1b")
+            __ASM_EMIT("2:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [k] "r" (lanczos_8x4)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+
+        ARCH_X86_64_ASM(
+            // 1x blocks
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("js              2f")
+            __ASM_EMIT("vmovaps         0x00(%[k]), %%ymm8")
+            __ASM_EMIT("vmovaps         0x20(%[k]), %%ymm9")
+            __ASM_EMIT("vmovaps         0x40(%[k]), %%ymm10")
+            __ASM_EMIT("vmovaps         0x60(%[k]), %%ymm11")
+            __ASM_EMIT("vmovaps         0x80(%[k]), %%ymm12")
+            __ASM_EMIT("vmovaps         0xa0(%[k]), %%ymm13")
+            __ASM_EMIT("vmovaps         0xc0(%[k]), %%ymm14")
+            __ASM_EMIT("vmovaps         0xe0(%[k]), %%ymm15")
+
+            __ASM_EMIT(".align          16")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vbroadcastss    0x00(%[src]), %%ymm7")          // ymm7 = s0
+
+            __ASM_EMIT("vmulps          %%ymm8, %%ymm7, %%ymm0")
+            __ASM_EMIT("vmulps          %%ymm9, %%ymm7, %%ymm1")
+            __ASM_EMIT("vmulps          %%ymm10, %%ymm7, %%ymm2")
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0")
+            __ASM_EMIT("vmulps          %%ymm11, %%ymm7, %%ymm3")
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1")
+            __ASM_EMIT("vmulps          %%ymm12, %%ymm7, %%ymm4")
+            __ASM_EMIT("vmovups         %%ymm0, 0x00(%[dst])")
+            __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2")
+            __ASM_EMIT("vmulps          %%ymm13, %%ymm7, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm1, 0x20(%[dst])")
+            __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3")
+            __ASM_EMIT("vmulps          %%ymm14, %%ymm7, %%ymm6")
+            __ASM_EMIT("vmovups         %%ymm2, 0x40(%[dst])")
+            __ASM_EMIT("vaddps          0x80(%[dst]), %%ymm4, %%ymm4")
+            __ASM_EMIT("vmulps          %%ymm15, %%ymm7, %%ymm7")
+            __ASM_EMIT("vmovups         %%ymm3, 0x60(%[dst])")
+            __ASM_EMIT("vaddps          0xa0(%[dst]), %%ymm5, %%ymm5")
+            __ASM_EMIT("vmovups         %%ymm4, 0x80(%[dst])")
+            __ASM_EMIT("vaddps          0xc0(%[dst]), %%ymm6, %%ymm6")
+            __ASM_EMIT("vmovups         %%ymm5, 0xa0(%[dst])")
+            __ASM_EMIT("vaddps          0xe0(%[dst]), %%ymm7, %%ymm7")
+            __ASM_EMIT("vmovups         %%ymm6, 0xc0(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm7, 0xe0(%[dst])")
+
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("add             $0x20, %[dst]")
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("jns             1b")
+            __ASM_EMIT("2:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [k] "r" (lanczos_8x4)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm11",
+              "%xmm12", "%xmm13", "%xmm14", "%xmm15"
         );
     }
 

@@ -76,10 +76,10 @@ IF_ARCH_X86(
         void lanczos_resample_4x4(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
-//        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
-//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 )
 
@@ -236,7 +236,7 @@ PTEST_BEGIN("dsp.resampling", oversampling, 5, 1000)
 
         CALL(native::lanczos_resample_6x4, 6);
         IF_ARCH_X86(CALL(sse::lanczos_resample_6x4, 6));
-//        IF_ARCH_X86(CALL(avx::lanczos_resample_6x4, 6));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_6x4, 6));
 //        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_6x4, 6));
 //        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_6x4, 6));
         PTEST_SEPARATOR;
@@ -257,7 +257,7 @@ PTEST_BEGIN("dsp.resampling", oversampling, 5, 1000)
 
         CALL(native::lanczos_resample_8x4, 8);
         IF_ARCH_X86(CALL(sse::lanczos_resample_8x4, 8));
-//        IF_ARCH_X86(CALL(avx::lanczos_resample_8x4, 8));
+        IF_ARCH_X86(CALL(avx::lanczos_resample_8x4, 8));
 //        IF_ARCH_ARM(CALL(neon_d32::lanczos_resample_8x4, 8));
 //        IF_ARCH_AARCH64(CALL(asimd::lanczos_resample_8x4, 8));
         PTEST_SEPARATOR;
