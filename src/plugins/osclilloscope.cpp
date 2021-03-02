@@ -453,6 +453,7 @@ namespace lsp
             c->nDataHead        = 0;
             c->nDisplayHead     = 0;
             c->nSamplesCounter  = 0;
+            c->bClearStream     = false;
 
             c->nPreTrigger      = 0;
             c->nSweepSize       = 0;
@@ -829,6 +830,8 @@ namespace lsp
             c->sTrigger.activate_manual_trigger();
         }
 
+        c->bClearStream = true;
+
         // Clear the update flag
         c->nUpdate = 0;
     }
@@ -838,6 +841,12 @@ namespace lsp
         stream_t *stream = c->pStream->getBuffer<stream_t>();
         if (stream == NULL)
             return;
+
+        if (c->bClearStream)
+        {
+            stream->clear();
+            c->bClearStream = false;
+        }
 
         // In-place decimation:
         size_t j = 0;
@@ -1354,6 +1363,7 @@ namespace lsp
                 v->write("nDataHead", &c->nDataHead);
                 v->write("nDisplayHead", &c->nDisplayHead);
                 v->write("nSamplesCounter", &c->nSamplesCounter);
+                v->write("bClearStream", &c->bClearStream);
 
                 v->write("nPreTrigger", &c->nPreTrigger);
                 v->write("nSweepSize", &c->nSweepSize);

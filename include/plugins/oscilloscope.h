@@ -153,6 +153,7 @@ namespace lsp
                 size_t              nDataHead;
                 size_t              nDisplayHead;
                 size_t              nSamplesCounter;
+                bool                bClearStream;
 
                 size_t              nPreTrigger;
                 size_t              nSweepSize;
