@@ -349,6 +349,7 @@ namespace sse
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);
+        EXPORT1(lanczos_resample_2x4);
         EXPORT1(lanczos_resample_3x2);
         EXPORT1(lanczos_resample_3x3);
         EXPORT1(lanczos_resample_4x2);

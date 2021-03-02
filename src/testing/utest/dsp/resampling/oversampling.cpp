@@ -27,14 +27,19 @@ namespace native
 {
     void lanczos_resample_2x2(float *dst, const float *src, size_t count);
     void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_2x4(float *dst, const float *src, size_t count);
     void lanczos_resample_3x2(float *dst, const float *src, size_t count);
     void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_3x4(float *dst, const float *src, size_t count);
     void lanczos_resample_4x2(float *dst, const float *src, size_t count);
     void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_4x4(float *dst, const float *src, size_t count);
     void lanczos_resample_6x2(float *dst, const float *src, size_t count);
     void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_6x4(float *dst, const float *src, size_t count);
     void lanczos_resample_8x2(float *dst, const float *src, size_t count);
     void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_8x4(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
@@ -42,28 +47,38 @@ IF_ARCH_X86(
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
         void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x4(float *dst, const float *src, size_t count);
         void lanczos_resample_3x2(float *dst, const float *src, size_t count);
         void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_3x4(float *dst, const float *src, size_t count);
         void lanczos_resample_4x2(float *dst, const float *src, size_t count);
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_4x4(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 
     namespace avx
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
         void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_2x4(float *dst, const float *src, size_t count);
         void lanczos_resample_3x2(float *dst, const float *src, size_t count);
         void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_3x4(float *dst, const float *src, size_t count);
         void lanczos_resample_4x2(float *dst, const float *src, size_t count);
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_4x4(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 )
 
@@ -72,14 +87,19 @@ IF_ARCH_ARM(
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
         void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_2x4(float *dst, const float *src, size_t count);
         void lanczos_resample_3x2(float *dst, const float *src, size_t count);
         void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_3x4(float *dst, const float *src, size_t count);
         void lanczos_resample_4x2(float *dst, const float *src, size_t count);
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_4x4(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 )
 
@@ -88,14 +108,19 @@ IF_ARCH_AARCH64(
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
         void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_2x4(float *dst, const float *src, size_t count);
         void lanczos_resample_3x2(float *dst, const float *src, size_t count);
         void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_3x4(float *dst, const float *src, size_t count);
         void lanczos_resample_4x2(float *dst, const float *src, size_t count);
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_4x4(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_6x4(float *dst, const float *src, size_t count);
         void lanczos_resample_8x2(float *dst, const float *src, size_t count);
         void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+//        void lanczos_resample_8x4(float *dst, const float *src, size_t count);
     }
 )
 
@@ -121,6 +146,7 @@ UTEST_BEGIN("dsp.resampling", oversampling)
                 FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count*times + RESAMPLING_RESERVED_SAMPLES, align, mask & 0x02);
                 dst1.randomize_sign();
+//                dst1.fill_zero();
                 FloatBuffer dst2(dst1);
 
                 // Call functions
@@ -154,46 +180,66 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         // Do tests
         IF_ARCH_X86(CALL(native::lanczos_resample_2x2, sse::lanczos_resample_2x2, 16, 2));
         IF_ARCH_X86(CALL(native::lanczos_resample_2x3, sse::lanczos_resample_2x3, 16, 2));
+        IF_ARCH_X86(CALL(native::lanczos_resample_2x4, sse::lanczos_resample_2x4, 16, 2));
         IF_ARCH_X86(CALL(native::lanczos_resample_3x2, sse::lanczos_resample_3x2, 16, 3));
         IF_ARCH_X86(CALL(native::lanczos_resample_3x3, sse::lanczos_resample_3x3, 16, 3));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_3x4, sse::lanczos_resample_3x4, 16, 3));
         IF_ARCH_X86(CALL(native::lanczos_resample_4x2, sse::lanczos_resample_4x2, 16, 4));
         IF_ARCH_X86(CALL(native::lanczos_resample_4x3, sse::lanczos_resample_4x3, 16, 4));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_4x4, sse::lanczos_resample_4x4, 16, 4));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x2, sse::lanczos_resample_6x2, 16, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x3, sse::lanczos_resample_6x3, 16, 6));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_6x4, sse::lanczos_resample_6x4, 16, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x2, sse::lanczos_resample_8x2, 16, 8));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x3, sse::lanczos_resample_8x3, 16, 8));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_8x4, sse::lanczos_resample_8x4, 16, 8));
 
         IF_ARCH_X86(CALL(native::lanczos_resample_2x2, avx::lanczos_resample_2x2, 32, 2));
         IF_ARCH_X86(CALL(native::lanczos_resample_2x3, avx::lanczos_resample_2x3, 32, 2));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_2x4, avx::lanczos_resample_2x4, 32, 2));
         IF_ARCH_X86(CALL(native::lanczos_resample_3x2, avx::lanczos_resample_3x2, 32, 3));
         IF_ARCH_X86(CALL(native::lanczos_resample_3x3, avx::lanczos_resample_3x3, 32, 3));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_3x4, avx::lanczos_resample_3x4, 32, 3));
         IF_ARCH_X86(CALL(native::lanczos_resample_4x2, avx::lanczos_resample_4x2, 32, 4));
         IF_ARCH_X86(CALL(native::lanczos_resample_4x3, avx::lanczos_resample_4x3, 32, 4));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_4x4, avx::lanczos_resample_4x4, 32, 4));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x2, avx::lanczos_resample_6x2, 32, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_6x3, avx::lanczos_resample_6x3, 32, 6));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_6x4, avx::lanczos_resample_6x4, 32, 6));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x2, avx::lanczos_resample_8x2, 32, 8));
         IF_ARCH_X86(CALL(native::lanczos_resample_8x3, avx::lanczos_resample_8x3, 32, 8));
+//        IF_ARCH_X86(CALL(native::lanczos_resample_8x4, avx::lanczos_resample_8x4, 32, 8));
 
         IF_ARCH_ARM(CALL(native::lanczos_resample_2x2, neon_d32::lanczos_resample_2x2, 16, 2));
         IF_ARCH_ARM(CALL(native::lanczos_resample_2x3, neon_d32::lanczos_resample_2x3, 16, 2));
+//        IF_ARCH_ARM(CALL(native::lanczos_resample_2x4, neon_d32::lanczos_resample_2x4, 16, 2));
         IF_ARCH_ARM(CALL(native::lanczos_resample_3x2, neon_d32::lanczos_resample_3x2, 16, 3));
         IF_ARCH_ARM(CALL(native::lanczos_resample_3x3, neon_d32::lanczos_resample_3x3, 16, 3));
+//        IF_ARCH_ARM(CALL(native::lanczos_resample_3x4, neon_d32::lanczos_resample_3x4, 16, 3));
         IF_ARCH_ARM(CALL(native::lanczos_resample_4x2, neon_d32::lanczos_resample_4x2, 16, 4));
         IF_ARCH_ARM(CALL(native::lanczos_resample_4x3, neon_d32::lanczos_resample_4x3, 16, 4));
+//        IF_ARCH_ARM(CALL(native::lanczos_resample_4x4, neon_d32::lanczos_resample_4x4, 16, 4));
         IF_ARCH_ARM(CALL(native::lanczos_resample_6x2, neon_d32::lanczos_resample_6x2, 16, 6));
         IF_ARCH_ARM(CALL(native::lanczos_resample_6x3, neon_d32::lanczos_resample_6x3, 16, 6));
+//        IF_ARCH_ARM(CALL(native::lanczos_resample_6x4, neon_d32::lanczos_resample_6x4, 16, 6));
         IF_ARCH_ARM(CALL(native::lanczos_resample_8x2, neon_d32::lanczos_resample_8x2, 16, 8));
         IF_ARCH_ARM(CALL(native::lanczos_resample_8x3, neon_d32::lanczos_resample_8x3, 16, 8));
+//        IF_ARCH_ARM(CALL(native::lanczos_resample_8x4, neon_d32::lanczos_resample_8x4, 16, 8));
 
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_2x2, asimd::lanczos_resample_2x2, 16, 2));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_2x3, asimd::lanczos_resample_2x3, 16, 2));
+//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_2x4, asimd::lanczos_resample_2x4, 16, 2));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_3x2, asimd::lanczos_resample_3x2, 16, 3));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_3x3, asimd::lanczos_resample_3x3, 16, 3));
+//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_3x4, asimd::lanczos_resample_3x4, 16, 3));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_4x2, asimd::lanczos_resample_4x2, 16, 4));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_4x3, asimd::lanczos_resample_4x3, 16, 4));
+//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_4x4, asimd::lanczos_resample_4x4, 16, 4));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_6x2, asimd::lanczos_resample_6x2, 16, 6));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_6x3, asimd::lanczos_resample_6x3, 16, 6));
+//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_6x4, asimd::lanczos_resample_6x4, 16, 6));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x2, asimd::lanczos_resample_8x2, 16, 8));
         IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x3, asimd::lanczos_resample_8x3, 16, 8));
+//        IF_ARCH_AARCH64(CALL(native::lanczos_resample_8x4, asimd::lanczos_resample_8x4, 16, 8));
     }
 UTEST_END;
