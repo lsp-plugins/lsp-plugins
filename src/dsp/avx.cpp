@@ -315,6 +315,7 @@ namespace avx
         CEXPORT1(favx, lanczos_resample_2x4);
         CEXPORT1(favx, lanczos_resample_3x2);
         CEXPORT1(favx, lanczos_resample_3x3);
+        CEXPORT1(favx, lanczos_resample_3x4);
         CEXPORT1(favx, lanczos_resample_4x2);
         CEXPORT1(favx, lanczos_resample_4x3);
         CEXPORT1(favx, lanczos_resample_6x2);
