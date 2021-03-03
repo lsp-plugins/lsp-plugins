@@ -18,6 +18,8 @@
 #define DC_BLOCK_CUTOFF_HZ  5.0
 #define DC_BLOCK_DFL_ALPHA  0.999f
 
+#define STREAM_MAX_X        1.0f
+#define STREAM_MIN_X       -1.0f
 #define STREAM_MAX_Y        1.0f
 #define STREAM_MIN_Y       -1.0f
 #define STREAM_N_VER_DIV    4
@@ -299,6 +301,9 @@ namespace lsp
 
         pData               = NULL;
 
+        pStrobeHistSize     = NULL;
+        pXYRecordTime       = NULL;
+
         pChannelSelector    = NULL;
 
         pOvsMode            = NULL;
@@ -450,64 +455,64 @@ namespace lsp
             c->vDisplay_s       = ptr;
             ptr                += BUF_LIM_SIZE;
 
-            c->nDataHead        = 0;
-            c->nDisplayHead     = 0;
-            c->nSamplesCounter  = 0;
-            c->bClearStream     = false;
+            c->nDataHead            = 0;
+            c->nDisplayHead         = 0;
+            c->nSamplesCounter      = 0;
+            c->bClearStream         = false;
 
-            c->nPreTrigger      = 0;
-            c->nSweepSize       = 0;
+            c->nPreTrigger          = 0;
+            c->nSweepSize           = 0;
 
-            c->fStreamScale     = 0.0f;
-            c->fStreamOffset    = 0.0f;
+            c->fVerStreamScale      = 0.0f;
+            c->fVerStreamOffset     = 0.0f;
 
-            c->bAutoSweep       = true;
-            c->nAutoSweepLimit  = 0;
-            c->nAutoSweepCounter = 0;
+            c->bAutoSweep           = true;
+            c->nAutoSweepLimit      = 0;
+            c->nAutoSweepCounter    = 0;
 
-            c->enState          = CH_STATE_LISTENING;
+            c->enState              = CH_STATE_LISTENING;
 
-            c->vIn_x            = NULL;
-            c->vIn_y            = NULL;
-            c->vIn_ext          = NULL;
+            c->vIn_x                = NULL;
+            c->vIn_y                = NULL;
+            c->vIn_ext              = NULL;
 
-            c->vOut_x           = NULL;
-            c->vOut_y           = NULL;
+            c->vOut_x               = NULL;
+            c->vOut_y               = NULL;
 
-            c->pIn_x            = NULL;
-            c->pIn_y            = NULL;
-            c->pIn_ext          = NULL;
+            c->pIn_x                = NULL;
+            c->pIn_y                = NULL;
+            c->pIn_ext              = NULL;
 
-            c->pOut_x           = NULL;
-            c->pOut_y           = NULL;
+            c->pOut_x               = NULL;
+            c->pOut_y               = NULL;
 
-            c->pOvsMode         = NULL;
-            c->pScpMode         = NULL;
-            c->pCoupling_x      = NULL;
-            c->pCoupling_y      = NULL;
-            c->pCoupling_ext    = NULL;
+            c->pOvsMode             = NULL;
+            c->pScpMode             = NULL;
+            c->pCoupling_x          = NULL;
+            c->pCoupling_y          = NULL;
+            c->pCoupling_ext        = NULL;
 
-            c->pSweepType       = NULL;
-            c->pHorDiv          = NULL;
-            c->pHorPos          = NULL;
+            c->pSweepType           = NULL;
+            c->pHorDiv              = NULL;
+            c->pHorPos              = NULL;
 
-            c->pVerDiv          = NULL;
-            c->pVerPos          = NULL;
+            c->pVerDiv              = NULL;
+            c->pVerPos              = NULL;
 
-            c->pTrgHys          = NULL;
-            c->pTrgLev          = NULL;
-            c->pTrgHold         = NULL;
-            c->pTrgMode         = NULL;
-            c->pTrgType         = NULL;
-            c->pTrgInput        = NULL;
-            c->pTrgReset        = NULL;
+            c->pTrgHys              = NULL;
+            c->pTrgLev              = NULL;
+            c->pTrgHold             = NULL;
+            c->pTrgMode             = NULL;
+            c->pTrgType             = NULL;
+            c->pTrgInput            = NULL;
+            c->pTrgReset            = NULL;
 
-            c->pGlobalSwitch    = NULL;
-            c->pFreezeSwitch    = NULL;
-            c->pSoloSwitch      = NULL;
-            c->pMuteSwitch      = NULL;
+            c->pGlobalSwitch        = NULL;
+            c->pFreezeSwitch        = NULL;
+            c->pSoloSwitch          = NULL;
+            c->pMuteSwitch          = NULL;
 
-            c->pStream          = NULL;
+            c->pStream              = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -536,8 +541,13 @@ namespace lsp
         }
 
         // Common settings
+        lsp_trace("Binding common ports");
+
         TRACE_PORT(vPorts[port_id]);
-        port_id++; // Skip strobe history size
+        pStrobeHistSize = vPorts[port_id++];
+
+        TRACE_PORT(vPorts[port_id]);
+        pXYRecordTime = vPorts[port_id++];
 
         // Channel selector only exists on multi-channel versions. Skip for 1X plugin.
         if (nChannels > 1)
@@ -740,6 +750,12 @@ namespace lsp
         c->sStateStage.nPV_pSweepType = oscilloscope_base_metadata::SWEEP_TYPE_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
 
+        c->sStateStage.fPV_pXYRecordTime = oscilloscope_base_metadata::XY_RECORD_TIME_DFL;
+        c->nUpdate |= UPD_XY_RECORD_TIME;
+
+        c->nUpdate |= UPD_VER_SCALES;
+        c->nUpdate |= UPD_HOR_SCALES;
+
         // By default, this must be false.
         c->bUseGlobal = false;
     }
@@ -770,6 +786,13 @@ namespace lsp
             configure_oversamplers(c, get_oversampler_mode(c->sStateStage.nPV_pOvsMode));
         }
 
+        if (c->nUpdate & UPD_XY_RECORD_TIME)
+        {
+            c->nXYRecordSize = seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pXYRecordTime);
+            c->nXYRecordSize = (c->nXYRecordSize < BUF_LIM_SIZE) ? c->nXYRecordSize  : BUF_LIM_SIZE;
+        }
+
+        // UPD_SWEEP_GENERATOR handling is split as if also UPD_PRETRG_DELAY needs to be handled the correct order of operations is as follows.
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
              c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pHorDiv);
@@ -805,11 +828,20 @@ namespace lsp
             c->nAutoSweepCounter = 0;
         }
 
+        if (c->nUpdate & UPD_HOR_SCALES)
+        {
+            c->fHorStreamScale = (STREAM_MAX_X - STREAM_MIN_X) / (STREAM_N_HOR_DIV * c->sStateStage.fPV_pHorDiv);
+            c->fHorStreamOffset = 0.5f * (STREAM_MAX_X - STREAM_MIN_X) * (0.01f * c->sStateStage.fPV_pHorPos + 1.0f) + STREAM_MIN_X;
+        }
+
+        if (c->nUpdate & UPD_VER_SCALES)
+        {
+            c->fVerStreamScale = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
+            c->fVerStreamOffset = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
+        }
+
         if (c->nUpdate & UPD_TRIGGER)
         {
-            c->fStreamScale = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
-            c->fStreamOffset = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
-
             trg_mode_t trgMode = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
 
             if ((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL))
@@ -851,7 +883,15 @@ namespace lsp
         // In-place decimation:
         size_t j = 0;
 
-        for (size_t i = 1; i < c->nSweepSize; ++i)
+        // Number of samples changes depending on mode
+        size_t query_size;
+        switch (c->enMode)
+        {
+            case CH_MODE_XY: query_size = c->nXYRecordSize; break;
+            case CH_MODE_TRIGGERED: query_size = c->nSweepSize; break;
+        }
+
+        for (size_t i = 1; i < query_size; ++i)
         {
             float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
             float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
@@ -873,7 +913,13 @@ namespace lsp
 
         // Apply scaling and offset:
         for (size_t i = 0; i < to_submit; ++i)
-            c->vDisplay_y[i] = c->fStreamScale * c->vDisplay_y[i] + c->fStreamOffset;
+        {
+            c->vDisplay_y[i] = c->fVerStreamScale * c->vDisplay_y[i] + c->fVerStreamOffset;
+
+            // x is to be scaled and offset only in XY mode
+            if (c->enMode == CH_MODE_XY)
+                c->vDisplay_x[i] = c->fHorStreamScale * c->vDisplay_x[i] + c->fHorStreamOffset;
+        }
 
         // Submit data for plotting (emit the figure data with fixed-size frames):
         for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
@@ -892,6 +938,8 @@ namespace lsp
 
     void oscilloscope_base::update_settings()
     {
+        float nXYRecordSize = pSweepType->getValue();
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
@@ -960,6 +1008,9 @@ namespace lsp
                 c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
+            if (nXYRecordSize != c->sStateStage.fPV_pXYRecordTime)
+                c->nUpdate |= UPD_XY_RECORD_TIME;
+
             size_t trginput;
             if (c->bUseGlobal)
                 trginput = pTrgInput->getValue();
@@ -987,6 +1038,7 @@ namespace lsp
             {
                 c->sStateStage.fPV_pVerDiv = verDiv;
                 c->sStateStage.fPV_pVerPos = verPos;
+                c->nUpdate |= UPD_VER_SCALES;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
@@ -1064,9 +1116,10 @@ namespace lsp
             if (horDiv != c->sStateStage.fPV_pHorDiv)
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
+                c->nUpdate |= UPD_HOR_SCALES;
+                c->nUpdate |= UPD_PRETRG_DELAY;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
                 c->nUpdate |= UPD_TRIGGER_HOLD;
-                c->nUpdate |= UPD_PRETRG_DELAY;
             }
 
             float horPos;
@@ -1077,8 +1130,9 @@ namespace lsp
             if (horPos != c->sStateStage.fPV_pHorPos)
             {
                 c->sStateStage.fPV_pHorPos = horPos;
-                c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_HOR_SCALES;
                 c->nUpdate |= UPD_PRETRG_DELAY;
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
             }
 
             size_t sweeptype;
@@ -1195,7 +1249,7 @@ namespace lsp
 
                         for (size_t n = 0; n < to_do_upsample; ++n)
                         {
-                            if (c->nDisplayHead >= c->nSweepSize)
+                            if (c->nDisplayHead >= c->nXYRecordSize)
                             {
                                 // Plot time!
                                 graph_stream(c);
@@ -1206,7 +1260,7 @@ namespace lsp
                             c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
                             c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
 
-                            // This ensures the strobe has nSweepSize period and 0 phase shift.
+                            // This ensures the strobe has nXYRecordSize period and 0 phase shift.
                             if (c->nDisplayHead == 0)
                                 c->vDisplay_s[c->nDisplayHead] = 1.0f;
                             else
@@ -1368,8 +1422,12 @@ namespace lsp
                 v->write("nPreTrigger", &c->nPreTrigger);
                 v->write("nSweepSize", &c->nSweepSize);
 
-                v->write("fStreamScale", &c->fStreamScale);
-                v->write("fStreamOffset", &c->fStreamOffset);
+                v->write("fVerStreamScale", &c->fVerStreamScale);
+                v->write("fVerStreamOffset", &c->fVerStreamOffset);
+
+                v->write("nXYRecordSize", &c->nXYRecordSize);
+                v->write("fHorStreamScale", &c->fHorStreamScale);
+                v->write("fHorStreamOffset", &c->fHorStreamOffset);
 
                 v->write("bAutoSweep", &c->bAutoSweep);
                 v->write("nAutoSweepLimit", &c->nAutoSweepLimit);
@@ -1378,7 +1436,34 @@ namespace lsp
                 v->write("enState", &c->enState);
 
                 v->write("nUpdate", &c->nUpdate);
-                v->write("sStateStage", &c->sStateStage);
+
+                v->begin_object("sStateStage", &c->sStateStage, sizeof(c->sStateStage));
+                {
+                    v->write("nPV_pScpMode", &c->sStateStage.nPV_pScpMode);
+
+                    v->write("nPV_pCoupling_x", &c->sStateStage.nPV_pCoupling_x);
+                    v->write("nPV_pCoupling_y", &c->sStateStage.nPV_pCoupling_y);
+                    v->write("nPV_pCoupling_ext", &c->sStateStage.nPV_pCoupling_ext);
+                    v->write("nPV_pOvsMode", &c->sStateStage.nPV_pOvsMode);
+
+                    v->write("nPV_pTrgInput", &c->sStateStage.nPV_pTrgInput);
+                    v->write("fPV_pVerDiv", &c->sStateStage.fPV_pVerDiv);
+                    v->write("fPV_pVerPos", &c->sStateStage.fPV_pVerPos);
+                    v->write("fPV_pTrgLevel", &c->sStateStage.fPV_pTrgLevel);
+                    v->write("fPV_pTrgHys", &c->sStateStage.fPV_pTrgHys);
+                    v->write("nPV_pTrgMode", &c->sStateStage.nPV_pTrgMode);
+                    v->write("fPV_pTrgHold", &c->sStateStage.fPV_pTrgHold);
+                    v->write("nPV_pTrgType", &c->sStateStage.nPV_pTrgType);
+
+                    v->write("fPV_pHorDiv", &c->sStateStage.fPV_pHorDiv);
+                    v->write("fPV_pHorPos", &c->sStateStage.fPV_pHorPos);
+
+                    v->write("nPV_pSweepType", &c->sStateStage.nPV_pSweepType);
+
+                    v->write("fPV_pXYRecordTime", &c->sStateStage.fPV_pXYRecordTime);
+                }
+                v->end_object();
+
                 v->write("bUseGlobal", &c->bUseGlobal);
 
                 v->write("vIn_x", &c->vIn_x);
@@ -1429,6 +1514,9 @@ namespace lsp
 
         v->write("nSampleRate", nSampleRate);
         v->write("pData", pData);
+
+        v->write("pStrobeHistSize", pStrobeHistSize);
+        v->write("pXYRecordTime", pXYRecordTime);
 
         v->write("pChannelSelector", pChannelSelector);
 

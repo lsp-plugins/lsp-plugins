@@ -39,6 +39,11 @@ namespace lsp
         static const size_t STROBE_HISTORY_DFL  = 0;
         static const size_t STROBE_HISTORY_STEP = 1;
 
+        static const float XY_RECORD_TIME_MAX = 1000.0f;
+        static const float XY_RECORD_TIME_MIN = 0.5f;
+        static const float XY_RECORD_TIME_DFL = 5.0f;
+        static const float XY_RECORD_TIME_STEP = 0.01f;
+
         enum oversampler_mode_selector_t
         {
             OSC_OVS_NONE,

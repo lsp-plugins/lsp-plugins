@@ -95,7 +95,8 @@ namespace lsp
         AUDIO_OUTPUT("out_y" id, "Output y" label)
 
     #define COMMON_CONTROLS \
-        CONTROL("sh_sz", "Strobe History Size", U_NONE, oscilloscope_base_metadata::STROBE_HISTORY)
+        CONTROL("sh_sz", "Strobe History Size", U_NONE, oscilloscope_base_metadata::STROBE_HISTORY), \
+        CONTROL("xyrt", "XY Record Time", U_MSEC, oscilloscope_base_metadata::XY_RECORD_TIME)
 
     #define CHANNEL_SELECTOR(osc_channels) \
         COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)

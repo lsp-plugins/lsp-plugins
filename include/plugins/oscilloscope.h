@@ -35,14 +35,20 @@ namespace lsp
                 UPD_OVERSAMPLER_Y       = 1 << 5,
                 UPD_OVERSAMPLER_EXT     = 1 << 6,
 
-                UPD_PRETRG_DELAY        = 1 << 7,
+                UPD_XY_RECORD_TIME      = 1 << 7,
 
-                UPD_SWEEP_GENERATOR     = 1 << 8,
+                UPD_HOR_SCALES          = 1 << 8,
 
-                UPD_TRIGGER_INPUT       = 1 << 9,
-                UPD_TRIGGER_HOLD        = 1 << 10,
-                UPD_TRIGGER             = 1 << 11,
-                UPD_TRGGER_RESET        = 1 << 12
+                UPD_PRETRG_DELAY        = 1 << 9,
+
+                UPD_SWEEP_GENERATOR     = 1 << 10,
+
+                UPD_VER_SCALES          = 1 << 11,
+
+                UPD_TRIGGER_INPUT       = 1 << 12,
+                UPD_TRIGGER_HOLD        = 1 << 13,
+                UPD_TRIGGER             = 1 << 14,
+                UPD_TRGGER_RESET        = 1 << 15
             };
 
             enum ch_mode_t
@@ -112,6 +118,8 @@ namespace lsp
                 float   fPV_pHorPos;
 
                 size_t  nPV_pSweepType;
+
+                float   fPV_pXYRecordTime;
             } ch_state_stage_t;
 
             typedef struct channel_t
@@ -158,8 +166,12 @@ namespace lsp
                 size_t              nPreTrigger;
                 size_t              nSweepSize;
 
-                float               fStreamScale;
-                float               fStreamOffset;
+                float               fVerStreamScale;
+                float               fVerStreamOffset;
+
+                size_t              nXYRecordSize;
+                float               fHorStreamScale;
+                float               fHorStreamOffset;
 
                 bool                bAutoSweep;
                 size_t              nAutoSweepLimit;
@@ -223,30 +235,34 @@ namespace lsp
 
             uint8_t    *pData;
 
+            // Common Controls
+            IPort      *pStrobeHistSize;
+            IPort      *pXYRecordTime;
+
             // Channel Selector
-            IPort   *pChannelSelector;
+            IPort      *pChannelSelector;
 
             // Global ports:
-            IPort   *pOvsMode;
-            IPort   *pScpMode;
-            IPort   *pCoupling_x;
-            IPort   *pCoupling_y;
-            IPort   *pCoupling_ext;
+            IPort      *pOvsMode;
+            IPort      *pScpMode;
+            IPort      *pCoupling_x;
+            IPort      *pCoupling_y;
+            IPort      *pCoupling_ext;
 
-            IPort   *pSweepType;
-            IPort   *pHorDiv;
-            IPort   *pHorPos;
+            IPort      *pSweepType;
+            IPort      *pHorDiv;
+            IPort      *pHorPos;
 
-            IPort   *pVerDiv;
-            IPort   *pVerPos;
+            IPort      *pVerDiv;
+            IPort      *pVerPos;
 
-            IPort   *pTrgHys;
-            IPort   *pTrgLev;
-            IPort   *pTrgHold;
-            IPort   *pTrgMode;
-            IPort   *pTrgType;
-            IPort   *pTrgInput;
-            IPort   *pTrgReset;
+            IPort      *pTrgHys;
+            IPort      *pTrgLev;
+            IPort      *pTrgHold;
+            IPort      *pTrgMode;
+            IPort      *pTrgType;
+            IPort      *pTrgInput;
+            IPort      *pTrgReset;
 
         protected:
             over_mode_t get_oversampler_mode(size_t portValue);
