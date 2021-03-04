@@ -235,16 +235,28 @@
 					<align hpos="1">
 						<label text="groups.oscilloscope.horizontal"/>
 					</align>
-					<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19"/>
+					<hbox >
+						<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ieq 0"/>
+						<knob id="tmdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ieq 1"/>
+					</hbox>
 					<knob id="hzps" size="25" bg_color="osc_bg_gray"/>
-					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+					<hbox >
+						<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 0"/>
+						<knob id="tmdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 1"/>
+					</hbox>
 					<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
 					<!-- Row 6 -->
 					<void/>
-					<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8"/>
+					<hbox >
+						<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ieq 0"/>
+						<value id="tmdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ieq 1"/>
+					</hbox>
 					<value id="hzps" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8"/>
-					<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8"/>
+					<hbox >
+						<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 0"/>
+						<value id="tmdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 1"/>
+					</hbox>
 					<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
 					<!-- Row 7 -->

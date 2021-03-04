@@ -313,6 +313,7 @@ namespace lsp
         pCoupling_ext       = NULL;
 
         pSweepType          = NULL;
+        pTimeDiv            = NULL;
         pHorDiv             = NULL;
         pHorPos             = NULL;
 
@@ -493,7 +494,7 @@ namespace lsp
             c->pCoupling_ext        = NULL;
 
             c->pSweepType           = NULL;
-            c->pHorDiv              = NULL;
+            c->pTimeDiv             = NULL;
             c->pHorPos              = NULL;
 
             c->pVerDiv              = NULL;
@@ -581,6 +582,9 @@ namespace lsp
             pSweepType = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
+            pTimeDiv = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
             pHorDiv = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
@@ -636,6 +640,9 @@ namespace lsp
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pSweepType = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pTimeDiv = vPorts[port_id++];
 
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pHorDiv = vPorts[port_id++];
@@ -740,7 +747,7 @@ namespace lsp
         c->sStateStage.nPV_pTrgType = oscilloscope_base_metadata::TRIGGER_TYPE_DFL;
         c->nUpdate |= UPD_TRIGGER;
 
-        c->sStateStage.fPV_pHorDiv = oscilloscope_base_metadata::TIME_DIVISION_DFL;
+        c->sStateStage.fPV_pTimeDiv = oscilloscope_base_metadata::TIME_DIVISION_DFL;
         c->nUpdate |= UPD_SWEEP_GENERATOR;
 
         c->sStateStage.fPV_pHorPos = oscilloscope_base_metadata::TIME_POSITION_DFL;
@@ -795,7 +802,7 @@ namespace lsp
         // UPD_SWEEP_GENERATOR handling is split as if also UPD_PRETRG_DELAY needs to be handled the correct order of operations is as follows.
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
-             c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pHorDiv);
+             c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pTimeDiv);
              c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
         }
 
@@ -1108,18 +1115,28 @@ namespace lsp
                     c->nUpdate |= UPD_TRGGER_RESET;
             }
 
+            float timeDiv;
+            if (c->bUseGlobal)
+                timeDiv = pTimeDiv->getValue();
+            else
+                timeDiv = c->pTimeDiv->getValue();
+            if (timeDiv != c->sStateStage.fPV_pTimeDiv)
+            {
+                c->sStateStage.fPV_pTimeDiv = timeDiv;
+                c->nUpdate |= UPD_PRETRG_DELAY;
+                c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_TRIGGER_HOLD;
+            }
+
             float horDiv;
             if (c->bUseGlobal)
                 horDiv = pHorDiv->getValue();
             else
                 horDiv = c->pHorDiv->getValue();
-            if (horDiv != c->sStateStage.fPV_pHorDiv)
+            if (timeDiv != c->sStateStage.fPV_pHorDiv)
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_HOR_SCALES;
-                c->nUpdate |= UPD_PRETRG_DELAY;
-                c->nUpdate |= UPD_SWEEP_GENERATOR;
-                c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
             float horPos;
@@ -1455,7 +1472,7 @@ namespace lsp
                     v->write("fPV_pTrgHold", &c->sStateStage.fPV_pTrgHold);
                     v->write("nPV_pTrgType", &c->sStateStage.nPV_pTrgType);
 
-                    v->write("fPV_pHorDiv", &c->sStateStage.fPV_pHorDiv);
+                    v->write("fPV_pTimeDiv", &c->sStateStage.fPV_pTimeDiv);
                     v->write("fPV_pHorPos", &c->sStateStage.fPV_pHorPos);
 
                     v->write("nPV_pSweepType", &c->sStateStage.nPV_pSweepType);
@@ -1487,6 +1504,7 @@ namespace lsp
                 v->write("pCoupling_ext", &c->pCoupling_ext);
 
                 v->write("pSweepType", &c->pSweepType);
+                v->write("pTimeDiv", &c->pTimeDiv);
                 v->write("pHorDiv", &c->pHorDiv);
                 v->write("pHorPos", &c->pHorPos);
 
@@ -1527,6 +1545,7 @@ namespace lsp
         v->write("pCoupling_ext", pCoupling_ext);
 
         v->write("pSweepType", pSweepType);
+        v->write("pTimeDiv", pTimeDiv);
         v->write("pHorDiv", pHorDiv);
         v->write("pHorPos", pHorPos);
 

@@ -118,7 +118,8 @@ namespace lsp
 
     #define HOR_CONTROLS(id, label) \
         COMBO("swtp" id, "Sweep Type" label, oscilloscope_base_metadata::SWEEP_TYPE_DFL, sweep_type), \
-        LOG_CONTROL("hzdv" id, "Horizontal Division" label, U_MSEC, oscilloscope_base_metadata::TIME_DIVISION), \
+        LOG_CONTROL("tmdv" id, "Time Division" label, U_MSEC, oscilloscope_base_metadata::TIME_DIVISION), \
+        LOG_CONTROL("hzdv" id, "Horizontal Division" label, U_NONE, oscilloscope_base_metadata::HORIZONTAL_DIVISION), \
         CONTROL("hzps" id, "Horizontal Position" label, U_PERCENT, oscilloscope_base_metadata::TIME_POSITION)
 
     #define VER_CONTROLS(id, label) \

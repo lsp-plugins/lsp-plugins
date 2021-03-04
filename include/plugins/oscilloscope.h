@@ -114,6 +114,7 @@ namespace lsp
                 float   fPV_pTrgHold;
                 size_t  nPV_pTrgType;
 
+                float   fPV_pTimeDiv;
                 float   fPV_pHorDiv;
                 float   fPV_pHorPos;
 
@@ -204,6 +205,7 @@ namespace lsp
                 IPort              *pCoupling_ext;
 
                 IPort              *pSweepType;
+                IPort              *pTimeDiv;
                 IPort              *pHorDiv;
                 IPort              *pHorPos;
 
@@ -250,6 +252,7 @@ namespace lsp
             IPort      *pCoupling_ext;
 
             IPort      *pSweepType;
+            IPort      *pTimeDiv;
             IPort      *pHorDiv;
             IPort      *pHorPos;
 
