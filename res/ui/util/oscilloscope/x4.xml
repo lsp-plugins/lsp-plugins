@@ -93,6 +93,33 @@
 					visibility="(${has_solo}) ? :chsl_4 : !:chmt_4"
 					smooth="true" strobe="true" strobes=":sh_sz"
 				/>
+				
+				<!--  Trigger References -->
+				<ui:for id="i" first="1" last="4">
+				    <ui:set id="col" value="${
+	                    (:i ieq 1) ? 'red' :
+	                    (:i ieq 2) ? 'green' :
+	                    (:i ieq 3) ? 'yellow' :
+	                    'osc_blue'
+	                    }"/>
+                    
+					<marker value=":trlv * 0.01 + :veps * 0.01" 
+					    basis="1" parallel="0" 
+					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+					/>
+					<marker value=":hzps * 0.01" 
+					    basis="0" parallel="1" 
+					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+					/>
+				    <marker value=":trlv_${i} * 0.01 + :veps_${i} * 0.01" basis="1" parallel="0" 
+				         color="${col}" 
+				         visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+				     />
+	                <marker value=":hzps_${i} * 0.01" basis="0" 
+	                    parallel="1" color="${col}" 
+	                    visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+	                />
+                </ui:for>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
