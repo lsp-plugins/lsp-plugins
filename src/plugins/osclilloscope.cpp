@@ -887,16 +887,17 @@ namespace lsp
             c->bClearStream = false;
         }
 
-        // In-place decimation:
-        size_t j = 0;
-
         // Number of samples changes depending on mode
         size_t query_size;
         switch (c->enMode)
         {
             case CH_MODE_XY: query_size = c->nXYRecordSize; break;
             case CH_MODE_TRIGGERED: query_size = c->nSweepSize; break;
+            default: return;
         }
+
+        // In-place decimation:
+        size_t j = 0;
 
         for (size_t i = 1; i < query_size; ++i)
         {
