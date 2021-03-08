@@ -30,9 +30,13 @@
 
 === 1.1.30 ===
 
+- Implemented Oscilloscope plugin series.
 * Added streaming port support to plugin framework.
 * Added strobe feature to mesh primitives that allows to draw
   multiple streamed meshes together.
+* Implemented 4-lobe Lanczos oversampling DSP functions for i586 architecture.
+* Implemented 4-lobe Lanczos oversampling DSP functions for x86_64 architecture.
+* Implemented 4-lobe Lanczos oversampling DSP functions for 32-bit ARM architecture.
 * Minor bugfixes in the core library.
 
 *******************************************************************************
