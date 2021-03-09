@@ -950,55 +950,35 @@ namespace lsp
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
 
-            size_t scpmode;
-            if (c->bUseGlobal)
-                scpmode = pScpMode->getValue();
-            else
-                scpmode = c->pScpMode->getValue();
+            size_t scpmode = (c->bUseGlobal) ? pScpMode->getValue() : c->pScpMode->getValue();
             if (scpmode != c->sStateStage.nPV_pScpMode)
             {
                 c->sStateStage.nPV_pScpMode = scpmode;
                 c->nUpdate |= UPD_SCPMODE;
             }
 
-            size_t coupling_x;
-            if (c->bUseGlobal)
-                coupling_x = pCoupling_x->getValue();
-            else
-                coupling_x = c->pCoupling_x->getValue();
+            size_t coupling_x = (c->bUseGlobal) ? pCoupling_x->getValue() : c->pCoupling_x->getValue();
             if (coupling_x != c->sStateStage.nPV_pCoupling_x)
             {
                 c->sStateStage.nPV_pCoupling_x = coupling_x;
                 c->nUpdate |= UPD_ACBLOCK_X;
             }
 
-            size_t coupling_y;
-            if (c->bUseGlobal)
-                coupling_y = pCoupling_y->getValue();
-            else
-                coupling_y = c->pCoupling_y->getValue();
+            size_t coupling_y = (c->bUseGlobal) ? pCoupling_y->getValue() : c->pCoupling_y->getValue();
             if (coupling_y != c->sStateStage.nPV_pCoupling_y)
             {
                 c->sStateStage.nPV_pCoupling_y = coupling_y;
                 c->nUpdate |= UPD_ACBLOCK_Y;
             }
 
-            size_t coupling_ext;
-            if (c->bUseGlobal)
-                coupling_ext = pCoupling_ext->getValue();
-            else
-                coupling_ext = c->pCoupling_ext->getValue();
+            size_t coupling_ext = (c->bUseGlobal) ? pCoupling_ext->getValue() : c->pCoupling_ext->getValue();
             if (coupling_ext != c->sStateStage.nPV_pCoupling_ext)
             {
                 c->sStateStage.nPV_pCoupling_ext = coupling_ext;
                 c->nUpdate |= UPD_ACBLOCK_EXT;
             }
 
-            size_t overmode;
-            if (c->bUseGlobal)
-                overmode = pOvsMode->getValue();
-            else
-                overmode = c->pOvsMode->getValue();
+            size_t overmode = (c->bUseGlobal) ? pOvsMode->getValue() : c->pOvsMode->getValue();
             if (overmode != c->sStateStage.nPV_pOvsMode)
             {
                 c->sStateStage.nPV_pOvsMode = overmode;
@@ -1009,29 +989,15 @@ namespace lsp
             if (nXYRecordSize != c->sStateStage.fPV_pXYRecordTime)
                 c->nUpdate |= UPD_XY_RECORD_TIME;
 
-            size_t trginput;
-            if (c->bUseGlobal)
-                trginput = pTrgInput->getValue();
-            else
-                trginput = c->pTrgInput->getValue();
+            size_t trginput = (c->bUseGlobal) ? pTrgInput->getValue() : c->pTrgInput->getValue();
             if (trginput != c->sStateStage.nPV_pTrgInput)
             {
                 c->sStateStage.nPV_pTrgInput = trginput;
                 c->nUpdate |= UPD_TRIGGER_INPUT;
             }
 
-            float verDiv;
-            float verPos;
-            if (c->bUseGlobal)
-            {
-                verDiv = pVerDiv->getValue();
-                verPos = pVerPos->getValue();
-            }
-            else
-            {
-                verDiv = c->pVerDiv->getValue();
-                verPos = c->pVerPos->getValue();
-            }
+            float verDiv = (c->bUseGlobal) ? pVerDiv->getValue() : c->pVerDiv->getValue();
+            float verPos = (c->bUseGlobal) ? pVerPos->getValue() : c->pVerPos->getValue();
             if ((verDiv != c->sStateStage.fPV_pVerDiv) || (verPos != c->sStateStage.fPV_pVerPos))
             {
                 c->sStateStage.fPV_pVerDiv = verDiv;
@@ -1039,116 +1005,72 @@ namespace lsp
                 c->nUpdate |= UPD_VER_SCALES | UPD_TRIGGER;
             }
 
-            float trgHys;
-            if (c->bUseGlobal)
-                trgHys = pTrgHys->getValue();
-            else
-                trgHys = c->pTrgHys->getValue();
+            float trgHys = (c->bUseGlobal) ? pTrgHys->getValue() : c->pTrgHys->getValue();
             if (trgHys != c->sStateStage.fPV_pTrgHys)
             {
                 c->sStateStage.fPV_pTrgHys = trgHys;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            float trgLevel;
-            if (c->bUseGlobal)
-                trgLevel = pTrgLev->getValue();
-            else
-                trgLevel = c->pTrgLev->getValue();
+            float trgLevel = (c->bUseGlobal) ? pTrgLev->getValue() : c->pTrgLev->getValue();
             if (trgLevel != c->sStateStage.fPV_pTrgLevel)
             {
                 c->sStateStage.fPV_pTrgLevel = trgLevel;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            size_t trgmode;
-            if (c->bUseGlobal)
-                trgmode = pTrgMode->getValue();
-            else
-                trgmode = c->pTrgMode->getValue();
+            size_t trgmode = (c->bUseGlobal) ? pTrgMode->getValue() : c->pTrgMode->getValue();
             if (trgmode != c->sStateStage.nPV_pTrgMode)
             {
                 c->sStateStage.nPV_pTrgMode = trgmode;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            float trghold;
-            if (c->bUseGlobal)
-                trghold = pTrgHold->getValue();
-            else
-                trghold = c->pTrgHold->getValue();
+            float trghold = (c->bUseGlobal) ? pTrgHold->getValue() : c->pTrgHold->getValue();
             if (trghold != c->sStateStage.fPV_pTrgHold)
             {
                 c->sStateStage.fPV_pTrgHold = trghold;
                 c->nUpdate |= UPD_TRIGGER_HOLD;
             }
 
-            size_t trgtype;
-            if (c->bUseGlobal)
-                trgtype = pTrgType->getValue();
-            else
-                trgtype = c->pTrgType->getValue();
+            size_t trgtype = (c->bUseGlobal) ? pTrgType->getValue() : c->pTrgType->getValue();
             if (trgtype != c->sStateStage.nPV_pTrgType)
             {
                 c->sStateStage.nPV_pTrgType = trgtype;
                 c->nUpdate |= UPD_TRIGGER;
             }
 
-            if (c->bUseGlobal)
-            {
-                if (pTrgReset->getValue() >= 0.5f)
-                    c->nUpdate |= UPD_TRGGER_RESET;
-            }
-            else
-            {
-                if (c->pTrgReset->getValue() >= 0.5f)
-                    c->nUpdate |= UPD_TRGGER_RESET;
-            }
+            float trg_reset = (c->bUseGlobal) ? pTrgReset->getValue() : c->pTrgReset->getValue();
+            if (trg_reset >= 0.5f)
+                c->nUpdate |= UPD_TRGGER_RESET;
 
-            float timeDiv;
-            if (c->bUseGlobal)
-                timeDiv = pTimeDiv->getValue();
-            else
-                timeDiv = c->pTimeDiv->getValue();
+            float timeDiv = (c->bUseGlobal) ? pTimeDiv->getValue() : c->pTimeDiv->getValue();
             if (timeDiv != c->sStateStage.fPV_pTimeDiv)
             {
                 c->sStateStage.fPV_pTimeDiv = timeDiv;
                 c->nUpdate |= UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD;
             }
 
-            float horDiv;
-            if (c->bUseGlobal)
-                horDiv = pHorDiv->getValue();
-            else
-                horDiv = c->pHorDiv->getValue();
+            float horDiv = (c->bUseGlobal) ? pHorDiv->getValue() : c->pHorDiv->getValue();
             if (timeDiv != c->sStateStage.fPV_pHorDiv)
             {
                 c->sStateStage.fPV_pHorDiv = horDiv;
                 c->nUpdate |= UPD_HOR_SCALES;
             }
 
-            float horPos;
-            if (c->bUseGlobal)
-                horPos = pHorPos->getValue();
-            else
-                horPos = c->pHorPos->getValue();
+            float horPos = (c->bUseGlobal) ? pHorPos->getValue() : c->pHorPos->getValue();
             if (horPos != c->sStateStage.fPV_pHorPos)
             {
                 c->sStateStage.fPV_pHorPos = horPos;
                 c->nUpdate |= UPD_HOR_SCALES | UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR;
             }
 
-            size_t sweeptype;
-            if (c->bUseGlobal)
-                sweeptype = pSweepType->getValue();
-            else
-                sweeptype = c->pSweepType->getValue();
+            size_t sweeptype = (c->bUseGlobal) ? pSweepType->getValue() : c->pSweepType->getValue();
             if (sweeptype != c->sStateStage.nPV_pSweepType)
             {
                 c->sStateStage.nPV_pSweepType = sweeptype;
                 c->nUpdate |= UPD_SWEEP_GENERATOR;
             }
-
         }
     }
 
