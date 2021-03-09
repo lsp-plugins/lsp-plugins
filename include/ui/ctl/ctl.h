@@ -176,6 +176,7 @@ namespace lsp
             A_LIGHT_ID,
             A_LOGARITHMIC,
             A_MAX,
+            A_MAX_DOTS,
             A_MAX_DURATION_ID,
             A_MAX_HEIGHT,
             A_MAX_WIDTH,

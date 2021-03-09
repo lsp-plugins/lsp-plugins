@@ -37,7 +37,9 @@ namespace lsp
                 CtlPort        *pPort;
                 CtlColor        sColor;
                 CtlExpression   sStrobes;
+                CtlExpression   sMaxDots;
                 float           fTransparency;
+                ssize_t         nMaxDots;
 
                 mesh_t         *pMesh;
 

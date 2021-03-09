@@ -79,19 +79,19 @@
 				<ui:set id="has_solo" value=":chsl_1 or :chsl_2 or :chsl_3 or :chsl_4" />
 				<stream id="oscv_1" width="3" color="red"
 					visibility="(${has_solo}) ? :chsl_1 : !:chmt_1"
-					smooth="true" strobe="true" strobes=":sh_sz"
+					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
 				<stream id="oscv_2" width="3" color="green"
 					visibility="(${has_solo}) ? :chsl_2 : !:chmt_2" 
-					smooth="true" strobe="true" strobes=":sh_sz" 
+					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots" 
 				/>
 				<stream id="oscv_3" width="3" color="yellow"
 				 	visibility="(${has_solo}) ? :chsl_3 : !:chmt_3"
-					smooth="true" strobe="true" strobes=":sh_sz"
+					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
 				<stream id="oscv_4" width="3" color="blue"
 					visibility="(${has_solo}) ? :chsl_4 : !:chmt_4"
-					smooth="true" strobe="true" strobes=":sh_sz"
+					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
 				
 				<!--  Trigger References -->
@@ -147,11 +147,17 @@
 				<fader id="sh_sz" angle="0" />
 				<value id="sh_sz" same_line="true" />
 				
-				<vsep />
+				<vsep pad_left="4" pad_right="4" />
 				
 				<label text="labels.oscilloscope.xy_sweep" />
 				<fader id="xyrt" angle="0" />
 				<value id="xyrt" same_line="true" />
+				
+				<vsep pad_left="4" pad_right="4" />
+				
+				<label text="labels.oscilloscope.max_dots" />
+				<fader id="maxdots" angle="0" />
+				<value id="maxdots" same_line="true" />
 				
 				<align hpos="1" expand="true">
 					<label text="labels.graphs.oscilloscope"/>

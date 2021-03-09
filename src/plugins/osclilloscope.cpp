@@ -550,6 +550,9 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pXYRecordTime = vPorts[port_id++];
 
+        TRACE_PORT(vPorts[port_id]);
+        ++port_id;      // Skip 'maxdots' parameter
+
         // Channel selector only exists on multi-channel versions. Skip for 1X plugin.
         if (nChannels > 1)
         {

@@ -158,6 +158,7 @@ namespace lsp
             "light_id",
             "logarithmic",
             "max",
+            "max_dots",
             "max_duration_id",
             "max_height",
             "max_width",

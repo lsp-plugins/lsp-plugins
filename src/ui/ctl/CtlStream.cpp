@@ -32,6 +32,7 @@ namespace lsp
         {
             pClass          = &metadata;
             pPort           = NULL;
+            nMaxDots        = -1;
             fTransparency   = 0.0f;
             pMesh           = NULL;
         }
@@ -43,6 +44,9 @@ namespace lsp
                 mesh_t::destroy(pMesh);
                 pMesh   = NULL;
             }
+
+            sStrobes.destroy();
+            sMaxDots.destroy();
         }
 
         void CtlStream::init()
@@ -58,6 +62,7 @@ namespace lsp
 
             // Initialize expressions
             sStrobes.init(pRegistry, this);
+            sMaxDots.init(pRegistry, this);
         }
 
         void CtlStream::set(widget_attribute_t att, const char *value)
@@ -99,6 +104,9 @@ namespace lsp
                 case A_STROBES:
                     BIND_EXPR(sStrobes, value);
                     break;
+                case A_MAX_DOTS:
+                    BIND_EXPR(sMaxDots, value);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -119,6 +127,9 @@ namespace lsp
 
         void CtlStream::trigger_expr()
         {
+            if (sMaxDots.valid())
+                nMaxDots    = sMaxDots.evaluate();
+
             LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
             if (mesh == NULL)
                 return;
@@ -168,12 +179,14 @@ namespace lsp
             // Perform read from stream to mesh
             size_t last     = stream->frame_id();
             ssize_t length  = stream->get_length(last);
+            ssize_t dots    = (nMaxDots >= 0) ? lsp_min(length, nMaxDots) : length;
+            ssize_t off     = length - dots;
 
             for (size_t i=0, n=stream->channels(); i<n; ++i)
-                stream->read(i, pMesh->pvData[i], 0, length);
+                stream->read(i, pMesh->pvData[i], off, dots);
 
             // Set data to mesh
-            mesh->set_data(pMesh->nBuffers, length, const_cast<const float **>(pMesh->pvData));
+            mesh->set_data(pMesh->nBuffers, dots, const_cast<const float **>(pMesh->pvData));
         }
     } /* namespace ctl */
 } /* namespace lsp */

@@ -49,6 +49,11 @@ namespace lsp
         static const float XY_RECORD_TIME_DFL           = 10.0f;
         static const float XY_RECORD_TIME_STEP          = 0.01f;
 
+        static const float MAXDOTS_MAX                  = 16384.0f;
+        static const float MAXDOTS_MIN                  = 512.0f;
+        static const float MAXDOTS_DFL                  = 8192.0f;
+        static const float MAXDOTS_STEP                 = 0.01f;
+
         enum oversampler_mode_selector_t
         {
             OSC_OVS_NONE,
