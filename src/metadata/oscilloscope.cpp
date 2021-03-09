@@ -145,7 +145,7 @@ namespace lsp
         TRG_CONTROLS(id, label)
 
     #define OSC_VISUALOUTS(id, label) \
-        STREAM("oscv" id, "Stream buffer" label, 3, 32, 0x4000)
+        STREAM("oscv" id, "Stream buffer" label, 3, 128, 0x4000)
 
     static const port_t oscilloscope_x1_ports[] =
     {

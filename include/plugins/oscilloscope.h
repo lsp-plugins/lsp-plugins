@@ -282,7 +282,6 @@ namespace lsp
             void update_dc_block_filter(FilterBank &rFilterBank);
             void reconfigure_dc_block_filters();
             void do_sweep_step(channel_t *c, float strobe_value);
-            void reset_display_buffers(channel_t *c);
             float *select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input);
             inline void set_oversampler(Oversampler &over, over_mode_t mode);
             inline void set_sweep_generator(channel_t *c);

@@ -207,17 +207,6 @@ namespace lsp
         ++c->nDisplayHead;
     }
 
-    void oscilloscope_base::reset_display_buffers(channel_t *c)
-    {
-        // fill_zero is for DEBUG !!! Should not be necessary as they are constantly overwritten.
-        dsp::fill_zero(c->vDisplay_x, BUF_LIM_SIZE);
-        dsp::fill_zero(c->vDisplay_y, BUF_LIM_SIZE);
-        dsp::fill_zero(c->vDisplay_s, BUF_LIM_SIZE);
-        ///
-
-        c->nDisplayHead = 0;
-    }
-
     float *oscilloscope_base::select_trigger_input(float *extPtr, float* yPtr, ch_trg_input_t input)
     {
         switch (input)
@@ -882,6 +871,11 @@ namespace lsp
 
     void oscilloscope_base::graph_stream(channel_t * c)
     {
+        // Remember size and reset head
+        size_t query_size   = c->nDisplayHead;
+        c->nDisplayHead     = 0;
+
+        // Check that stream is present
         stream_t *stream = c->pStream->getBuffer<stream_t>();
         if ((stream == NULL) || (c->bFreeze))
             return;
@@ -895,7 +889,7 @@ namespace lsp
         // In-place decimation:
         size_t j = 0;
 
-        for (size_t i = 1; i < c->nDisplayHead; ++i)
+        for (size_t i = 1; i < query_size; ++i)
         {
             float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
             float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
@@ -916,19 +910,6 @@ namespace lsp
         // Detect occasional jumps
         size_t to_submit = j + 1; // Total number of decimated samples.
 
-        #ifdef LSP_TRACE
-            for (size_t i=1; i < to_submit; ++i)
-            {
-                float dx    = c->vDisplay_x[i] - c->vDisplay_x[i-1];
-                float dy    = c->vDisplay_y[i] - c->vDisplay_y[i-1];
-                float s     = dx*dx + dy*dy;
-                if ((s >= 0.125f) && (c->vDisplay_s[i-1] <= 0.5f))
-                {
-                    lsp_trace("debug");
-                }
-            }
-        #endif
-
         // Apply scaling and offset:
         dsp::mul_k2(c->vDisplay_y, c->fVerStreamScale, to_submit);
         dsp::add_k2(c->vDisplay_y, c->fVerStreamOffset, to_submit);
@@ -939,6 +920,19 @@ namespace lsp
             dsp::mul_k2(c->vDisplay_x, c->fHorStreamScale, to_submit);
             dsp::add_k2(c->vDisplay_x, c->fHorStreamOffset, to_submit);
         }
+
+    #ifdef LSP_TRACE
+        for (size_t i=1; i < to_submit; ++i)
+        {
+            float dx    = c->vDisplay_x[i] - c->vDisplay_x[i-1];
+            float dy    = c->vDisplay_y[i] - c->vDisplay_y[i-1];
+            float s     = dx*dx + dy*dy;
+            if ((s >= 0.125f) && (c->vDisplay_s[i] <= 0.5f))
+            {
+                lsp_trace("debug");
+            }
+        }
+    #endif
 
         // Submit data for plotting (emit the figure data with fixed-size frames):
         for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
@@ -1197,7 +1191,6 @@ namespace lsp
                             {
                                 // Plot time!
                                 graph_stream(c);
-                                reset_display_buffers(c);
                                 continue;
                             }
 
@@ -1268,18 +1261,15 @@ namespace lsp
                                 }
 
                                 case CH_STATE_SWEEPING:
-                                {
                                     do_sweep_step(c, 0.0f);
 
                                     if (c->nDisplayHead >= c->nSweepSize)
                                     {
                                         // Plot time!
                                         graph_stream(c);
-                                        reset_display_buffers(c);
                                         c->enState = CH_STATE_LISTENING;
                                     }
-                                }
-                                break;
+                                    break;
                             }
                         }
                     }

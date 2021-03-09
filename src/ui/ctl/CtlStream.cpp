@@ -185,6 +185,23 @@ namespace lsp
             for (size_t i=0, n=stream->channels(); i<n; ++i)
                 stream->read(i, pMesh->pvData[i], off, dots);
 
+//            #ifdef LSP_TRACE
+//                const float *vx = pMesh->pvData[0];
+//                const float *vy = pMesh->pvData[1];
+//                const float *vs = pMesh->pvData[2];
+//
+//                for (ssize_t i=1; i < dots; ++i)
+//                {
+//                    float dx    = vx[i] - vx[i-1];
+//                    float dy    = vy[i] - vy[i-1];
+//                    float s     = dx*dx + dy*dy;
+//                    if ((s >= 0.125f) && (vs[i] <= 0.5f))
+//                    {
+//                        lsp_trace("debug");
+//                    }
+//                }
+//            #endif
+
             // Set data to mesh
             mesh->set_data(pMesh->nBuffers, dots, const_cast<const float **>(pMesh->pvData));
         }
