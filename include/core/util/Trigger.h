@@ -89,6 +89,9 @@ namespace lsp
             explicit Trigger();
             ~Trigger();
 
+            void            construct();
+            void            destroy();
+
         protected:
             inline void set_simple_trg_threshold(float threshold)
             {

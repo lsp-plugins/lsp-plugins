@@ -15,6 +15,16 @@ namespace lsp
 {
     Trigger::Trigger()
     {
+        construct();
+    }
+
+    Trigger::~Trigger()
+    {
+        destroy();
+    }
+
+    void Trigger::construct()
+    {
         fPrevious                       = 0.0f;
 
         enTriggerMode                   = TRG_MODE_REPEAT;
@@ -39,7 +49,7 @@ namespace lsp
         bSync                           = true;
     }
 
-    Trigger::~Trigger()
+    void Trigger::destroy()
     {
     }
 
@@ -54,7 +64,6 @@ namespace lsp
 
     void Trigger::single_sample_processor(float value)
     {
-
         if (enTriggerMode == TRG_MODE_SINGLE)
         {
             if (sLocks.bSingleLock)
@@ -79,18 +88,12 @@ namespace lsp
         {
             case TRG_TYPE_SIMPLE_RISING_EDGE:
             {
-                if (diff > 0.0f)
-                    enTriggerState = TRG_STATE_ARMED;
-                else
-                {
-                    enTriggerState = TRG_STATE_WAITING;
-                }
+                enTriggerState = (diff > 0.0f) ? TRG_STATE_ARMED : TRG_STATE_WAITING;
 
-                if (
-                        (enTriggerState == TRG_STATE_ARMED) &&
-                        (value >= sSimpleTrg.fThreshold) &&
-                        (nTriggerHoldCounter >= nTriggerHold)
-                        )
+                if ((enTriggerState == TRG_STATE_ARMED) &&
+                    (value >= sSimpleTrg.fThreshold) &&
+                    (nTriggerHoldCounter >= nTriggerHold)
+                )
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nTriggerHoldCounter = 0;
@@ -102,18 +105,12 @@ namespace lsp
 
             case TRG_TYPE_SIMPLE_FALLING_EDGE:
             {
-                if (diff < 0.0f)
-                    enTriggerState = TRG_STATE_ARMED;
-                else
-                {
-                    enTriggerState = TRG_STATE_WAITING;
-                }
+                enTriggerState = (diff < 0.0f) ? TRG_STATE_ARMED : TRG_STATE_WAITING;
 
-                if (
-                        (enTriggerState == TRG_STATE_ARMED) &&
-                        (value <= sSimpleTrg.fThreshold) &&
-                        (nTriggerHoldCounter >= nTriggerHold)
-                        )
+                if ((enTriggerState == TRG_STATE_ARMED) &&
+                    (value <= sSimpleTrg.fThreshold) &&
+                    (nTriggerHoldCounter >= nTriggerHold)
+                )
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nTriggerHoldCounter = 0;
@@ -131,21 +128,19 @@ namespace lsp
                     sAdvancedTrg.bDisarm = false;
                 }
 
-                if (
-                        (diff > 0.0f) &&
-                        (value >= sAdvancedTrg.fLowerThreshold) &&
-                        (fPrevious < sAdvancedTrg.fLowerThreshold) &&
-                        (value < sAdvancedTrg.fThreshold) &&
-                        (nTriggerHoldCounter >= nTriggerHold)
-                        )
+                if ((diff > 0.0f) &&
+                    (value >= sAdvancedTrg.fLowerThreshold) &&
+                    (fPrevious < sAdvancedTrg.fLowerThreshold) &&
+                    (value < sAdvancedTrg.fThreshold) &&
+                    (nTriggerHoldCounter >= nTriggerHold)
+                )
                     enTriggerState = TRG_STATE_ARMED;
 
-                if (
-                        (enTriggerState == TRG_STATE_ARMED) &&
-                        (diff > 0.0f) &&
-                        (value >= sAdvancedTrg.fUpperThreshold) &&
-                        (fPrevious < sAdvancedTrg.fUpperThreshold)
-                        )
+                if ((enTriggerState == TRG_STATE_ARMED) &&
+                    (diff > 0.0f) &&
+                    (value >= sAdvancedTrg.fUpperThreshold) &&
+                    (fPrevious < sAdvancedTrg.fUpperThreshold)
+                )
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nTriggerHoldCounter = 0;
@@ -165,21 +160,19 @@ namespace lsp
                     sAdvancedTrg.bDisarm = false;
                 }
 
-                if (
-                        (diff < 0.0f) &&
-                        (value <= sAdvancedTrg.fUpperThreshold) &&
-                        (fPrevious > sAdvancedTrg.fUpperThreshold) &&
-                        (value > sAdvancedTrg.fThreshold) &&
-                        (nTriggerHoldCounter >= nTriggerHold)
-                        )
+                if ((diff < 0.0f) &&
+                    (value <= sAdvancedTrg.fUpperThreshold) &&
+                    (fPrevious > sAdvancedTrg.fUpperThreshold) &&
+                    (value > sAdvancedTrg.fThreshold) &&
+                    (nTriggerHoldCounter >= nTriggerHold)
+                )
                     enTriggerState = TRG_STATE_ARMED;
 
-                if (
-                        (enTriggerState == TRG_STATE_ARMED) &&
-                        (diff < 0.0f) &&
-                        (value <= sAdvancedTrg.fLowerThreshold) &&
-                        (fPrevious > sAdvancedTrg.fLowerThreshold)
-                        )
+                if ((enTriggerState == TRG_STATE_ARMED) &&
+                    (diff < 0.0f) &&
+                    (value <= sAdvancedTrg.fLowerThreshold) &&
+                    (fPrevious > sAdvancedTrg.fLowerThreshold)
+                )
                 {
                     enTriggerState = TRG_STATE_FIRED;
                     nTriggerHoldCounter = 0;

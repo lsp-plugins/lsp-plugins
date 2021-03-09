@@ -781,7 +781,10 @@ namespace lsp
             return;
 
         if (c->nUpdate & UPD_SCPMODE)
-            c->enMode = get_scope_mode(c->sStateStage.nPV_pScpMode);
+        {
+            c->enMode           = get_scope_mode(c->sStateStage.nPV_pScpMode);
+            c->nDisplayHead     = 0;    // Reset the display head
+        }
 
         if (c->nUpdate & UPD_ACBLOCK_X)
             c->enCoupling_x = get_coupling_type(c->sStateStage.nPV_pCoupling_x);
@@ -832,21 +835,21 @@ namespace lsp
             trgHold = trgHold > minHold ? trgHold : minHold;
             c->sTrigger.set_trigger_hold_samples(trgHold);
 
-            c->nAutoSweepLimit = seconds_to_samples(c->nOverSampleRate, AUTO_SWEEP_TIME);
-            c->nAutoSweepLimit = (c->nAutoSweepLimit < trgHold) ? c->nAutoSweepLimit : trgHold;
-            c->nAutoSweepCounter = 0;
+            c->nAutoSweepLimit      = seconds_to_samples(c->nOverSampleRate, AUTO_SWEEP_TIME);
+            c->nAutoSweepLimit      = (c->nAutoSweepLimit < trgHold) ? trgHold: c->nAutoSweepLimit;
+            c->nAutoSweepCounter    = 0;
         }
 
         if (c->nUpdate & UPD_HOR_SCALES)
         {
-            c->fHorStreamScale = (STREAM_MAX_X - STREAM_MIN_X) / (STREAM_N_HOR_DIV * c->sStateStage.fPV_pHorDiv);
-            c->fHorStreamOffset = 0.5f * (STREAM_MAX_X - STREAM_MIN_X) * (0.01f * c->sStateStage.fPV_pHorPos + 1.0f) + STREAM_MIN_X;
+            c->fHorStreamScale      = (STREAM_MAX_X - STREAM_MIN_X) / (STREAM_N_HOR_DIV * c->sStateStage.fPV_pHorDiv);
+            c->fHorStreamOffset     = 0.5f * (STREAM_MAX_X - STREAM_MIN_X) * (0.01f * c->sStateStage.fPV_pHorPos + 1.0f) + STREAM_MIN_X;
         }
 
         if (c->nUpdate & UPD_VER_SCALES)
         {
-            c->fVerStreamScale = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
-            c->fVerStreamOffset = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
+            c->fVerStreamScale      = (STREAM_MAX_Y - STREAM_MIN_Y) / (STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
+            c->fVerStreamOffset     = 0.5f * (STREAM_MAX_Y - STREAM_MIN_Y) * (0.01f * c->sStateStage.fPV_pVerPos + 1.0f) + STREAM_MIN_Y;
         }
 
         if (c->nUpdate & UPD_TRIGGER)
@@ -889,19 +892,10 @@ namespace lsp
             c->bClearStream = false;
         }
 
-        // Number of samples changes depending on mode
-        size_t query_size;
-        switch (c->enMode)
-        {
-            case CH_MODE_XY: query_size = c->nXYRecordSize; break;
-            case CH_MODE_TRIGGERED: query_size = c->nSweepSize; break;
-            default: return;
-        }
-
         // In-place decimation:
         size_t j = 0;
 
-        for (size_t i = 1; i < query_size; ++i)
+        for (size_t i = 1; i < c->nDisplayHead; ++i)
         {
             float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
             float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
@@ -919,22 +913,36 @@ namespace lsp
             c->vDisplay_y[j] = c->vDisplay_y[i];
         }
 
+        // Detect occasional jumps
         size_t to_submit = j + 1; // Total number of decimated samples.
 
-        // Apply scaling and offset:
-        for (size_t i = 0; i < to_submit; ++i)
-        {
-            c->vDisplay_y[i] = c->fVerStreamScale * c->vDisplay_y[i] + c->fVerStreamOffset;
+        #ifdef LSP_TRACE
+            for (size_t i=1; i < to_submit; ++i)
+            {
+                float dx    = c->vDisplay_x[i] - c->vDisplay_x[i-1];
+                float dy    = c->vDisplay_y[i] - c->vDisplay_y[i-1];
+                float s     = dx*dx + dy*dy;
+                if ((s >= 0.125f) && (c->vDisplay_s[i-1] <= 0.5f))
+                {
+                    lsp_trace("debug");
+                }
+            }
+        #endif
 
-            // x is to be scaled and offset only in XY mode
-            if (c->enMode == CH_MODE_XY)
-                c->vDisplay_x[i] = c->fHorStreamScale * c->vDisplay_x[i] + c->fHorStreamOffset;
+        // Apply scaling and offset:
+        dsp::mul_k2(c->vDisplay_y, c->fVerStreamScale, to_submit);
+        dsp::add_k2(c->vDisplay_y, c->fVerStreamOffset, to_submit);
+
+        // x is to be scaled and offset only in XY mode
+        if (c->enMode == CH_MODE_XY)
+        {
+            dsp::mul_k2(c->vDisplay_x, c->fHorStreamScale, to_submit);
+            dsp::add_k2(c->vDisplay_x, c->fHorStreamOffset, to_submit);
         }
 
         // Submit data for plotting (emit the figure data with fixed-size frames):
         for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
         {
-
             size_t count = stream->add_frame(to_submit - i);     // Add a frame
             stream->write_frame(0, &c->vDisplay_x[i], 0, count); // X'es
             stream->write_frame(1, &c->vDisplay_y[i], 0, count); // Y's
@@ -1188,12 +1196,8 @@ namespace lsp
                             if (count <= 0)
                             {
                                 // Plot time!
-                                if (count == 0) // The nDisplayHead should not exceed the nXYRecordSize
-                                {
-                                    graph_stream(c);
-                                    reset_display_buffers(c);
-                                }
-                                c->nDisplayHead     = 0;
+                                graph_stream(c);
+                                reset_display_buffers(c);
                                 continue;
                             }
 
@@ -1234,7 +1238,7 @@ namespace lsp
 
                         c->nDataHead = 0;
 
-                        float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
+                        const float *trg_input = select_trigger_input(c->vData_ext, c->vData_y, c->enTrgInput);
 
                         for (size_t n = 0; n < to_do_upsample; ++n)
                         {
@@ -1244,28 +1248,24 @@ namespace lsp
                             {
                                 case CH_STATE_LISTENING:
                                 {
-                                    if (c->bAutoSweep)
-                                    {
-                                        if (c->nAutoSweepCounter > c->nAutoSweepLimit)
-                                        {
-                                            c->enState = CH_STATE_SWEEPING;
-                                            do_sweep_step(c, 1.0f);
-                                            c->nAutoSweepCounter = 0;
-                                        }
+                                    bool sweep = c->sTrigger.get_trigger_state() == TRG_STATE_FIRED;
+                                    if ((!sweep) && (c->bAutoSweep))
+                                        sweep = ((c->nAutoSweepCounter++) >= c->nAutoSweepLimit);
 
-                                        ++c->nAutoSweepCounter;
-                                    }
+                                    // No sweep triggered?
+                                    if (!sweep)
+                                        break;
 
-                                    if (c->sTrigger.get_trigger_state() == TRG_STATE_FIRED)
-                                    {
-                                        c->sSweepGenerator.reset_phase_accumulator();
-                                        c->nDataHead = n;
-                                        c->enState = CH_STATE_SWEEPING;
-                                        do_sweep_step(c, 1.0f);
-                                        c->nAutoSweepCounter = 0;
-                                    }
+                                    c->sSweepGenerator.reset_phase_accumulator();
+                                    c->nDataHead            = n;
+                                    c->enState              = CH_STATE_SWEEPING;
+                                    c->nAutoSweepCounter    = 0;
+                                    c->nDisplayHead         = 0;
+
+                                    do_sweep_step(c, 1.0f);
+
+                                    break;
                                 }
-                                break;
 
                                 case CH_STATE_SWEEPING:
                                 {
@@ -1275,14 +1275,12 @@ namespace lsp
                                     {
                                         // Plot time!
                                         graph_stream(c);
-
                                         reset_display_buffers(c);
                                         c->enState = CH_STATE_LISTENING;
                                     }
                                 }
                                 break;
                             }
-
                         }
                     }
                     break;
