@@ -14,40 +14,40 @@ namespace lsp
     {
         static const plugin_metadata_t metadata;
 
-        static const float HORIZONTAL_DIVISION_MAX = 10.0f;
-        static const float HORIZONTAL_DIVISION_MIN = 1.0e-3f;
-        static const float HORIZONTAL_DIVISION_DFL = 0.5;
-        static const float HORIZONTAL_DIVISION_STEP = 1e-3f;
+        static const float HORIZONTAL_DIVISION_MAX      = 10.0f;
+        static const float HORIZONTAL_DIVISION_MIN      = 1.0e-3f;
+        static const float HORIZONTAL_DIVISION_DFL      = 0.5;
+        static const float HORIZONTAL_DIVISION_STEP     = 1e-3f;
 
-        static const float TIME_DIVISION_MAX = 50.0f;
-        static const float TIME_DIVISION_MIN = 0.05f;
-        static const float TIME_DIVISION_DFL = 1.0f;
-        static const float TIME_DIVISION_STEP = 0.01f;
+        static const float TIME_DIVISION_MAX            = 50.0f;
+        static const float TIME_DIVISION_MIN            = 0.05f;
+        static const float TIME_DIVISION_DFL            = 1.0f;
+        static const float TIME_DIVISION_STEP           = 0.01f;
 
-        static const float TIME_POSITION_MAX = 100.0f;
-        static const float TIME_POSITION_MIN = -100.0f;
-        static const float TIME_POSITION_DFL = 0.0f;
-        static const float TIME_POSITION_STEP = 0.1f;
+        static const float TIME_POSITION_MAX            = 100.0f;
+        static const float TIME_POSITION_MIN            = -100.0f;
+        static const float TIME_POSITION_DFL            = 0.0f;
+        static const float TIME_POSITION_STEP           = 0.1f;
 
-        static const float VERTICAL_DIVISION_MAX = 10.0f;
-        static const float VERTICAL_DIVISION_MIN = 1.0e-3f;
-        static const float VERTICAL_DIVISION_DFL = 0.5;
-        static const float VERTICAL_DIVISION_STEP = 1e-3f;
+        static const float VERTICAL_DIVISION_MAX        = 10.0f;
+        static const float VERTICAL_DIVISION_MIN        = 1.0e-3f;
+        static const float VERTICAL_DIVISION_DFL        = 0.5;
+        static const float VERTICAL_DIVISION_STEP       = 1e-3f;
 
-        static const float VERTICAL_POSITION_MAX = 100.0f;
-        static const float VERTICAL_POSITION_MIN = -100.0f;
-        static const float VERTICAL_POSITION_DFL = 0.0f;
-        static const float VERTICAL_POSITION_STEP = 0.1f;
+        static const float VERTICAL_POSITION_MAX        = 100.0f;
+        static const float VERTICAL_POSITION_MIN        = -100.0f;
+        static const float VERTICAL_POSITION_DFL        = 0.0f;
+        static const float VERTICAL_POSITION_STEP       = 0.1f;
 
-        static const size_t STROBE_HISTORY_MAX  = 10;
-        static const size_t STROBE_HISTORY_MIN  = 0;
-        static const size_t STROBE_HISTORY_DFL  = 0;
-        static const size_t STROBE_HISTORY_STEP = 1;
+        static const size_t STROBE_HISTORY_MAX          = 10;
+        static const size_t STROBE_HISTORY_MIN          = 0;
+        static const size_t STROBE_HISTORY_DFL          = 0;
+        static const size_t STROBE_HISTORY_STEP         = 1;
 
-        static const float XY_RECORD_TIME_MAX = 1000.0f;
-        static const float XY_RECORD_TIME_MIN = 0.5f;
-        static const float XY_RECORD_TIME_DFL = 5.0f;
-        static const float XY_RECORD_TIME_STEP = 0.01f;
+        static const float XY_RECORD_TIME_MAX           = 50.0f;
+        static const float XY_RECORD_TIME_MIN           = 1.0f;
+        static const float XY_RECORD_TIME_DFL           = 10.0f;
+        static const float XY_RECORD_TIME_STEP          = 0.01f;
 
         enum oversampler_mode_selector_t
         {

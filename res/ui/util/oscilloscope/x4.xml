@@ -146,6 +146,13 @@
 				<label text="labels.history" />
 				<fader id="sh_sz" angle="0" />
 				<value id="sh_sz" same_line="true" />
+				
+				<vsep />
+				
+				<label text="labels.oscilloscope.xy_sweep" />
+				<fader id="xyrt" angle="0" />
+				<value id="xyrt" same_line="true" />
+				
 				<align hpos="1" expand="true">
 					<label text="labels.graphs.oscilloscope"/>
 				</align>
@@ -173,10 +180,7 @@
 				<grid rows="23" cols="7" visibility=":osc_cs ieq ${:i - 1}">
 					<!-- Row 1 -->
 
-					<cell>
-						<void/>
-
-					</cell>
+					<void/>
 
 					<cell rows="23">
 						<void color="bg" min_width="8"/>

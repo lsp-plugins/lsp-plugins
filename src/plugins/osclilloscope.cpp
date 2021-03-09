@@ -789,14 +789,14 @@ namespace lsp
 
         if (c->nUpdate & UPD_XY_RECORD_TIME)
         {
-            c->nXYRecordSize = seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pXYRecordTime);
+            c->nXYRecordSize = millis_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pXYRecordTime);
             c->nXYRecordSize = (c->nXYRecordSize < BUF_LIM_SIZE) ? c->nXYRecordSize  : BUF_LIM_SIZE;
         }
 
         // UPD_SWEEP_GENERATOR handling is split as if also UPD_PRETRG_DELAY needs to be handled the correct order of operations is as follows.
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
-            c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pTimeDiv);
+            c->nSweepSize = STREAM_N_HOR_DIV * millis_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pTimeDiv);
             c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
         }
 
@@ -940,7 +940,7 @@ namespace lsp
 
     void oscilloscope_base::update_settings()
     {
-        float nXYRecordSize = pSweepType->getValue();
+        float xy_rectime    = pXYRecordTime->getValue();
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -949,6 +949,12 @@ namespace lsp
             // Global controls only actually exist for mult-channel plugins. Do not use for 1X.
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+
+            if (xy_rectime != c->sStateStage.fPV_pXYRecordTime)
+            {
+                c->sStateStage.fPV_pXYRecordTime = xy_rectime;
+                c->nUpdate |= UPD_XY_RECORD_TIME;
+            }
 
             size_t scpmode = (c->bUseGlobal) ? pScpMode->getValue() : c->pScpMode->getValue();
             if (scpmode != c->sStateStage.nPV_pScpMode)
@@ -985,9 +991,6 @@ namespace lsp
                 c->nUpdate |= UPD_OVERSAMPLER_X | UPD_OVERSAMPLER_Y | UPD_OVERSAMPLER_EXT |
                               UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD;
             }
-
-            if (nXYRecordSize != c->sStateStage.fPV_pXYRecordTime)
-                c->nUpdate |= UPD_XY_RECORD_TIME;
 
             size_t trginput = (c->bUseGlobal) ? pTrgInput->getValue() : c->pTrgInput->getValue();
             if (trginput != c->sStateStage.nPV_pTrgInput)
