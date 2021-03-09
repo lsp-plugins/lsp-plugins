@@ -1182,25 +1182,31 @@ namespace lsp
                         else
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
 
-                        for (size_t n = 0; n < to_do_upsample; ++n)
+                        for (size_t n = 0; n < to_do_upsample; )
                         {
-                            if (c->nDisplayHead >= c->nXYRecordSize)
+                            ssize_t count = lsp_min(ssize_t(c->nXYRecordSize - c->nDisplayHead), ssize_t(to_do_upsample - n));
+                            if (count <= 0)
                             {
                                 // Plot time!
-                                graph_stream(c);
-                                reset_display_buffers(c);
+                                if (count == 0) // The nDisplayHead should not exceed the nXYRecordSize
+                                {
+                                    graph_stream(c);
+                                    reset_display_buffers(c);
+                                }
+                                c->nDisplayHead     = 0;
+                                continue;
                             }
 
-                            c->vDisplay_x[c->nDisplayHead] = c->vData_x[n];
-                            c->vDisplay_y[c->nDisplayHead] = c->vData_y[n];
-
-                            // This ensures the strobe has nXYRecordSize period and 0 phase shift.
+                            // Move data to intermediate buffers
+                            dsp::copy(&c->vDisplay_x[c->nDisplayHead], &c->vData_x[n], count);
+                            dsp::copy(&c->vDisplay_y[c->nDisplayHead], &c->vData_y[n], count);
+                            dsp::fill_zero(&c->vDisplay_s[c->nDisplayHead], count);
                             if (c->nDisplayHead == 0)
-                                c->vDisplay_s[c->nDisplayHead] = 1.0f;
-                            else
-                                c->vDisplay_s[c->nDisplayHead] = 0.0f;
+                                c->vDisplay_s[0]        = 1.0f;
 
-                            ++c->nDisplayHead;
+                            // Update pointers
+                            c->nDisplayHead    += count;
+                            n                  += count;
                         }
 
                     }
