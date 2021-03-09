@@ -303,6 +303,7 @@ namespace lsp
 
         pStrobeHistSize     = NULL;
         pXYRecordTime       = NULL;
+        pFreeze             = NULL;
 
         pChannelSelector    = NULL;
 
@@ -548,10 +549,13 @@ namespace lsp
         pStrobeHistSize = vPorts[port_id++];
 
         TRACE_PORT(vPorts[port_id]);
-        pXYRecordTime = vPorts[port_id++];
+        pXYRecordTime   = vPorts[port_id++];
 
         TRACE_PORT(vPorts[port_id]);
         ++port_id;      // Skip 'maxdots' parameter
+
+        TRACE_PORT(vPorts[port_id]);
+        pFreeze         = vPorts[port_id++];
 
         // Channel selector only exists on multi-channel versions. Skip for 1X plugin.
         if (nChannels > 1)
@@ -767,7 +771,8 @@ namespace lsp
         c->nUpdate |= UPD_HOR_SCALES;
 
         // By default, this must be false.
-        c->bUseGlobal = false;
+        c->bUseGlobal   = false;
+        c->bFreeze      = false;
     }
 
     void oscilloscope_base::commit_staged_state_change(channel_t *c)
@@ -875,7 +880,7 @@ namespace lsp
     void oscilloscope_base::graph_stream(channel_t * c)
     {
         stream_t *stream = c->pStream->getBuffer<stream_t>();
-        if (stream == NULL)
+        if ((stream == NULL) || (c->bFreeze))
             return;
 
         if (c->bClearStream)
@@ -944,6 +949,7 @@ namespace lsp
     void oscilloscope_base::update_settings()
     {
         float xy_rectime    = pXYRecordTime->getValue();
+        bool g_freeze       = pFreeze->getValue() >= 0.5f;
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -952,6 +958,8 @@ namespace lsp
             // Global controls only actually exist for mult-channel plugins. Do not use for 1X.
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+
+            c->bFreeze      = g_freeze || (c->pFreezeSwitch->getValue() >= 0.5f);
 
             if (xy_rectime != c->sStateStage.fPV_pXYRecordTime)
             {
@@ -1180,7 +1188,6 @@ namespace lsp
                             {
                                 // Plot time!
                                 graph_stream(c);
-
                                 reset_display_buffers(c);
                             }
 
@@ -1442,6 +1449,7 @@ namespace lsp
 
         v->write("pStrobeHistSize", pStrobeHistSize);
         v->write("pXYRecordTime", pXYRecordTime);
+        v->write("pFreeze", pFreeze);
 
         v->write("pChannelSelector", pChannelSelector);
 

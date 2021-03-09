@@ -183,6 +183,7 @@ namespace lsp
                 size_t              nUpdate;
                 ch_state_stage_t    sStateStage;
                 bool                bUseGlobal;
+                bool                bFreeze;
 
                 float              *vIn_x;
                 float              *vIn_y;
@@ -240,6 +241,7 @@ namespace lsp
             // Common Controls
             IPort      *pStrobeHistSize;
             IPort      *pXYRecordTime;
+            IPort      *pFreeze;
 
             // Channel Selector
             IPort      *pChannelSelector;

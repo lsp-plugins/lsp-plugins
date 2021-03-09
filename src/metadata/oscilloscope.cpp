@@ -97,7 +97,8 @@ namespace lsp
     #define COMMON_CONTROLS \
         CONTROL("sh_sz", "Strobe History Size", U_NONE, oscilloscope_base_metadata::STROBE_HISTORY), \
         LOG_CONTROL("xyrt", "XY Record Time", U_MSEC, oscilloscope_base_metadata::XY_RECORD_TIME), \
-        LOG_CONTROL("maxdots", "Maximum Dots for Plotting", U_NONE, oscilloscope_base_metadata::MAXDOTS) \
+        LOG_CONTROL("maxdots", "Maximum Dots for Plotting", U_NONE, oscilloscope_base_metadata::MAXDOTS), \
+        SWITCH("freeze", "Global Freeze Switch", 0.0f) \
 
     #define CHANNEL_SELECTOR(osc_channels) \
         COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)
