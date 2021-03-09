@@ -784,14 +784,8 @@ namespace lsp
         if (c->nUpdate & UPD_ACBLOCK_EXT)
             c->enCoupling_ext = get_coupling_type(c->sStateStage.nPV_pCoupling_ext);
 
-        if (
-                (c->nUpdate & UPD_OVERSAMPLER_X) ||
-                (c->nUpdate & UPD_OVERSAMPLER_Y) ||
-                (c->nUpdate & UPD_OVERSAMPLER_EXT)
-                )
-        {
+        if (c->nUpdate & (UPD_OVERSAMPLER_X | UPD_OVERSAMPLER_Y | UPD_OVERSAMPLER_EXT))
             configure_oversamplers(c, get_oversampler_mode(c->sStateStage.nPV_pOvsMode));
-        }
 
         if (c->nUpdate & UPD_XY_RECORD_TIME)
         {
@@ -802,16 +796,16 @@ namespace lsp
         // UPD_SWEEP_GENERATOR handling is split as if also UPD_PRETRG_DELAY needs to be handled the correct order of operations is as follows.
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
-             c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pTimeDiv);
-             c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
+            c->nSweepSize = STREAM_N_HOR_DIV * seconds_to_samples(c->nOverSampleRate, 0.001f * c->sStateStage.fPV_pTimeDiv);
+            c->nSweepSize = (c->nSweepSize < BUF_LIM_SIZE) ? c->nSweepSize  : BUF_LIM_SIZE;
         }
 
         if (c->nUpdate & UPD_PRETRG_DELAY)
         {
-             c->nPreTrigger = 0.5f * (0.01f * c->sStateStage.fPV_pHorPos  + 1) * (c->nSweepSize - 1);
-             c->nPreTrigger = (c->nPreTrigger < PRE_TRG_MAX_SIZE) ? c->nPreTrigger : PRE_TRG_MAX_SIZE;
-             c->sPreTrgDelay.set_delay(c->nPreTrigger);
-             c->sPreTrgDelay.clear();
+            c->nPreTrigger = 0.5f * (0.01f * c->sStateStage.fPV_pHorPos  + 1) * (c->nSweepSize - 1);
+            c->nPreTrigger = (c->nPreTrigger < PRE_TRG_MAX_SIZE) ? c->nPreTrigger : PRE_TRG_MAX_SIZE;
+            c->sPreTrgDelay.set_delay(c->nPreTrigger);
+            c->sPreTrgDelay.clear();
         }
 
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
@@ -1008,12 +1002,8 @@ namespace lsp
             if (overmode != c->sStateStage.nPV_pOvsMode)
             {
                 c->sStateStage.nPV_pOvsMode = overmode;
-                c->nUpdate |= UPD_OVERSAMPLER_X;
-                c->nUpdate |= UPD_OVERSAMPLER_Y;
-                c->nUpdate |= UPD_OVERSAMPLER_EXT;
-                c->nUpdate |= UPD_PRETRG_DELAY;
-                c->nUpdate |= UPD_SWEEP_GENERATOR;
-                c->nUpdate |= UPD_TRIGGER_HOLD;
+                c->nUpdate |= UPD_OVERSAMPLER_X | UPD_OVERSAMPLER_Y | UPD_OVERSAMPLER_EXT |
+                              UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD;
             }
 
             if (nXYRecordSize != c->sStateStage.fPV_pXYRecordTime)
@@ -1046,8 +1036,7 @@ namespace lsp
             {
                 c->sStateStage.fPV_pVerDiv = verDiv;
                 c->sStateStage.fPV_pVerPos = verPos;
-                c->nUpdate |= UPD_VER_SCALES;
-                c->nUpdate |= UPD_TRIGGER;
+                c->nUpdate |= UPD_VER_SCALES | UPD_TRIGGER;
             }
 
             float trgHys;
@@ -1124,9 +1113,7 @@ namespace lsp
             if (timeDiv != c->sStateStage.fPV_pTimeDiv)
             {
                 c->sStateStage.fPV_pTimeDiv = timeDiv;
-                c->nUpdate |= UPD_PRETRG_DELAY;
-                c->nUpdate |= UPD_SWEEP_GENERATOR;
-                c->nUpdate |= UPD_TRIGGER_HOLD;
+                c->nUpdate |= UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD;
             }
 
             float horDiv;
@@ -1148,9 +1135,7 @@ namespace lsp
             if (horPos != c->sStateStage.fPV_pHorPos)
             {
                 c->sStateStage.fPV_pHorPos = horPos;
-                c->nUpdate |= UPD_HOR_SCALES;
-                c->nUpdate |= UPD_PRETRG_DELAY;
-                c->nUpdate |= UPD_SWEEP_GENERATOR;
+                c->nUpdate |= UPD_HOR_SCALES | UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR;
             }
 
             size_t sweeptype;
@@ -1200,12 +1185,12 @@ namespace lsp
         {
             channel_t *c = &vChannels[ch];
 
-            c->vIn_x = c->pIn_x->getBuffer<float>();
-            c->vIn_y = c->pIn_y->getBuffer<float>();
-            c->vIn_ext = c->pIn_ext->getBuffer<float>();
+            c->vIn_x    = c->pIn_x->getBuffer<float>();
+            c->vIn_y    = c->pIn_y->getBuffer<float>();
+            c->vIn_ext  = c->pIn_ext->getBuffer<float>();
 
-            c->vOut_x = c->pOut_x->getBuffer<float>();
-            c->vOut_y = c->pOut_y->getBuffer<float>();
+            c->vOut_x   = c->pOut_x->getBuffer<float>();
+            c->vOut_y   = c->pOut_y->getBuffer<float>();
 
             if ((c->vIn_x == NULL) || (c->vIn_y == NULL))
                 return;
@@ -1251,9 +1236,7 @@ namespace lsp
                             c->sOversampler_x.upsample(c->vData_x, c->vTemp, to_do);
                         }
                         else
-                        {
                             c->sOversampler_x.upsample(c->vData_x, c->vIn_x, to_do);
-                        }
 
                         if (c->enCoupling_y == CH_COUPLING_AC)
                         {
@@ -1261,9 +1244,7 @@ namespace lsp
                             c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
                         }
                         else
-                        {
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
-                        }
 
                         for (size_t n = 0; n < to_do_upsample; ++n)
                         {
@@ -1298,9 +1279,8 @@ namespace lsp
                             c->sOversampler_y.upsample(c->vData_y, c->vTemp, to_do);
                         }
                         else
-                        {
                             c->sOversampler_y.upsample(c->vData_y, c->vIn_y, to_do);
-                        }
+
                         c->sPreTrgDelay.process(c->vData_y_delay, c->vData_y, to_do_upsample);
 
                         if (c->enCoupling_ext == CH_COUPLING_AC)
@@ -1309,9 +1289,7 @@ namespace lsp
                             c->sOversampler_ext.upsample(c->vData_ext, c->vTemp, to_do);
                         }
                         else
-                        {
                             c->sOversampler_ext.upsample(c->vData_ext, c->vIn_ext, to_do);
-                        }
 
                         c->nDataHead = 0;
 
@@ -1379,7 +1357,7 @@ namespace lsp
         }
     }
 
-    // THIS MUST BE UPDATED !!!
+    // TODO: THIS MUST BE UPDATED !!!
     void oscilloscope_base::dump(IStateDumper *v) const
     {
         v->begin_object("sDCBlockParams", &sDCBlockParams, sizeof(sDCBlockParams));
