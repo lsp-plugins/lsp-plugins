@@ -549,7 +549,15 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(__IF_LEBE("UTF-32LE", "UTF-32BE"), charset);
+        iconv_t res = iconv_open(__IF_LEBE("UTF-32LE", "UTF-32BE"), charset);
+        if (res != iconv_t(-1))
+            return res;
+
+        res = iconv_open(__IF_LEBE("UTF-32LE", "UTF-32BE"), "UTF-8");
+        if (res != iconv_t(-1))
+            return res;
+
+        return iconv_open("WCHAR_T", "UTF-8");
     }
 
     iconv_t init_iconv_from_wchar_t(const char *charset)
@@ -587,7 +595,15 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(charset, __IF_LEBE("UTF-32LE", "UTF-32BE"));
+        iconv_t res = iconv_open(charset, __IF_LEBE("UTF-32LE", "UTF-32BE"));
+        if (res != iconv_t(-1))
+            return res;
+
+        res = iconv_open("UTF-8", __IF_LEBE("UTF-32LE", "UTF-32BE"));
+        if (res != iconv_t(-1))
+            return res;
+
+        return iconv_open("UTF-8", "WCHAR_T");
     }
 #endif
 
