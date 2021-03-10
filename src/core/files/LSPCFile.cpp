@@ -61,6 +61,9 @@ namespace lsp
 
     status_t LSPCFile::open(const char *path)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         LSPString fpath;
         if (!fpath.set_utf8(path))
             return STATUS_NO_MEM;
@@ -69,6 +72,9 @@ namespace lsp
 
     status_t LSPCFile::open(const io::Path *path)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         LSPString fpath;
         if (!path->get(&fpath))
             return STATUS_NO_MEM;
@@ -80,7 +86,7 @@ namespace lsp
         lspc_root_header_t hdr;
         if (path == NULL)
             return STATUS_BAD_ARGUMENTS;
-        else if (pFile != NULL)
+        if (pFile != NULL)
             return STATUS_BAD_STATE;
 
 #if defined(PLATFORM_WINDOWS)
@@ -134,6 +140,9 @@ namespace lsp
 
     status_t LSPCFile::create(const char *path)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         LSPString fpath;
         if (!fpath.set_utf8(path))
             return STATUS_NO_MEM;
@@ -142,6 +151,9 @@ namespace lsp
 
     status_t LSPCFile::create(const io::Path *path)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         LSPString fpath;
         if (!path->get(&fpath))
             return STATUS_NO_MEM;
@@ -152,7 +164,7 @@ namespace lsp
     {
         if (path == NULL)
             return STATUS_BAD_ARGUMENTS;
-        else if (pFile != NULL)
+        if (pFile != NULL)
             return STATUS_BAD_STATE;
 
 #if defined(PLATFORM_WINDOWS)
