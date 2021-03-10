@@ -34,6 +34,7 @@
 * Added strobe feature to mesh primitives that allows to draw
   multiple streamed meshes together.
 * Minor bugfixes in the core library.
+* Fixed bug with character set encoding for several systems with limited iconv.
 
 *******************************************************************************
 * New plugin check list before release
