@@ -793,7 +793,7 @@ namespace lsp
             c->nXYRecordSize = (c->nXYRecordSize < BUF_LIM_SIZE) ? c->nXYRecordSize  : BUF_LIM_SIZE;
         }
 
-        // UPD_SWEEP_GENERATOR handling is split as if also UPD_PRETRG_DELAY needs to be handled the correct order of operations is as follows.
+        // UPD_SWEEP_GENERATOR handling is split because if also UPD_PRETRG_DELAY needs to be handled them the correct order of operations is as follows.
         if (c->nUpdate & UPD_SWEEP_GENERATOR)
         {
             c->nSweepSize = STREAM_N_HOR_DIV * millis_to_samples(c->nOverSampleRate, c->sStateStage.fPV_pTimeDiv);
@@ -812,6 +812,9 @@ namespace lsp
         {
             c->enSweepType = get_sweep_type(c->sStateStage.nPV_pSweepType);
             set_sweep_generator(c);
+
+            // Since the seep period has changed, we need to revert state to LISTENING.
+            c->enState = CH_STATE_LISTENING;
         }
 
         if (c->nUpdate & UPD_TRIGGER_INPUT)
