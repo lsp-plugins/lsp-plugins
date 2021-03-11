@@ -38,6 +38,7 @@ namespace lsp
         
         CtlButton::~CtlButton()
         {
+            sEditable.destroy();
         }
 
         status_t CtlButton::slot_change(LSPWidget *sender, void *ptr, void *data)
@@ -158,6 +159,7 @@ namespace lsp
 
             // Bind slots
             btn->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+            sEditable.init(pRegistry, this);
         }
 
         void CtlButton::set(const char *name, const char *value)
@@ -201,8 +203,7 @@ namespace lsp
                         PARSE_BOOL(value, btn->set_led(__));
                     break;
                 case A_EDITABLE:
-                    if (btn != NULL)
-                        PARSE_BOOL(value, btn->set_editable(__));
+                    BIND_EXPR(sEditable, value);
                     break;
                 case A_FONT_SIZE:
                     if (btn != NULL)
@@ -224,6 +225,19 @@ namespace lsp
 
             if (port == pPort)
                 commit_value(pPort->get_value());
+
+            // Trigger expressions
+            trigger_expr();
+        }
+
+        void CtlButton::trigger_expr()
+        {
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn == NULL)
+                return;
+
+            if (sEditable.valid())
+                btn->set_editable(sEditable.evaluate() >= 0.5f);
         }
 
         void CtlButton::end()
@@ -252,6 +266,8 @@ namespace lsp
                 else
                     commit_value(fValue);
             }
+
+            trigger_expr();
 
             CtlWidget::end();
         }

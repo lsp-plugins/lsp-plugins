@@ -2,17 +2,17 @@
 	"3d_rendering": "3D rendering",
 
 	"apply": "Apply",
-	
+
 	"cancel": "Cancel",
 	"close": "Close",
-	
+
 	"confirm": {
 		"no": "No",
 		"yes": "Yes"
 	},
-	
+
 	"debug_dump": "Dump for debug",
-	
+
 	"edit": {
 		"clear": "Clear",
 		"copy": "Copy",
@@ -24,13 +24,13 @@
 		"move_up": "Move up",
 		"paste": "Paste"
 	},
-	
+
 	"export": "Export",
 	"export_settings_to_clipboard": "Export settings to clipboard",
 	"export_settings_to_file": "Export settings to file...",
-	
+
 	"freeze": "Freeze",
-	
+
 	"import": "Import",
 	"import_hydrogen_drumkit_file": "Hydrogen drumkit file...",
 	"import_installed_hydrogen_drumkit": "Installed Hydrogen drumkit",
@@ -43,33 +43,34 @@
 		"copy": "Copy link",
 		"follow": "Follow link"
 	},
-	
+
 	"load": "Load",
 	"load_preset": "Load preset",
-	
+
 	"measure": "Measure",
-	
+
 	"nav": {
 		"go": "Go",
 		"up": "Up"
 	},
-	
+
 	"ok": "OK",
 	"open": "Open",
-	
+
 	"plugin_manual": "Plugin manual",
 	"postprocess": "Post-process",
 	"profile": "Profile",
-	
+
 	"reset": "Reset",
-	
+	"run_stop": "Run/Stop",
+
 	"save": "Save",
-	
+
 	"select_language": "Select language",
 
 	"tap": "Tap",
 	"to_bookmarks": "+Bookmarks",
 	"toggle_rack_mount": "Toggle rack mount",
-	
+
 	"ui_manual": "UI manual"
 }

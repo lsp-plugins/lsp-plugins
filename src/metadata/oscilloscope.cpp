@@ -98,7 +98,7 @@ namespace lsp
         CONTROL("sh_sz", "Strobe History Size", U_NONE, oscilloscope_base_metadata::STROBE_HISTORY), \
         LOG_CONTROL("xyrt", "XY Record Time", U_MSEC, oscilloscope_base_metadata::XY_RECORD_TIME), \
         LOG_CONTROL("maxdots", "Maximum Dots for Plotting", U_NONE, oscilloscope_base_metadata::MAXDOTS), \
-        SWITCH("freeze", "Global Freeze Switch", 0.0f) \
+        SWITCH("freeze", "Global Freeze Switch", 0.0f)
 
     #define CHANNEL_SELECTOR(osc_channels) \
         COMBO("osc_cs", "Oscilloscope Channel Selector", 0, osc_channels)
@@ -152,7 +152,6 @@ namespace lsp
         CHANNEL_AUDIO_PORTS("_1", " 1"),
         COMMON_CONTROLS,
         CHANNEL_CONTROLS("_1", " 1"),
-        CHANNEL_SWITCHES("_1", " 1"),
         OSC_VISUALOUTS("_1", " 1"),
         PORTS_END
     };

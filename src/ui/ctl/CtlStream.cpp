@@ -127,14 +127,19 @@ namespace lsp
 
         void CtlStream::trigger_expr()
         {
-            if (sMaxDots.valid())
-                nMaxDots    = sMaxDots.evaluate();
-
             LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
-            if (mesh == NULL)
-                return;
 
-            if (sStrobes.valid())
+            if (sMaxDots.valid())
+            {
+                ssize_t dots = sMaxDots.evaluate();
+                if (nMaxDots != dots)
+                {
+                    nMaxDots = dots;
+                    commit_data();
+                }
+            }
+
+            if ((mesh != NULL) && (sStrobes.valid()))
             {
                 ssize_t value = sStrobes.evaluate();
                 mesh->set_num_strobes(value);

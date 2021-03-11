@@ -693,19 +693,22 @@ namespace lsp
 
         lsp_trace("Binding channel switches ports");
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
+        if (nChannels > 1)
         {
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pGlobalSwitch = vPorts[port_id++];
+            for (size_t ch = 0; ch < nChannels; ++ch)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pGlobalSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pFreezeSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pFreezeSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pSoloSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pSoloSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pMuteSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pMuteSwitch = vPorts[port_id++];
+            }
         }
 
         lsp_trace("Binding channel visual outputs ports");
@@ -863,13 +866,9 @@ namespace lsp
 
         if (c->nUpdate & UPD_TRIGGER)
         {
-            trg_mode_t trgMode = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
+            trg_mode_t trgMode      = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
 
-            if ((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL))
-                c->bAutoSweep = false;
-            else
-                c->bAutoSweep = true;
-
+            c->bAutoSweep           = !((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL));
             c->sTrigger.set_trigger_mode(trgMode);
             c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
             c->sTrigger.set_trigger_type(get_trigger_type(c->sStateStage.nPV_pTrgType));
@@ -986,7 +985,9 @@ namespace lsp
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
 
-            c->bFreeze      = g_freeze || (c->pFreezeSwitch->getValue() >= 0.5f);
+            c->bFreeze      = g_freeze;
+            if ((!c->bFreeze) && (nChannels > 1))
+                c->bFreeze      = c->pFreezeSwitch->getValue() >= 0.5f;
 
             if (xy_rectime != c->sStateStage.fPV_pXYRecordTime)
             {
