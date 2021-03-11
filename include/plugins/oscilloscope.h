@@ -55,6 +55,7 @@ namespace lsp
             {
                 CH_MODE_XY,
                 CH_MODE_TRIGGERED,
+                CH_MODE_GONIOMETER,
 
                 CH_MODE_DFL = CH_MODE_TRIGGERED
             };

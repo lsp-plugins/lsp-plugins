@@ -63,6 +63,9 @@
 					</ui:if>
 				</ui:for>
 
+				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="+:_a_height" color="osc_n_gray" smooth="true" />
+				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="-:_a_height" color="osc_n_gray" smooth="true" />
+				
 				<ui:for id="i" first="-1" last="1">
 					<ui:if test="${:i mod 2}">
 						<marker value="${:i * 0.5}" color="osc_n_dark_yellow" basis="1" parallel="0" />
@@ -71,8 +74,8 @@
 				</ui:for>
 
 				<!-- Axes -->
-				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.0" logarithmic="false"/>
-				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.5" logarithmic="false"/>
+				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.0" logarithmic="false" />
+				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.5" logarithmic="false" />
 
 				<!-- Streams -->
 				<ui:set id="has_solo" value=":chsl_1 or :chsl_2 or :chsl_3 or :chsl_4" />
@@ -313,13 +316,13 @@
 					<align hpos="1">
 						<label text="groups.oscilloscope.horizontal"/>
 					</align>
-					<hbox >
-						<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ieq 0"/>
+					<hbox>
+						<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ine 1"/>
 						<knob id="tmdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ieq 1"/>
 					</hbox>
 					<knob id="hzps" size="25" bg_color="osc_bg_gray"/>
-					<hbox >
-						<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 0"/>
+					<hbox>
+						<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ine 1"/>
 						<knob id="tmdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 1"/>
 					</hbox>
 					<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
@@ -327,12 +330,12 @@
 					<!-- Row 10 -->
 					<void/>
 					<hbox >
-						<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ieq 0"/>
+						<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ine 1"/>
 						<value id="tmdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ieq 1"/>
 					</hbox>
 					<value id="hzps" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8"/>
 					<hbox >
-						<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 0"/>
+						<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ine 1"/>
 						<value id="tmdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 1"/>
 					</hbox>
 					<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>

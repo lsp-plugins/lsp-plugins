@@ -28,6 +28,7 @@ namespace lsp
     {
         {"XY",          "oscilloscope.mode.xy"},
         {"Triggered",   "oscilloscope.mode.triggered"},
+        {"Goniometer",  "oscilloscope.mode.goniometer"},
         {NULL,          NULL}
     };
 
@@ -51,7 +52,7 @@ namespace lsp
     {
         {"Sawtooth",    "oscilloscope.sweeptype.sawtooth"},
         {"Triangular",  "oscilloscope.sweeptype.triangular"},
-        {"Triangular",  "oscilloscope.sweeptype.sine"},
+        {"Sine",        "oscilloscope.sweeptype.sine"},
         {NULL,          NULL}
     };
 

@@ -70,6 +70,7 @@ namespace lsp
         {
             MODE_XY,
             MODE_TRIGGERED,
+            MODE_GONIOMETER,
 
             MODE_DFL = MODE_TRIGGERED
         };

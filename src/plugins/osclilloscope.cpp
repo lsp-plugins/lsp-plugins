@@ -60,6 +60,8 @@ namespace lsp
                 return CH_MODE_XY;
             case oscilloscope_base_metadata::MODE_TRIGGERED:
                 return CH_MODE_TRIGGERED;
+            case oscilloscope_base_metadata::MODE_GONIOMETER:
+                return CH_MODE_GONIOMETER;
             default:
                 return CH_MODE_DFL;
         }
@@ -905,6 +907,10 @@ namespace lsp
             c->bClearStream = false;
         }
 
+        // Transform XY -> MS for goniomteter mode
+        if (c->enMode == CH_MODE_GONIOMETER)
+            dsp::lr_to_ms(c->vDisplay_y, c->vDisplay_x, c->vDisplay_y, c->vDisplay_x, query_size);
+
         // In-place decimation:
         size_t j = 0;
 
@@ -934,7 +940,7 @@ namespace lsp
         dsp::add_k2(c->vDisplay_y, c->fVerStreamOffset, to_submit);
 
         // x is to be scaled and offset only in XY mode
-        if (c->enMode == CH_MODE_XY)
+        if ((c->enMode == CH_MODE_XY) || (c->enMode == CH_MODE_GONIOMETER))
         {
             dsp::mul_k2(c->vDisplay_x, c->fHorStreamScale, to_submit);
             dsp::add_k2(c->vDisplay_x, c->fHorStreamOffset, to_submit);
@@ -1193,6 +1199,7 @@ namespace lsp
                 switch (c->enMode)
                 {
                     case CH_MODE_XY:
+                    case CH_MODE_GONIOMETER:
                     {
                         if (c->enCoupling_x == CH_COUPLING_AC)
                         {
