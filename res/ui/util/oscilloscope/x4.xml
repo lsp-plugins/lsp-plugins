@@ -1,8 +1,7 @@
 <plugin resizable="true">
 	<hbox spacing="4">
-		<vbox spacing="4">
+		<vbox spacing="4" expand="true">
 			<!-- Fast Control -->
-
 			<hbox>
 				<align hpos="0" pad_top="4">
 					<hbox>
@@ -224,8 +223,50 @@
 							<void bg_color="${(:i ieq 4) ? 'osc_n_bg_blue' : 'bg'}" min_height="4" width="26"/>
 						</grid>
 					</cell>
-
+					
 					<!-- Row 2 -->
+					<align hpos="1">
+						<label text="groups.oscilloscope.operation"/>
+					</align>
+					<cell cols="2" bg_color="osc_bg_gray">
+						<void color="bg" min_height="4"/>
+					</cell>
+					<cell cols="2" bg_color="${bgcol}">
+						<void color="bg" min_height="4"/>
+					</cell>
+
+					<!-- Row 3 -->
+					<align hpos="1" pad_bottom="4">
+						<label text="labels.oscilloscope.oversampler_mode"/>
+					</align>
+					<cell cols="2">
+						<combo id="ovmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
+					</cell>
+					<cell cols="2">
+						<combo id="ovmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
+					</cell>
+
+					<!-- Row 4 -->
+					<align hpos="1" pad_bottom="4">
+						<label text="labels.oscilloscope.mode"/>
+					</align>
+					<cell cols="2">
+						<combo id="scmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
+					</cell>
+					<cell cols="2">
+						<combo id="scmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
+					</cell>
+
+					<!-- Row 5 -->
+					<void color="bg" min_height="4"/>
+					<cell cols="2">
+						<void color="bg" min_height="4"/>
+					</cell>
+					<cell cols="2">
+						<void color="bg" min_height="4"/>
+					</cell>
+
+					<!-- Row 6 -->
 					<void/>
 					<cell bg_color="osc_bg_gray" cols="2">
 						<align hpos="0" padding="4">
@@ -250,7 +291,7 @@
 						</hbox>
 					</cell>
 
-					<!-- Row 3 -->
+					<!-- Row 7 -->
 					<align hpos="1" pad_bottom="4">
 						<label text="labels.oscilloscope.sweep_type"/>
 					</align>
@@ -261,14 +302,14 @@
 						<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="swtp_${i}" pad_bottom="12"/>
 					</cell>
 
-					<!-- Row 4 -->
+					<!-- Row 8 -->
 					<void/>
 					<label text="labels.oscilloscope.division" bg_color="osc_bg_gray" pad_left="19" pad_bottom="4"/>
 					<label text="labels.oscilloscope.position" bg_color="osc_bg_gray" pad_bottom="4"/>
 					<label text="labels.oscilloscope.division" bg_color="${bgcol}" pad_left="19" pad_bottom="4"/>
 					<label text="labels.oscilloscope.position" bg_color="${bgcol}" pad_bottom="4"/>
 
-					<!-- Row 5 -->
+					<!-- Row 9 -->
 					<align hpos="1">
 						<label text="groups.oscilloscope.horizontal"/>
 					</align>
@@ -283,7 +324,7 @@
 					</hbox>
 					<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
-					<!-- Row 6 -->
+					<!-- Row 10 -->
 					<void/>
 					<hbox >
 						<value id="hzdv" width="50" same_line="true" bg_color="osc_bg_gray" pad_left="19" pad_bottom="8" visibility=":scmo ieq 0"/>
@@ -296,7 +337,7 @@
 					</hbox>
 					<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
-					<!-- Row 7 -->
+					<!-- Row 11 -->
 					<align hpos="1">
 						<label text="groups.oscilloscope.vertical"/>
 					</align>
@@ -305,14 +346,14 @@
 					<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
 					<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
-					<!-- Row 8 -->
+					<!-- Row 12 -->
 					<void/>
 					<value id="vedv" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8" pad_left="19"/>
 					<value id="veps" width="50" same_line="true" bg_color="osc_bg_gray" pad_bottom="8"/>
 					<value id="vedv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8" pad_left="19"/>
 					<value id="veps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
-					<!-- Row 9 -->
+					<!-- Row 13 -->
 					<void color="bg" min_height="4"/>
 					<cell cols="2">
 						<void color="bg" min_height="4"/>
@@ -321,7 +362,7 @@
 						<void color="bg" min_height="4"/>
 					</cell>
 
-					<!-- Row 10 -->
+					<!-- Row 14 -->
 					<align hpos="1">
 						<label text="groups.oscilloscope.trigger"/>
 					</align>
@@ -332,7 +373,7 @@
 						<void color="bg" min_height="4"/>
 					</cell>
 
-					<!-- Row 11 -->
+					<!-- Row 15 -->
 					<align hpos="1">
 						<label text="labels.oscilloscope.trigger_level"/>
 					</align>
@@ -341,7 +382,7 @@
 					<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
 					<value id="trlv_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
 
-					<!-- Row 12 -->
+					<!-- Row 16 -->
 					<align hpos="1">
 						<label text="labels.oscilloscope.trigger_hysteresis"/>
 					</align>
@@ -350,7 +391,7 @@
 					<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
 					<value id="trhy_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
 
-					<!-- Row 13 -->
+					<!-- Row 17 -->
 					<align hpos="1">
 						<label text="labels.oscilloscope.trigger_hold_time"/>
 					</align>
@@ -359,7 +400,7 @@
 					<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="19"/>
 					<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4"/>
 
-					<!-- Row 14 -->
+					<!-- Row 18 -->
 					<align hpos="1" pad_bottom="1">
 						<label text="labels.oscilloscope.trigger_input"/>
 					</align>
@@ -381,7 +422,7 @@
 						/>
 					</align>
 
-					<!-- Row 15 -->
+					<!-- Row 19 -->
 					<align hpos="1">
 						<label text="labels.oscilloscope.trigger_mode"/>
 					</align>
@@ -392,7 +433,7 @@
 						<combo id="trmo_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
 					</cell>
 
-					<!-- Row 16 -->
+					<!-- Row 20 -->
 					<align hpos="1">
 						<label text="labels.oscilloscope.trigger_type"/>
 					</align>
@@ -401,48 +442,6 @@
 					</cell>
 					<cell cols="2">
 						<combo id="trtp_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
-					</cell>
-
-					<!-- Row 17 -->
-					<void color="bg" min_height="4"/>
-					<cell cols="2">
-						<void color="bg" min_height="4"/>
-					</cell>
-					<cell cols="2">
-						<void color="bg" min_height="4"/>
-					</cell>
-
-					<!-- Row 18 -->
-					<align hpos="1">
-						<label text="groups.oscilloscope.operation"/>
-					</align>
-					<cell cols="2" bg_color="osc_bg_gray">
-						<void color="bg" min_height="4"/>
-					</cell>
-					<cell cols="2" bg_color="${bgcol}">
-						<void color="bg" min_height="4"/>
-					</cell>
-
-					<!-- Row 19 -->
-					<align hpos="1" pad_bottom="4">
-						<label text="labels.oscilloscope.oversampler_mode"/>
-					</align>
-					<cell cols="2">
-						<combo id="ovmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
-					</cell>
-					<cell cols="2">
-						<combo id="ovmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
-					</cell>
-
-					<!-- Row 20 -->
-					<align hpos="1" pad_bottom="4">
-						<label text="labels.oscilloscope.mode"/>
-					</align>
-					<cell cols="2">
-						<combo id="scmo" bg_color="osc_bg_gray" pad_left="4" pad_right="4" pad_bottom="4"/>
-					</cell>
-					<cell cols="2">
-						<combo id="scmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
 					</cell>
 
 					<!-- Row 21 -->

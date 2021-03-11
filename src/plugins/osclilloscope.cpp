@@ -676,19 +676,22 @@ namespace lsp
 
         lsp_trace("Binding channel switches ports");
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
+        if (nChannels > 1)
         {
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pGlobalSwitch = vPorts[port_id++];
+            for (size_t ch = 0; ch < nChannels; ++ch)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pGlobalSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pFreezeSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pFreezeSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pSoloSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pSoloSwitch = vPorts[port_id++];
 
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pMuteSwitch = vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                vChannels[ch].pMuteSwitch = vPorts[port_id++];
+            }
         }
 
         lsp_trace("Binding channel visual outputs ports");
@@ -960,7 +963,9 @@ namespace lsp
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
 
-            c->bFreeze      = g_freeze || (c->pFreezeSwitch->getValue() >= 0.5f);
+            c->bFreeze      = g_freeze;
+            if ((!c->bFreeze) && (nChannels > 1))
+                c->bFreeze      = c->pFreezeSwitch->getValue() >= 0.5f;
 
             if (xy_rectime != c->sStateStage.fPV_pXYRecordTime)
             {
