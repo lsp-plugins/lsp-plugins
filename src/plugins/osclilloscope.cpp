@@ -7,6 +7,8 @@
 
 #include <plugins/oscilloscope.h>
 #include <core/debug.h>
+#include <core/colors.h>
+#include <core/util/Color.h>
 
 #define TRACE_PORT(p)       lsp_trace("  port id=%s", (p)->metadata()->id);
 #define BUF_LIM_SIZE        196608
@@ -354,6 +356,9 @@ namespace lsp
                 c->vDisplay_x       = NULL;
                 c->vDisplay_y       = NULL;
                 c->vDisplay_s       = NULL;
+
+                c->vIDisplay_x      = NULL;
+                c->vIDisplay_y      = NULL;
             }
 
             delete [] vChannels;
@@ -378,10 +383,12 @@ namespace lsp
          * 1X x display buffer +
          * 1X y display buffer +
          * 1X strobe display buffer
+         * 1X x inline display buffer
+         * 1X y inline display buffer
          *
          * All buffers size BUF_LIM_SIZE
          */
-        size_t samples = nChannels * BUF_LIM_SIZE * 8;
+        size_t samples = nChannels * BUF_LIM_SIZE * 10;
 
         float *ptr = alloc_aligned<float>(pData, samples);
         if (ptr == NULL)
@@ -446,6 +453,14 @@ namespace lsp
             c->vDisplay_s       = ptr;
             ptr                += BUF_LIM_SIZE;
 
+            c->vIDisplay_x      = ptr;
+            ptr                += BUF_LIM_SIZE;
+
+            c->vIDisplay_y      = ptr;
+            ptr                += BUF_LIM_SIZE;
+
+            c->nIDisplay            = 0;
+
             c->nDataHead            = 0;
             c->nDisplayHead         = 0;
             c->nSamplesCounter      = 0;
@@ -504,6 +519,8 @@ namespace lsp
             c->pMuteSwitch          = NULL;
 
             c->pStream              = NULL;
+
+            c->pIDisplay            = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -949,6 +966,11 @@ namespace lsp
             // Move the index in the source buffer
             i += count;
         }
+
+        // Copy display data to inline display buffer.
+        c->nIDisplay = to_submit;
+        dsp::copy(c->vIDisplay_x, c->vDisplay_x, c->nIDisplay);
+        dsp::copy(c->vIDisplay_y, c->vDisplay_y, c->nIDisplay);
     }
 
     void oscilloscope_base::update_settings()
@@ -1287,6 +1309,9 @@ namespace lsp
                 c->nSamplesCounter  -= to_do;
             }
         }
+
+        if (pWrapper != NULL)
+            pWrapper->query_display_draw();
     }
 
     // TODO: THIS MUST BE UPDATED !!!
@@ -1471,6 +1496,58 @@ namespace lsp
         v->write("pTrgType", pTrgType);
         v->write("pTrgInput", pTrgInput);
         v->write("pTrgReset", pTrgReset);
+    }
+
+    bool oscilloscope_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    {
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+        float cx    = width >> 1;
+        float cy    = height >> 1;
+
+        // Clear background
+        cv->paint();
+
+        // Draw axis
+        cv->set_line_width(1.0);
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        cv->line(cx, 0, cx, height);
+        cv->line(0, cy, width, cy);
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            channel_t *c = &vChannels[ch];
+
+            // Allocate buffer: t, f(t)
+            c->pIDisplay = float_buffer_t::reuse(c->pIDisplay, 2, width);
+            float_buffer_t *b = c->pIDisplay;
+            if (b == NULL)
+                return false;
+
+            float di    = (c->nIDisplay - 1.0) / width;
+            float dx    = cx - 2;
+            float dy    = cy - 2;
+
+            for (size_t i=0; i<width; ++i)
+            {
+                b->v[0][i]  = cx - dx * c->vIDisplay_x[size_t(i * di)];
+                b->v[1][i]  = cy - dy * c->vIDisplay_y[size_t(i * di)];
+            }
+
+            // Set color and draw
+            cv->set_color_rgb(CV_MESH);
+            cv->set_line_width(2);
+            cv->draw_lines(b->v[0], b->v[1], width);
+        }
+
+        return true;
     }
 
     oscilloscope_x1::oscilloscope_x1(): oscilloscope_base(metadata, 1)

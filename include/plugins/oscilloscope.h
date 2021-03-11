@@ -159,6 +159,10 @@ namespace lsp
                 float              *vDisplay_y;
                 float              *vDisplay_s; // Strobe
 
+                float              *vIDisplay_x;
+                float              *vIDisplay_y;
+                size_t              nIDisplay;
+
                 size_t              nDataHead;
                 size_t              nDisplayHead;
                 size_t              nSamplesCounter;
@@ -227,6 +231,8 @@ namespace lsp
                 IPort              *pMuteSwitch;
 
                 IPort              *pStream;
+
+                float_buffer_t     *pIDisplay;      // Inline display buffer
             } channel_t;
 
         protected:
@@ -304,6 +310,8 @@ namespace lsp
             virtual void process(size_t samples);
 
             virtual void dump(IStateDumper *v) const;
+
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
     };
 
     class oscilloscope_x1: public oscilloscope_base, public oscilloscope_x1_metadata
