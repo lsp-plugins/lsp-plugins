@@ -1182,6 +1182,8 @@ namespace lsp
                 dsp::copy(c->vOut_y, c->vIn_y, samples);
         }
 
+        bool query_draw = false;
+
         // Process each channel
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -1224,6 +1226,7 @@ namespace lsp
                             {
                                 // Plot time!
                                 graph_stream(c);
+                                query_draw      = true;
                                 continue;
                             }
 
@@ -1300,7 +1303,8 @@ namespace lsp
                                     {
                                         // Plot time!
                                         graph_stream(c);
-                                        c->enState = CH_STATE_LISTENING;
+                                        query_draw      = true;
+                                        c->enState      = CH_STATE_LISTENING;
                                     }
                                     break;
                             }
@@ -1318,7 +1322,7 @@ namespace lsp
             }
         }
 
-        if (pWrapper != NULL)
+        if ((pWrapper != NULL) && (query_draw))
             pWrapper->query_display_draw();
     }
 
@@ -1509,8 +1513,8 @@ namespace lsp
     bool oscilloscope_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         // Check proportions
-        if (height > (R_GOLDEN_RATIO * width))
-            height  = R_GOLDEN_RATIO * width;
+        if (height > width)
+            height  = width;
 
         // Init canvas
         if (!cv->init(width, height))
