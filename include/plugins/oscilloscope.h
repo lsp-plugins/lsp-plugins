@@ -295,7 +295,7 @@ namespace lsp
             inline void configure_oversamplers(channel_t *c, over_mode_t mode);
             void init_state_stage(channel_t *c);
             void commit_staged_state_change(channel_t *c);
-            void graph_stream(channel_t *c);
+            bool graph_stream(channel_t *c);
 
         public:
             explicit oscilloscope_base(const plugin_metadata_t &metadata, size_t channels);
