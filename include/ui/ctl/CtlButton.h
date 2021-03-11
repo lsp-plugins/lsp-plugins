@@ -38,6 +38,7 @@ namespace lsp
                 CtlPort        *pPort;
                 CtlColor        sColor;
                 CtlColor        sTextColor;
+                CtlExpression   sEditable;
 
             protected:
                 static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
@@ -45,6 +46,7 @@ namespace lsp
                 void        commit_value(float value);
                 void        submit_value();
                 float       next_value(bool down);
+                void        trigger_expr();
 
             public:
                 explicit CtlButton(CtlRegistry *src, LSPButton *widget);

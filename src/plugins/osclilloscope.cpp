@@ -846,13 +846,9 @@ namespace lsp
 
         if (c->nUpdate & UPD_TRIGGER)
         {
-            trg_mode_t trgMode = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
+            trg_mode_t trgMode      = get_trigger_mode(c->sStateStage.nPV_pTrgMode);
 
-            if ((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL))
-                c->bAutoSweep = false;
-            else
-                c->bAutoSweep = true;
-
+            c->bAutoSweep           = !((trgMode == TRG_MODE_SINGLE) || (trgMode == TRG_MODE_MANUAL));
             c->sTrigger.set_trigger_mode(trgMode);
             c->sTrigger.set_trigger_hysteresis(0.01f * c->sStateStage.fPV_pTrgHys * STREAM_N_VER_DIV * c->sStateStage.fPV_pVerDiv);
             c->sTrigger.set_trigger_type(get_trigger_type(c->sStateStage.nPV_pTrgType));

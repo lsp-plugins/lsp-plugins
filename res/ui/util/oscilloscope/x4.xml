@@ -363,10 +363,23 @@
 					<align hpos="1" pad_bottom="1">
 						<label text="labels.oscilloscope.trigger_input"/>
 					</align>
-					<align hpos="0" bg_color="osc_bg_gray" pad_left="4" pad_bottom="6"><combo id="trin" width="36" fill="false"/></align>
-					<align hpos="1" bg_color="osc_bg_gray" pad_right="4" pad_bottom="6"><button id="trre" text="actions.run_stop" color="gray" fill="false" width="77" bg_color="osc_bg_gray" pad_bottom="6"/></align>
-					<align hpos="0" bg_color="${bgcol}" pad_left="4" pad_bottom="6"><combo id="trin_${i}" width="36" fill="false"/></align>
-					<align hpos="1" bg_color="${bgcol}" pad_right="4" pad_bottom="6"><button id="trre_${i}" text="actions.run_stop" color="${col}" fill="false" width="77"/></align>
+					<align hpos="0" bg_color="osc_bg_gray" pad_left="4" pad_bottom="6">
+						<combo id="trin" width="36" fill="false"/>
+					</align>
+					<align hpos="1" bg_color="osc_bg_gray" pad_right="4" pad_bottom="6">
+						<button id="trre" text="actions.run_stop" color="gray" fill="false" width="77" 
+							bg_color="osc_bg_gray" pad_bottom="6"
+							editable=":trmo ilt 2" bright="(:trmo ilt 2) ? 1.0 : 0.5"
+						/>
+					</align>
+					<align hpos="0" bg_color="${bgcol}" pad_left="4" pad_bottom="6">
+						<combo id="trin_${i}" width="36" fill="false"/>
+						</align>
+					<align hpos="1" bg_color="${bgcol}" pad_right="4" pad_bottom="6">
+						<button id="trre_${i}" text="actions.run_stop" color="${col}" fill="false" width="77"
+							editable=":trmo_${i} ilt 2" bright="(:trmo_${i} ilt 2) ? 1.0 : 0.5"
+						/>
+					</align>
 
 					<!-- Row 15 -->
 					<align hpos="1">
