@@ -72,6 +72,29 @@
 
 		<osc_blue value="#009dff" />
 
+		<osc_n_bg_red value="#552122" />
+		<osc_n_bg_orange value="#553722" />
+		<osc_n_bg_green value="#1f3c22" />
+		<osc_n_bg_blue value="#1b3b5a" />
+		<osc_n_bg_purple value="#511c59" />
+
+		<osc_n_red value="#db0c0f" />
+		<osc_n_orange value="#db5d0f" />
+		<osc_n_green value="#0ba00e" />
+		<osc_n_blue value="#098be4" />
+		<osc_n_purple value="#ca0ae3" />
+		<osc_n_gray value="#333333" />
+		<osc_n_dark_gray value="#151515" />
+		<osc_n_dark_yellow value ="#5c5c10" />
+		<osc_n_white value ="#808080" />
+		<osc_n_bright_red value="#ff0e11" />
+		<osc_n_bright_orange value="#ff6c11" />
+		<osc_n_bright_green value="#12ff16" />
+		<osc_n_bright_blue value="#0a9bff" />
+		<osc_n_bright_purple value="#e30bff" />
+
+
+
 		<!-- Button colors -->
 		<button_face value="#ffffff" />
 		<button_text value="#000000" />
