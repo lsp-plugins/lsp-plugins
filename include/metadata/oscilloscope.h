@@ -54,6 +54,21 @@ namespace lsp
         static const float MAXDOTS_DFL                  = 8192.0f;
         static const float MAXDOTS_STEP                 = 0.01f;
 
+        static const float TRIGGER_HYSTERESIS_MAX       = 100.0f;
+        static const float TRIGGER_HYSTERESIS_MIN       = 0.0f;
+        static const float TRIGGER_HYSTERESIS_DFL       = 1.0f;
+        static const float TRIGGER_HYSTERESIS_STEP      = 0.01f;
+
+        static const float TRIGGER_LEVEL_MAX            = 100.0f;
+        static const float TRIGGER_LEVEL_MIN            = -100.0f;
+        static const float TRIGGER_LEVEL_DFL            = 0.0f;
+        static const float TRIGGER_LEVEL_STEP           = 0.01f;
+
+        static const float TRIGGER_HOLD_TIME_MAX        = 60.0f;
+        static const float TRIGGER_HOLD_TIME_MIN        = 0.0f;
+        static const float TRIGGER_HOLD_TIME_DFL        = 0.0f;
+        static const float TRIGGER_HOLD_TIME_STEP       = 0.01f;
+
         enum oversampler_mode_selector_t
         {
             OSC_OVS_NONE,
@@ -111,21 +126,6 @@ namespace lsp
 
             TRIGGER_TYPE_DFL = TRIGGER_TYPE_ADVANCED_RISING_EDGE
         };
-
-        static const float TRIGGER_HYSTERESIS_MAX = 100.0f;
-        static const float TRIGGER_HYSTERESIS_MIN = 0.0f;
-        static const float TRIGGER_HYSTERESIS_DFL = 1.0f;
-        static const float TRIGGER_HYSTERESIS_STEP = 0.01f;
-
-        static const float TRIGGER_LEVEL_MAX = 100.0f;
-        static const float TRIGGER_LEVEL_MIN = -100.0f;
-        static const float TRIGGER_LEVEL_DFL = 0.0f;
-        static const float TRIGGER_LEVEL_STEP = 0.01f;
-
-        static const float TRIGGER_HOLD_TIME_MAX = 60.0f;
-        static const float TRIGGER_HOLD_TIME_MIN = 0.0f;
-        static const float TRIGGER_HOLD_TIME_DFL = 0.0f;
-        static const float TRIGGER_HOLD_TIME_STEP = 0.001f;
 
         enum coupling_type_t
         {

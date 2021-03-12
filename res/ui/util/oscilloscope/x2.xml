@@ -30,7 +30,7 @@
 				</align>
 			</hbox>
 
-			<graph width="550" height="100" expand="true" fill="true">
+			<graph width="550" height="550" expand="true" fill="true">
 				<!-- Origin -->
 				<center hpos="0.0" vpos="0.0" visible="false"/>
 

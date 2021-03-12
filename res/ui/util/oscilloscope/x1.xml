@@ -1,148 +1,278 @@
-<plugin resizable="false">
-    <hbox spacing="4">
-    
-        <vbox spacing="4">
-            <group text="groups.oscilloscope.screen" expand="true" fill="true">
-        
-	            <graph width="512" height="320" expand="true" fill="true">
-	                <center hpos="-1.0" vpos="0.0" visible="false" />
-	                <axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
-	                <axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
-	
-	                <stream id="oscv_1" width="3" color="middle_channel" smooth="true" strobe="true" strobes="4" />
-	
-	                <marker value="-1" color="g_white" basis="1" parallel="0" />
-	                <marker value="-0.75" color="g_gray" basis="1" parallel="0" />
-	                <marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
-	                <marker value="-0.25" color="g_gray" basis="1" parallel="0" />
-	                <marker value="0.25" color="g_gray" basis="1" parallel="0" />
-	                <marker value="0.5" color="g_yellow" basis="1" parallel="0" />
-	                <marker value="0.75" color="g_gray" basis="1" parallel="0" />
-	                <marker value="1" color="g_white" basis="1" parallel="0" />
-	
-	                <marker value="0.25" color="g_gray" basis="0" parallel="1" />
-	                <marker value="0.5" color="g_yellow" basis="0" parallel="1" />
-	                <marker value="0.75" color="g_gray" basis="0" parallel="1" />
-	                <marker value="1" color="g_white" basis="0" parallel="1" />
-	                <marker value="1.25" color="g_gray" basis="0" parallel="1" />
-	                <marker value="1.5" color="g_yellow" basis="0" parallel="1" />
-	                <marker value="1.75" color="g_gray" basis="0" parallel="1" />
-	                <marker value="2" color="g_white" basis="0" parallel="1" />
-	
-	                <text text="X" coord="0;-1" halign="1" valign="1" />
-	                <text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
-	                <text text="0.5" coord="1;-1" halign="-1" valign="1" />
-	                <text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
-	                <text text="1.0" coord="2;-1" halign="-1" valign="1" />
-	
-	                <text text="Y" coord="0;1" halign="1" valign="-1" />
-	                <text text="0.5" coord="0;0.5" halign="1" valign="-1" />
-	                <text text="0" coord="0;0" halign="1" valign="-1" />
-	                <text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
-	            </graph>
-	            
-	        </group>
-	        
-	        <hbox spacing="4">
-	        
-	            <group text="groups.oscilloscope.operation" expand="true" fill="true">
-	                <grid rows="2" cols="2" spacing="4">
-	                    <label text="labels.oscilloscope.oversampler_mode" />
-	                    <combo id="ovmo_1" same_line="true" />
-	                    <label text="labels.oscilloscope.mode" />          
-	                    <combo id="scmo_1" same_line="true" />
-	                </grid>
-	            </group>
-	            
-	            <group text="labels.oscilloscope.coupling" expand="true" fill="true">
-	                <grid rows="3" cols="2" spacing="4">
-	                    <label text="X" />
-	                    <combo id="sccx_1" same_line="true" />
-	                    <label text="Y" />
-	                    <combo id="sccy_1" same_line="true" />
-	                    <label text="EXT" />
-	                    <combo id="scce_1" same_line="true" />
-	                </grid>
-	            </group>
-	        
-	        </hbox>
-	            
-        </vbox>
-        
-        <vbox spacing="4">
-        
-            <hbox spacing="4">
-	            <group text="groups.oscilloscope.horizontal" expand="true" fill="true">
-	            
-	                <grid rows="2" cols="1">
-	                
-	                    <grid rows="2" cols="1">
-	                        <label text="labels.oscilloscope.sweep_type" />
-	                        <combo id="swtp_1" same_line="true" />
-	                    </grid>
-	                    
-	                    <grid rows="3" cols="2" hspacing="4">
-	                        <label text="labels.oscilloscope.division" />
-	                        <label text="labels.oscilloscope.position" />
-	                        <knob id="hzdv_1" size="18" />
-	                        <knob id="hzps_1" size="18" />
-	                        <value id="hzdv_1" />
-	                        <value id="hzps_1" />
-	                    </grid>
-	                    
-	                </grid>
-	                
-	            </group>
-	            
-	            <group text="groups.oscilloscope.vertical" expand="true" fill="true">
-	
-	               <grid rows="3" cols="2" hspacing="4">
-	                   <label text="labels.oscilloscope.division" />
-	                   <label text="labels.oscilloscope.position" />
-	                   <knob id="vedv_1" size="18" />
-	                   <knob id="veps_1" size="18" />
-	                   <value id="vedv_1" />
-	                   <value id="veps_1" />
-	               </grid>
-	            
-	            </group>
-            </hbox>
-            
-            <group text="groups.oscilloscope.trigger" expand="true" fill="true">
-        
-                <grid rows="3" cols="1" vspacing="4">
-                
-                    <grid rows="1" cols="2" hspacing="4">
-                        <label text="labels.oscilloscope.trigger_reset" />
-                        <button id="trre_1" size="36" />
-                    </grid>
-                    
-                    <grid rows="3" cols="3" hspacing="4">
-                        <label text="labels.oscilloscope.trigger_hysteresis" />
-                        <label text="labels.oscilloscope.trigger_level" />
-                        <label text="labels.oscilloscope.trigger_hold_time" />
-                        <knob id="trhy_1" size="18" />
-                        <knob id="trlv_1" size="18" />
-                        <knob id="trho_1" size="18" />
-                        <value id="trhy_1" />
-                        <value id="trlv_1" />
-                        <value id="trho_1" />
-                    </grid>
-                    
-                    <grid rows="3" cols="2" hspacing="4">
-                        <label text="labels.oscilloscope.trigger_mode" />
-                        <combo id="trmo_1" same_line="true" />
-                        <label text="labels.oscilloscope.trigger_type" />
-                        <combo id="trtp_1" same_line="true" />
-                        <label text="labels.oscilloscope.trigger_input" />
-                        <combo id="trin_1" same_line="true" />
-                    </grid>
-                
-                </grid>
-        
-            </group>
-	        
-        </vbox>
-        
-    </hbox>
+<plugin resizable="true">
+	<hbox spacing="4">
+		<vbox spacing="4" expand="true">
+			<!-- Fast Control -->
+			<align hpos="0" pad_top="4">
+				<button id="freeze" led="true" text="labels.chan.freeze" font_size="10" color="cyan" height="24"/>
+			</align>
+
+			<graph width="550" height="550" expand="true" fill="true">
+				<!-- Origin -->
+				<center hpos="0.0" vpos="0.0" visible="false"/>
+
+				<!-- Marker lines -->
+				<ui:for id="i" first="-31" last="31">
+					<ui:if test="${:i mod 4}">
+						<marker value="${:i * 0.03125}" color="osc_n_dark_gray" basis="1" parallel="0" />
+						<marker value="${:i * 0.03125}" color="osc_n_dark_gray" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
+
+				<ui:for id="i" first="-7" last="7">
+					<ui:if test="${:i mod 4}">
+						<marker value="${:i * 0.125}" color="osc_n_gray" basis="1" parallel="0" />
+						<marker value="${:i * 0.125}" color="osc_n_gray" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
+				
+				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="+:_a_height" color="osc_n_gray" smooth="true" />
+				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="-:_a_height" color="osc_n_gray" smooth="true" />
+
+				<ui:for id="i" first="-1" last="1">
+					<ui:if test="${:i mod 2}">
+						<marker value="${:i * 0.5}" color="osc_n_dark_yellow" basis="1" parallel="0" />
+						<marker value="${:i * 0.5}" color="osc_n_dark_yellow" basis="0" parallel="1" />
+					</ui:if>
+				</ui:for>
+
+				<!-- Axes -->
+				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.0" logarithmic="false"/>
+				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.5" logarithmic="false"/>
+
+				<!-- Streams -->
+				<stream id="oscv_1" width="3" color="osc_n_bright_blue"
+					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
+				/>
+
+				<!--  Trigger References -->
+			    <marker value=":trlv_1 * 0.01 + :veps_1 * 0.01" basis="1" parallel="0"
+			         color="osc_n_blue"
+			         visibility=":scmo_1 ieq 1"
+			     />
+                <marker value=":hzps_1 * 0.01" basis="0"
+                    parallel="1" color="osc_n_blue"
+                    visibility=":scmo_1 ieq 1"
+                />
+
+				<!-- Text -->
+				<text text="X" coord="-1;-1" halign="1" valign="1"/>
+				<text text="-0.75" coord="-0.75;-1" halign="1" valign="1"/>
+				<text text="-0.5" coord="-0.5;-1" halign="1" valign="1"/>
+				<text text="-0.25" coord="-0.25;-1" halign="1" valign="1"/>
+				<text text="0" coord="0;-1" halign="1" valign="1"/>
+				<text text="0.25" coord="0.25;-1" halign="1" valign="1"/>
+				<text text="0.5" coord="0.5;-1" halign="1" valign="1"/>
+				<text text="0.75" coord="0.75;-1" halign="1" valign="1"/>
+				<text text="1" coord="1;-1" halign="-1" valign="1"/>
+
+				<text text="Y" coord="-1;1" halign="1" valign="-1"/>
+				<text text="-0.75" coord="-1;-0.75" halign="1" valign="-1"/>
+				<text text="-0.5" coord="-1;-0.5" halign="1" valign="-1"/>
+				<text text="-0.25" coord="-1;-0.25" halign="1" valign="-1"/>
+				<text text="0" coord="-1;0" halign="1" valign="-1"/>
+				<text text="0.25" coord="-1;0.25" halign="1" valign="-1"/>
+				<text text="0.5" coord="-1;0.5" halign="1" valign="-1"/>
+				<text text="0.75" coord="-1;0.75" halign="1" valign="-1"/>
+			</graph>
+
+			<hbox>
+				<label text="labels.history" />
+				<fader id="sh_sz" angle="0" />
+				<value id="sh_sz" same_line="true" />
+
+				<vsep pad_left="4" pad_right="4" />
+
+				<label text="labels.oscilloscope.xy_sweep" />
+				<fader id="xyrt" angle="0" />
+				<value id="xyrt" same_line="true" />
+
+				<vsep pad_left="4" pad_right="4" />
+
+				<label text="labels.oscilloscope.max_dots" />
+				<fader id="maxdots" angle="0" />
+				<value id="maxdots" same_line="true" />
+
+				<align hpos="1" expand="true">
+					<label text="labels.graphs.oscilloscope"/>
+				</align>
+			</hbox>
+		</vbox>
+
+		<hbox pad_bottom="4" pad_top="4">
+			<!-- Channels -->
+			<ui:set id="i" value="1"/>
+			<ui:set id="bgcol" value="osc_n_bg_blue"/>
+			<ui:set id="col" value="osc_n_bright_blue"/>
+
+			<!-- Channel i -->
+			<grid rows="21" cols="4">
+				<!-- Row 1 -->
+				<align hpos="1">
+					<label text="groups.oscilloscope.operation"/>
+				</align>
+				<cell rows="21">
+					<void color="bg" min_width="8"/>
+				</cell>
+				<cell cols="2" bg_color="${bgcol}">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 2 -->
+				<align hpos="1" pad_bottom="4">
+					<label text="labels.oscilloscope.mode"/>
+				</align>
+				<cell cols="2">
+					<combo id="scmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
+				</cell>
+
+				<!-- Row 3 -->
+				<align hpos="1" pad_bottom="4">
+					<label text="labels.oscilloscope.oversampler_mode"/>
+				</align>
+				<cell cols="2">
+					<combo id="ovmo_${i}" bg_color="${bgcol}" pad_left="4" pad_right="4" pad_bottom="4"/>
+				</cell>
+
+				<!-- Row 4 -->
+				<void color="bg" min_height="4"/>
+				<cell cols="2">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 5 -->
+				<align hpos="1" pad_bottom="4">
+					<label text="labels.oscilloscope.sweep_type"/>
+				</align>
+				<cell cols="2">
+					<combo pad_left="4" pad_right="4" bg_color="${bgcol}" id="swtp_${i}" pad_bottom="12"/>
+				</cell>
+
+				<!-- Row 6 -->
+				<void/>
+				<label text="labels.oscilloscope.division" bg_color="${bgcol}" pad_left="19" pad_bottom="4"/>
+				<label text="labels.oscilloscope.position" bg_color="${bgcol}" pad_bottom="4"/>
+
+				<!-- Row 7 -->
+				<align hpos="1">
+					<label text="groups.oscilloscope.horizontal"/>
+				</align>
+				<hbox >
+					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ine 1"/>
+					<knob id="tmdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 1"/>
+				</hbox>
+				<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
+
+				<!-- Row 8 -->
+				<void/>
+				<hbox >
+					<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ine 1"/>
+					<value id="tmdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 1"/>
+				</hbox>
+				<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
+
+				<!-- Row 9 -->
+				<align hpos="1">
+					<label text="groups.oscilloscope.vertical"/>
+				</align>
+				<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
+
+				<!-- Row 10 -->
+				<void/>
+				<value id="vedv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8" pad_left="19"/>
+				<value id="veps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
+
+				<!-- Row 11 -->
+				<void color="bg" min_height="4"/>
+				<cell cols="2">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 12 -->
+				<align hpos="1">
+					<label text="groups.oscilloscope.trigger"/>
+				</align>
+				<cell cols="2" bg_color="${bgcol}">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 13 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.trigger_level"/>
+				</align>
+				<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<value id="trlv_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
+
+				<!-- Row 14 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.trigger_hysteresis"/>
+				</align>
+				<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<value id="trhy_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
+
+				<!-- Row 15 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.trigger_hold_time"/>
+				</align>
+				<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="19"/>
+				<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4"/>
+
+				<!-- Row 16 -->
+				<align hpos="1" pad_bottom="1">
+					<label text="labels.oscilloscope.trigger_input"/>
+				</align>
+				<align hpos="0" bg_color="${bgcol}" pad_left="4" pad_bottom="6">
+					<combo id="trin_${i}" width="36" fill="false"/>
+					</align>
+				<align hpos="1" bg_color="${bgcol}" pad_right="4" pad_bottom="6">
+					<button id="trre_${i}" text="actions.run_stop" color="${col}" fill="false" width="77"
+						editable=":trmo_${i} ilt 2" bright="(:trmo_${i} ilt 2) ? 1.0 : 0.5"
+					/>
+				</align>
+
+				<!-- Row 17 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.trigger_mode"/>
+				</align>
+				<cell cols="2">
+					<combo id="trmo_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
+				</cell>
+
+				<!-- Row 18 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.trigger_type"/>
+				</align>
+				<cell cols="2">
+					<combo id="trtp_${i}" pad_left="4" pad_right="4" bg_color="${bgcol}" pad_bottom="4"/>
+				</cell>
+
+				<!-- Row 19 -->
+				<void color="bg" min_height="4"/>
+				<cell cols="2">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 20 -->
+				<align hpos="1">
+					<label text="labels.oscilloscope.coupling"/>
+				</align>
+				<cell cols="2" bg_color="${bgcol}">
+					<void color="bg" min_height="4"/>
+				</cell>
+
+				<!-- Row 21 -->
+				<align hpos="1">
+					<label text="labels.X_Y_EXT" align="0"/>
+				</align>
+				<cell cols="2" bg_color="${bgcol}" pad_bottom="4">
+					<hbox fill="false">
+						<combo id="sccx_${i}" width="26" fill="false"/>
+						<combo id="sccy_${i}" width="26" fill="false" pad_left="12" pad_right="12"/>
+						<combo id="scce_${i}" width="26" fill="false"/>
+					</hbox>
+				</cell>
+			</grid>
+		</hbox>
+
+	</hbox>
 </plugin>
