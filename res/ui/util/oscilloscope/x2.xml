@@ -5,7 +5,7 @@
 			<hbox>
 				<align hpos="0" pad_top="4">
 					<hbox>
-						<button id="freeze" led="true" text="labels.chan.freeze" font_size="10" color="cyan" height="24"/>
+						<button id="freeze" led="true" text="actions.freeze" font_size="10" color="cyan" height="24"/>
 						<button id="frz_1" led="true" text="labels.chan.Ch_1" font_size="10" color="cyan" height="24"/>
 						<button id="frz_2" led="true" text="labels.chan.Ch_2" font_size="10" color="cyan" height="24"/>
 					</hbox>
@@ -17,14 +17,14 @@
 						<void bg_color="bg" min_width="8"/>
 						<hbox bg_color="osc_n_bg_red" height="18">
 							<label text="labels.chan.Ch_1" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
-							<button id="chsl_1" led="true" color="green" size="18" text="S" font_size="8"/>
-							<button id="chmt_1" led="true" color="red" size="18" text="M" font_size="8"/>
+							<button id="chsl_1" led="true" color="green" size="18" text="labels.chan.S_olo" font_size="8"/>
+							<button id="chmt_1" led="true" color="red" size="18" text="labels.chan.M_ute" font_size="8"/>
 						</hbox>
 						<void bg_color="bg" min_width="8"/>
 						<hbox bg_color="osc_n_bg_blue">
 							<label text="labels.chan.Ch_2" font_size="12" pad_top="2" pad_left="4" pad_right="4"/>
-							<button id="chsl_2" led="true" color="green" size="18" text="S" font_size="8"/>
-							<button id="chmt_2" led="true" color="red" size="18" text="M" font_size="8"/>
+							<button id="chsl_2" led="true" color="green" size="18" text="labels.chan.S_olo" font_size="8"/>
+							<button id="chmt_2" led="true" color="red" size="18" text="labels.chan.M_ute" font_size="8"/>
 						</hbox>
 					</hbox>
 				</align>
@@ -157,7 +157,7 @@
 					<cell cols="2">
 						<hbox width="165">
 							<vbox>
-								<label bg_color="osc_bg_gray" pad_right="4" text="labels.global" height="29" expand="true"/>
+								<label bg_color="osc_bg_gray" pad_right="4" text="labels.global_settings" height="29" expand="true"/>
 								<void min_height="4" expand="true"/>
 							</vbox>
 						</hbox>
@@ -267,7 +267,7 @@
 
 					<!-- Row 9 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.horizontal"/>
+						<label text="labels.oscilloscope.horizontal"/>
 					</align>
 					<hbox >
 						<knob id="hzdv" size="25" bg_color="osc_bg_gray" pad_left="19" visibility=":scmo ine 1"/>
@@ -295,7 +295,7 @@
 
 					<!-- Row 11 -->
 					<align hpos="1">
-						<label text="groups.oscilloscope.vertical"/>
+						<label text="labels.oscilloscope.vertical"/>
 					</align>
 					<knob id="vedv" size="25" bg_color="osc_bg_gray" pad_left="19"/>
 					<knob id="veps" size="25" bg_color="osc_bg_gray"/>
@@ -411,7 +411,7 @@
 
 					<!-- Row 22 -->
 					<align hpos="1">
-						<label text="labels.oscilloscope.coupling"/>
+						<label text="groups.oscilloscope.coupling" />
 					</align>
 					<cell cols="2" bg_color="osc_bg_gray">
 						<void color="bg" min_height="4"/>

@@ -3,7 +3,7 @@
 		<vbox spacing="4" expand="true">
 			<!-- Fast Control -->
 			<align hpos="0" pad_top="4">
-				<button id="freeze" led="true" text="labels.chan.freeze" font_size="10" color="cyan" height="24"/>
+				<button id="freeze" led="true" text="actions.freeze" font_size="10" color="cyan" height="24"/>
 			</align>
 
 			<graph width="550" height="550" expand="true" fill="true">
@@ -154,7 +154,7 @@
 
 				<!-- Row 7 -->
 				<align hpos="1">
-					<label text="groups.oscilloscope.horizontal"/>
+					<label text="labels.oscilloscope.horizontal"/>
 				</align>
 				<hbox >
 					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ine 1"/>
@@ -172,7 +172,7 @@
 
 				<!-- Row 9 -->
 				<align hpos="1">
-					<label text="groups.oscilloscope.vertical"/>
+					<label text="labels.oscilloscope.vertical"/>
 				</align>
 				<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
 				<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
@@ -254,7 +254,7 @@
 
 				<!-- Row 20 -->
 				<align hpos="1">
-					<label text="labels.oscilloscope.coupling"/>
+					<label text="groups.oscilloscope.coupling" />
 				</align>
 				<cell cols="2" bg_color="${bgcol}">
 					<void color="bg" min_height="4"/>

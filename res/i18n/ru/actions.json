@@ -2,17 +2,17 @@
 	"3d_rendering": "Отрисовка 3D",
 
 	"apply": "Применить",
-	
+
 	"cancel": "Отмена",
 	"close": "Закрыть",
-	
+
 	"confirm": {
 		"no": "Нет",
 		"yes": "Да"
 	},
-	
+
 	"debug_dump": "Отладочный дамп",
-	
+
 	"edit": {
 		"clear": "Очистить",
 		"copy": "Копировать",
@@ -24,13 +24,13 @@
 		"move_up": "Переместить вверх",
 		"paste": "Вставить"
 	},
-	
+
 	"export": "Экспорт",
 	"export_settings_to_clipboard": "Экпорт настроек в буфер обмена",
 	"export_settings_to_file": "Экспорт настроек в файл...",
-	
+
 	"freeze": "Стоп-кадр",
-	
+
 	"import": "Импорт",
 	"import_hydrogen_drumkit_file": "Библиотека семплов Hydrogen...",
 	"import_installed_hydrogen_drumkit": "Установленная библиотека Hydrogen",
@@ -43,33 +43,34 @@
 		"copy": "Копировать ссылку",
 		"follow": "Перейти по ссылке"
 	},
-	
+
 	"load": "Загрузить",
 	"load_preset": "Загрузить пресет",
-	
+
 	"measure": "Измерить",
-	
+
 	"nav": {
 		"go": "Перейти",
 		"up": "Наверх"
 	},
-	
+
 	"ok": "Хорошо",
 	"open": "Открыть",
-	
+
 	"plugin_manual": "Руководство к плагину",
 	"postprocess": "Постобработка",
 	"profile": "Профилировать",
-	
+
 	"reset": "Сбросить",
-	
+	"run_stop": "Пуск/Стоп",
+
 	"save": "Сохранить",
 
 	"select_language": "Выбрать язык",
-	
+
 	"tap": "Тук",
 	"to_bookmarks": "В закладки",
 	"toggle_rack_mount": "Переключить стоечный монтаж",
-	
+
 	"ui_manual": "Руководство по интерфейсу"
 }

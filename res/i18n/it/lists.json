@@ -18,7 +18,6 @@
 	},
 	
 	"dither": {
-        "none": "Nessuno",
         "bits": {
 	        "11": "11bit",
 	        "12": "12bit",
@@ -28,7 +27,8 @@
 	        "24": "24bit",
 	        "7": "7bit",
 	        "8": "8bit"
-        }
+        },
+        "none": "Nessuno"
 	},
 	
 	"dyna_proc": {

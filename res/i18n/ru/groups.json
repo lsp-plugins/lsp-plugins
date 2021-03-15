@@ -4,11 +4,11 @@
 	"audio_channel": "Аудиоканал",
 	"audio_channels": "Аудиоканалы",
 	"audio_output": "Аудиовыход",
-	
+
 	"bands": "Полосы",
-	
+
 	"controls": "Управление",
-	
+
 	"chan": {
 		"master": "Мастер канал"
 	},
@@ -18,7 +18,7 @@
 	"channels": "Каналы",
 
 	"distance": "Расстояние",
-	
+
 	"gain": "Усиление",
 	"general": "Общие настройки",
 
@@ -28,7 +28,7 @@
 	"instrument_mixer": "Микшер инструментов",
 
 	"latency": "Задержка",
-	
+
 	"lchan": {
 		"distance": "Рассотяние (левый)",
 		"monitoring": "Мониторинг (левый)",
@@ -36,20 +36,26 @@
 		"signal": "Сигнал (левый)",
 		"time": "Время (левый)"
 	},
-	
+
 	"metering": "Измерения",
 	"midi_setup": "Настройка MIDI",
 	"monitoring": "Мониторинг",
-	
+
 	"oscillator_function": "Функция осциллятора",
+	"oscilloscope": {
+		"coupling": "Связь",
+		"operation": "Операция",
+		"trigger": "Триггер"
+	},
+
 	"output": "Выход",
 	"outputs": "Выходы",
-	
+
 	"parameters": "Параметры",
-	
+
 	"plug": {
 		"calibrator": "Калибратор",
-		"compressor": "Компрессор",	
+		"compressor": "Компрессор",
 		"expander": "Экспандер",
 		"gate": "Гейт",
 		"latency_detector": "Детектор задержки",
@@ -57,14 +63,14 @@
 		"processor": "Процессор",
 		"trigger": "Триггер"
 	},
-	
+
 	"processor": "Обработчик",
 	"processors": "Обработчики",
-	
+
 	"rendering": "Отрисовка",
-	
+
 	"results": "Результаты",
-	
+
 	"rchan": {
 		"distance": "Расстояние (правый)",
 		"monitoring": "Мониторинг (правый)",
@@ -72,7 +78,7 @@
 		"signal": "Сигнал (правый)",
 		"time": "Время (правый)"
 	},
-	
+
 	"sample_matrix": "Матрица сэмплов",
 	"sample_n": "Сэмпл {@id}",
 	"samples": "Сэмплы",
@@ -81,7 +87,7 @@
 	"signal": "Сигнал",
 	"signal_n": "Сигнал {@id}",
 	"signals": "Сигналы",
-	
+
 	"test_signal": "Тестовый сигнал",
 	"tempo_settings": "Настройки темпа",
 
