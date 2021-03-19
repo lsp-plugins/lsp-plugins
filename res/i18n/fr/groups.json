@@ -21,6 +21,8 @@
 	
 	"gain": "Gain",
 	"general": "Général",
+
+	"global_delay_ctr": "Contrôles des lignes de délai globales",
 	
 	"impulse_response": "Réponse impulsionnelle",
 	"instrument_mixer": "Mixeur instrumental",
@@ -40,6 +42,12 @@
 	"monitoring": "Monitoring",
 	
 	"oscillator_function": "Fonction oscillateur",
+	"oscilloscope": {
+		"coupling": "Couplage",
+		"operation": "Opération",
+		"trigger": "Déclencher"
+	},
+
 	"output": "Sortie",
 	"outputs": "Sorties",
 	
@@ -81,6 +89,8 @@
 	"signals": "Signaux",
 	
 	"test_signal": "Signal de test",
+	"tempo_settings": "Paramètres de tempo",
+
 	"time": "Temps",
 	
 	"wet_signal_eq": "Égalisation du signal traité"
