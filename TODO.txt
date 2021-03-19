@@ -39,6 +39,7 @@
 * Implemented 4-lobe Lanczos oversampling DSP functions for 32-bit ARM architecture.
 * Implemented 4-lobe Lanczos oversampling DSP functions for 64-bit ARM architecture.
 * Minor bugfixes in the core library.
+* Updated french translations (contributed by Olivier Humbert).
 
 *******************************************************************************
 * New plugin check list before release
