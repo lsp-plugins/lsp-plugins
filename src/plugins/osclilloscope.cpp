@@ -1543,14 +1543,12 @@ namespace lsp
             if (b == NULL)
                 return false;
 
-            float di    = (c->nIDisplay - 1.0) / width;
-            float dx    = cx - 2;
-            float dy    = cy - 2;
+            float di = (c->nIDisplay - 1.0) / width;
 
             for (size_t i=0; i<width; ++i)
             {
-                b->v[0][i]  = cx - dx * c->vIDisplay_x[size_t(i * di)];
-                b->v[1][i]  = cy - dy * c->vIDisplay_y[size_t(i * di)];
+                b->v[0][i] = 0.5f * width * (c->vIDisplay_x[size_t(i * di)] + 1); //cx - dx * c->vIDisplay_x[size_t(i * di)];
+                b->v[1][i] = 0.5f * height * (c->vIDisplay_y[size_t(i * di)] + 1); //cy - dy * c->vIDisplay_y[size_t(i * di)];
             }
 
             // Set color and draw
