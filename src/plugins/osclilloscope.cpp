@@ -1596,6 +1596,9 @@ namespace lsp
                 (nChannels < 4) ? &ch_colors[1] :
                 &ch_colors[3];
 
+        float halfv = 0.5f * width;
+        float halfh = 0.5f * height;
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
@@ -1608,12 +1611,12 @@ namespace lsp
             if (b == NULL)
                 return false;
 
-            float di = (c->nIDisplay - 1.0) / width;
+            float di = float(c->nIDisplay - 1.0f) / width;
 
             for (size_t i=0; i<width; ++i)
             {
-                b->v[0][i] = 0.5f * width * (c->vIDisplay_x[size_t(i * di)] + 1);
-                b->v[1][i] = 0.5f * height * (-c->vIDisplay_y[size_t(i * di)] + 1);
+                b->v[0][i] = halfv * (c->vIDisplay_x[size_t(i * di)] + 1.0f);
+                b->v[1][i] = halfh * (-c->vIDisplay_y[size_t(i * di)] + 1.0f);
             }
 
             // Set color and draw
