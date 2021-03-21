@@ -232,6 +232,9 @@ namespace lsp
                 IPort              *pMuteSwitch;
 
                 IPort              *pStream;
+                IPort              *pTimeDivMeter;
+                IPort              *pHorDivMeter;
+                IPort              *pVerDivMeter;
 
                 float_buffer_t     *pIDisplay;      // Inline display buffer
             } channel_t;

@@ -521,6 +521,9 @@ namespace lsp
             c->pMuteSwitch          = NULL;
 
             c->pStream              = NULL;
+            c->pTimeDivMeter        = NULL;
+            c->pHorDivMeter         = NULL;
+            c->pVerDivMeter         = NULL;
 
             c->pIDisplay            = NULL;
         }
@@ -719,6 +722,15 @@ namespace lsp
         {
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pStream = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pTimeDivMeter = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pHorDivMeter = vPorts[port_id++];
+
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[ch].pVerDivMeter = vPorts[port_id++];
         }
     }
 
@@ -1382,6 +1394,10 @@ namespace lsp
                 v->write("vDisplay_y", &c->vDisplay_y);
                 v->write("vDisplay_s", &c->vDisplay_s);
 
+                v->write("vIDisplay_x", &c->vIDisplay_x);
+                v->write("vIDisplay_y", &c->vIDisplay_y);
+                v->write("nIDisplay", &c->nIDisplay);
+
                 v->write("nDataHead", &c->nDataHead);
                 v->write("nDisplayHead", &c->nDisplayHead);
                 v->write("nSamplesCounter", &c->nSamplesCounter);
@@ -1433,6 +1449,7 @@ namespace lsp
                 v->end_object();
 
                 v->write("bUseGlobal", &c->bUseGlobal);
+                v->write("bFreeze", &c->bFreeze);
 
                 v->write("vIn_x", &c->vIn_x);
                 v->write("vIn_y", &c->vIn_y);
@@ -1476,6 +1493,11 @@ namespace lsp
                 v->write("pMuteSwitch", &c->pMuteSwitch);
 
                 v->write("pStream", &c->pStream);
+                v->write("pTimeDivMeter", &c->pTimeDivMeter);
+                v->write("pHorDivMeter", &c->pHorDivMeter);
+                v->write("pVerDivMeter", &c->pVerDivMeter);
+
+                v->write("pIDisplay", &c->pIDisplay);
             }
             v->end_object();
         }
@@ -1536,9 +1558,30 @@ namespace lsp
         cv->line(cx, 0, cx, height);
         cv->line(0, cy, width, cy);
 
+        // Check for solos:
+        bool soloFound = false;
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
+
+            soloFound = c->pSoloSwitch->getValue() >= 0.5f;
+            if (soloFound)
+                break;
+        }
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            channel_t *c = &vChannels[ch];
+
+            bool doPlot = false;
+
+            if (soloFound)
+                doPlot = c->pSoloSwitch->getValue() >= 0.5f;
+            else
+                doPlot = c->pMuteSwitch->getValue() < 0.5f;
+
+            if (!doPlot)
+                continue;
 
             // Allocate buffer: t, f(t)
             c->pIDisplay = float_buffer_t::reuse(c->pIDisplay, 2, width);
@@ -1550,12 +1593,22 @@ namespace lsp
 
             for (size_t i=0; i<width; ++i)
             {
-                b->v[0][i] = 0.5f * width * (c->vIDisplay_x[size_t(i * di)] + 1); //cx - dx * c->vIDisplay_x[size_t(i * di)];
-                b->v[1][i] = 0.5f * height * (c->vIDisplay_y[size_t(i * di)] + 1); //cy - dy * c->vIDisplay_y[size_t(i * di)];
+                b->v[0][i] = 0.5f * width * (c->vIDisplay_x[size_t(i * di)] + 1);
+                b->v[1][i] = 0.5f * height * (-c->vIDisplay_y[size_t(i * di)] + 1);
             }
 
             // Set color and draw
-            cv->set_color_rgb(CV_MESH);
+            if (ch == 0)
+                cv->set_color_rgb(0xff0e11);
+            else if (ch == 1)
+                cv->set_color_rgb(0x12ff16);
+            else if (ch == 2)
+                cv->set_color_rgb(0xff6c11);
+            else if (ch == 3)
+                cv->set_color_rgb(0x0a9bff);
+            else
+                cv->set_color_rgb(CV_MESH);
+
             cv->set_line_width(2);
             cv->draw_lines(b->v[0], b->v[1], width);
         }
