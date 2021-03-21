@@ -42,6 +42,12 @@
 	"monitoring": "Monitoring",
 
 	"oscillator_function": "Oscillator Function",
+	"oscilloscope": {
+		"coupling": "Coupling",
+		"operation": "Operation",
+		"trigger": "Trigger"
+	},
+
 	"output": "Output",
 	"outputs": "Outputs",
 
@@ -87,6 +93,5 @@
 
 	"time": "Time",
 
-	"wet_signal_eq": "Wet Signal Equalization",
-
+	"wet_signal_eq": "Wet Signal Equalization"
 }

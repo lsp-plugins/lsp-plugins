@@ -76,8 +76,6 @@
 		"Ch_3": "Ch3",
 		"Ch_4": "Ch4",
 		"Ext_ernal": "Ext",
-		"freeze": "Freeze",
-		"frz": "Frz",
 		"H_old": "H",
 		"L_eft": "L",
 		"L_eft:": "L:",
@@ -94,6 +92,8 @@
 		"S_olo": "S",
 		"channel_n": "Channel {@id}",
 		"external_sc": "External",
+		"freeze": "Freeze",
+		"frz": "Frz",
 		"hold": "Hold",
 		"hue": "Hue",
 		"id": "{@id}",
@@ -228,7 +228,8 @@
 	"gain": "Gain",
 	"gain_": "Gain",
 	"gain:db": "Gain\n(dB)",
-	"global": "Global",
+
+	"global_settings": "Global settings",
 
 	"graphs": {
 		"compression": "COMPRESSION",
@@ -356,8 +357,8 @@
 	"offset:samp": "Offset (samp)",
 
 	"oscilloscope": {
-		"coupling": "Coupling",
 		"division": "Division",
+		"horizontal": "Horizontal",
 		"max_dots": "Max Dots",
 		"mode": "Mode",
 		"oversampler_mode": "Oversampler",
@@ -370,6 +371,7 @@
 		"trigger_mode": "Mode",
 		"trigger_reset": "Reset",
 		"trigger_type": "Edge Type",
+		"vertical": "Vertical",
 		"xy_sweep": "XY Sweep"
 	},
 
@@ -611,7 +613,7 @@
 	},
 
 	"working_area": "Working area",
-	
+
 	"X_Y_EXT": "X | Y | EXT",
 
 	"zone": "Zone",

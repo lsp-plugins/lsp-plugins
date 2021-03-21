@@ -132,7 +132,7 @@ namespace lsp
     #define TRG_CONTROLS(id, label) \
         CONTROL("trhy" id, "Trigger Hysteresis" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_HYSTERESIS), \
         CONTROL("trlv" id, "Trigger Level" label, U_PERCENT, oscilloscope_base_metadata::TRIGGER_LEVEL), \
-        CONTROL("trho" id, "Trigger Hold Time" label, U_SEC, oscilloscope_base_metadata::TRIGGER_HOLD_TIME), \
+        LOG_CONTROL("trho" id, "Trigger Hold Time" label, U_SEC, oscilloscope_base_metadata::TRIGGER_HOLD_TIME), \
         COMBO("trmo" id, "Trigger Mode" label, oscilloscope_base_metadata::TRIGGER_MODE_DFL, osc_trg_mode), \
         COMBO("trtp" id, "Trigger Type" label, oscilloscope_base_metadata::TRIGGER_TYPE_DFL, osc_trg_type), \
         COMBO("trin" id, "Trigger Input" label, oscilloscope_base_metadata::TRIGGER_INPUT_DFL, osc_trg_input), \
@@ -214,7 +214,7 @@ namespace lsp
         "O1", // Oscilloscope x1
         &developers::s_tronci,
         "oscilloscope_x1",
-        "",
+        "qbla",
         LSP_OSCILLOSCOPE_BASE + 0,
         LSP_VERSION(1, 0, 0),
         osclilloscope_classes,
@@ -232,7 +232,7 @@ namespace lsp
         "O2", // Oscilloscope x2
         &developers::s_tronci,
         "oscilloscope_x2",
-        "",
+        "ubsb",
         LSP_OSCILLOSCOPE_BASE + 1,
         LSP_VERSION(1, 0, 0),
         osclilloscope_classes,
@@ -247,10 +247,10 @@ namespace lsp
     {
         "Oscilloscope x4",
         "Oscilloscope x4",
-        "O4", // Profiler x4
+        "O4", // Oscilloscope x4
         &developers::s_tronci,
         "oscilloscope_x4",
-        "",
+        "atvi",
         LSP_OSCILLOSCOPE_BASE + 2,
         LSP_VERSION(1, 0, 0),
         osclilloscope_classes,

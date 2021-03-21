@@ -890,7 +890,7 @@ namespace lsp
         c->nUpdate = 0;
     }
 
-    void oscilloscope_base::graph_stream(channel_t * c)
+    bool oscilloscope_base::graph_stream(channel_t * c)
     {
         // Remember size and reset head
         size_t query_size   = c->nDisplayHead;
@@ -899,7 +899,7 @@ namespace lsp
         // Check that stream is present
         stream_t *stream = c->pStream->getBuffer<stream_t>();
         if ((stream == NULL) || (c->bFreeze))
-            return;
+            return false;
 
         if (c->bClearStream)
         {
@@ -946,18 +946,18 @@ namespace lsp
             dsp::add_k2(c->vDisplay_x, c->fHorStreamOffset, to_submit);
         }
 
-    #ifdef LSP_TRACE
-        for (size_t i=1; i < to_submit; ++i)
-        {
-            float dx    = c->vDisplay_x[i] - c->vDisplay_x[i-1];
-            float dy    = c->vDisplay_y[i] - c->vDisplay_y[i-1];
-            float s     = dx*dx + dy*dy;
-            if ((s >= 0.125f) && (c->vDisplay_s[i] <= 0.5f))
-            {
-                lsp_trace("debug");
-            }
-        }
-    #endif
+//    #ifdef LSP_TRACE
+//        for (size_t i=1; i < to_submit; ++i)
+//        {
+//            float dx    = c->vDisplay_x[i] - c->vDisplay_x[i-1];
+//            float dy    = c->vDisplay_y[i] - c->vDisplay_y[i-1];
+//            float s     = dx*dx + dy*dy;
+//            if ((s >= 0.125f) && (c->vDisplay_s[i] <= 0.5f))
+//            {
+//                lsp_trace("debug");
+//            }
+//        }
+//    #endif
 
         // Submit data for plotting (emit the figure data with fixed-size frames):
         for (size_t i = 0; i < to_submit; )  // nSweepSize can be as big as BUF_LIM_SIZE !!!
@@ -976,6 +976,8 @@ namespace lsp
         c->nIDisplay = to_submit;
         dsp::copy(c->vIDisplay_x, c->vDisplay_x, c->nIDisplay);
         dsp::copy(c->vIDisplay_y, c->vDisplay_y, c->nIDisplay);
+
+        return true;
     }
 
     void oscilloscope_base::update_settings()
@@ -1034,7 +1036,8 @@ namespace lsp
             {
                 c->sStateStage.nPV_pOvsMode = overmode;
                 c->nUpdate |= UPD_OVERSAMPLER_X | UPD_OVERSAMPLER_Y | UPD_OVERSAMPLER_EXT |
-                              UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD;
+                              UPD_PRETRG_DELAY | UPD_SWEEP_GENERATOR | UPD_TRIGGER_HOLD |
+                              UPD_XY_RECORD_TIME | UPD_SWEEP_GENERATOR;
             }
 
             size_t trginput = (c->bUseGlobal) ? pTrgInput->getValue() : c->pTrgInput->getValue();
@@ -1225,8 +1228,8 @@ namespace lsp
                             if (count <= 0)
                             {
                                 // Plot time!
-                                graph_stream(c);
-                                query_draw      = true;
+                                if (graph_stream(c))
+                                    query_draw      = true;
                                 continue;
                             }
 
@@ -1302,8 +1305,8 @@ namespace lsp
                                     if (c->nDisplayHead >= c->nSweepSize)
                                     {
                                         // Plot time!
-                                        graph_stream(c);
-                                        query_draw      = true;
+                                        if (graph_stream(c))
+                                            query_draw      = true;
                                         c->enState      = CH_STATE_LISTENING;
                                     }
                                     break;

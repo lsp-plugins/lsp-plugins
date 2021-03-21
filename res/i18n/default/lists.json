@@ -69,7 +69,6 @@
 	},
 
 	"dither": {
-		"none": "None",
 		"bits": {
 			"11": "11bit",
 			"12": "12bit",
@@ -79,7 +78,8 @@
 			"24": "24bit",
 			"7": "7bit",
 			"8": "8bit"
-		}
+		},
+		"none": "None"
 	},
 
 	"dyna_proc": {
@@ -324,6 +324,15 @@
 	},
 
 	"oscilloscope": {
+		"coupling": {
+			"ac": "AC",
+			"dc": "DC"
+		},
+		"mode": {
+			"goniometer": "Goniometer",
+			"triggered": "Triggered",
+			"xy": "XY"
+		},
 		"oversampler": {
 			"2x": "2X",
 			"3x": "3X",
@@ -331,11 +340,6 @@
 			"6x": "6X",
 			"8x": "8X",
 			"none": "None"
-		},
-		"mode": {
-			"goniometer": "Goniometer",
-			"triggered": "Triggered",
-			"xy": "XY"
 		},
 		"sweeptype": {
 			"sawtooth": "Sawtooth",
@@ -359,10 +363,6 @@
 				"simple_falling_edge": "Simple Falling",
 				"simple_rising_edge": "Simple Rising"
 			}
-		},
-		"coupling": {
-			"ac": "AC",
-			"dc": "DC"
 		}
 	},
 
