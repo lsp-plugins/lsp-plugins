@@ -357,6 +357,9 @@
 	"offset:samp": "Décalage (écha)",
 
 	"oscilloscope": {
+		"H_orizontal": "H",
+		"T_ime": "T",
+		"V_ertical": "V",
 		"division": "Division",
 		"horizontal": "Horizontal",
 		"max_dots": "Points max",

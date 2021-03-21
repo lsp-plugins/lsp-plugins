@@ -13,7 +13,7 @@
 					</hbox>
 				</align>
 
-				<align hpos="1" pad_top="4">
+				<align hpos="1" pad_top="4" spacing="8">
 					<hbox>
 						<void bg_color="bg" min_width="8"/>
 						<void bg_color="bg" min_width="8"/>
@@ -165,6 +165,55 @@
 					<label text="labels.graphs.oscilloscope"/>
 				</align>
 			</hbox>
+
+			<grid rows="3" cols="4">
+				<align hpos="0">
+					<hbox spacing="2" padding="2">
+						<label text="labels.oscilloscope.H_orizontal" />
+						<label text="/" />
+						<label text="labels.oscilloscope.V_ertical" />
+						<label text="/" />
+						<label text="labels.oscilloscope.T_ime" />
+					</hbox>
+				</align>
+				<hbox spacing="2" bg_color="osc_n_bg_red" height="18" padding="2">
+					<value id="vemt_1" same_line="true" />
+					<label text="/" />
+					<value id="hzmt_1" same_line="true" />
+					<label text="/" />
+					<value id="tmmt_1" same_line="true" />
+				</hbox>
+				<cell rows="3">
+					<void min_width="2" />
+				</cell>
+				<hbox spacing="2" bg_color="osc_n_bg_green" padding="2" >
+					<value id="hzmt_2" same_line="true" />
+					<label text="/" />
+					<value id="vemt_2" same_line="true" />
+					<label text="/" />
+					<value id="tmmt_2" same_line="true" />
+				</hbox>
+				
+				<void min_height="4" />
+				<void min_height="4" />
+				<void min_height="4" />
+				
+				<void />
+				<hbox spacing="2" bg_color="osc_n_bg_orange" padding="2" >
+					<value id="hzmt_3" same_line="true" />
+					<label text="/" />
+					<value id="vemt_3" same_line="true" />
+					<label text="/" />
+					<value id="tmmt_3" same_line="true" />
+				</hbox>
+				<hbox spacing="2" bg_color="osc_n_bg_blue" padding="2">
+					<value id="hzmt_4" same_line="true" />
+					<label text="/" />
+					<value id="vemt_4" same_line="true" />
+					<label text="/" />
+					<value id="tmmt_4" same_line="true" />
+				</hbox>
+			</grid>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">
