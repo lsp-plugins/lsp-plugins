@@ -189,6 +189,7 @@ namespace lsp
                 ch_state_stage_t    sStateStage;
                 bool                bUseGlobal;
                 bool                bFreeze;
+                bool                bVisible;
 
                 float              *vIn_x;
                 float              *vIn_y;

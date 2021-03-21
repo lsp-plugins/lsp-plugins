@@ -796,6 +796,7 @@ namespace lsp
         // By default, this must be false.
         c->bUseGlobal   = false;
         c->bFreeze      = false;
+        c->bVisible     = false;
     }
 
     void oscilloscope_base::commit_staged_state_change(channel_t *c)
@@ -996,6 +997,15 @@ namespace lsp
     {
         float xy_rectime    = pXYRecordTime->getValue();
         bool g_freeze       = pFreeze->getValue() >= 0.5f;
+        bool has_solo       = false;
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            channel_t *c    = &vChannels[ch];
+            bool solo       = (c->pSoloSwitch != NULL) ? c->pSoloSwitch->getValue() >= 0.5f : false;
+            if (solo)
+                has_solo        = true;
+        }
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -1004,6 +1014,10 @@ namespace lsp
             // Global controls only actually exist for mult-channel plugins. Do not use for 1X.
             if (nChannels > 1)
                 c->bUseGlobal = c->pGlobalSwitch->getValue() >= 0.5f;
+
+            bool solo       = (c->pSoloSwitch != NULL) ? c->pSoloSwitch->getValue() >= 0.5f : false;
+            bool mute       = (c->pMuteSwitch != NULL) ? c->pMuteSwitch->getValue() >= 0.5f : false;
+            c->bVisible     = (has_solo) ? solo : !mute;
 
             c->bFreeze      = g_freeze;
             if ((!c->bFreeze) && (nChannels > 1))
@@ -1577,16 +1591,6 @@ namespace lsp
         cv->line(0, cy, width, cy);
 
         // Check for solos:
-        bool soloFound = false;
-        for (size_t ch = 0; ch < nChannels; ++ch)
-        {
-            channel_t *c = &vChannels[ch];
-
-            soloFound = c->pSoloSwitch->getValue() >= 0.5f;
-            if (soloFound)
-                break;
-        }
-
         const uint32_t *cols =
                 (nChannels < 2) ? &ch_colors[0] :
                 (nChannels < 4) ? &ch_colors[1] :
@@ -1595,15 +1599,7 @@ namespace lsp
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
-
-            bool doPlot = false;
-
-            if (soloFound)
-                doPlot = c->pSoloSwitch->getValue() >= 0.5f;
-            else
-                doPlot = c->pMuteSwitch->getValue() < 0.5f;
-
-            if (!doPlot)
+            if (!c->bVisible)
                 continue;
 
             // Allocate buffer: t, f(t)
