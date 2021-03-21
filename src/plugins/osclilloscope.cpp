@@ -1535,6 +1535,20 @@ namespace lsp
         v->write("pTrgReset", pTrgReset);
     }
 
+    static const uint32_t ch_colors[] =
+    {
+        // x1
+        0x0a9bff,
+        // x2
+        0xff0e11,
+        0x0a9bff,
+        // x4
+        0xff0e11,
+        0x12ff16,
+        0xff6c11,
+        0x0a9bff
+    };
+
     bool oscilloscope_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         // Check proportions
@@ -1554,6 +1568,10 @@ namespace lsp
 
         // Draw axis
         cv->set_line_width(1.0);
+        cv->set_color_rgb(CV_SILVER, 0.5f);
+        cv->line(0, 0, width, height);
+        cv->line(0, height, width, 0);
+
         cv->set_color_rgb(CV_WHITE, 0.5f);
         cv->line(cx, 0, cx, height);
         cv->line(0, cy, width, cy);
@@ -1568,6 +1586,11 @@ namespace lsp
             if (soloFound)
                 break;
         }
+
+        const uint32_t *cols =
+                (nChannels < 2) ? &ch_colors[0] :
+                (nChannels < 4) ? &ch_colors[1] :
+                &ch_colors[3];
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
@@ -1598,17 +1621,7 @@ namespace lsp
             }
 
             // Set color and draw
-            if (ch == 0)
-                cv->set_color_rgb(0xff0e11);
-            else if (ch == 1)
-                cv->set_color_rgb(0x12ff16);
-            else if (ch == 2)
-                cv->set_color_rgb(0xff6c11);
-            else if (ch == 3)
-                cv->set_color_rgb(0x0a9bff);
-            else
-                cv->set_color_rgb(CV_MESH);
-
+            cv->set_color_rgb(cols[ch]);
             cv->set_line_width(2);
             cv->draw_lines(b->v[0], b->v[1], width);
         }
