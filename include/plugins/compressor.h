@@ -90,6 +90,7 @@ namespace lsp
                 Compressor      sComp;              // Compression module
                 Delay           sDelay;             // Lookahead delay
                 Delay           sCompDelay;         // Compensation delay
+                Delay           sDryDelay;          // Dry delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
 
                 float          *vIn;                // Input data
