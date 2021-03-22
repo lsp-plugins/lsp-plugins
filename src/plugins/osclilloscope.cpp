@@ -521,9 +521,6 @@ namespace lsp
             c->pMuteSwitch          = NULL;
 
             c->pStream              = NULL;
-            c->pTimeDivMeter        = NULL;
-            c->pHorDivMeter         = NULL;
-            c->pVerDivMeter         = NULL;
 
             c->pIDisplay            = NULL;
         }
@@ -722,15 +719,6 @@ namespace lsp
         {
             TRACE_PORT(vPorts[port_id]);
             vChannels[ch].pStream = vPorts[port_id++];
-
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pTimeDivMeter = vPorts[port_id++];
-
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pHorDivMeter = vPorts[port_id++];
-
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[ch].pVerDivMeter = vPorts[port_id++];
         }
     }
 
@@ -1507,9 +1495,6 @@ namespace lsp
                 v->write("pMuteSwitch", &c->pMuteSwitch);
 
                 v->write("pStream", &c->pStream);
-                v->write("pTimeDivMeter", &c->pTimeDivMeter);
-                v->write("pHorDivMeter", &c->pHorDivMeter);
-                v->write("pVerDivMeter", &c->pVerDivMeter);
 
                 v->write("pIDisplay", &c->pIDisplay);
             }

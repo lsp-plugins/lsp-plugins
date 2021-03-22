@@ -146,10 +146,7 @@ namespace lsp
         TRG_CONTROLS(id, label)
 
     #define OSC_VISUALOUTS(id, label) \
-        STREAM("oscv" id, "Stream buffer" label, 3, 128, 0x4000), \
-        METER("tmmt" id, "Time Division Meter" label, U_MSEC, oscilloscope_base_metadata::TIME_DIVISION), \
-        METER("hzmt" id, "Horizontal Division Meter" label, U_NONE, oscilloscope_base_metadata::HORIZONTAL_DIVISION), \
-        METER("vemt" id, "Vertical Division Meter" label, U_NONE, oscilloscope_base_metadata::VERTICAL_DIVISION)
+        STREAM("oscv" id, "Stream buffer" label, 3, 128, 0x4000)
 
     static const port_t oscilloscope_x1_ports[] =
     {

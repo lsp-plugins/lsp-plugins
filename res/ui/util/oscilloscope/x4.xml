@@ -177,21 +177,21 @@
 					</hbox>
 				</align>
 				<hbox spacing="2" bg_color="osc_n_bg_red" height="18" padding="2">
-					<value id="vemt_1" same_line="true" />
+					<value id="hzdv_1" same_line="true" />
 					<label text="/" />
-					<value id="hzmt_1" same_line="true" />
+					<value id="vedv_1" same_line="true" />
 					<label text="/" />
-					<value id="tmmt_1" same_line="true" />
+					<value id="tmdv_1" same_line="true" />
 				</hbox>
 				<cell rows="3">
 					<void min_width="2" />
 				</cell>
 				<hbox spacing="2" bg_color="osc_n_bg_green" padding="2" >
-					<value id="hzmt_2" same_line="true" />
+					<value id="hzdv_2" same_line="true" />
 					<label text="/" />
-					<value id="vemt_2" same_line="true" />
+					<value id="vedv_2" same_line="true" />
 					<label text="/" />
-					<value id="tmmt_2" same_line="true" />
+					<value id="tmdv_2" same_line="true" />
 				</hbox>
 				
 				<void min_height="4" />
@@ -200,18 +200,18 @@
 				
 				<void />
 				<hbox spacing="2" bg_color="osc_n_bg_orange" padding="2" >
-					<value id="hzmt_3" same_line="true" />
+					<value id="hzdv_3" same_line="true" />
 					<label text="/" />
-					<value id="vemt_3" same_line="true" />
+					<value id="vedv_3" same_line="true" />
 					<label text="/" />
-					<value id="tmmt_3" same_line="true" />
+					<value id="tmdv_3" same_line="true" />
 				</hbox>
 				<hbox spacing="2" bg_color="osc_n_bg_blue" padding="2">
-					<value id="hzmt_4" same_line="true" />
+					<value id="hzdv_4" same_line="true" />
 					<label text="/" />
-					<value id="vemt_4" same_line="true" />
+					<value id="vedv_4" same_line="true" />
 					<label text="/" />
-					<value id="tmmt_4" same_line="true" />
+					<value id="tmdv_4" same_line="true" />
 				</hbox>
 			</grid>
 		</vbox>
