@@ -77,6 +77,7 @@ namespace lsp
 
         // Determine number of channels
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
+        size_t max_latency  = 0;
 
         // Initialize analyzer
         if (!sAnalyzer.init(channels, graph_equalizer_base_metadata::FFT_RANK,
@@ -148,6 +149,7 @@ namespace lsp
 
             // Initialize equalizer
             c->sEqualizer.init(nBands, graph_equalizer_base_metadata::FFT_RANK);
+            max_latency         = lsp_max(max_latency, c->sEqualizer.max_latency());
 
             for (size_t j=0; j<nBands; ++j)
             {
@@ -166,6 +168,14 @@ namespace lsp
                 b->pEnable      = NULL;
                 b->pVisibility  = NULL;
             }
+        }
+
+        // Initialize latency compensation delay
+        for (size_t i=0; i<channels; ++i)
+        {
+            eq_channel_t *c     = &vChannels[i];
+            if (!c->sDryDelay.init(max_latency))
+                return;
         }
 
         // Bind ports
@@ -532,6 +542,15 @@ namespace lsp
             sAnalyzer.reconfigure();
             sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, graph_equalizer_base_metadata::MESH_POINTS);
         }
+
+        // Update latency
+        size_t latency          = 0;
+        for (size_t i=0; i<channels; ++i)
+            latency                 = lsp_max(latency, vChannels[i].sEqualizer.get_latency());
+
+        for (size_t i=0; i<channels; ++i)
+            vChannels[i].sDryDelay.set_delay(latency);
+        set_latency(latency);
     }
 
     void graph_equalizer_base::update_sample_rate(long sr)
@@ -572,6 +591,7 @@ namespace lsp
 
         size_t fft_pos          = (ui_active()) ? nFftPosition : FFTP_NONE;
 
+        // Process samples
         while (samples > 0)
         {
             // Determine buffer size for processing
@@ -658,6 +678,7 @@ namespace lsp
                     c->pOutMeter->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Process via bypass
+                c->sDryDelay.process(c->vIn, c->vIn, to_process);
                 c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
 
                 c->vIn             += to_process;
@@ -669,15 +690,9 @@ namespace lsp
         }
 
         // Output FFT curves for each channel and report latency
-        size_t latency          = 0;
-
         for (size_t i=0; i<channels; ++i)
         {
             eq_channel_t *c     = &vChannels[i];
-
-            // Calculate latency
-            if (latency < c->sEqualizer.get_latency())
-                latency         = c->sEqualizer.get_latency();
 
             // Output FFT curve
             mesh_t *mesh            = c->pFft->getBuffer<mesh_t>();
@@ -696,9 +711,6 @@ namespace lsp
                     mesh->data(2, 0);
             }
         }
-
-        // Update latency report
-        set_latency(latency);
 
         // For Mono and Stereo channels only the first channel should be processed
         if (nMode == EQ_STEREO)

@@ -272,13 +272,9 @@ namespace lsp
 
     void Delay::set_delay(size_t delay)
     {
-        lsp_trace("delay = %d", int(delay));
-
         delay      %= nSize;
         nDelay      = delay;
         nTail       = (nHead + nSize - delay) % nSize;
-
-        lsp_trace("final delay = %d, head=%d, tail=%d", int(nDelay), int(nHead), int(nTail));
     }
 
     void Delay::clear()

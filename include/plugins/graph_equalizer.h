@@ -26,6 +26,7 @@
 #include <core/plugin.h>
 #include <core/util/Bypass.h>
 #include <core/util/Analyzer.h>
+#include <core/util/Delay.h>
 #include <core/filters/Equalizer.h>
 
 namespace lsp
@@ -72,6 +73,7 @@ namespace lsp
             {
                 Equalizer           sEqualizer;     // Equalizer
                 Bypass              sBypass;        // Bypass
+                Delay               sDryDelay;      // Dry delay
 
                 size_t              nSync;          // Chart state
                 float               fInGain;        // Input gain
