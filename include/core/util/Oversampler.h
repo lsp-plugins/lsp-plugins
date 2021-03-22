@@ -215,6 +215,12 @@ namespace lsp
             size_t latency() const;
 
             /**
+             * Get maximum possible latency
+             * @return maximum possible latency
+             */
+            inline size_t max_latency() const       { return 8; }
+
+            /**
              * Dump the state
              * @param dumper dumper
              */
