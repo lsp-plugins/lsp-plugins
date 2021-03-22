@@ -35,6 +35,7 @@
   multiple streamed meshes together.
 * Minor bugfixes in the core library.
 * Fixed bug with character set encoding for several systems with limited iconv.
+* Fixed latency compensation issue that happened on the 'Bypass' switch/automation.
 
 *******************************************************************************
 * New plugin check list before release
