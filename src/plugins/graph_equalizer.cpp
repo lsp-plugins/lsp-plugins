@@ -106,7 +106,7 @@ namespace lsp
             return;
 
         // Allocate buffer
-        size_t allocate     = (EQ_BUFFER_SIZE + (nBands + 1)*graph_equalizer_base_metadata::MESH_POINTS*2) * channels + graph_equalizer_base_metadata::MESH_POINTS;
+        size_t allocate     = (EQ_BUFFER_SIZE*2 + (nBands + 1)*graph_equalizer_base_metadata::MESH_POINTS*2) * channels + graph_equalizer_base_metadata::MESH_POINTS;
         float *abuf         = new float[allocate];
         if (abuf == NULL)
             return;
@@ -131,6 +131,8 @@ namespace lsp
 
             c->vIn              = NULL;
             c->vOut             = NULL;
+            c->vDryBuf          = abuf;
+            abuf               += EQ_BUFFER_SIZE;
             c->vBuffer          = abuf;
             abuf               += EQ_BUFFER_SIZE;
             c->vTrRe            = abuf;
@@ -597,6 +599,13 @@ namespace lsp
             // Determine buffer size for processing
             size_t to_process   = (samples > EQ_BUFFER_SIZE) ? EQ_BUFFER_SIZE : samples;
 
+            // Store unprocessed data
+            for (size_t i=0; i<channels; ++i)
+            {
+                eq_channel_t *c     = &vChannels[i];
+                c->sDryDelay.process(c->vDryBuf, c->vIn, to_process);
+            }
+
             // Pre-process data
             if (nMode == EQ_MID_SIDE)
             {
@@ -678,8 +687,7 @@ namespace lsp
                     c->pOutMeter->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Process via bypass
-                c->sDryDelay.process(c->vIn, c->vIn, to_process);
-                c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
+                c->sBypass.process(c->vOut, c->vDryBuf, c->vBuffer, to_process);
 
                 c->vIn             += to_process;
                 c->vOut            += to_process;

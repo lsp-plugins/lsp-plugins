@@ -361,6 +361,7 @@ namespace lsp
 
         // Determine number of channels
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
+        size_t max_latency  = 0;
 
         // Initialize analyzer
         if (!sAnalyzer.init(channels, para_equalizer_base_metadata::FFT_RANK,
@@ -389,7 +390,7 @@ namespace lsp
             return;
 
         // Calculate amount of bulk data to allocate
-        size_t allocate     = (2 * para_equalizer_base_metadata::MESH_POINTS * (nFilters + 1) + EQ_BUFFER_SIZE) * channels + para_equalizer_base_metadata::MESH_POINTS;
+        size_t allocate     = (2 * para_equalizer_base_metadata::MESH_POINTS * (nFilters + 1) + EQ_BUFFER_SIZE * 2) * channels + para_equalizer_base_metadata::MESH_POINTS;
         float *abuf         = new float[allocate];
         if (abuf == NULL)
             return;
@@ -411,6 +412,8 @@ namespace lsp
             c->fOutGain         = 1.0f;
             c->fPitch           = 1.0f;
             c->vFilters         = NULL;
+            c->vDryBuf          = abuf;
+            abuf               += EQ_BUFFER_SIZE;
             c->vBuffer          = abuf;
             abuf               += EQ_BUFFER_SIZE;
             c->vTrRe            = abuf;
@@ -445,6 +448,7 @@ namespace lsp
                 return;
 
             c->sEqualizer.init(nFilters, EQ_RANK);
+            max_latency         = lsp_max(max_latency, c->sEqualizer.max_latency());
 
             // Initialize filters
             for (size_t j=0; j<nFilters; ++j)
@@ -467,6 +471,14 @@ namespace lsp
                 f->pActivity        = NULL;
                 f->pTrAmp           = NULL;
             }
+        }
+
+        // Initialize latency compensation delay
+        for (size_t i=0; i<channels; ++i)
+        {
+            eq_channel_t *c     = &vChannels[i];
+            if (!c->sDryDelay.init(max_latency))
+                return;
         }
 
         // Bind ports
@@ -808,6 +820,15 @@ namespace lsp
             sAnalyzer.reconfigure();
             sAnalyzer.get_frequencies(vFreqs, vIndexes, SPEC_FREQ_MIN, SPEC_FREQ_MAX, para_equalizer_base_metadata::MESH_POINTS);
         }
+
+        // Update latency
+        size_t latency          = 0;
+        for (size_t i=0; i<channels; ++i)
+            latency                 = lsp_max(latency, vChannels[i].sEqualizer.get_latency());
+
+        for (size_t i=0; i<channels; ++i)
+            vChannels[i].sDryDelay.set_delay(latency);
+        set_latency(latency);
     }
 
     void para_equalizer_base::update_sample_rate(long sr)
@@ -845,6 +866,13 @@ namespace lsp
         {
             // Determine buffer size for processing
             size_t to_process   = (samples > EQ_BUFFER_SIZE) ? EQ_BUFFER_SIZE : samples;
+
+            // Store unprocessed data
+            for (size_t i=0; i<channels; ++i)
+            {
+                eq_channel_t *c     = &vChannels[i];
+                c->sDryDelay.process(c->vDryBuf, c->vIn, to_process);
+            }
 
             // Pre-process data
             if (nMode == EQ_MID_SIDE)
@@ -927,7 +955,7 @@ namespace lsp
                     c->pOutMeter->setValue(dsp::abs_max(c->vBuffer, to_process));
 
                 // Process via bypass
-                c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
+                c->sBypass.process(c->vOut, c->vDryBuf, c->vBuffer, to_process);
 
                 c->vIn             += to_process;
                 c->vOut            += to_process;

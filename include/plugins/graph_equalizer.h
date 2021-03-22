@@ -81,6 +81,7 @@ namespace lsp
                 eq_band_t          *vBands;         // Bands
                 float              *vIn;            // Input buffer
                 float              *vOut;           // Output buffer
+                float              *vDryBuf;        // Dry buffer
                 float              *vBuffer;        // Temporary buffer
 
                 float              *vTrRe;          // Transfer function (real part)

@@ -26,6 +26,7 @@
 #include <core/plugin.h>
 #include <core/util/Bypass.h>
 #include <core/util/Analyzer.h>
+#include <core/util/Delay.h>
 #include <core/filters/Filter.h>
 #include <core/filters/Equalizer.h>
 
@@ -78,12 +79,14 @@ namespace lsp
             {
                 Equalizer           sEqualizer;     // Equalizer
                 Bypass              sBypass;        // Bypass
+                Delay               sDryDelay;      // Dry delay
 
                 size_t              nLatency;       // Latency of the channel
                 float               fInGain;        // Input gain
                 float               fOutGain;       // Output gain
                 float               fPitch;         // Frequency shift
                 eq_filter_t        *vFilters;       // List of filters
+                float              *vDryBuf;        // Dry buffer
                 float              *vBuffer;        // Buffer for temporary data
                 float              *vIn;            // Input buffer
                 float              *vOut;           // Output buffer
