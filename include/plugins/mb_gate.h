@@ -40,10 +40,10 @@ namespace lsp
         protected:
             enum c_mode_t
             {
-                MBEM_MONO,
-                MBEM_STEREO,
-                MBEM_LR,
-                MBEM_MS
+                MBGM_MONO,
+                MBGM_STEREO,
+                MBGM_LR,
+                MBGM_MS
             };
 
             enum sync_t
@@ -143,6 +143,7 @@ namespace lsp
                 float          *vOut;               // Output data buffer
                 float          *vScIn;              // Sidechain data buffer (if present)
 
+                float          *vInBuffer;          // Input buffer
                 float          *vBuffer;            // Common data processing buffer
                 float          *vScBuffer;          // Sidechain buffer
                 float          *vExtScBuffer;       // External sidechain buffer
