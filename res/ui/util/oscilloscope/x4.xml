@@ -98,30 +98,30 @@
 
 				<!--  Trigger References -->
 				<ui:for id="i" first="1" last="4">
-				    <ui:set id="col" value="${
+					<ui:set id="col" value="${
 							(:i ieq 1) ? 'osc_n_red' :
 							(:i ieq 2) ? 'osc_n_green' :
 							(:i ieq 3) ? 'osc_n_orange' :
-	                    'osc_n_blue'
-	                    }"/>
+						'osc_n_blue'
+						}"/>
 
 					<marker value=":trlv * 0.01 + :veps * 0.01"
-					    basis="1" parallel="0" color="osc_n_purple"
-					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+						basis="1" parallel="0" color="osc_n_purple"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
 					/>
 					<marker value=":hzps * 0.01"
-					    basis="0" parallel="1" color="osc_n_purple"
-					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+						basis="0" parallel="1" color="osc_n_purple"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
 					/>
-				    <marker value=":trlv_${i} * 0.01 + :veps_${i} * 0.01" basis="1" parallel="0"
-				         color="${col}"
-				         visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
-				     />
-	                <marker value=":hzps_${i} * 0.01" basis="0"
-	                    parallel="1" color="${col}"
-	                    visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
-	                />
-                </ui:for>
+					<marker value=":trlv_${i} * 0.01 + :veps_${i} * 0.01" basis="1" parallel="0"
+						color="${col}"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+					/>
+					<marker value=":hzps_${i} * 0.01" basis="0"
+						parallel="1" color="${col}"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+					/>
+				</ui:for>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
@@ -179,12 +179,12 @@
 				</align>
 
 				<ui:for id="i" first="1" last="4">
-				    <ui:set id="col" value="${
+					<ui:set id="col" value="${
 							(:i ieq 1) ? 'osc_n_red' :
 							(:i ieq 2) ? 'osc_n_green' :
 							(:i ieq 3) ? 'osc_n_orange' :
-	                    'osc_n_blue'
-	                    }"/>
+						'osc_n_blue'
+						}"/>
 
 					<void min_width="2" />
 

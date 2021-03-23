@@ -76,25 +76,25 @@
 
 				<!--  Trigger References -->
 				<ui:for id="i" first="1" last="2">
-				    <ui:set id="col" value="${(:i ieq 1) ? 'osc_n_red' : 'osc_n_blue'}"/>
+					<ui:set id="col" value="${(:i ieq 1) ? 'osc_n_red' : 'osc_n_blue'}"/>
 
 					<marker value=":trlv * 0.01 + :veps * 0.01"
-					    basis="1" parallel="0" color="osc_n_purple"
-					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+						basis="1" parallel="0" color="osc_n_purple"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
 					/>
 					<marker value=":hzps * 0.01"
-					    basis="0" parallel="1" color="osc_n_purple"
-					    visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
+						basis="0" parallel="1" color="osc_n_purple"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo ieq 1) and :glsw_${i}"
 					/>
-				    <marker value=":trlv_${i} * 0.01 + :veps_${i} * 0.01" basis="1" parallel="0"
-				         color="${col}"
-				         visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
-				     />
-	                <marker value=":hzps_${i} * 0.01" basis="0"
-	                    parallel="1" color="${col}"
-	                    visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
-	                />
-                </ui:for>
+					<marker value=":trlv_${i} * 0.01 + :veps_${i} * 0.01" basis="1" parallel="0"
+						color="${col}"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+					/>
+					<marker value=":hzps_${i} * 0.01" basis="0"
+						parallel="1" color="${col}"
+						visibility="(:osc_cs ieq ${i} - 1) and (:scmo_${i} ieq 1) and !:glsw_${i}"
+					/>
+				</ui:for>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
@@ -140,43 +140,45 @@
 			</hbox>
 
 			<!-- Params -->
-				<align hpos="0"><hbox>
-				<align hpos="0">
-					<hbox spacing="2" padding="2">
-						<label text="labels.oscilloscope.H_orizontal" font_size="10" />
-						<vsep />
-						<label text="labels.oscilloscope.V_ertical" font_size="10" />
-						<vsep />
-						<label text="labels.oscilloscope.T_ime" font_size="10" />
-					</hbox>
-				</align>
-
-			<ui:for id="i" first="1" last="2">
-				    <ui:set id="col" value="${
-							(:i ieq 1) ? 'osc_n_red' :
-	                    'osc_n_blue'
-	                    }"/>
-
-					<void min_width="2" />
-
-					<hbox spacing="2" height="10" padding="2">
-						<hbox>
-							<value id="hzdv" same_line="true" font_size="10" color="${col}" width="30" visibility=":glsw_${i}" />
-							<value id="hzdv_${i}" same_line="true" font_size="10" color="${col}" width="30" visibility="!:glsw_${i}" />
+			<align hpos="0">
+				<hbox>
+					<align hpos="0">
+						<hbox spacing="2" padding="2">
+							<label text="labels.oscilloscope.H_orizontal" font_size="10" />
+							<vsep />
+							<label text="labels.oscilloscope.V_ertical" font_size="10" />
+							<vsep />
+							<label text="labels.oscilloscope.T_ime" font_size="10" />
 						</hbox>
-						<vsep color="${col}" />
-						<hbox>
-							<value id="vedv" same_line="true" font_size="10" color="${col}" width="30" visibility=":glsw_${i}" />
-							<value id="vedv_${i}" same_line="true" font_size="10" color="${col}" width="30" visibility="!:glsw_${i}" />
+					</align>
+
+					<ui:for id="i" first="1" last="2">
+						<ui:set id="col" value="${
+								(:i ieq 1) ? 'osc_n_red' :
+								'osc_n_blue'
+								}"/>
+
+						<void min_width="2" />
+
+						<hbox spacing="2" height="10" padding="2">
+							<hbox>
+								<value id="hzdv" same_line="true" font_size="10" color="${col}" width="30" visibility=":glsw_${i}" />
+								<value id="hzdv_${i}" same_line="true" font_size="10" color="${col}" width="30" visibility="!:glsw_${i}" />
+							</hbox>
+							<vsep color="${col}" />
+							<hbox>
+								<value id="vedv" same_line="true" font_size="10" color="${col}" width="30" visibility=":glsw_${i}" />
+								<value id="vedv_${i}" same_line="true" font_size="10" color="${col}" width="30" visibility="!:glsw_${i}" />
+							</hbox>
+							<vsep color="${col}" />
+							<hbox>
+								<value id="tmdv" same_line="true" font_size="10" color="${col}" width="50" visibility=":glsw_${i}" />
+								<value id="tmdv_${i}" same_line="true" font_size="10" color="${col}" width="50" visibility="!:glsw_${i}" />
+							</hbox>
 						</hbox>
-						<vsep color="${col}" />
-						<hbox>
-							<value id="tmdv" same_line="true" font_size="10" color="${col}" width="50" visibility=":glsw_${i}" />
-							<value id="tmdv_${i}" same_line="true" font_size="10" color="${col}" width="50" visibility="!:glsw_${i}" />
-						</hbox>
-					</hbox>
-				</ui:for>
-			</hbox></align>
+					</ui:for>
+				</hbox>
+			</align>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">
@@ -386,8 +388,6 @@
 					<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="13"/>
 					<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4"/>
 
-
-
 					<!-- Row 17 -->
 					<align hpos="1" pad_bottom="1">
 						<label text="labels.oscilloscope.trigger_input"/>
@@ -403,7 +403,7 @@
 					</align>
 					<align hpos="0" bg_color="${bgcol}" pad_left="4" pad_bottom="6">
 						<combo id="trin_${i}" width="36" fill="false"/>
-						</align>
+					</align>
 					<align hpos="1" bg_color="${bgcol}" pad_right="4" pad_bottom="6">
 						<button id="trre_${i}" text="actions.run_stop" color="${col}" fill="false" width="77"
 							editable=":trmo_${i} ilt 2" bright="(:trmo_${i} ilt 2) ? 1.0 : 0.5"

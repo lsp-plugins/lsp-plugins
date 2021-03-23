@@ -45,14 +45,14 @@
 				/>
 
 				<!--  Trigger References -->
-			    <marker value=":trlv_1 * 0.01 + :veps_1 * 0.01" basis="1" parallel="0"
-			         color="osc_n_blue"
-			         visibility=":scmo_1 ieq 1"
-			     />
-                <marker value=":hzps_1 * 0.01" basis="0"
-                    parallel="1" color="osc_n_blue"
-                    visibility=":scmo_1 ieq 1"
-                />
+				<marker value=":trlv_1 * 0.01 + :veps_1 * 0.01" basis="1" parallel="0"
+					color="osc_n_blue"
+					visibility=":scmo_1 ieq 1"
+				/>
+				<marker value=":hzps_1 * 0.01" basis="0"
+					parallel="1" color="osc_n_blue"
+					visibility=":scmo_1 ieq 1"
+				/>
 
 				<!-- Text -->
 				<text text="X" coord="-1;-1" halign="1" valign="1"/>
@@ -98,28 +98,29 @@
 			</hbox>
 
 			<!-- Params -->
-				<align hpos="0"><hbox>
-				<align hpos="0">
-					<hbox spacing="2" padding="2">
-						<label text="labels.oscilloscope.H_orizontal" font_size="10" />
-						<vsep />
-						<label text="labels.oscilloscope.V_ertical" font_size="10" />
-						<vsep />
-						<label text="labels.oscilloscope.T_ime" font_size="10" />
-					</hbox>
-				</align>
+			<align hpos="0">
+				<hbox>
+					<align hpos="0">
+						<hbox spacing="2" padding="2">
+							<label text="labels.oscilloscope.H_orizontal" font_size="10" />
+							<vsep />
+							<label text="labels.oscilloscope.V_ertical" font_size="10" />
+							<vsep />
+							<label text="labels.oscilloscope.T_ime" font_size="10" />
+						</hbox>
+					</align>
 
 					<void min_width="2" />
 
 					<hbox spacing="2" height="10" padding="2">
-							<value id="hzdv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
-							<vsep color="osc_n_blue" />
-							<value id="vedv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
-							<vsep color="osc_n_blue" />
-							<value id="tmdv_1" same_line="true" font_size="10" color="osc_n_blue" width="50"/>
-						</hbox>
-
-			</hbox></align>
+						<value id="hzdv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
+						<vsep color="osc_n_blue" />
+						<value id="vedv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
+						<vsep color="osc_n_blue" />
+						<value id="tmdv_1" same_line="true" font_size="10" color="osc_n_blue" width="50"/>
+					</hbox>
+				</hbox>
+			</align>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">
@@ -135,7 +136,7 @@
 					<label text="groups.oscilloscope.operation"/>
 				</align>
 				<cell rows="21">
-					<void color="bg"  min_width="8"/>
+					<void color="bg" min_width="8"/>
 				</cell>
 				<cell cols="2" bg_color="${bgcol}" min_width="165">
 					<void color="bg" min_height="4" />
