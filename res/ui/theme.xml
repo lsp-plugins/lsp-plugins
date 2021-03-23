@@ -71,6 +71,7 @@
 		<osc_btn_yellow value="#83791d" />
 
 		<osc_blue value="#009dff" />
+		<osc_scale_gray value="#aaaaaa" />
 
 		<osc_n_bg_red value="#552122" />
 		<osc_n_bg_orange value="#553722" />
