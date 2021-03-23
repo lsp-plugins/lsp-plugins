@@ -24,7 +24,7 @@
 						<marker value="${:i * 0.125}" color="osc_n_gray" basis="0" parallel="1" />
 					</ui:if>
 				</ui:for>
-				
+
 				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="+:_a_height" color="osc_n_gray" smooth="true" />
 				<marker value="0" basis="0" parallel="1" dy=":_a_width" dx="-:_a_height" color="osc_n_gray" smooth="true" />
 
@@ -78,24 +78,48 @@
 			<hbox>
 				<label text="labels.history" />
 				<fader id="sh_sz" angle="0" />
-				<value id="sh_sz" same_line="true" />
+				<value id="sh_sz" same_line="true" width="18" />
 
 				<vsep pad_left="4" pad_right="4" />
 
 				<label text="labels.oscilloscope.xy_sweep" />
 				<fader id="xyrt" angle="0" />
-				<value id="xyrt" same_line="true" />
+				<value id="xyrt" same_line="true" width="55" />
 
 				<vsep pad_left="4" pad_right="4" />
 
 				<label text="labels.oscilloscope.max_dots" />
 				<fader id="maxdots" angle="0" />
-				<value id="maxdots" same_line="true" />
+				<value id="maxdots" same_line="true" width="45" />
 
 				<align hpos="1" expand="true">
 					<label text="labels.graphs.oscilloscope"/>
 				</align>
 			</hbox>
+
+			<!-- Params -->
+				<align hpos="0"><hbox>
+				<align hpos="0">
+					<hbox spacing="2" padding="2">
+						<label text="labels.oscilloscope.H_orizontal" font_size="10" />
+						<vsep />
+						<label text="labels.oscilloscope.V_ertical" font_size="10" />
+						<vsep />
+						<label text="labels.oscilloscope.T_ime" font_size="10" />
+					</hbox>
+				</align>
+
+					<void min_width="2" />
+
+					<hbox spacing="2" height="10" padding="2">
+							<value id="hzdv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
+							<vsep color="osc_n_blue" />
+							<value id="vedv_1" same_line="true" font_size="10" color="osc_n_blue" width="30"/>
+							<vsep color="osc_n_blue" />
+							<value id="tmdv_1" same_line="true" font_size="10" color="osc_n_blue" width="50"/>
+						</hbox>
+
+			</hbox></align>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">
@@ -111,10 +135,10 @@
 					<label text="groups.oscilloscope.operation"/>
 				</align>
 				<cell rows="21">
-					<void color="bg" min_width="8"/>
+					<void color="bg"  min_width="8"/>
 				</cell>
-				<cell cols="2" bg_color="${bgcol}">
-					<void color="bg" min_height="4"/>
+				<cell cols="2" bg_color="${bgcol}" min_width="165">
+					<void color="bg" min_height="4" />
 				</cell>
 
 				<!-- Row 2 -->
@@ -149,7 +173,7 @@
 
 				<!-- Row 6 -->
 				<void/>
-				<label text="labels.oscilloscope.division" bg_color="${bgcol}" pad_left="19" pad_bottom="4"/>
+				<label text="labels.oscilloscope.division" bg_color="${bgcol}" pad_left="13" pad_bottom="4"/>
 				<label text="labels.oscilloscope.position" bg_color="${bgcol}" pad_bottom="4"/>
 
 				<!-- Row 7 -->
@@ -157,30 +181,30 @@
 					<label text="labels.oscilloscope.horizontal"/>
 				</align>
 				<hbox >
-					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ine 1"/>
-					<knob id="tmdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19" visibility=":scmo_${i} ieq 1"/>
+					<knob id="hzdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="13" visibility=":scmo_${i} ine 1"/>
+					<knob id="tmdv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="13" visibility=":scmo_${i} ieq 1"/>
 				</hbox>
 				<knob id="hzps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
 				<!-- Row 8 -->
 				<void/>
 				<hbox >
-					<value id="hzdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ine 1"/>
-					<value id="tmdv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_left="19" pad_bottom="8" visibility=":scmo_${i} ieq 1"/>
+					<value id="hzdv_${i}" width="60" same_line="true" bg_color="${bgcol}" pad_left="13" pad_bottom="8" visibility=":scmo_${i} ine 1"/>
+					<value id="tmdv_${i}" width="60" same_line="true" bg_color="${bgcol}" pad_left="13" pad_bottom="8" visibility=":scmo_${i} ieq 1"/>
 				</hbox>
-				<value id="hzps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
+				<value id="hzps_${i}" width="60" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
 				<!-- Row 9 -->
 				<align hpos="1">
 					<label text="labels.oscilloscope.vertical"/>
 				</align>
-				<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<knob id="vedv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="13"/>
 				<knob id="veps_${i}" size="25" scale_color="${col}" bg_color="${bgcol}"/>
 
 				<!-- Row 10 -->
 				<void/>
-				<value id="vedv_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8" pad_left="19"/>
-				<value id="veps_${i}" width="50" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
+				<value id="vedv_${i}" width="60" same_line="true" bg_color="${bgcol}" pad_bottom="8" pad_left="13"/>
+				<value id="veps_${i}" width="60" same_line="true" bg_color="${bgcol}" pad_bottom="8"/>
 
 				<!-- Row 11 -->
 				<void color="bg" min_height="4"/>
@@ -200,21 +224,21 @@
 				<align hpos="1">
 					<label text="labels.oscilloscope.trigger_level"/>
 				</align>
-				<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<knob id="trlv_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="13"/>
 				<value id="trlv_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
 
 				<!-- Row 14 -->
 				<align hpos="1">
 					<label text="labels.oscilloscope.trigger_hysteresis"/>
 				</align>
-				<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="19"/>
+				<knob id="trhy_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_left="13"/>
 				<value id="trhy_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}"/>
 
 				<!-- Row 15 -->
 				<align hpos="1">
 					<label text="labels.oscilloscope.trigger_hold_time"/>
 				</align>
-				<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="19"/>
+				<knob id="trho_${i}" size="25" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4" pad_left="13"/>
 				<value id="trho_${i}" same_line="true" scale_color="${col}" bg_color="${bgcol}" pad_bottom="4"/>
 
 				<!-- Row 16 -->

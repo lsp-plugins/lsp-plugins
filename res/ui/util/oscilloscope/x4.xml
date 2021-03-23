@@ -167,7 +167,7 @@
 			</hbox>
 
 			<!-- Params -->
-			<hbox>
+				<align hpos="0"><hbox>
 				<align hpos="0">
 					<hbox spacing="2" padding="2">
 						<label text="labels.oscilloscope.H_orizontal" font_size="10" />
@@ -177,7 +177,7 @@
 						<label text="labels.oscilloscope.T_ime" font_size="10" />
 					</hbox>
 				</align>
-				
+
 				<ui:for id="i" first="1" last="4">
 				    <ui:set id="col" value="${
 							(:i ieq 1) ? 'osc_n_red' :
@@ -205,7 +205,7 @@
 						</hbox>
 					</hbox>
 				</ui:for>
-			</hbox>
+			</hbox></align>
 		</vbox>
 
 		<hbox pad_bottom="4" pad_top="4">
@@ -231,7 +231,7 @@
 
 					<void/>
 
-					<cell rows="23">
+					<cell rows="22">
 						<void color="bg" min_width="8"/>
 					</cell>
 					<cell cols="2">
@@ -242,7 +242,7 @@
 							</vbox>
 						</hbox>
 					</cell>
-					<cell rows="23">
+					<cell rows="22">
 						<void color="bg" min_width="8"/>
 					</cell>
 					<cell cols="2">
