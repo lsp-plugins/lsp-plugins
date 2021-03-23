@@ -38,6 +38,8 @@
 	"active": "Attivo",
 	"actual_duration": "Durata\nEffettiva (s)",
 	
+	"alr": "ALR",
+	
 	"amplitude": "Ampiezza",
 	
 	"att_ack": "Att",
@@ -49,6 +51,7 @@
 	
 	"balance": "Bilanciamento",
 	
+	"band": "Banda",
 	"band_hue": "Banda, colore",
 	
 	"bool": {
@@ -68,6 +71,10 @@
 	
 	"chan": {
 		":db": "(dB)",
+		"Ch_1": "Ch1",
+		"Ch_2": "Ch2",
+		"Ch_3": "Ch3",
+		"Ch_4": "Ch4",
 		"Ext_ernal": "Est",
 		"H_old": "M",
 		"L_eft": "S",
@@ -77,6 +84,7 @@
 		"M_ute": "M",
 		"OFF": "OFF",
 		"ON": "ON",
+		"P_hase": "P",
 		"R_ight": "D",
 		"R_ight:": "D:",
 		"S_ide": "L",
@@ -141,6 +149,9 @@
 	
 	"delay": "Delay",
 	"delay:ms": "Delay (ms)",
+	"delay_line_processing": "Processamento della Linea di Ritardo",
+	"delay_time_formula": "Formula del Tempo di Ritardo",
+	"delay_reference": "Ritardo di Riferimento",
 	
 	"direct_out": "Uscita diretta",
 	"direct_output": "Uscita diretta",
@@ -163,6 +174,7 @@
 	"export": "Esporta",
 	
 	"feedback": "feed-back",
+	"feed_gain": "Guadagno Feed",
 
 	"fft": {
 		"envelope": "Inviluppo",
@@ -174,6 +186,10 @@
 	},
 	
 	"file": "File",
+	"file_display": {
+		"system": "{@title} /",
+		"user": "{@title} ~"
+	},
 	"file_list": "Lista di file",
 	"file_name": "Nome file",
 	"filter": "Filtro",
@@ -212,11 +228,13 @@
 		"correlation": "CORRELAZIONE",
 		"curve": "CURVA",
 		"delay_line": "LINEA DI RITARDO",
+		"delay_graph": "GRAFICO DEL RITARDO",
 		"expansion": "ESPANSIONE",
 		"frequency": "GRAFICO DI FREQUENZA",
 		"gating": "GATING",
 		"left_channel": "CANALE SINISTRO",
 		"oscillator_waveform": "FORMA_D_ONDA_OSCILLATORE",
+		"oscilloscope": "GRAFICO DELL'OSCILLOSCOPIO",
 		"right_channel": "CANALE DESTRO",
 		"spectrum": "SPETTRO",
 		"time": "TEMPO",
@@ -265,6 +283,8 @@
 		"sound_speed": "Velocità del suono",
 		"transparency": "Trasparenza"
 	},
+	"max_delay": "Massimo Ritardo",
+	"max_delay:s": "Massimo Ritardo (s)",
 	"max_latency": "Latenza massima",
 	"max_time": "Tempo massimo",
 	
@@ -325,6 +345,28 @@
 	"offset": "Deviazione",
 	"offset:samp": "Deviazione (camp)",
 	
+	"oscilloscope": {
+		"H_orizontal": "H",
+		"T_ime": "T",
+		"V_ertical": "V",
+		"division": "Divisione",
+		"horizontal": "Horizontale",
+		"max_dots": "Max. Punti",
+		"mode": "Modo",
+		"oversampler_mode": "Oversampler",
+		"position": "Posizione",
+		"sweep_type": "Tipo di Sweep",
+		"trigger_hold_time": "Tempo di Ritenzione",
+		"trigger_hysteresis": "Isteresi",
+		"trigger_input": "Input",
+		"trigger_level": "Livello",
+		"trigger_mode": "Modo",
+		"trigger_reset": "Reset",
+		"trigger_type": "Tipo di Bordo",
+		"vertical": "Verticale",
+		"xy_sweep": "XY Sweep"
+	},
+	
 	"output": "Uscita",
 	"output:db": "Uscita (dB)",
 	"oversampling": "Sovracampionamento",
@@ -381,6 +423,7 @@
 	
 	"reflections": "Riflessioni",
 	
+	"relative_paths": "Percorsi Relativi",
 	"rel_ease": "Ril",
 	"release": "Rilascio",
 	"release:db_ms": "Rilascio\n(dB, ms)",
@@ -541,6 +584,13 @@
 		"worst": "Peggiore",
 		"x_k": "{@value}k",
 		"x_khz": "{@value} kHz"
+	},
+	
+	"warning": {
+		"all_values_good": "Tutti i valori sono nell'intervallo di accettanza.",
+		"delay_out_of_range": "Avviso! Ritardo fuori dall'intervallo di accettanza.",
+		"feedback_out_of_range": "Avviso! Feedback fuori dall'intervallo di accettanza.",
+		"loop_in_delay": "Avviso! Loop nella catena del ritardo di riferimento."
 	},
 	
 	"working_area": "Area lavoro",

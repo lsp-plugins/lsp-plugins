@@ -1,4 +1,5 @@
 {
+	"alr": "ALR",
 	"analysis": "Analisi",
 	"audio_channel": "Canale Audio",
 	"audio_channels": "Canali Audio",
@@ -39,6 +40,12 @@
 	"monitoring": "Monitoraggio",
 	
 	"oscillator_function": "Funzione dell'oscillatore'",
+	"oscilloscope": {
+		"coupling": "Accoppiamento",
+		"operation": "Operazione",
+		"trigger": "Trigger"
+	},
+	
 	"output": "Uscita",
 	"outputs": "Uscite",
 	
@@ -80,6 +87,8 @@
 	"signals": "Segnali",
 	
 	"test_signal": "Segnale di prova",
+	"tempo_settings": "Settaggi del Tempo",
+	
 	"time": "Tempo",
 	
 	"wet_signal_eq": "Equalizzazione Segnale Wet"
