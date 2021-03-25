@@ -47,8 +47,16 @@
 				<!--  Trigger References -->
 				<marker value=":trlv_1 * 0.01 + :veps_1 * 0.01" basis="1" parallel="0"
 					color="osc_n_blue"
-					visibility=":scmo_1 ieq 1"
+					visibility="(:scmo_1 ieq 1) and ((:trtp_1 ieq 1) or (:trtp_1 ieq 2))"
 				/>
+				<marker value=":trlv_1 * 0.01 + :veps_1 * 0.01 - 2 * :trhy_1 * 0.01" basis="1" parallel="0"
+                    color="osc_n_blue"
+                    visibility="(:scmo_1 ieq 1) and ((:trtp_1 ieq 3) or (:trtp_1 ieq 4))"
+                />
+                <marker value=":trlv_1 * 0.01 + :veps_1 * 0.01 + 2 * :trhy_1 * 0.01" basis="1" parallel="0"
+                    color="osc_n_blue"
+                    visibility="(:scmo_1 ieq 1) and ((:trtp_1 ieq 3) or (:trtp_1 ieq 4))"
+                />
 				<marker value=":hzps_1 * 0.01" basis="0"
 					parallel="1" color="osc_n_blue"
 					visibility=":scmo_1 ieq 1"
