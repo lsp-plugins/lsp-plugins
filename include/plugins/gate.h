@@ -89,6 +89,7 @@ namespace lsp
                 Gate            sGate;              // Gate module
                 Delay           sDelay;             // Lookahead delay
                 Delay           sCompDelay;         // Lookahead delay
+                Delay           sDryDelay;          // Dry delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
 
                 float          *vIn;                // Input data

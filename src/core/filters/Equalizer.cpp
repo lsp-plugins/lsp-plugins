@@ -204,10 +204,20 @@ namespace lsp
         return true;
     }
 
+    size_t Equalizer::get_latency()
+    {
+        if (nFlags != 0)
+            reconfigure();
+        return nLatency;
+    }
+
     void Equalizer::reconfigure()
     {
         if (nMode == EQM_BYPASS)
+        {
+            nLatency        = 0;
             return;
+        }
 
         // Initialize bank
         sBank.begin();

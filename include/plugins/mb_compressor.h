@@ -143,6 +143,7 @@ namespace lsp
                 float          *vOut;               // Output data buffer
                 float          *vScIn;              // Sidechain data buffer (if present)
 
+                float          *vInBuffer;          // Input buffer
                 float          *vBuffer;            // Common data processing buffer
                 float          *vScBuffer;          // Sidechain buffer
                 float          *vExtScBuffer;       // External sidechain buffer
