@@ -321,6 +321,8 @@ namespace lsp
         pTrgType            = NULL;
         pTrgInput           = NULL;
         pTrgReset           = NULL;
+
+        pIDisplay           = NULL;
     }
 
     oscilloscope_base::~oscilloscope_base()
@@ -365,6 +367,12 @@ namespace lsp
 
             delete [] vChannels;
             vChannels = NULL;
+        }
+
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
         }
     }
 
@@ -521,8 +529,6 @@ namespace lsp
             c->pMuteSwitch          = NULL;
 
             c->pStream              = NULL;
-
-            c->pIDisplay            = NULL;
         }
 
         lsp_assert(ptr <= &save[samples]);
@@ -1495,8 +1501,6 @@ namespace lsp
                 v->write("pMuteSwitch", &c->pMuteSwitch);
 
                 v->write("pStream", &c->pStream);
-
-                v->write("pIDisplay", &c->pIDisplay);
             }
             v->end_object();
         }
@@ -1532,6 +1536,8 @@ namespace lsp
         v->write("pTrgType", pTrgType);
         v->write("pTrgInput", pTrgInput);
         v->write("pTrgReset", pTrgReset);
+
+        v->write("pIDisplay", pIDisplay);
     }
 
     static const uint32_t ch_colors[] =
@@ -1584,17 +1590,17 @@ namespace lsp
         float halfv = 0.5f * width;
         float halfh = 0.5f * height;
 
+        // Allocate buffer: t, f(t)
+        pIDisplay = float_buffer_t::reuse(pIDisplay, 2, width);
+        float_buffer_t *b = pIDisplay;
+        if (b == NULL)
+            return false;
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
             if (!c->bVisible)
                 continue;
-
-            // Allocate buffer: t, f(t)
-            c->pIDisplay = float_buffer_t::reuse(c->pIDisplay, 2, width);
-            float_buffer_t *b = c->pIDisplay;
-            if (b == NULL)
-                return false;
 
             float di = float(c->nIDisplay - 1.0f) / width;
 

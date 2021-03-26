@@ -233,8 +233,6 @@ namespace lsp
                 IPort              *pMuteSwitch;
 
                 IPort              *pStream;
-
-                float_buffer_t     *pIDisplay;      // Inline display buffer
             } channel_t;
 
         protected:
@@ -276,6 +274,8 @@ namespace lsp
             IPort      *pTrgType;
             IPort      *pTrgInput;
             IPort      *pTrgReset;
+
+            float_buffer_t     *pIDisplay;      // Inline display buffer
 
         protected:
             over_mode_t get_oversampler_mode(size_t portValue);
