@@ -15,7 +15,7 @@
 #define PRE_TRG_MAX_SIZE    196608
 
 #define SWEEP_GEN_N_BITS    32
-#define SWEEP_GEN_PEAK      1.0f // Stream min x coordinate should be -SWEEP_GEN_PEAK and max x coordinate should be +SWEEP_GEN_PEAK
+#define SWEEP_GEN_PEAK      1.0f    /* Stream min x coordinate should be -SWEEP_GEN_PEAK and max x coordinate should be +SWEEP_GEN_PEAK */
 
 #define DC_BLOCK_CUTOFF_HZ  5.0
 #define DC_BLOCK_DFL_ALPHA  0.999f
@@ -26,7 +26,8 @@
 #define STREAM_MIN_Y       -1.0f
 #define STREAM_N_VER_DIV    4
 #define STREAM_N_HOR_DIV    4
-#define DECIM_PRECISION     0.1e-4 // For development, this should be calculated from screen size !!!
+#define DECIM_PRECISION     0.1e-5  /* For development, this should be calculated from screen size */
+#define IDISPLAY_DECIM      0.2e-2  /* Decimation for inline display */
 
 #define AUTO_SWEEP_TIME     1.0f
 
@@ -979,10 +980,33 @@ namespace lsp
             i += count;
         }
 
-        // Copy display data to inline display buffer.
-        c->nIDisplay = to_submit;
-        dsp::copy(c->vIDisplay_x, c->vDisplay_x, c->nIDisplay);
-        dsp::copy(c->vIDisplay_y, c->vDisplay_y, c->nIDisplay);
+        // Is there data to submit to inline display?
+        if (to_submit > 0)
+        {
+            // Compute the start point to submit data
+            j   = 0;
+
+            // In-place decimation:
+            for (size_t i = j+1; i < to_submit; ++i)
+            {
+                float dx    = c->vDisplay_x[i] - c->vDisplay_x[j];
+                float dy    = c->vDisplay_y[i] - c->vDisplay_y[j];
+                float s     = dx*dx + dy*dy;
+
+                if (s < IDISPLAY_DECIM) // Skip point
+                    continue;
+
+                // Add point to decimated array
+                ++j;
+                c->vDisplay_x[j] = c->vDisplay_x[i];
+                c->vDisplay_y[j] = c->vDisplay_y[i];
+            }
+
+            // Copy display data to inline display buffer.
+            c->nIDisplay = j + 1;
+            dsp::copy(c->vIDisplay_x, c->vDisplay_x, c->nIDisplay);
+            dsp::copy(c->vIDisplay_y, c->vDisplay_y, c->nIDisplay);
+        }
 
         return true;
     }
@@ -1590,8 +1614,13 @@ namespace lsp
         float halfv = 0.5f * width;
         float halfh = 0.5f * height;
 
+        // Estimate the display length
+        size_t di_length = 1;
+        for (size_t ch = 0; ch < nChannels; ++ch)
+            di_length = lsp_max(di_length, vChannels[ch].nIDisplay);
+
         // Allocate buffer: t, f(t)
-        pIDisplay = float_buffer_t::reuse(pIDisplay, 2, width);
+        pIDisplay = float_buffer_t::reuse(pIDisplay, 2, di_length);
         float_buffer_t *b = pIDisplay;
         if (b == NULL)
             return false;
@@ -1602,18 +1631,16 @@ namespace lsp
             if (!c->bVisible)
                 continue;
 
-            float di = float(c->nIDisplay - 1.0f) / width;
-
-            for (size_t i=0; i<width; ++i)
+            for (size_t i=0; i<c->nIDisplay; ++i)
             {
-                b->v[0][i] = halfv * (c->vIDisplay_x[size_t(i * di)] + 1.0f);
-                b->v[1][i] = halfh * (-c->vIDisplay_y[size_t(i * di)] + 1.0f);
+                b->v[0][i] = halfv * (c->vIDisplay_x[i] + 1.0f);
+                b->v[1][i] = halfh * (-c->vIDisplay_y[i] + 1.0f);
             }
 
             // Set color and draw
             cv->set_color_rgb(cols[ch]);
             cv->set_line_width(2);
-            cv->draw_lines(b->v[0], b->v[1], width);
+            cv->draw_lines(b->v[0], b->v[1], c->nIDisplay);
         }
 
         return true;
