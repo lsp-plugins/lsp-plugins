@@ -1625,6 +1625,8 @@ namespace lsp
         if (b == NULL)
             return false;
 
+        bool aa = cv->set_anti_aliasing(true);
+
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
             channel_t *c = &vChannels[ch];
@@ -1642,6 +1644,8 @@ namespace lsp
             cv->set_line_width(2);
             cv->draw_lines(b->v[0], b->v[1], c->nIDisplay);
         }
+
+        cv->set_anti_aliasing(aa);
 
         return true;
     }
