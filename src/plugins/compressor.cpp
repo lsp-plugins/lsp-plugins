@@ -147,6 +147,7 @@ namespace lsp
             c->pRatio           = NULL;
             c->pKnee            = NULL;
             c->pBThresh         = NULL;
+            c->pBoost           = NULL;
             c->pMakeup          = NULL;
             c->pDryGain         = NULL;
             c->pWetGain         = NULL;
@@ -273,6 +274,7 @@ namespace lsp
                 c->pRatio           = sc->pRatio;
                 c->pKnee            = sc->pKnee;
                 c->pBThresh         = sc->pBThresh;
+                c->pBoost           = sc->pBoost;
                 c->pMakeup          = sc->pMakeup;
                 c->pDryGain         = sc->pDryGain;
                 c->pWetGain         = sc->pWetGain;
@@ -295,6 +297,8 @@ namespace lsp
                 c->pKnee            =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pBThresh         =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pBoost           =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pMakeup          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
@@ -497,7 +501,7 @@ namespace lsp
             c->sComp.set_timings(c->pAttackTime->getValue(), c->pReleaseTime->getValue());
             c->sComp.set_ratio(c->pRatio->getValue());
             c->sComp.set_knee(c->pKnee->getValue());
-            c->sComp.set_boost_threshold(c->pBThresh->getValue());
+            c->sComp.set_boost_threshold((mode != CM_BOOSTING) ? c->pBThresh->getValue() : c->pBoost->getValue());
             c->sComp.set_mode(mode);
             if (c->pReleaseOut != NULL)
                 c->pReleaseOut->setValue(release);
@@ -1075,6 +1079,7 @@ namespace lsp
                 v->write("pRatio", c->pRatio);
                 v->write("pKnee", c->pKnee);
                 v->write("pBThresh", c->pBThresh);
+                v->write("pBoost", c->pBoost);
                 v->write("pMakeup", c->pMakeup);
 
                 v->write("pDryGain", c->pDryGain);

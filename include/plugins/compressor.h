@@ -135,6 +135,7 @@ namespace lsp
                 IPort          *pRatio;             // Ratio
                 IPort          *pKnee;              // Knee
                 IPort          *pBThresh;           // Boost threshold
+                IPort          *pBoost;             // Boost signal amount
                 IPort          *pMakeup;            // Makeup
 
                 IPort          *pDryGain;           // Dry gain
