@@ -30,7 +30,8 @@ namespace lsp
     enum compressor_mode_t
     {
         CM_DOWNWARD,
-        CM_UPWARD
+        CM_UPWARD,
+        CM_BOOSTING
     };
 
     /** Compressor class implementation
@@ -70,7 +71,7 @@ namespace lsp
 
             // Additional parameters
             size_t      nSampleRate;
-            bool        bUpward;
+            size_t      nMode;
             bool        bUpdate;
 
         public:
@@ -199,11 +200,10 @@ namespace lsp
              */
             inline void set_mode(size_t mode)
             {
-                bool upward = (mode == CM_UPWARD);
-                if (upward == bUpward)
+                if (nMode == mode)
                     return;
 
-                bUpward     = upward;
+                nMode       = mode;
                 bUpdate     = true;
             }
 

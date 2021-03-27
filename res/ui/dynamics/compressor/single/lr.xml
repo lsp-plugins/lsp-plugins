@@ -307,7 +307,7 @@
 					<cell rows="2"><label text="labels.ratio" /></cell>
 					<label text="labels.knee" />
 					<label text="labels.makeup" />
-					<cell rows="2"><label text="labels.boost" bright="((:cm_l ieq 1) or (:cm_r ieq 1)) ? 1 : 0.5" /></cell>
+					<cell rows="2"><label text="labels.boost" bright="((:cm_l ieq 0) and (:cm_r ieq 0)) ? 0.5 : 1" /></cell>
 					<cell rows="6"><vsep /></cell>
 					<cell cols="2"><label text="labels.attack" /></cell>
 					<cell rows="6"><vsep /></cell>
@@ -328,7 +328,7 @@
 					<knob id="cr_l" scale_color="left_channel" />
 					<knob id="kn_l" scale_color="left_channel" />
 					<knob id="mk_l" scale_color="left_channel" />
-					<knob id="bth_l" scale_color="left_channel" bright="(:cm_l ieq 1) ? 1 : 0.5" />
+					<knob id="bth_l" scale_color="left_channel" bright="(:cm_l ieq 0) ? 0.5 : 1" />
 					<knob id="al_l" scale_color="magenta" size="20" />
 					<knob id="at_l" scale_color="left_channel" size="20" />
 					<knob id="rrl_l" scale_color="magenta" size="20" />
@@ -344,7 +344,7 @@
 					</hbox>
 					<value id="kn_l" detailed="false" />
 					<value id="mk_l" detailed="false" />
-					<value id="bth_l" detailed="false" bright="(:cm_l ieq 1) ? 1 : 0.5" />
+					<value id="bth_l" detailed="false" bright="(:cm_l ieq 0) ? 0.5 : 1" />
 					<value id="al_l" detailed="false" />
 					<value id="at_l" detailed="false" />
 					<value id="rrl_l" detailed="false" />
@@ -356,7 +356,7 @@
 					<knob id="cr_r" scale_color="right_channel" />
 					<knob id="kn_r" scale_color="right_channel" />
 					<knob id="mk_r" scale_color="right_channel" />
-					<knob id="bth_r" scale_color="right_channel" bright="(:cm_r ieq 1) ? 1 : 0.5" />
+					<knob id="bth_r" scale_color="right_channel" bright="(:cm_r ieq 0) ? 0.5 : 1" />
 					<knob id="al_r" scale_color="blue" size="20" />
 					<knob id="at_r" scale_color="right_channel" size="20" />
 					<knob id="rrl_r" scale_color="blue" size="20" />
@@ -372,7 +372,7 @@
 					</hbox>
 					<value id="kn_r" detailed="false" />
 					<value id="mk_r" detailed="false" />
-					<value id="bth_r" detailed="false" bright="(:cm_r ieq 1) ? 1 : 0.5" />
+					<value id="bth_r" detailed="false" bright="(:cm_r ieq 0) ? 0.5 : 1" />
 					<value id="al_r" detailed="false" />
 					<value id="at_r" detailed="false" />
 					<value id="rrl_r" detailed="false" />

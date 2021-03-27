@@ -257,7 +257,7 @@
 						<cell rows="2"><label text="labels.ratio" /></cell>
 						<cell rows="2"><label text="labels.knee" /></cell>
 						<cell rows="2"><label text="labels.makeup" /></cell>
-						<cell rows="2"><label text="labels.boost" bright="(:cm ieq 1) ? 1 : 0.5" /></cell>
+						<cell rows="2"><label text="labels.boost" bright="(:cm ieq 0) ? 0.5 : 1" /></cell>
 						<cell rows="4"><vsep /></cell>
 						<cell cols="2"><label text="labels.attack" /></cell>
 						<cell rows="4"><vsep /></cell>
@@ -275,7 +275,7 @@
 						<knob id="cr" />
 						<knob id="kn" />
 						<knob id="mk" />
-						<knob id="bth" bright="(:cm ieq 1) ? 1 : 0.5" />
+						<knob id="bth" bright="(:cm ieq 0) ? 0.5 : 1" />
 						<knob id="al" scale_color="magenta" size="20" />
 						<knob id="at" size="20" />
 						<knob id="rrl" scale_color="magenta" size="20" />
@@ -290,7 +290,7 @@
 						</hbox>
 						<value id="kn" />
 						<value id="mk" />
-						<value id="bth" bright="(:cm ieq 1) ? 1 : 0.5" />
+						<value id="bth" bright="(:cm ieq 0) ? 0.5 : 1" />
 						<value id="al" />
 						<value id="at" />
 						<value id="rrl" />

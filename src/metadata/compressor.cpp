@@ -67,6 +67,7 @@ namespace lsp
     {
         { "Downward",   "compressor.downward" },
         { "Upward",     "compressor.upward" },
+        { "Boosting",   "compressor.boosting" },
         { NULL, NULL }
     };
 
@@ -74,6 +75,7 @@ namespace lsp
     {
         { "Down",       "compressor.down_ward" },
         { "Up",         "compressor.up_ward" },
+        { "Boot",       "compressor.boost_ing" },
         { NULL, NULL }
     };
 

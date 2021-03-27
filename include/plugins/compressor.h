@@ -168,6 +168,7 @@ namespace lsp
         protected:
             float           process_feedback(channel_t *c, size_t i, size_t channels);
             void            process_non_feedback(channel_t *c, float **in, size_t samples);
+            static compressor_mode_t    decode_mode(int mode);
 
         public:
             explicit compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);

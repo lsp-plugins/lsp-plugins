@@ -419,6 +419,17 @@ namespace lsp
         }
     }
 
+    compressor_mode_t compressor_base::decode_mode(int mode)
+    {
+        switch (mode)
+        {
+            case compressor_base_metadata::CM_DOWNWARD: return CM_DOWNWARD;
+            case compressor_base_metadata::CM_UPWARD: return CM_UPWARD;
+            case compressor_base_metadata::CM_BOOSTING: return CM_BOOSTING;
+            default: return CM_DOWNWARD;
+        }
+    }
+
     void compressor_base::update_settings()
     {
         filter_params_t fp;
@@ -480,17 +491,17 @@ namespace lsp
             float attack    = c->pAttackLvl->getValue();
             float release   = c->pReleaseLvl->getValue() * attack;
             float makeup    = c->pMakeup->getValue();
-            bool upward     = c->pMode->getValue() >= 0.5f;
+            compressor_mode_t mode = decode_mode(c->pMode->getValue());
 
             c->sComp.set_threshold(attack, release);
             c->sComp.set_timings(c->pAttackTime->getValue(), c->pReleaseTime->getValue());
             c->sComp.set_ratio(c->pRatio->getValue());
             c->sComp.set_knee(c->pKnee->getValue());
             c->sComp.set_boost_threshold(c->pBThresh->getValue());
-            c->sComp.set_mode((upward) ? CM_UPWARD : CM_DOWNWARD);
+            c->sComp.set_mode(mode);
             if (c->pReleaseOut != NULL)
                 c->pReleaseOut->setValue(release);
-            c->sGraph[G_GAIN].set_method((upward) ? MM_MAXIMUM : MM_MINIMUM);
+            c->sGraph[G_GAIN].set_method((mode == CM_DOWNWARD) ? MM_MINIMUM : MM_MAXIMUM);
 
             // Check modification flag
             if (c->sComp.modified())

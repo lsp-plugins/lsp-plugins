@@ -102,7 +102,8 @@ namespace lsp
         enum mode_t
         {
             CM_DOWNWARD,
-            CM_UPWARD
+            CM_UPWARD,
+            CM_BOOSTING
         };
 
         static const size_t CM_DEFAULT              = CM_DOWNWARD;
