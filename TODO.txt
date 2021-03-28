@@ -30,7 +30,7 @@
 
 === 1.1.30 ===
 
-- Implemented Oscilloscope plugin series.
+* Implemented Oscilloscope plugin series: x1, x2 and x4.
 * Added streaming port support to plugin framework.
 * Added strobe feature to mesh primitives that allows to draw
   multiple streamed meshes together.
