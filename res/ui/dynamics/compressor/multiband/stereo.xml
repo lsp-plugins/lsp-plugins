@@ -352,7 +352,7 @@
 								<cell rows="2"><label text="labels.ratio" /></cell>
 								<cell rows="2"><label text="labels.knee" /></cell>
 								<cell rows="2"><label text="labels.makeup" /></cell>
-								<cell rows="2"><label text="labels.boost" bright="(:cm_${i} ieq 1) ? 1 : 0.5" /></cell>
+								<cell rows="2"><label text="labels.boost" bright="(:cm_${i} ieq 0) ? 0.5 : 1" /></cell>
 								<cell cols="2"><label text="labels.attack" /></cell>
 								<cell cols="2"><label text="labels.release" /></cell>
 								
@@ -373,7 +373,10 @@
 								<knob id="cr_${i}" scale_hue_id="hue_${i}" />
 								<knob id="kn_${i}" scale_hue_id="hue_${i}" />
 								<knob id="mk_${i}" scale_hue_id="hue_${i}" />
-								<knob id="bth_${i}" scale_hue_id="hue_${i}" bright="(:cm_${i} ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<knob id="bth_${i}" scale_hue_id="hue_${i}" bright="(:cm_${i} ieq 0) ? 0.5 : 1" visibility=":cm_${i} ine 2" />
+									<knob id="bsa_${i}" scale_hue_id="hue_${i}" bright="(:cm_${i} ieq 0) ? 0.5 : 1" visibility=":cm_${i} ieq 2" />
+								</hbox>
 								<knob id="al_${i}" scale_color="magenta" />
 								<knob id="at_${i}" scale_hue_id="hue_${i}" />
 								<knob id="rrl_${i}" scale_color="magenta" />
@@ -387,7 +390,10 @@
 								</hbox>
 								<value id="kn_${i}" />
 								<value id="mk_${i}" />
-								<value id="bth_${i}" bright="(:cm_${i} ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<value id="bth_${i}" bright="(:cm_${i} ieq 0) ? 0.5 : 1" visibility=":cm_${i} ine 2" />
+									<value id="bsa_${i}" bright="(:cm_${i} ieq 0) ? 0.5 : 1" visibility=":cm_${i} ieq 2" />
+								</hbox>
 								<value id="al_${i}" />
 								<value id="at_${i}" />
 								<value id="rrl_${i}" />

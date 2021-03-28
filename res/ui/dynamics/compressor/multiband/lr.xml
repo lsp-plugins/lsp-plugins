@@ -503,7 +503,7 @@
 								<cell rows="2"><label text="labels.ratio" /></cell>
 								<cell rows="2"><label text="labels.knee" /></cell>
 								<cell rows="2"><label text="labels.makeup" /></cell>
-								<cell rows="2"><label text="labels.boost" bright="((:cm_${i}l ieq 1) or (:cm_${i}r ieq 1)) ? 1 : 0.5" /></cell>
+								<cell rows="2"><label text="labels.boost" bright="((:cm_${i}l ieq 0) and (:cm_${i}r ieq 0)) ? 0.5 : 1" /></cell>
 								<cell cols="2"><label text="labels.attack" /></cell>
 								<cell cols="2"><label text="labels.release" /></cell>
 								
@@ -526,7 +526,10 @@
 								<knob id="cr_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="kn_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="mk_${i}l" size="16" scale_hue_id="hue_${i}l" />
-								<knob id="bth_${i}l" size="16" scale_hue_id="hue_${i}l" bright="(:cm_${i}l ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<knob id="bth_${i}l" size="16" scale_hue_id="hue_${i}l" bright="(:cm_${i}l ieq 0) ? 0.5 : 1" visibility=":cm_${i}l ine 2" />
+									<knob id="bsa_${i}l" size="16" scale_hue_id="hue_${i}l" bright="(:cm_${i}l ieq 0) ? 0.5 : 1" visibility=":cm_${i}l ieq 2" />
+								</hbox>
 								<knob id="al_${i}l" size="16" scale_color="magenta" />
 								<knob id="at_${i}l" size="16" scale_hue_id="hue_${i}l" />
 								<knob id="rrl_${i}l" size="16" scale_color="magenta" />
@@ -539,7 +542,10 @@
 								</hbox>
 								<value id="kn_${i}l" same_line="true" />
 								<value id="mk_${i}l" same_line="true" />
-								<value id="bth_${i}l" same_line="true" bright="(:cm_${i}l ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<value id="bth_${i}l" same_line="true" bright="(:cm_${i}l ieq 0) ? 0.5 : 1" visibility=":cm_${i}l ine 2" />
+									<value id="bsa_${i}l" same_line="true" bright="(:cm_${i}l ieq 0) ? 0.5 : 1" visibility=":cm_${i}l ieq 2" />
+								</hbox>
 								<value id="al_${i}l" same_line="true" />
 								<value id="at_${i}l" same_line="true" />
 								<value id="rrl_${i}l" same_line="true" />
@@ -564,7 +570,10 @@
 								<knob id="cr_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="kn_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="mk_${i}r" size="16" scale_hue_id="hue_${i}r" />
-								<knob id="bth_${i}r" size="16" scale_hue_id="hue_${i}r" bright="(:cm_${i}r ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<knob id="bth_${i}r" size="16" scale_hue_id="hue_${i}r" bright="(:cm_${i}r ieq 0) ? 0.5 : 1" visibility=":cm_${i}r ine 2" />
+									<knob id="bsa_${i}r" size="16" scale_hue_id="hue_${i}r" bright="(:cm_${i}r ieq 0) ? 0.5 : 1" visibility=":cm_${i}r ieq 2" />
+								</hbox>
 								<knob id="al_${i}r" size="16" scale_color="magenta" />
 								<knob id="at_${i}r" size="16" scale_hue_id="hue_${i}r" />
 								<knob id="rrl_${i}r" size="16" scale_color="magenta" />
@@ -577,7 +586,10 @@
 								</hbox>
 								<value id="kn_${i}r" same_line="true" />
 								<value id="mk_${i}r" same_line="true" />
-								<value id="bth_${i}r" same_line="true" bright="(:cm_${i}r ieq 1) ? 1 : 0.5" />
+								<hbox>
+									<value id="bth_${i}r" same_line="true" bright="(:cm_${i}r ieq 0) ? 0.5 : 1" visibility=":cm_${i}r ine 2" />
+									<value id="bsa_${i}r" same_line="true" bright="(:cm_${i}r ieq 0) ? 0.5 : 1" visibility=":cm_${i}r ieq 2" />
+								</hbox>
 								<value id="al_${i}r" same_line="true" />
 								<value id="at_${i}r" same_line="true" />
 								<value id="rrl_${i}r" same_line="true" />
