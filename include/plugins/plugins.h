@@ -48,6 +48,7 @@
 #include <plugins/room_builder.h>
 #include <plugins/mb_expander.h>
 #include <plugins/mb_gate.h>
+#include <plugins/oscilloscope.h>
 #include <plugins/loud_comp.h>
 #include <plugins/surge_filter.h>
 #include <plugins/crossover.h>

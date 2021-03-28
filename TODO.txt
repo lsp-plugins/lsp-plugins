@@ -30,14 +30,20 @@
 
 === 1.1.30 ===
 
+* Implemented Oscilloscope plugin series: x1, x2 and x4.
 * Added streaming port support to plugin framework.
 * Added strobe feature to mesh primitives that allows to draw
   multiple streamed meshes together.
+* Implemented 4-lobe Lanczos oversampling DSP functions for i586 architecture.
+* Implemented 4-lobe Lanczos oversampling DSP functions for x86_64 architecture.
+* Implemented 4-lobe Lanczos oversampling DSP functions for 32-bit ARM architecture.
+* Implemented 4-lobe Lanczos oversampling DSP functions for 64-bit ARM architecture.
 * Minor bugfixes in the core library.
 * Fixed bug with character set encoding for several systems with limited iconv.
 * Fixed latency compensation issue that happened on the 'Bypass' switch/automation.
 * Implemented additional 'Boosting' mode for the single-band compressor plugin series.
 * Implemented additional 'Boosting' mode for the multiband-band compressor plugin series.
+* Updated french translations (contributed by Olivier Humbert).
 
 *******************************************************************************
 * New plugin check list before release

@@ -299,14 +299,19 @@ namespace neon_d32
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);
+        EXPORT1(lanczos_resample_2x4);
         EXPORT1(lanczos_resample_3x2);
         EXPORT1(lanczos_resample_3x3);
+        EXPORT1(lanczos_resample_3x4);
         EXPORT1(lanczos_resample_4x2);
         EXPORT1(lanczos_resample_4x3);
+        EXPORT1(lanczos_resample_4x4);
         EXPORT1(lanczos_resample_6x2);
         EXPORT1(lanczos_resample_6x3);
+        EXPORT1(lanczos_resample_6x4);
         EXPORT1(lanczos_resample_8x2);
         EXPORT1(lanczos_resample_8x3);
+        EXPORT1(lanczos_resample_8x4);
 
         EXPORT1(downsample_2x);
         EXPORT1(downsample_3x);

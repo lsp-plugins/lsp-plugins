@@ -4,11 +4,11 @@
 	"audio_channel": "Audio Channel",
 	"audio_channels": "Audio Channels",
 	"audio_output": "Audio Output",
-	
+
 	"bands": "Bands",
 
 	"controls": "Controls",
-	
+
 	"chan": {
 		"master": "Master Channel"
 	},
@@ -28,7 +28,7 @@
 	"instrument_mixer": "Instrument mixer",
 
 	"latency": "Latency",
-	
+
 	"lchan": {
 		"distance": "Distance (left)",
 		"monitoring": "Monitoring (left)",
@@ -36,20 +36,26 @@
 		"signal": "Signal (left)",
 		"time": "Time (left)"
 	},
-	
+
 	"metering": "Metering",
 	"midi_setup": "MIDI Setup",
 	"monitoring": "Monitoring",
-	
+
 	"oscillator_function": "Oscillator Function",
+	"oscilloscope": {
+		"coupling": "Coupling",
+		"operation": "Operation",
+		"trigger": "Trigger"
+	},
+
 	"output": "Output",
 	"outputs": "Outputs",
-	
+
 	"parameters": "Parameters",
-	
+
 	"plug": {
 		"calibrator": "Calibrator",
-		"compressor": "Compressor",	
+		"compressor": "Compressor",
 		"expander": "Expander",
 		"gate": "Gate",
 		"latency_detector": "Latency Detector",
@@ -57,14 +63,14 @@
 		"processor": "Processor",
 		"trigger": "Trigger"
 	},
-	
+
 	"processor": "Processor",
 	"processors": "Processors",
-	
+
 	"rendering": "Rendering",
-	
+
 	"results": "Results",
-	
+
 	"rchan": {
 		"distance": "Distance (right)",
 		"monitoring": "Monitoring (right)",
@@ -72,7 +78,7 @@
 		"signal": "Signal (right)",
 		"time": "Time (right)"
 	},
-	
+
 	"sample_matrix": "Sample Matrix",
 	"sample_n": "Sample {@id}",
 	"samples": "Samples",
@@ -81,7 +87,7 @@
 	"signal": "Signal",
 	"signal_n": "Signal {@id}",
 	"signals": "Signals",
-	
+
 	"test_signal": "Test Signal",
 	"tempo_settings": "Tempo Settings",
 

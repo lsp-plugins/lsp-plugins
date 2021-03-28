@@ -50,16 +50,26 @@ namespace lsp
     enum over_mode_t
     {
         OM_NONE,
+
         OM_LANCZOS_2X2,
         OM_LANCZOS_2X3,
+        OM_LANCZOS_2X4,
+
         OM_LANCZOS_3X2,
         OM_LANCZOS_3X3,
+        OM_LANCZOS_3X4,
+
         OM_LANCZOS_4X2,
         OM_LANCZOS_4X3,
+        OM_LANCZOS_4X4,
+
         OM_LANCZOS_6X2,
         OM_LANCZOS_6X3,
+        OM_LANCZOS_6X4,
+
         OM_LANCZOS_8X2,
-        OM_LANCZOS_8X3
+        OM_LANCZOS_8X3,
+        OM_LANCZOS_8X4
     };
 
     /** Oversampler class
@@ -132,8 +142,8 @@ namespace lsp
             {
                 if (mode < OM_NONE)
                     mode = OM_NONE;
-                else if (mode > OM_LANCZOS_8X3)
-                    mode = OM_LANCZOS_8X3;
+                else if (mode > OM_LANCZOS_8X4)
+                    mode = OM_LANCZOS_8X4;
                 if (nMode == mode)
                     return;
                 nMode      = mode;

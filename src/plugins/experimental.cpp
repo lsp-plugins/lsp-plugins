@@ -330,24 +330,23 @@ namespace lsp
             {
                 // Decimate the signal
                 size_t j    = 0;
-                vDLisX[0]   = vLisX[0];
-                vDLisY[0]   = vLisY[0];
-                vDLisS[0]   = vLisS[0];
 
                 for (size_t i=1; i<LIS_BUFFER_SIZE; ++i)
                 {
-                    float dx    = vLisX[i] - vDLisX[j];
-                    float dy    = vLisY[i] - vDLisY[j];
+                    float dx    = vLisX[i] - vLisX[j];
+                    float dy    = vLisY[i] - vLisY[j];
                     float s     = dx*dx + dy*dy;
-                    vDLisS[j]   = lsp_max(vLisS[i], vDLisS[j]); // Keep the strobe signal
 
                     if (s < DECIM_PRECISION) // Skip point
+                    {
+                        vLisS[j]    = lsp_max(vLisS[i], vLisS[j]); // Keep the strobe signal
                         continue;
+                    }
 
                     // Add point to decimated array
                     ++j;
-                    vDLisX[j]   = vLisX[i];
-                    vDLisY[j]   = vLisY[i];
+                    vLisX[j]    = vLisX[i];
+                    vLisY[j]    = vLisY[i];
                 }
                 ++j;
 
@@ -357,9 +356,9 @@ namespace lsp
                 for (size_t i=0; i<j; )
                 {
                     size_t count = stream->add_frame(j - i);                // Add a frame
-                    stream->write_frame(0, &vDLisX[i], 0, count);           // X'es
-                    stream->write_frame(1, &vDLisY[i], 0, count);           // Y's
-                    stream->write_frame(2, &vDLisS[i], 0, count);           // Strobe signal
+                    stream->write_frame(0, &vLisX[i], 0, count);            // X'es
+                    stream->write_frame(1, &vLisY[i], 0, count);            // Y's
+                    stream->write_frame(2, &vLisS[i], 0, count);            // Strobe signal
                     stream->commit_frame();                                 // Commit the frame
 
                     // Move the index in the source buffer

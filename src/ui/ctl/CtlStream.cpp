@@ -32,6 +32,7 @@ namespace lsp
         {
             pClass          = &metadata;
             pPort           = NULL;
+            nMaxDots        = -1;
             fTransparency   = 0.0f;
             pMesh           = NULL;
         }
@@ -43,6 +44,9 @@ namespace lsp
                 mesh_t::destroy(pMesh);
                 pMesh   = NULL;
             }
+
+            sStrobes.destroy();
+            sMaxDots.destroy();
         }
 
         void CtlStream::init()
@@ -55,6 +59,10 @@ namespace lsp
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, mesh, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+
+            // Initialize expressions
+            sStrobes.init(pRegistry, this);
+            sMaxDots.init(pRegistry, this);
         }
 
         void CtlStream::set(widget_attribute_t att, const char *value)
@@ -94,8 +102,10 @@ namespace lsp
                         PARSE_BOOL(value, mesh->set_strobes(__));
                     break;
                 case A_STROBES:
-                    if (mesh != NULL)
-                        PARSE_INT(value, mesh->set_num_strobes(__));
+                    BIND_EXPR(sStrobes, value);
+                    break;
+                case A_MAX_DOTS:
+                    BIND_EXPR(sMaxDots, value);
                     break;
                 default:
                 {
@@ -111,17 +121,47 @@ namespace lsp
         {
             sColor.set_alpha(fTransparency);
             CtlWidget::end();
+
+            trigger_expr();
+        }
+
+        void CtlStream::trigger_expr()
+        {
+            LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
+
+            if (sMaxDots.valid())
+            {
+                ssize_t dots = sMaxDots.evaluate();
+                if (nMaxDots != dots)
+                {
+                    nMaxDots = dots;
+                    commit_data();
+                }
+            }
+
+            if ((mesh != NULL) && (sStrobes.valid()))
+            {
+                ssize_t value = sStrobes.evaluate();
+                mesh->set_num_strobes(value);
+            }
         }
 
         void CtlStream::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
 
+            // Trigger expressions
+            trigger_expr();
+
+            // Commit stream data
+            if ((port != NULL) && (port == pPort))
+                commit_data();
+        }
+
+        void CtlStream::commit_data()
+        {
             LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
             if (mesh == NULL)
-                return;
-
-            if ((pPort != port) || (pPort == NULL))
                 return;
 
             const port_t *mdata = pPort->metadata();
@@ -144,12 +184,31 @@ namespace lsp
             // Perform read from stream to mesh
             size_t last     = stream->frame_id();
             ssize_t length  = stream->get_length(last);
+            ssize_t dots    = (nMaxDots >= 0) ? lsp_min(length, nMaxDots) : length;
+            ssize_t off     = length - dots;
 
             for (size_t i=0, n=stream->channels(); i<n; ++i)
-                stream->read(i, pMesh->pvData[i], 0, length);
+                stream->read(i, pMesh->pvData[i], off, dots);
+
+//            #ifdef LSP_TRACE
+//                const float *vx = pMesh->pvData[0];
+//                const float *vy = pMesh->pvData[1];
+//                const float *vs = pMesh->pvData[2];
+//
+//                for (ssize_t i=1; i < dots; ++i)
+//                {
+//                    float dx    = vx[i] - vx[i-1];
+//                    float dy    = vy[i] - vy[i-1];
+//                    float s     = dx*dx + dy*dy;
+//                    if ((s >= 0.125f) && (vs[i] <= 0.5f))
+//                    {
+//                        lsp_trace("debug");
+//                    }
+//                }
+//            #endif
 
             // Set data to mesh
-            mesh->set_data(pMesh->nBuffers, length, const_cast<const float **>(pMesh->pvData));
+            mesh->set_data(pMesh->nBuffers, dots, const_cast<const float **>(pMesh->pvData));
         }
     } /* namespace ctl */
 } /* namespace lsp */

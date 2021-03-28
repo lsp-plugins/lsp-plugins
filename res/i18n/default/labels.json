@@ -71,6 +71,10 @@
 
 	"chan": {
 		":db": "(dB)",
+		"Ch_1": "Ch1",
+		"Ch_2": "Ch2",
+		"Ch_3": "Ch3",
+		"Ch_4": "Ch4",
 		"Ext_ernal": "Ext",
 		"H_old": "H",
 		"L_eft": "L",
@@ -88,6 +92,8 @@
 		"S_olo": "S",
 		"channel_n": "Channel {@id}",
 		"external_sc": "External",
+		"freeze": "Freeze",
+		"frz": "Frz",
 		"hold": "Hold",
 		"hue": "Hue",
 		"id": "{@id}",
@@ -174,7 +180,7 @@
 
 	"feedback": "Feedback",
 	"feed_gain": "Feed Gain",
-	
+
 	"fft": {
 		"envelope": "Envelope",
 		"fft": "FFT",
@@ -223,6 +229,8 @@
 	"gain_": "Gain",
 	"gain:db": "Gain\n(dB)",
 
+	"global_settings": "Global Settings",
+
 	"graphs": {
 		"compression": "COMPRESSION",
 		"correlation": "CORRELATION GRAPH",
@@ -234,12 +242,15 @@
 		"gating": "GATING",
 		"left_channel": "LEFT CHANNEL",
 		"oscillator_waveform": "OSCILLATOR_WAVEFORM",
+		"oscilloscope": "OSCILLOSCOPE GRAPH",
 		"right_channel": "RIGHT CHANNEL",
 		"spectrum": "SPECTRUM GRAPH",
 		"time": "TIME GRAPH",
 		"trigger": "TRIGGER GRAPH"
 	},
 	"group": "Group",
+
+	"history": "History",
 
 	"hold": "Hold",
 	"host_bpm": "Host BPM",
@@ -344,6 +355,28 @@
 
 	"offset": "Offset",
 	"offset:samp": "Offset (samp)",
+
+	"oscilloscope": {
+		"H_orizontal": "H",
+		"T_ime": "T",
+		"V_ertical": "V",
+		"division": "Division",
+		"horizontal": "Horizontal",
+		"max_dots": "Max Dots",
+		"mode": "Mode",
+		"oversampler_mode": "Oversampler",
+		"position": "Position",
+		"sweep_type": "Sweep Type",
+		"trigger_hold_time": "Hold Time",
+		"trigger_hysteresis": "Hysteresis",
+		"trigger_input": "Input",
+		"trigger_level": "Level",
+		"trigger_mode": "Mode",
+		"trigger_reset": "Reset",
+		"trigger_type": "Edge Type",
+		"vertical": "Vertical",
+		"xy_sweep": "XY Sweep"
+	},
 
 	"output": "Output",
 	"output:db": "Output (dB)",
@@ -583,6 +616,8 @@
 	},
 
 	"working_area": "Working area",
+
+	"X_Y_EXT": "X | Y | EXT",
 
 	"zone": "Zone",
 	"zoom": "Zoom"

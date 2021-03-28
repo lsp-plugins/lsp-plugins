@@ -1,4 +1,39 @@
 {
+	"art_delay": {
+		"line_0": "Linea di Ritardo 0",
+		"line_1": "Linea di Ritardo 1",
+		"line_2": "Linea di Ritardo 2",
+		"line_3": "Linea di Ritardo 3",
+		"line_4": "Linea di Ritardo 4",
+		"line_5": "Linea di Ritardo 5",
+		"line_6": "Linea di Ritardo 6",
+		"line_7": "Linea di Ritardo 7",
+		"line_8": "Linea di Ritardo 8",
+		"line_9": "Linea di Ritardo 9",
+		"line_10": "Linea di Ritardo 10",
+		"line_11": "Linea di Ritardo 11",
+		"line_12": "Linea di Ritardo 12",
+		"line_13": "Linea di Ritardo 13",
+		"line_14": "Linea di Ritardo 14",
+		"line_15": "Linea di Ritardo 15",
+
+		"tempo_0": "Tempo 0",
+		"tempo_1": "Tempo 1",
+		"tempo_2": "Tempo 2",
+		"tempo_3": "Tempo 3",
+		"tempo_4": "Tempo 4",
+		"tempo_5": "Tempo 5",
+		"tempo_6": "Tempo 6",
+		"tempo_7": "Tempo 7",
+
+		"modes": {
+			"notes": "Note",
+			"off": "Off",
+			"time": "Tempo"
+		},
+		"none": "None"
+	},
+	
 	"bool": {
 		"off": "off",
 		"on": "on"
@@ -17,8 +52,23 @@
 		"upward": "Verso l'alto'"
 	},
 	
+	"crossover": {
+		"sel": {
+			"left": "Processore Sinistro",
+			"mid": "Processore Centro",
+			"right": "Processore Destro",
+			"side": "Processor Lato"
+		},
+		"slope": {
+			"24dbo": "24 dB/oct",
+			"48dbo": "48 dB/oct",
+			"72dbo": "72 dB/oct",
+			"96dbo": "96 dB/oct",
+			"off": "Off"
+		}
+	},
+	
 	"dither": {
-        "none": "Nessuno",
         "bits": {
 	        "11": "11bit",
 	        "12": "12bit",
@@ -28,7 +78,8 @@
 	        "24": "24bit",
 	        "7": "7bit",
 	        "8": "8bit"
-        }
+        },
+        "none": "Nessuno"
 	},
 	
 	"dyna_proc": {
@@ -91,7 +142,8 @@
 		"type": {
 			"fir": "FIR",
 			"fft": "FFT",
-			"iir": "IIR"
+			"iir": "IIR",
+			"spm": "SPM"
 		}
 	},
 	
@@ -112,6 +164,7 @@
 			"blackman_harris": "Blackman-Harris",
 			"blackman_nuttall": "Blackman-Nuttall",
 			"cosine": "Coseno",
+			"cubic": "Spline Hermitiana Cubica",
 			"flat_top": "Massimamente Piatta",
 			"gauss": "Gaussiana",
 			"hamming": "Hamming",
@@ -122,6 +175,7 @@
 			"parzen": "Parzen",
 			"poisson": "Poisson",
 			"rectangular": "Rettangolare",
+			"sqr_cosine": "Coseno quadro",
 			"triangular": "Triangolare",
 			"tukey": "Tukey",
 			"welch": "Welch"
@@ -179,6 +233,15 @@
 			"mt48": "MT48",
 			"mt72": "MT72",
 			"mt96": "MT96"
+		}
+	},
+	
+	"lcomp": {
+		"curve": {
+			"flat": "Piatta",
+			"fm": "Fletcher-Munson",
+			"iso226": "ISO 226:2003",
+			"rd": "Robinson-Dadson"
 		}
 	},
 	
@@ -260,6 +323,49 @@
 		"modern": "Moderno"
 	},
 	
+	"oscilloscope": {
+		"coupling": {
+			"ac": "AC",
+			"dc": "DC"
+		},
+		"mode": {
+			"goniometer": "Goniometro",
+			"triggered": "Triggerato",
+			"xy": "XY"
+		},
+		"oversampler": {
+			"2x": "2X",
+			"3x": "3X",
+			"4x": "4X",
+			"6x": "6X",
+			"8x": "8X",
+			"none": "Nessuno"
+		},
+		"sweeptype": {
+			"sawtooth": "Dente di Sega",
+			"triangular": "Triangolare",
+			"sine": "Seno"
+		},
+		"trigger": {
+			"input": {
+				"ext": "EXT",
+				"y": "Y"
+			},
+			"mode": {
+				"manual": "Manuale",
+				"repeat": "Ripetuto",
+				"single": "Singolo"
+			},
+			"type": {
+				"advanced_falling_edge": "Advanzato Decrescente",
+				"advanced_rising_edge": "Advanzato Crescente",
+				"none": "None",
+				"simple_falling_edge": "Semplice Decrescente",
+				"simple_rising_edge": "Semplice Crescente"
+			}
+		}
+	},
+	
 	"oscillator": {
 		"add": "Sovrapponi",
         "bl_rect": "Rettangolare Passa Banda ",
@@ -308,6 +414,17 @@
 			"8x3": "Metà x8(3L)"
 		},
 		"normal": {
+			"2x2": "x2(2L)",
+			"2x3": "x2(3L)",
+			"3x2": "x3(2L)",
+			"3x3": "x3(3L)",
+			"4x2": "x4(2L)",
+			"4x3": "x4(3L)",
+			"6x2": "x6(2L)",
+			"6x3": "x6(3L)",
+			"8x2": "x8(2L)",
+			"8x3": "x8(3L)",
+			
 			"x2": "x2",
 			"x3": "x3",
 			"x4": "x4",
@@ -605,9 +722,16 @@
 		"spectralizer_s": "Spectralizer Stereo"
 	},
 	
+	"surge": {
+		"cubic": "Cubico",
+		"gaussian": "Gaussiano",
+		"linear": "Lineare",
+		"parabolic": "Parabolico",
+		"sine": "Seno"
+	},
+	
 	"trigger": {
 		"inst": "Strumento",
 		"trig": "Trigger"
 	}
 }
-

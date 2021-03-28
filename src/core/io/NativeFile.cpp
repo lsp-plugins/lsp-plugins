@@ -609,9 +609,6 @@ namespace lsp
             #ifdef PLATFORM_WINDOWS
                 if (!FlushFileBuffers(hFD))
                     return set_error(STATUS_IO_ERROR);
-            #else
-                if (fdatasync(hFD) != 0)
-                    return set_error(STATUS_IO_ERROR);
             #endif  /* PLATFORM_WINDOWS */
 
             return set_error(STATUS_OK);

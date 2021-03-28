@@ -54,7 +54,9 @@
 #define LSP_CROSSOVER_BASE              LSP_LADSPA_BASE + 102
 #define LSP_ART_DELAY_BASE              LSP_LADSPA_BASE + 106
 
+// Change these IDs to valid after plugin gets production-ready
 #define LSP_NONLINEAR_CONVOLVER_BASE    LSP_LADSPA_BASE + 1000
+#define LSP_OSCILLOSCOPE_BASE           LSP_LADSPA_BASE + 1010
 
 
 // Plugin metadata definitions
@@ -87,5 +89,6 @@
 #include <metadata/art_delay.h>
 
 #include <metadata/nonlinear_convolver.h>
+#include <metadata/oscilloscope.h>
 
 #endif /* METADATA_PLUGINS_H_ */

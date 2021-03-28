@@ -87,9 +87,6 @@ namespace lsp
             float       vLisX[LIS_BUFFER_SIZE];
             float       vLisY[LIS_BUFFER_SIZE];
             float       vLisS[LIS_BUFFER_SIZE];
-            float       vDLisX[LIS_BUFFER_SIZE];
-            float       vDLisY[LIS_BUFFER_SIZE];
-            float       vDLisS[LIS_BUFFER_SIZE];
 
         protected:
             void        oscillate(float *dst, const osc_t *osc, float t, ssize_t n);

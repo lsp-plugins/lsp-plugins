@@ -30,12 +30,15 @@ namespace lsp
         CtlButton::CtlButton(CtlRegistry *src, LSPButton *widget): CtlWidget(src, widget)
         {
             pClass          = &metadata;
-            fValue          = 0;
+            fValue          = 0.0f;
+            fDflValue       = 0.0f;
+            bValueSet       = false;
             pPort           = NULL;
         }
         
         CtlButton::~CtlButton()
         {
+            sEditable.destroy();
         }
 
         status_t CtlButton::slot_change(LSPWidget *sender, void *ptr, void *data)
@@ -56,7 +59,7 @@ namespace lsp
             if (down)
             {
                 if (mdata->unit == U_ENUM)
-                    return fValue;
+                    return (bValueSet) ? fDflValue : fValue;
 //                if (!IS_TRIGGER_PORT(mdata))
 //                    return fValue;
             }
@@ -66,7 +69,12 @@ namespace lsp
             float max   = (mdata->flags & F_UPPER) ? mdata->max : min + 1.0f;
             float step  = (mdata->flags & F_STEP) ? mdata->step : 1.0;
             if ((mdata->unit == U_ENUM) && (mdata->items != NULL))
+            {
+                if (bValueSet)
+                    return fDflValue;
+
                 max     = mdata->min + list_size(mdata->items) - 1.0f;
+            }
 
             float value = fValue + step;
             if (value > max)
@@ -86,7 +94,11 @@ namespace lsp
 
             float value     = next_value(btn->is_down());
             if (value == fValue)
+            {
+                if (bValueSet)
+                    btn->set_down(value == fDflValue);
                 return;
+            }
 
             if (pPort != NULL)
             {
@@ -113,7 +125,12 @@ namespace lsp
                 float max   = (mdata->flags & F_UPPER) ? mdata->max : min + 1.0f;
 
                 if (mdata->unit == U_ENUM)
-                    btn->set_down(false);
+                {
+                    if (bValueSet)
+                        btn->set_down(fValue == fDflValue);
+                    else
+                        btn->set_down(false);
+                }
                 else if (!IS_TRIGGER_PORT(mdata))
                     btn->set_down(fabs(value - max) < fabs(value - min));
 //                else if (fValue == max)
@@ -142,6 +159,7 @@ namespace lsp
 
             // Bind slots
             btn->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+            sEditable.init(pRegistry, this);
         }
 
         void CtlButton::set(const char *name, const char *value)
@@ -175,15 +193,17 @@ namespace lsp
                         PARSE_INT(value, btn->set_min_height(__));
                     break;
                 case A_VALUE:
-                    PARSE_FLOAT(value, commit_value(__));
+                    bValueSet = true;
+                    PARSE_FLOAT(value, fDflValue = __);
+                    commit_value(fDflValue);
+                    fDflValue = fValue;
                     break;
                 case A_LED:
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_led(__));
                     break;
                 case A_EDITABLE:
-                    if (btn != NULL)
-                        PARSE_BOOL(value, btn->set_editable(__));
+                    BIND_EXPR(sEditable, value);
                     break;
                 case A_FONT_SIZE:
                     if (btn != NULL)
@@ -205,6 +225,19 @@ namespace lsp
 
             if (port == pPort)
                 commit_value(pPort->get_value());
+
+            // Trigger expressions
+            trigger_expr();
+        }
+
+        void CtlButton::trigger_expr()
+        {
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn == NULL)
+                return;
+
+            if (sEditable.valid())
+                btn->set_editable(sEditable.evaluate() >= 0.5f);
         }
 
         void CtlButton::end()
@@ -224,6 +257,8 @@ namespace lsp
                             btn->set_trigger();
                         else if (mdata->unit != U_ENUM)
                             btn->set_toggle();
+                        else if (bValueSet)
+                            btn->set_toggle();
                     }
 
                     commit_value(pPort->get_value());
@@ -231,6 +266,8 @@ namespace lsp
                 else
                     commit_value(fValue);
             }
+
+            trigger_expr();
 
             CtlWidget::end();
         }
