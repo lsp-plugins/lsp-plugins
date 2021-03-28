@@ -83,6 +83,17 @@ namespace lsp
         return b1 < b2;
     }
 
+    compressor_mode_t mb_compressor_base::decode_mode(int mode)
+    {
+        switch (mode)
+        {
+            case mb_compressor_base_metadata::CM_DOWNWARD: return CM_DOWNWARD;
+            case mb_compressor_base_metadata::CM_UPWARD: return CM_UPWARD;
+            case mb_compressor_base_metadata::CM_BOOSTING: return CM_BOOSTING;
+            default: return CM_DOWNWARD;
+        }
+    }
+
     void mb_compressor_base::init(IWrapper *wrapper)
     {
         // Initialize plugin
@@ -303,6 +314,7 @@ namespace lsp
                 b->pRatio       = NULL;
                 b->pKnee        = NULL;
                 b->pBThresh     = NULL;
+                b->pBoost       = NULL;
                 b->pMakeup      = NULL;
                 b->pFreqEnd     = NULL;
                 b->pCurveGraph  = NULL;
@@ -479,6 +491,7 @@ namespace lsp
                     b->pRatio       = sb->pRatio;
                     b->pKnee        = sb->pKnee;
                     b->pBThresh     = sb->pBThresh;
+                    b->pBoost       = sb->pBoost;
                     b->pMakeup      = sb->pMakeup;
 
                     b->pFreqEnd     = sb->pFreqEnd;
@@ -541,6 +554,8 @@ namespace lsp
                     b->pKnee        = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pBThresh     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pBoost       = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pMakeup      = vPorts[port_id++];
 
@@ -756,7 +771,7 @@ namespace lsp
                 float attack    = b->pAttLevel->getValue();
                 float release   = b->pRelLevel->getValue() * attack;
                 float makeup    = b->pMakeup->getValue();
-                float mode      = b->pMode->getValue();
+                compressor_mode_t mode = decode_mode(b->pMode->getValue());
                 bool enabled    = b->pEnable->getValue() >= 0.5f;
                 if (enabled && (j > 0))
                     enabled         = c->vSplit[j-1].bEnabled;
@@ -781,12 +796,12 @@ namespace lsp
                     b->nSync       |= S_EQ_CURVE;
                 }
 
-                b->sComp.set_mode((mode >= 1.0f) ? CM_UPWARD : CM_DOWNWARD);
+                b->sComp.set_mode(mode);
                 b->sComp.set_threshold(attack, release);
                 b->sComp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
                 b->sComp.set_ratio(b->pRatio->getValue());
                 b->sComp.set_knee(b->pKnee->getValue());
-                b->sComp.set_boost_threshold(b->pBThresh->getValue());
+                b->sComp.set_boost_threshold((mode != CM_BOOSTING) ? b->pBThresh->getValue() : b->pBoost->getValue());
 
                 if (b->sComp.modified())
                 {

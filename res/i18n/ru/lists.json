@@ -46,6 +46,8 @@
 	},
 	
 	"compressor": {
+		"boost_ing": "Усил",
+		"boosting": "Усиливающий",
 		"down_ward": "Пониж",
 		"downward": "Понижающий",
 		"up_ward": "Повыш",

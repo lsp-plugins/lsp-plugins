@@ -64,6 +64,7 @@ namespace lsp
     {
         { "Down",       "compressor.down_ward" },
         { "Up",         "compressor.up_ward" },
+        { "Boost",      "compressor.boost_ing" },
         { NULL, NULL }
     };
 
@@ -157,6 +158,7 @@ namespace lsp
             LOG_CONTROL("cr" id, "Ratio" label, U_NONE, mb_compressor_base_metadata::RATIO), \
             LOG_CONTROL("kn" id, "Knee" label, U_GAIN_AMP, mb_compressor_base_metadata::KNEE), \
             EXT_LOG_CONTROL("bth" id, "Boost threshold" label, U_GAIN_AMP, mb_compressor_base_metadata::BTH), \
+            EXT_LOG_CONTROL("bsa" id, "Boost signal amount" label, U_GAIN_AMP, mb_compressor_base_metadata::BSA), \
             LOG_CONTROL("mk" id, "Makeup gain" label, U_GAIN_AMP, mb_compressor_base_metadata::MAKEUP), \
             HUE_CTL("hue" id, "Hue " label, float(x) / float(total)), \
             METER("fre" id, "Frequency range end" label, U_HZ,  mb_compressor_base_metadata::OUT_FREQ), \
@@ -164,7 +166,7 @@ namespace lsp
             METER_OUT_GAIN("rl" id, "Release level" label, 20.0f), \
             METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_24_DB), \
             METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_24_DB), \
-            METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
+            METER_OUT_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_72_DB)
 
     #define MB_STEREO_BAND(id, label, x, total, fe, fs) \
             COMBO("scs" id, "Sidechain source" label, SCS_MIDDLE, mb_comp_sc_source), \
@@ -526,7 +528,7 @@ namespace lsp
         "mb_compressor_mono",
         "fdiu",
         LSP_MB_COMPRESSOR_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         mb_compressor_mono_ports,
@@ -544,7 +546,7 @@ namespace lsp
         "mb_compressor_stereo",
         "gjsn",
         LSP_MB_COMPRESSOR_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         mb_compressor_stereo_ports,
@@ -562,7 +564,7 @@ namespace lsp
         "mb_compressor_lr",
         "0egf",
         LSP_MB_COMPRESSOR_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         mb_compressor_lr_ports,
@@ -580,7 +582,7 @@ namespace lsp
         "mb_compressor_ms",
         "vhci",
         LSP_MB_COMPRESSOR_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         mb_compressor_ms_ports,
@@ -599,7 +601,7 @@ namespace lsp
         "sc_mb_compressor_mono",
         "vv0m",
         LSP_MB_COMPRESSOR_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         sc_mb_compressor_mono_ports,
@@ -617,7 +619,7 @@ namespace lsp
         "sc_mb_compressor_stereo",
         "zqrn",
         LSP_MB_COMPRESSOR_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         sc_mb_compressor_stereo_ports,
@@ -635,7 +637,7 @@ namespace lsp
         "sc_mb_compressor_lr",
         "kvxe",
         LSP_MB_COMPRESSOR_BASE + 6,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         sc_mb_compressor_lr_ports,
@@ -653,7 +655,7 @@ namespace lsp
         "sc_mb_compressor_ms",
         "hjdp",
         LSP_MB_COMPRESSOR_BASE + 7,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         mb_compressor_classes,
         E_INLINE_DISPLAY,
         sc_mb_compressor_ms_ports,

@@ -309,7 +309,7 @@
 					<cell rows="2"><label text="labels.ratio" /></cell>
 					<label text="labels.knee" />
 					<label text="labels.makeup" />
-					<cell rows="2"><label text="labels.boost" bright="((:cm_m ieq 1) or (:cm_s ieq 1)) ? 1 : 0.5" /></cell>
+					<cell rows="2"><label text="labels.boost" bright="((:cm_m ieq 0) and (:cm_s ieq 0)) ? 0.5 : 1" /></cell>
 					<cell rows="6"><vsep /></cell>
 					<cell cols="2"><label text="labels.attack" /></cell>
 					<cell rows="6"><vsep /></cell>
@@ -330,7 +330,10 @@
 					<knob id="cr_m" scale_color="middle_channel" />
 					<knob id="kn_m" scale_color="middle_channel" />
 					<knob id="mk_m" scale_color="middle_channel" />
-					<knob id="bth_m" scale_color="middle_channel" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<hbox>
+						<knob id="bth_m" scale_color="middle_channel" bright="(:cm_m ieq 0) ? 0.5 : 1" visibility=":cm_m ine 2" />
+						<knob id="bsa_m" scale_color="middle_channel" bright="(:cm_m ieq 0) ? 0.5 : 1" visibility=":cm_m ieq 2" />
+					</hbox>
 					<knob id="al_m" scale_color="magenta" size="20" />
 					<knob id="at_m" scale_color="middle_channel" size="20" />
 					<knob id="rrl_m" scale_color="magenta" size="20" />
@@ -346,7 +349,10 @@
 					</hbox>
 					<value id="kn_m" detailed="false" />
 					<value id="mk_m" detailed="false" />
-					<value id="bth_m" detailed="false" bright="(:cm_m ieq 1) ? 1 : 0.5" />
+					<hbox>
+						<value id="bth_m" detailed="false" bright="(:cm_m ieq 0) ? 0.5 : 1" visibility=":cm_m ine 2" />
+						<value id="bsa_m" detailed="false" bright="(:cm_m ieq 0) ? 0.5 : 1" visibility=":cm_m ieq 2" />
+					</hbox>
 					<value id="al_m" detailed="false" />
 					<value id="at_m" detailed="false" />
 					<value id="rrl_m" detailed="false" />
@@ -358,7 +364,10 @@
 					<knob id="cr_s" scale_color="side_channel" />
 					<knob id="kn_s" scale_color="side_channel" />
 					<knob id="mk_s" scale_color="side_channel" />
-					<knob id="bth_s" scale_color="side_channel" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<hbox>
+						<knob id="bth_s" scale_color="side_channel" bright="(:cm_s ieq 0) ? 0.5 : 1" visibility=":cm_s ine 2" />
+						<knob id="bsa_s" scale_color="side_channel" bright="(:cm_s ieq 0) ? 0.5 : 1" visibility=":cm_s ieq 2" />
+					</hbox>
 					<knob id="al_s" scale_color="blue" size="20" />
 					<knob id="at_s" scale_color="side_channel" size="20" />
 					<knob id="rrl_s" scale_color="blue" size="20" />
@@ -374,7 +383,10 @@
 					</hbox>
 					<value id="kn_s" detailed="false" />
 					<value id="mk_s" detailed="false" />
-					<value id="bth_s" detailed="false" bright="(:cm_s ieq 1) ? 1 : 0.5" />
+					<hbox>
+						<value id="bth_s" detailed="false" bright="(:cm_s ieq 0) ? 0.5 : 1" visibility=":cm_s ine 2" />
+						<value id="bsa_s" detailed="false" bright="(:cm_s ieq 0) ? 0.5 : 1" visibility=":cm_s ieq 2" />
+					</hbox>
 					<value id="al_s" detailed="false" />
 					<value id="at_s" detailed="false" />
 					<value id="rrl_s" detailed="false" />
