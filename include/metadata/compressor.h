@@ -60,7 +60,7 @@ namespace lsp
 
         static const float  BSA_MIN                 = GAIN_AMP_0_DB;
         static const float  BSA_MAX                 = GAIN_AMP_P_72_DB;
-        static const float  BSA_DFL                 = GAIN_AMP_0_DB;
+        static const float  BSA_DFL                 = GAIN_AMP_P_6_DB;
         static const float  BSA_STEP                = 0.05f;
 
         static const float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;

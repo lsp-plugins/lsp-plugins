@@ -24,6 +24,8 @@
 #include <core/dynamics/Compressor.h>
 #include <math.h>
 
+#define RATIO_PREC              1e-5f
+
 namespace lsp
 {
     Compressor::Compressor()
@@ -89,14 +91,14 @@ namespace lsp
         {
             case CM_UPWARD:
             {
-                fBKS            = fBoostThresh * fKnee;         // Boost knee start
-                fBKE            = fBoostThresh / fKnee;         // Boost knee end
-                fBLogTH         = logf(fBoostThresh);
+                fBKS                = fBoostThresh * fKnee;         // Boost knee start
+                fBKE                = fBoostThresh / fKnee;         // Boost knee end
+                fBLogTH             = logf(fBoostThresh);
 
-                float boost     = (fXRatio-1.0)*(fBLogTH - fLogTH);
-                fBoost          = expf(boost);
-                float log_bks   = logf(fBKS);
-                float log_bke   = logf(fBKE);
+                float boost         = (fXRatio-1.0f)*(fBLogTH - fLogTH);
+                fBoost              = expf(boost);
+                float log_bks       = logf(fBKS);
+                float log_bke       = logf(fBKE);
 
                 interpolation::hermite_quadratic(vHermite, log_ks, log_ks, 1.0f, log_ke, 2.0f - fXRatio);
                 interpolation::hermite_quadratic(vBHermite, log_bks, log_bks, 1.0f, log_bke, fXRatio);
@@ -106,14 +108,22 @@ namespace lsp
 
             case CM_BOOSTING:
             {
-                fBKS            = fBoostThresh * fKnee;         // Boost knee start
-                fBKE            = fBoostThresh / fKnee;         // Boost knee end
-                fBLogTH         = logf(fBoostThresh);
+                // fLogTH    = log(fAttachThresh)
+                // log_boost = log(fBoost)
+                // ratio
+                float log_boost     = logf(fBoostThresh) * fRatio;
+                float k_ratio       = 1.0f - fRatio;
+                k_ratio             = lsp_min(k_ratio, -RATIO_PREC * log_boost);
+                fBLogTH             = fLogTH + log_boost / k_ratio;
+                float bthresh       = expf(fBLogTH);
 
-                float boost     = (fXRatio-1.0)*(fBLogTH - fLogTH);
-                fBoost          = expf(boost);
-                float log_bks   = logf(fBKS);
-                float log_bke   = logf(fBKE);
+                fBKS                = bthresh * fKnee;         // Boost knee start
+                fBKE                = bthresh / fKnee;         // Boost knee end
+
+                float boost         = (fXRatio-1.0f)*(fBLogTH - fLogTH);
+                fBoost              = expf(boost);
+                float log_bks       = logf(fBKS);
+                float log_bke       = logf(fBKE);
 
                 interpolation::hermite_quadratic(vHermite, log_ks, log_ks, 1.0f, log_ke, 2.0f - fXRatio);
                 interpolation::hermite_quadratic(vBHermite, log_bks, log_bks, 1.0f, log_bke, fXRatio);
