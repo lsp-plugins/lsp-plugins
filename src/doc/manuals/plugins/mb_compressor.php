@@ -146,14 +146,20 @@
 	
 	<li><b>Compressor Solo</b> - turns on soloing mode to the selected band by applying -36 dB gain to non-soloing bands</li>
 	<li><b>Compressor Mute</b> - turns on muting mode to the selected band by applying -36 dB gain to it</li>
-	<li><b>Compressor Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
+	<li><b>Compressor Mode</b> - compression mode:</li>
+	<ul>
+		<li><b>Downward (Down)</b> - the downward compressor.</li>
+		<li><b>Upward (Up)</b> - the upward compressor.</li>
+		<li><b>Boosting (Boost)</b> - the boosting compressor (upward with precise boost control).</li>
+	</ul>
 	<li><b>Compressor On</b> - enables compressor assigned to the corresponding frequency band.</li>
 	<li><b>Compressor Ratio</b> - compression ratio.</li>
 	<li><b>Compressor Knee</b> - size of compression knee.</li>
 	<li><b>Compressor Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Compressor Boost</b> - this knob is related to <b>upward compression mode</b> only.
-	   It defines the threshold below which the constant amplification will be applied to the input signal. This prevents
-	   the compressor from applying infinite amplification to very quiet signals.
+	<li><b>Compressor Boost</b> - this knob is related to <b>upward</b> and <b>boosting</b> compression modes only.
+		For <b>upward</b> mode it defines the threshold below which the constant amplification will be applied to the input signal.
+		This prevents compressor from applying infinite amplification to very quiet signals.
+		For <b>boosting</b> mode it defines the overall boost of the signal. The boost threshold is computed automatically. 
 	</li>
 	<li><b>Compressor Attack Thresh</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Compressor Attack Time</b> - attack time of the compressor.</li>

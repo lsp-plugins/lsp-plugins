@@ -86,13 +86,19 @@
 </ul>
 <p><b>'Compressor' section:</b></p>
 <ul>
-	<li><b>Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
+	<li><b>Mode</b> - compression mode</li>
+	<ul>
+		<li><b>Downward (Down)</b> - the downward compressor.</li>
+		<li><b>Upward (Up)</b> - the upward compressor.</li>
+		<li><b>Boosting (Boost)</b> - the boosting compressor (upward with precise boost control).</li>
+	</ul>
 	<li><b>Ratio</b> - compression ratio.</li>
 	<li><b>Knee</b> - size of compression knee.</li>
 	<li><b>Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Boost</b> - this knob is related to <b>upward compression mode</b> only.
-	   It defines the threshold below which the constant amplification will be applied to the input signal. This prevents
-	   the compressor from applying infinite amplification to very quiet signals.
+	<li><b>Boost</b> - this knob is related to <b>upward</b> and <b>boosting</b> compression modes only.
+		For <b>upward</b> mode it defines the threshold below which the constant amplification will be applied to the input signal.
+		This prevents compressor from applying infinite amplification to very quiet signals.
+		For <b>boosting</b> mode it defines the overall boost of the signal. The boost threshold is computed automatically. 
 	</li>
 	<li><b>Attack Thresh</b> - threshold of the compressor, placed in the middle of the knee.</li>
 	<li><b>Attack Time</b> - attack time of the compressor.</li>

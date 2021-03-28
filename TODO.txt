@@ -36,6 +36,8 @@
 * Minor bugfixes in the core library.
 * Fixed bug with character set encoding for several systems with limited iconv.
 * Fixed latency compensation issue that happened on the 'Bypass' switch/automation.
+* Implemented additional 'Boosting' mode for the single-band compressor plugin series.
+* Implemented additional 'Boosting' mode for the multiband-band compressor plugin series.
 
 *******************************************************************************
 * New plugin check list before release
