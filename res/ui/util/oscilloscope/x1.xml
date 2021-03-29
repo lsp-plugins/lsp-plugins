@@ -40,7 +40,7 @@
 				<axis min="-1.0" max="1.0" color="osc_n_white" angle="0.5" logarithmic="false"/>
 
 				<!-- Streams -->
-				<stream id="oscv_1" width="3" color="osc_n_bright_blue"
+				<stream id="oscv_1" width="2" color="osc_n_bright_blue"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
 

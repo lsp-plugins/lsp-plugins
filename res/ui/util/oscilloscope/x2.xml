@@ -65,11 +65,11 @@
 
 				<!-- Streams -->
 				<ui:set id="has_solo" value=":chsl_1 or :chsl_2" />
-				<stream id="oscv_1" width="3" color="osc_n_bright_red"
+				<stream id="oscv_1" width="2" color="osc_n_bright_red"
 					visibility="(${has_solo}) ? :chsl_1 : !:chmt_1"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
-				<stream id="oscv_2" width="3" color="osc_n_bright_blue"
+				<stream id="oscv_2" width="2" color="osc_n_bright_blue"
 					visibility="(${has_solo}) ? :chsl_2 : !:chmt_2"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
