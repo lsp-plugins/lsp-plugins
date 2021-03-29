@@ -79,19 +79,19 @@
 
 				<!-- Streams -->
 				<ui:set id="has_solo" value=":chsl_1 or :chsl_2 or :chsl_3 or :chsl_4" />
-				<stream id="oscv_1" width="3" color="osc_n_bright_red"
+				<stream id="oscv_1" width="2" color="osc_n_bright_red"
 					visibility="(${has_solo}) ? :chsl_1 : !:chmt_1"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
-				<stream id="oscv_2" width="3" color="osc_n_bright_green"
+				<stream id="oscv_2" width="2" color="osc_n_bright_green"
 					visibility="(${has_solo}) ? :chsl_2 : !:chmt_2"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
-				<stream id="oscv_3" width="3" color="osc_n_bright_orange"
+				<stream id="oscv_3" width="2" color="osc_n_bright_orange"
 				 	visibility="(${has_solo}) ? :chsl_3 : !:chmt_3"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
-				<stream id="oscv_4" width="3" color="osc_n_bright_blue"
+				<stream id="oscv_4" width="2" color="osc_n_bright_blue"
 					visibility="(${has_solo}) ? :chsl_4 : !:chmt_4"
 					smooth="true" strobe="true" strobes=":sh_sz" max_dots=":maxdots"
 				/>
