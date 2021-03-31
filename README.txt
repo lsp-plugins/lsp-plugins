@@ -239,6 +239,10 @@ override this path, you can run build with specifying PREFIX variable:
   make PREFIX=/usr
   make install
 
+Several DEs like GNOME don't support XDG format, so desktop icon installations
+are available as a separate build task:
+  make install_xdg
+
 By default, 'make install' will install all plugin formats (LADSPA, LV2,
 LinuxVST, JACK) and documentation. To install them separately, you can issue
 following commands:

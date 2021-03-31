@@ -90,6 +90,7 @@ namespace lsp
                 DynamicProcessor    sProc;              // Processor module
                 Delay               sDelay;             // Lookahead delay
                 Delay               sCompDelay;         // Compensation delay
+                Delay               sDryDelay;          // Dry delay
                 MeterGraph          sGraph[G_TOTAL];    // Meter graph
 
                 float              *vIn;                // Input data

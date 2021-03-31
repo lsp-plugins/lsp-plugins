@@ -198,6 +198,13 @@ namespace lsp
             LV2_URID                uridFrameBufferFirstRowID;  // First row identifier
             LV2_URID                uridFrameBufferLastRowID;   // Last row identifier
             LV2_URID                uridFrameBufferData;        // Frame buffer row data
+            LV2_URID                uridStreamType;             // Stream data type
+            LV2_URID                uridStreamDimensions;       // Stream dimensions
+            LV2_URID                uridStreamFrame;            // Stream frame
+            LV2_URID                uridStreamFrameType;        // Stream frame type
+            LV2_URID                uridStreamFrameId;          // Number of frame
+            LV2_URID                uridStreamFrameSize;        // Size of frame
+            LV2_URID                uridStreamFrameData;        // Frame data
 
             LV2UI_Controller        ctl;
             LV2UI_Write_Function    wf;
@@ -346,6 +353,14 @@ namespace lsp
                 uridFrameBufferFirstRowID   = map_field("FrameBuffer#firstRowID");
                 uridFrameBufferLastRowID    = map_field("FrameBuffer#lastRowID");
                 uridFrameBufferData         = map_field("FrameBuffer#data");
+
+                uridStreamType              = map_type("Stream");
+                uridStreamDimensions        = map_field("Stream#dimensions");
+                uridStreamFrame             = map_field("Stream#frame");
+                uridStreamFrameType         = map_type("StreamFrame");
+                uridStreamFrameId           = map_field("StreamFrame#id");
+                uridStreamFrameSize         = map_field("StreamFrame#size");
+                uridStreamFrameData         = map_field("StreamFrame#data");
 
                 // Decode passed options if they are present
                 if (opts != NULL)
@@ -859,6 +874,19 @@ namespace lsp
                         break;
                     size            += LV2Mesh::size_of_port(p);
                     break;
+                case R_STREAM:
+                {
+                    if (IS_OUT_PORT(p) && (!out))
+                        break;
+                    else if (IS_IN_PORT(p) && (!in))
+                        break;
+
+                    size_t vector_len   = sizeof(LV2_Atom_Vector) + 4 * sizeof(LV2_Atom_Int) + sizeof(float) * STREAM_MAX_FRAME_SIZE;
+                    size_t frm_size     = sizeof(LV2_Atom_Object) + 8 * sizeof(LV2_Atom_Int) + size_t(p->min) * vector_len;
+                    size_t data_size    = sizeof(LV2_Atom_Object) + 8 * sizeof(LV2_Atom_Int) + STREAM_BULK_MAX * frm_size;
+                    size               += data_size;
+                    break;
+                }
                 case R_FBUFFER:
                     if (IS_OUT_PORT(p) && (!out))
                         break;

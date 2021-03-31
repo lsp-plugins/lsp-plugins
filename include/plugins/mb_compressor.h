@@ -110,6 +110,7 @@ namespace lsp
                 IPort          *pRatio;             // Ratio
                 IPort          *pKnee;              // Knee
                 IPort          *pBThresh;           // Boost threshold
+                IPort          *pBoost;             // Boost signal amount
                 IPort          *pMakeup;            // Makeup gain
                 IPort          *pFreqEnd;           // Frequency range end
                 IPort          *pCurveGraph;        // Compressor curve graph
@@ -143,6 +144,7 @@ namespace lsp
                 float          *vOut;               // Output data buffer
                 float          *vScIn;              // Sidechain data buffer (if present)
 
+                float          *vInBuffer;          // Input buffer
                 float          *vBuffer;            // Common data processing buffer
                 float          *vScBuffer;          // Sidechain buffer
                 float          *vExtScBuffer;       // External sidechain buffer
@@ -207,6 +209,7 @@ namespace lsp
 
         protected:
             static bool compare_bands_for_sort(const comp_band_t *b1, const comp_band_t *b2);
+            static compressor_mode_t    decode_mode(int mode);
 
         public:
             explicit mb_compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode);

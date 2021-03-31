@@ -1657,7 +1657,7 @@ namespace lsp
         // Open conversion
         iconv_t cd = init_iconv_to_wchar_t(charset);
         if (cd == iconv_t(-1))
-            return false;
+            return set_utf8(s, n);
 
         size_t insize   = (n < 0) ? strlen(s) : n;
         size_t outsize  = BUF_SIZE;
@@ -1881,7 +1881,7 @@ namespace lsp
         // Open conversion
         iconv_t cd = init_iconv_from_wchar_t(charset);
         if (cd == iconv_t(-1))
-            return NULL;
+            return get_utf8(first, last);
 
         // Analyze temp
         size_t outsize  = 0;

@@ -180,6 +180,11 @@ MOD_PLUGIN(sc_mb_gate_stereo, plugin_ui)
 MOD_PLUGIN(sc_mb_gate_lr, plugin_ui)
 MOD_PLUGIN(sc_mb_gate_ms, plugin_ui)
 
+// Oscilloscope
+MOD_PLUGIN(oscilloscope_x1, plugin_ui)
+MOD_PLUGIN(oscilloscope_x2, plugin_ui)
+MOD_PLUGIN(oscilloscope_x4, plugin_ui)
+
 // Loudness compensator
 MOD_PLUGIN(loud_comp_mono, plugin_ui)
 MOD_PLUGIN(loud_comp_stereo, plugin_ui)

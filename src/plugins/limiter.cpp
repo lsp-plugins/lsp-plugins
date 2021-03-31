@@ -100,6 +100,9 @@ namespace lsp
         vTime           = reinterpret_cast<float *>(ptr);
         ptr            += h_data;
 
+        float lk_latency= int(samples_to_millis(MAX_SAMPLE_RATE, limiter_base_metadata::OVERSAMPLING_MAX)) +
+                          limiter_base_metadata::LOOKAHEAD_MAX + 1.0f;
+
         // Initialize channels
         for (size_t i=0; i<nChannels; ++i)
         {
@@ -141,9 +144,12 @@ namespace lsp
                 return;
             if (!c->sScOver.init())
                 return;
+
             // Initialize limiter with latency compensation gap
-            float lk_latency = int(samples_to_millis(MAX_SAMPLE_RATE, limiter_base_metadata::OVERSAMPLING_MAX)) + 1.0f;
-            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, limiter_base_metadata::LOOKAHEAD_MAX + lk_latency))
+
+            if (!c->sLimit.init(MAX_SAMPLE_RATE * limiter_base_metadata::OVERSAMPLING_MAX, lk_latency))
+                return;
+            if (!c->sDryDelay.init(millis_to_samples(MAX_SAMPLE_RATE, lk_latency + c->sOver.max_latency())))
                 return;
         }
 
@@ -421,6 +427,9 @@ namespace lsp
         size_t latency =
                 c->sLimit.get_latency() / c->sScOver.get_oversampling()
                 + c->sScOver.latency();
+
+        for (size_t i=0; i<nChannels; ++i)
+            vChannels[i].sDryDelay.set_delay(latency);
         set_latency(latency);
     }
 
@@ -603,9 +612,10 @@ namespace lsp
                     c->sBlink.blink_min(gain);
 
                 // Do Downsampling and bypassing
-                c->sOver.downsample(c->vOutBuf, c->vDataBuf, to_do); // Downsample
-                sDither.process(c->vOutBuf, c->vOutBuf, to_do);     // Apply dithering
-                c->sBypass.process(c->vOut, c->vIn, c->vOutBuf, to_do); // Pass thru bypass
+                c->sOver.downsample(c->vOutBuf, c->vDataBuf, to_do);            // Downsample
+                sDither.process(c->vOutBuf, c->vOutBuf, to_do);                 // Apply dithering
+                c->sDryDelay.process(c->vDataBuf, c->vIn, to_do);               // Apply dry delay
+                c->sBypass.process(c->vOut, c->vDataBuf, c->vOutBuf, to_do);    // Pass thru bypass
 
                 // Update pointers
                 c->vIn         += to_do;
@@ -773,6 +783,8 @@ namespace lsp
 
     void limiter_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write("nChannels", nChannels);
         v->write("bSidechain", bSidechain);
         v->begin_array("vChannels", vChannels, nChannels);
@@ -785,6 +797,7 @@ namespace lsp
                 v->write_object("sOver", &c->sOver);
                 v->write_object("sScOver", &c->sScOver);
                 v->write_object("sLimit", &c->sLimit);
+                v->write_object("sDryDelay", &c->sDryDelay);
 
                 v->begin_array("sGraph", c->sGraph, G_TOTAL);
                 for (size_t j=0; j<G_TOTAL; ++j)

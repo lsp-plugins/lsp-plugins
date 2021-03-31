@@ -374,6 +374,7 @@ namespace lsp
                 vChannels[i].sSCEq.destroy();
                 vChannels[i].sDelay.destroy();
                 vChannels[i].sCompDelay.destroy();
+                vChannels[i].sDryDelay.destroy();
             }
 
             delete [] vChannels;
@@ -408,6 +409,7 @@ namespace lsp
             c->sSCEq.set_sample_rate(sr);
             c->sDelay.init(max_delay);
             c->sCompDelay.init(max_delay);
+            c->sDryDelay.init(max_delay);
 
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->sGraph[j].init(expander_base_metadata::TIME_MESH_SIZE, samples_per_dot);
@@ -509,6 +511,7 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
             c->sCompDelay.set_delay(latency - c->sDelay.get_delay());
+            c->sDryDelay.set_delay(latency);
         }
 
         // Report latency
@@ -648,7 +651,9 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 // Apply bypass
-                vChannels[i].sBypass.process(out_buf[i], in_buf[i], vChannels[i].vOut, to_process);
+                channel_t *c        = &vChannels[i];
+                c->sDryDelay.process(c->vIn, in_buf[i], to_process);            // Dry compensation
+                c->sBypass.process(out_buf[i], c->vIn, c->vOut, to_process);
 
                 in_buf[i]          += to_process;
                 out_buf[i]         += to_process;

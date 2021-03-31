@@ -86,8 +86,8 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(LSP_VERSION)
 .DEFAULT_GOAL          := all
 .PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
 .PHONY: compile_info
-.PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
-.PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
+.PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc install_xdg
+.PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc uninstall_xdg
 .PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
 .PHONY: build_ladspa build_lv2 build_vst build_jack build_doc
 
@@ -234,6 +234,8 @@ install_jack: all
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
 	@mkdir -p "$(DESTDIR)$(BIN_PATH)"
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
+
+install_xdg:
 	@echo "Installing desktop icons to $(DESTDIR)$(SHARE_PATH)/applications"
 	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/applications"
 	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
@@ -363,6 +365,10 @@ uninstall_jack:
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
+	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
+
+uninstall_xdg:
+	@echo "Uninstalling desktop icons"
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
 	@-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
@@ -375,8 +381,8 @@ uninstall_jack:
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
 	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
-	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_doc:
 	@echo "Uninstalling DOC"
 	@-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+

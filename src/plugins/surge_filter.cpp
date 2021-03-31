@@ -585,6 +585,8 @@ namespace lsp
 
     void surge_filter_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write("nChannels", nChannels);
         v->begin_array("vChannels", vChannels, nChannels);
         for (size_t i=0; i<nChannels; ++i)

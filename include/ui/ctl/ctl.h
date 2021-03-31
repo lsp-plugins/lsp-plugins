@@ -91,6 +91,7 @@ namespace lsp
             WC_SEP,
             WC_SOURCE3D,
             WC_STATUS,
+            WC_STREAM,
             WC_SWITCH,
             WC_TEXT,
             WC_THREADCOMBO,
@@ -175,6 +176,7 @@ namespace lsp
             A_LIGHT_ID,
             A_LOGARITHMIC,
             A_MAX,
+            A_MAX_DOTS,
             A_MAX_DURATION_ID,
             A_MAX_HEIGHT,
             A_MAX_WIDTH,
@@ -207,6 +209,7 @@ namespace lsp
             A_REVERSIVE,
             A_ROLL_ID,
             A_ROWS,
+            A_S_INDEX,
             A_SAME_LINE,
             A_SAT2_ID,
             A_SAT_ID,
@@ -223,6 +226,8 @@ namespace lsp
             A_STATUS_ID,
             A_STEP,
             A_STEREO,
+            A_STROBE,
+            A_STROBES,
             A_TAIL_ID,
             A_TEXT,
             A_TEXT_COLOR,
@@ -353,6 +358,7 @@ namespace lsp
 #include <ui/ctl/CtlCenter.h>
 #include <ui/ctl/CtlMarker.h>
 #include <ui/ctl/CtlMesh.h>
+#include <ui/ctl/CtlStream.h>
 #include <ui/ctl/CtlDot.h>
 #include <ui/ctl/CtlText.h>
 #include <ui/ctl/CtlFrameBuffer.h>

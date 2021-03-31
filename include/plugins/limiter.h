@@ -30,6 +30,7 @@
 #include <core/util/Oversampler.h>
 #include <core/util/MeterGraph.h>
 #include <core/util/Dither.h>
+#include <core/util/Delay.h>
 #include <core/dynamics/Limiter.h>
 
 namespace lsp
@@ -53,6 +54,7 @@ namespace lsp
                 Oversampler     sOver;              // Oversampler object for signal
                 Oversampler     sScOver;            // Sidechain oversampler object for signal
                 Limiter         sLimit;             // Limiter
+                Delay           sDryDelay;          // Dry delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
                 Blink           sBlink;             // Gain blink
 

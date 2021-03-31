@@ -16,7 +16,7 @@
 		"line_13": "Delay Line 13",
 		"line_14": "Delay Line 14",
 		"line_15": "Delay Line 15",
-		
+
 		"tempo_0": "Tempo 0",
 		"tempo_1": "Tempo 1",
 		"tempo_2": "Tempo 2",
@@ -25,15 +25,15 @@
 		"tempo_5": "Tempo 5",
 		"tempo_6": "Tempo 6",
 		"tempo_7": "Tempo 7",
-		
+
 		"modes": {
 			"notes": "Notes",
 			"off": "Off",
 			"time": "Time"
 		},
-		"none" : "None"
+		"none": "None"
 	},
-	
+
 	"bool": {
 		"off": "off",
 		"on": "on"
@@ -44,14 +44,16 @@
 		"samples": "Samples",
 		"time": "Time"
 	},
-	
+
 	"compressor": {
+		"boost_ing": "Boost",
+		"boosting": "Boosting",
 		"down_ward": "Down",
 		"downward": "Downward",
 		"up_ward": "Up",
 		"upward": "Upward"
 	},
-	
+
 	"crossover": {
 		"sel": {
 			"left": "Processor Left",
@@ -67,35 +69,35 @@
 			"off": "Off"
 		}
 	},
-	
+
 	"dither": {
-        "none": "None",
-        "bits": {
-	        "11": "11bit",
-	        "12": "12bit",
-	        "15": "15bit",
-	        "16": "16bit",
-	        "23": "23bit",
-	        "24": "24bit",
-	        "7": "7bit",
-	        "8": "8bit"
-        }
+		"bits": {
+			"11": "11bit",
+			"12": "12bit",
+			"15": "15bit",
+			"16": "16bit",
+			"23": "23bit",
+			"24": "24bit",
+			"7": "7bit",
+			"8": "8bit"
+		},
+		"none": "None"
 	},
-	
+
 	"dyna_proc": {
 		"left": "Left",
 		"middle": "Middle",
 		"right": "Right",
 		"side": "Side"
 	},
-	
+
 	"expander": {
 		"down_ward": "Down",
 		"downward": "Downward",
 		"up_ward": "Up",
 		"upward": "Upward"
 	},
-	
+
 	"eq": {
 		"flt": {
 			"allpass": "Allpass",
@@ -123,7 +125,7 @@
 			"apo_dr": "APO (DR)"
 		},
 		"pos": {
-		    "post_eq": "Post-eq",
+			"post_eq": "Post-eq",
 			"pre_eq": "Pre-eq"
 		},
 		"slope": {
@@ -146,7 +148,7 @@
 			"spm": "SPM"
 		}
 	},
-	
+
 	"fft": {
 		"env": {
 			"blue": "Blue noise",
@@ -181,7 +183,7 @@
 			"welch": "Welch"
 		}
 	},
-	
+
 	"file": {
 		"f1": "File 1",
 		"f1l": "File 1 Left",
@@ -195,11 +197,11 @@
 		"f4": "File 4",
 		"f4l": "File 4 Left",
 		"f4r": "File 4 Right",
-		
+
 		"left": "Left",
 		"none": "None",
 		"right": "Right",
-		
+
 		"t1": "Track 1",
 		"t2": "Track 2",
 		"t3": "Track 3",
@@ -209,7 +211,7 @@
 		"t7": "Track 7",
 		"t8": "Track 8"
 	},
-	
+
 	"graph_eq": {
 		"bands_0:15": "Bands 0-15",
 		"bands_16:31": "Bands 16-31",
@@ -225,7 +227,7 @@
 		"bands_s": "Bands Side",
 		"bands_s_0:15": "Bands Side 0-15",
 		"bands_s_16:31": "Bands Side 16-31",
-		
+
 		"slope": {
 			"bt48": "BT48",
 			"bt72": "BT72",
@@ -235,7 +237,7 @@
 			"mt96": "MT96"
 		}
 	},
-	
+
 	"lcomp": {
 		"curve": {
 			"flat": "Flat",
@@ -244,24 +246,24 @@
 			"rd": "Robinson-Dadson"
 		}
 	},
-	
-	"limiter": {
-        "exp_duck": "Exp Duck",
-        "exp_tail": "Exp Tail",
-        "exp_thin": "Exp Thin",
-        "exp_wide": "Exp Wide",
-        
-		"herm_duck": "Herm Duck",
-        "herm_tail": "Herm Tail",
-        "herm_thin": "Herm Thin",
-        "herm_wide": "Herm Wide",
 
-        "line_duck": "Line Duck",
-        "line_tail": "Line Tail",
-        "line_thin": "Line Thin",
-        "line_wide": "Line Wide"
+	"limiter": {
+		"exp_duck": "Exp Duck",
+		"exp_tail": "Exp Tail",
+		"exp_thin": "Exp Thin",
+		"exp_wide": "Exp Wide",
+
+		"herm_duck": "Herm Duck",
+		"herm_tail": "Herm Tail",
+		"herm_thin": "Herm Thin",
+		"herm_wide": "Herm Wide",
+
+		"line_duck": "Line Duck",
+		"line_tail": "Line Tail",
+		"line_thin": "Line Thin",
+		"line_wide": "Line Wide"
 	},
-	
+
 	"mb_comp": {
 		"band0": "Band 0",
 		"band1": "Band 1",
@@ -277,7 +279,7 @@
 		"split_right": "Split Right",
 		"split_side": "Split Side"
 	},
-	
+
 	"mb_expand": {
 		"band0": "Band 0",
 		"band1": "Band 1",
@@ -293,7 +295,7 @@
 		"split_right": "Split Right",
 		"split_side": "Split Side"
 	},
-	
+
 	"mb_gate": {
 		"band0": "Band 0",
 		"band1": "Band 1",
@@ -309,7 +311,7 @@
 		"split_right": "Split Right",
 		"split_side": "Split Side"
 	},
-	
+
 	"metering": {
 		"fft": {
 			"off": "Off",
@@ -317,34 +319,77 @@
 			"pre_eq": "Pre-eq"
 		}
 	},
-	
+
 	"multiband": {
 		"classic": "Classic",
 		"modern": "Modern"
 	},
-	
+
+	"oscilloscope": {
+		"coupling": {
+			"ac": "AC",
+			"dc": "DC"
+		},
+		"mode": {
+			"goniometer": "Goniometer",
+			"triggered": "Triggered",
+			"xy": "XY"
+		},
+		"oversampler": {
+			"2x": "2X",
+			"3x": "3X",
+			"4x": "4X",
+			"6x": "6X",
+			"8x": "8X",
+			"none": "None"
+		},
+		"sweeptype": {
+			"sawtooth": "Sawtooth",
+			"triangular": "Triangular",
+			"sine": "Sine"
+		},
+		"trigger": {
+			"input": {
+				"ext": "EXT",
+				"y": "Y"
+			},
+			"mode": {
+				"manual": "Manual",
+				"repeat": "Repeat",
+				"single": "Single"
+			},
+			"type": {
+				"advanced_falling_edge": "Advanced Falling",
+				"advanced_rising_edge": "Advanced Rising",
+				"none": "None",
+				"simple_falling_edge": "Simple Falling",
+				"simple_rising_edge": "Simple Rising"
+			}
+		}
+	},
+
 	"oscillator": {
 		"add": "Add",
-        "bl_rect": "Band Limited Rectangular",
-        "bl_saw": "Band Limited Sawtooth",
-        "bl_trap": "Band Limited Trapezoid",
-        "bl_pulse": "Band Limited Pulsetrain",
-        "bl_para": "Band Limited Parabolic",
-        "cos": "Cosine",
-        "mul": "Multiply",
-        "pulse": "Pulsetrain",
-        "para": "Parabolic",
-        "rect": "Rectangular",
-        "rep": "Replace",
-        "saw": "Sawtooth",
-        "sin": "Sine",
-        "sqr_sin": "Squared Sine",
-        "sqr_cos": "Squared Cosine",
-        "trap": "Trapezoid",
-        "wave_dc": "Wave DC",
-        "zero_dc": "Zero DC"
+		"bl_rect": "Band Limited Rectangular",
+		"bl_saw": "Band Limited Sawtooth",
+		"bl_trap": "Band Limited Trapezoid",
+		"bl_pulse": "Band Limited Pulsetrain",
+		"bl_para": "Band Limited Parabolic",
+		"cos": "Cosine",
+		"mul": "Multiply",
+		"pulse": "Pulsetrain",
+		"para": "Parabolic",
+		"rect": "Rectangular",
+		"rep": "Replace",
+		"saw": "Sawtooth",
+		"sin": "Sine",
+		"sqr_sin": "Squared Sine",
+		"sqr_cos": "Squared Cosine",
+		"trap": "Trapezoid",
+		"wave_dc": "Wave DC",
+		"zero_dc": "Zero DC"
 	},
-	
+
 	"oversampler": {
 		"full": {
 			"2x2": "Full x2(2L)",
@@ -390,34 +435,34 @@
 		},
 		"none": "None"
 	},
-	
+
 	"para_eq": {
 		"flt_0:7": "Filters 0-7",
 		"flt_16:23": "Filters 16-23",
 		"flt_24:31": "Filters 24-31",
 		"flt_8:15": "Filters 8-15",
-		
+
 		"flt_l_0:7": "Filters Left 0-7",
 		"flt_l_16:23": "Filters Left 16-23",
 		"flt_l_24:31": "Filters Left 24-31",
 		"flt_l_8:15": "Filters Left 8-15",
-		
+
 		"flt_m_0:7": "Filters Mid 0-7",
 		"flt_m_16:23": "Filters Mid 16-23",
 		"flt_m_24:31": "Filters Mid 24-31",
 		"flt_m_8:15": "Filters Mid 8-15",
-		
+
 		"flt_r_0:7": "Filters Right 0-7",
 		"flt_r_16:23": "Filters Right 16-23",
 		"flt_r_24:31": "Filters Right 24-31",
 		"flt_r_8:15": "Filters Right 8-15",
-		
+
 		"flt_s_0:7": "Filters Side 0-7",
 		"flt_s_16:23": "Filters Side 16-23",
 		"flt_s_24:31": "Filters Side 24-31",
 		"flt_s_8:15": "Filters Side 8-15"
 	},
-	
+
 	"profiler": {
 		"algo": {
 			"edt0": "EDT0",
@@ -445,7 +490,7 @@
 			"wait": "Waiting"
 		}
 	},
-	
+
 	"room_bld": {
 		"capt": {
 			"ab": "AB",
@@ -528,7 +573,7 @@
 			"-y+z": "-Y forward, +Z up",
 			"-y-x": "-Y forward, -X up",
 			"-y-z": "-Y forward, -Z up",
-			
+
 			"+z+x": "+Z forward, +X up",
 			"+z+y": "+Z forward, +Y up",
 			"+z-x": "+Z forward, -X up",
@@ -540,7 +585,7 @@
 		},
 		"refl_any": "Any",
 		"room_browser": "Room browser",
-		
+
 		"select_mat": "<select material>",
 		"src": {
 			"box": "Box",
@@ -557,7 +602,7 @@
 			"tetra": "Tetrahedron"
 		}
 	},
-	
+
 	"sampler": {
 		"inst": {
 			"0": "Instrument 0",
@@ -627,7 +672,7 @@
 			"none": "None"
 		}
 	},
-	
+
 	"sidechain": {
 		"boost": {
 			"brown_bt": "Brown BT",
@@ -649,7 +694,7 @@
 		"side": "Side",
 		"uniform": "Uniform"
 	},
-	
+
 	"slap_delay": {
 		"lines_0:3": "Delay Lines 0-3",
 		"lines_4:7": "Delay Lines 4-7",
@@ -662,7 +707,7 @@
 			"time": "Time"
 		}
 	},
-	
+
 	"spectrum": {
 		"analyzer": "Analyzer",
 		"analyzer_s": "Analyzer Stereo",
@@ -678,7 +723,7 @@
 		"spectralizer": "Spectralizer",
 		"spectralizer_s": "Spectralizer Stereo"
 	},
-	
+
 	"surge": {
 		"cubic": "Cubic",
 		"gaussian": "Gaussian",
@@ -686,10 +731,9 @@
 		"parabolic": "Parabolic",
 		"sine": "Sine"
 	},
-	
+
 	"trigger": {
 		"inst": "Instrument",
 		"trig": "Trigger"
 	}
 }
-

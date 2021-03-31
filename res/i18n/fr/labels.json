@@ -71,6 +71,10 @@
 	
 	"chan": {
 		":db": "(dB)",
+		"Ch_1": "Ca1",
+		"Ch_2": "Ca2",
+		"Ch_3": "Ca3",
+		"Ch_4": "Ca4",
 		"Ext_ernal": "Ext",
 		"H_old": "M",
 		"L_eft": "G",
@@ -88,6 +92,8 @@
 		"S_olo": "S",
 		"channel_n": "Canal {@id}",
 		"external_sc": "Externe",
+		"freeze": "Gel",
+		"frz": "Gel",
 		"hold": "Maintien",
 		"hue": "Tonalité",
 		"id": "{@id}",
@@ -148,6 +154,9 @@
 	
 	"delay": "Délai",
 	"delay:ms": "Délai (ms)",
+	"delay_line_processing": "Traitement des lignes de délai",
+	"delay_time_formula": "Formule de temps de délai",
+	"delay_reference": "Référence de délai",
 	
 	"direct_out": "Sortie directe",
 	"direct_output": "Sortie directe",
@@ -170,6 +179,7 @@
 	"export": "Exporter",
 	
 	"feedback": "Retour",
+	"feed_gain": "Gain de retour",
 
 	"fft": {
 		"envelope": "Envelope",
@@ -181,6 +191,10 @@
 	},
 
 	"file": "Fichier",
+	"file_display": {
+		"system": "{@title} /",
+		"user": "{@title} ~"
+	},
 	"file_list": "Liste de fichier",
 	"file_name": "Nom de fichier",
 	"filter": "Filtre",
@@ -203,6 +217,7 @@
 		"low_cut": "Coupure basse",
 		"middle": "Milieu",
 		"presence": "Présence",
+		"show_": "Affi",
 		"subs": "Subs",
 		"treble": "Aigü"
 	},
@@ -213,23 +228,29 @@
 	"gain": "Gain",
 	"gain_": "Gain",
 	"gain:db": "Gain\n(dB)",
+
+	"global_settings": "Paramètres globaux",
 	
 	"graphs": {
 		"compression": "COMPRESSION",
 		"correlation": "GRAPH DE CORRELATION",
 		"curve": "COURBE",
 		"delay_line": "DÉLAI EN LIGNE",
+		"delay_graph": "GRAPH DE DÉLAI",
 		"expansion": "EXPENSION",
 		"frequency": "GRAPH DE FRÉQUENCE",
 		"gating": "GATING",
 		"left_channel": "CANAL GAUCHE",
 		"oscillator_waveform": "FORME D'ONDE DE L'OSCILLATEUR",
+		"oscilloscope": "GRAPH OSCILLOSCOPE",
 		"right_channel": "CANAL DROIT",
 		"spectrum": "GRAPH SPECTRAL",
 		"time": "GRAPH TEMPOREL",
 		"trigger": "GRAPH DE DÉCLENCHEUR"
 	},
 	"group": "Groupe",
+
+	"history": "Historique",
 	
 	"hold": "Maintien",
 	"host_bpm": "BPM de l'hôte",
@@ -272,10 +293,13 @@
 		"sound_speed": "Vitesse du son",
 		"transparency": "Transparence"
 	},
+	"max_delay": "Délai max",
+	"max_delay:s": "Délai max (s)",
 	"max_latency": "Latence max",
 	"max_time": "Temps max",
 	
 	"measure": "Mesure",
+	"memory:mb": "Mémoire (MB)",
 	"metering": {
 		"channel": "Canal",
 		"frequency": "Fréquence",
@@ -331,6 +355,28 @@
 	
 	"offset": "Décalage",
 	"offset:samp": "Décalage (écha)",
+
+	"oscilloscope": {
+		"H_orizontal": "H",
+		"T_ime": "T",
+		"V_ertical": "V",
+		"division": "Division",
+		"horizontal": "Horizontal",
+		"max_dots": "Points max",
+		"mode": "Mode",
+		"oversampler_mode": "Sur-échantillonneur",
+		"position": "Position",
+		"sweep_type": "Type de balayage",
+		"trigger_hold_time": "Temps de maintien",
+		"trigger_hysteresis": "Hystérésis",
+		"trigger_input": "Entrée",
+		"trigger_level": "Niveau",
+		"trigger_mode": "Mode",
+		"trigger_reset": "Réinitialiser",
+		"trigger_type": "Type de bord",
+		"vertical": "Vertical",
+		"xy_sweep": "Balayage XY"
+	},
 	
 	"output": "Sortie",
 	"output:db": "Sortie (dB)",
@@ -388,11 +434,14 @@
 	"reduction": "Réduction",
 	
 	"reflections": "Réflexions",
+
+	"relative_paths": "Chemins relatifs",
 	
 	"rel_ease": "Rel",
 	"release": "Relâche",
 	"release:db_ms": "Relâche\n(dB, ms)",
 	"reset": "Réinitialisation",
+	"result": "Résultat",
 	
 	"reverberation_time:s": "Temps de \nréverbération (s)",
 	
@@ -511,6 +560,8 @@
 	
 	"temperature": "Température",
 	"tempo": "Tempo",
+	"tempo_based_delay": "Délai basé sur le tempo",
+	"tempo_based_feedback_delay": "Délai de retour basé sur le tempo",
 	
 	"thr_eshold": "Seu",
 	"threads": "Fils",
@@ -558,7 +609,16 @@
 		"x_khz": "{@value} kHz"
 	},
 	
+	"warning": {
+		"all_values_good": "Toutes les valeurs sont dans une fourchette acceptable.",
+		"delay_out_of_range": "Attention ! Le délai est hors de la plage possible.",
+		"feedback_out_of_range": "Attention ! Le retour est hors de la plage possible.",
+		"loop_in_delay": "Attention ! Boucle dans la chaîne de référence de délai."
+	},
+
 	"working_area": "Zone de travail",
+
+	"X_Y_EXT": "X | Y | EXT",
 	
 	"zone": "Zone",
 	"zoom": "Zoom"

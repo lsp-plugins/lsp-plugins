@@ -194,6 +194,52 @@
 					<knob id="fbh1" scale_hue_id="fbh1" size="20" />
 				</hbox>
 			</vbox>
+			<graph width="320" fill="true">
+				<center hpos="0" vpos="0" color="white" visible="false" />
+				
+				<marker value="-1.75" color="g_gray" basis="0" parallel="1" />
+				<marker value="-1.25" color="g_gray" basis="0" parallel="1" />
+				<marker value="-0.75" color="g_gray" basis="0" parallel="1" />
+				<marker value="-0.25" color="g_gray" basis="0" parallel="1" />
+				<marker value="0.25" color="g_gray" basis="0" parallel="1" />
+				<marker value="0.75" color="g_gray" basis="0" parallel="1" />
+				<marker value="1.25" color="g_gray" basis="0" parallel="1" />
+				<marker value="1.75" color="g_gray" basis="0" parallel="1" />
+				<marker value="-1.75" color="g_gray" basis="1" parallel="0" />
+				<marker value="-1.25" color="g_gray" basis="1" parallel="0" />
+				<marker value="-0.75" color="g_gray" basis="1" parallel="0" />
+				<marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+				<marker value="0.25" color="g_gray" basis="1" parallel="0" />
+				<marker value="0.75" color="g_gray" basis="1" parallel="0" />
+				<marker value="1.25" color="g_gray" basis="1" parallel="0" />
+				<marker value="1.75" color="g_gray" basis="1" parallel="0" />				
+				
+				<marker value="-1.5" color="g_yellow" basis="0" parallel="1" />
+				<marker value="-0.5" color="g_yellow" basis="0" parallel="1" />
+				<marker value="0.5" color="g_yellow" basis="0" parallel="1" />
+				<marker value="1.5" color="g_yellow" basis="0" parallel="1" />
+				<marker value="-1.5" color="g_yellow" basis="1" parallel="0" />
+				<marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+				<marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+				<marker value="1.5" color="g_yellow" basis="1" parallel="0" />
+				
+				<marker value="-2" color="g_white" basis="0" parallel="1" />
+				<marker value="-1" color="g_white" basis="0" parallel="1" />
+				<marker value="1" color="g_white" basis="0" parallel="1" />
+				<marker value="2" color="g_white" basis="0" parallel="1" />
+				<marker value="-2" color="g_white" basis="1" parallel="0" />
+				<marker value="-1" color="g_white" basis="1" parallel="0" />
+				<marker value="1" color="g_white" basis="1" parallel="0" />
+				<marker value="2" color="g_white" basis="1" parallel="0" />
+				
+				<axis min="-2" max="2" color="g_white" angle="0.0" />
+				<axis min="-2" max="2" color="g_white" angle="0.5" />
+				
+				<stream
+					id="lis" width="3" color="middle_channel" smooth="true"
+					strobe="true" strobes="4" 
+					/>
+			</graph>
 		</hsbox>
 	</hbox>
 </plugin>

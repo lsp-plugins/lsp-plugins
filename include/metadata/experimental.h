@@ -46,6 +46,8 @@ namespace lsp
         static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
 
         static const size_t FRM_BUFFER_SIZE         = 256;
+        static const size_t LIS_BUFFER_SIZE         = 4096;     // 4096 points per figure
+        static const size_t LIS_BUFFER_PERIOD       = 2048;     // 2048 points - period
 
         static const plugin_metadata_t metadata;
     };

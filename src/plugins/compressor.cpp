@@ -147,6 +147,7 @@ namespace lsp
             c->pRatio           = NULL;
             c->pKnee            = NULL;
             c->pBThresh         = NULL;
+            c->pBoost           = NULL;
             c->pMakeup          = NULL;
             c->pDryGain         = NULL;
             c->pWetGain         = NULL;
@@ -273,6 +274,7 @@ namespace lsp
                 c->pRatio           = sc->pRatio;
                 c->pKnee            = sc->pKnee;
                 c->pBThresh         = sc->pBThresh;
+                c->pBoost           = sc->pBoost;
                 c->pMakeup          = sc->pMakeup;
                 c->pDryGain         = sc->pDryGain;
                 c->pWetGain         = sc->pWetGain;
@@ -295,6 +297,8 @@ namespace lsp
                 c->pKnee            =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pBThresh         =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pBoost           =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pMakeup          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
@@ -376,6 +380,7 @@ namespace lsp
                 vChannels[i].sSCEq.destroy();
                 vChannels[i].sDelay.destroy();
                 vChannels[i].sCompDelay.destroy();
+                vChannels[i].sDryDelay.destroy();
             }
 
             delete [] vChannels;
@@ -410,10 +415,22 @@ namespace lsp
             c->sSCEq.set_sample_rate(sr);
             c->sDelay.init(max_delay);
             c->sCompDelay.init(max_delay);
+            c->sDryDelay.init(max_delay);
 
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->sGraph[j].init(compressor_base_metadata::TIME_MESH_SIZE, samples_per_dot);
             c->sGraph[G_GAIN].fill(1.0f);
+        }
+    }
+
+    compressor_mode_t compressor_base::decode_mode(int mode)
+    {
+        switch (mode)
+        {
+            case compressor_base_metadata::CM_DOWNWARD: return CM_DOWNWARD;
+            case compressor_base_metadata::CM_UPWARD: return CM_UPWARD;
+            case compressor_base_metadata::CM_BOOSTING: return CM_BOOSTING;
+            default: return CM_DOWNWARD;
         }
     }
 
@@ -478,17 +495,17 @@ namespace lsp
             float attack    = c->pAttackLvl->getValue();
             float release   = c->pReleaseLvl->getValue() * attack;
             float makeup    = c->pMakeup->getValue();
-            bool upward     = c->pMode->getValue() >= 0.5f;
+            compressor_mode_t mode = decode_mode(c->pMode->getValue());
 
             c->sComp.set_threshold(attack, release);
             c->sComp.set_timings(c->pAttackTime->getValue(), c->pReleaseTime->getValue());
             c->sComp.set_ratio(c->pRatio->getValue());
             c->sComp.set_knee(c->pKnee->getValue());
-            c->sComp.set_boost_threshold(c->pBThresh->getValue());
-            c->sComp.set_mode((upward) ? CM_UPWARD : CM_DOWNWARD);
+            c->sComp.set_boost_threshold((mode != CM_BOOSTING) ? c->pBThresh->getValue() : c->pBoost->getValue());
+            c->sComp.set_mode(mode);
             if (c->pReleaseOut != NULL)
                 c->pReleaseOut->setValue(release);
-            c->sGraph[G_GAIN].set_method((upward) ? MM_MAXIMUM : MM_MINIMUM);
+            c->sGraph[G_GAIN].set_method((mode == CM_DOWNWARD) ? MM_MINIMUM : MM_MAXIMUM);
 
             // Check modification flag
             if (c->sComp.modified())
@@ -512,6 +529,7 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
             c->sCompDelay.set_delay(latency - c->sDelay.get_delay());
+            c->sDryDelay.set_delay(latency);
         }
 
         // Report latency
@@ -781,7 +799,9 @@ namespace lsp
             for (size_t i=0; i<channels; ++i)
             {
                 // Apply bypass
-                vChannels[i].sBypass.process(out_buf[i], in_buf[i], vChannels[i].vOut, to_process);
+                channel_t *c        = &vChannels[i];
+                c->sDryDelay.process(c->vIn, in_buf[i], to_process);                    // Apply latency compensation
+                c->sBypass.process(out_buf[i], c->vIn, vChannels[i].vOut, to_process);
 
 //                dump_buffer("out_buf", out_buf[i], samples);
 
@@ -986,6 +1006,8 @@ namespace lsp
 
     void compressor_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         size_t channels = (nMode == CM_MONO) ? 1 : 2;
 
         v->write("nMode", nMode);
@@ -1005,6 +1027,7 @@ namespace lsp
                 v->write_object("sComp", &c->sComp);
                 v->write_object("sDelay", &c->sDelay);
                 v->write_object("sCompDelay", &c->sCompDelay);
+                v->write_object("sDryDelay", &c->sDryDelay);
 
                 v->begin_array("sGraph", c->sGraph, G_TOTAL);
                 for (size_t j=0; j<G_TOTAL; ++j)
@@ -1058,6 +1081,7 @@ namespace lsp
                 v->write("pRatio", c->pRatio);
                 v->write("pKnee", c->pKnee);
                 v->write("pBThresh", c->pBThresh);
+                v->write("pBoost", c->pBoost);
                 v->write("pMakeup", c->pMakeup);
 
                 v->write("pDryGain", c->pDryGain);

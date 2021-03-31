@@ -42,6 +42,12 @@
 	"monitoring": "Monitoring",
 
 	"oscillator_function": "Oscillator Function",
+	"oscilloscope": {
+		"coupling": "Coupling",
+		"operation": "Operation",
+		"trigger": "Trigger"
+	},
+
 	"output": "Output",
 	"outputs": "Outputs",
 

@@ -255,6 +255,11 @@ namespace lsp
                 IF_VST_UI_ON(vup = new VSTUIMeshPort(port, vp);)
                 break;
 
+            case R_STREAM:
+                vp  = new VSTStreamPort(port, pEffect, pMaster);
+                IF_VST_UI_ON(vup = new VSTUIStreamPort(port, vp);)
+                break;
+
             case R_FBUFFER:
                 vp  = new VSTFrameBufferPort(port, pEffect, pMaster);
                 IF_VST_UI_ON(vup = new VSTUIFrameBufferPort(port, vp);)
@@ -375,6 +380,7 @@ namespace lsp
                     break;
 
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                 case R_MIDI:
                 case R_PATH:

@@ -254,6 +254,7 @@ namespace lsp
             {
                 case R_UI_SYNC:
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:
@@ -375,6 +376,7 @@ namespace lsp
                     result     |= REQ_PATH_MASK | REQ_INSTANCE;
                     break;
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                     result     |= REQ_INSTANCE;
                     break;
@@ -670,6 +672,7 @@ namespace lsp
             {
                 case R_UI_SYNC:
                 case R_MESH:
+                case R_STREAM:
                 case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:

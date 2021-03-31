@@ -24,6 +24,8 @@
 #include <core/util/Color.h>
 #include <core/colors.h>
 
+#define DECIM_PRECISION         1e-4
+
 namespace lsp
 {
 #ifndef LSP_NO_EXPERIMENTAL
@@ -45,6 +47,7 @@ namespace lsp
             pOut[i]         = NULL;
         }
         pMesh           = NULL;
+        pStream         = NULL;
         pFB             = NULL;
         pGain           = NULL;
         fGain           = 1.0f;
@@ -91,6 +94,10 @@ namespace lsp
         vOsc[2].W0      = 1.33f;
         vOsc[2].P0      = 0.5f;
         vOsc[2].R0      = 0.05f;
+
+        nLisCounter     = 0;
+        nLisPhase       = 0;
+        nLisSteps       = 0;
     }
 
     test_plugin::~test_plugin()
@@ -128,6 +135,8 @@ namespace lsp
 
             path->accept();
         }
+
+        nLisSteps       = (fSampleRate * 2) / LIS_BUFFER_PERIOD;
     }
 
     void test_plugin::init(IWrapper *wrapper)
@@ -142,6 +151,7 @@ namespace lsp
             pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
+        pStream         = vPorts[port_id++];
         pFB             = vPorts[port_id++];
         port_id        += 4; // skip modes
 
@@ -293,6 +303,69 @@ namespace lsp
         }
 
         pStatus->setValue(nStatus);
+
+        // Time to generate new lissajous figure?
+        nLisCounter    += samples;
+        while (nLisCounter >= LIS_BUFFER_PERIOD)
+        {
+            // Output the Lissajous figure
+            float wb = 2.0f * M_PI / LIS_BUFFER_SIZE;
+            float w0 = 3.0f * wb, w1 = 2.0f *wb;
+            float dw = (2.0f * M_PI * nLisPhase)/float(nLisSteps);
+
+            for (size_t i=0; i<LIS_BUFFER_SIZE; ++i)
+            {
+                vLisX[i]    = sinf(w0 * i + dw);
+                vLisY[i]    = sinf(w1 * i);
+            }
+            dsp::fill_zero(vLisS, LIS_BUFFER_SIZE);
+            vLisS[0] = 1.0f;    // Strobe signal
+
+            if ((++nLisPhase) > nLisSteps)
+                nLisPhase          -= nLisSteps;
+            nLisCounter        -= LIS_BUFFER_PERIOD;
+
+            stream_t *stream    = pStream->getBuffer<stream_t>();
+            if (stream != NULL)
+            {
+                // Decimate the signal
+                size_t j    = 0;
+
+                for (size_t i=1; i<LIS_BUFFER_SIZE; ++i)
+                {
+                    float dx    = vLisX[i] - vLisX[j];
+                    float dy    = vLisY[i] - vLisY[j];
+                    float s     = dx*dx + dy*dy;
+
+                    if (s < DECIM_PRECISION) // Skip point
+                    {
+                        vLisS[j]    = lsp_max(vLisS[i], vLisS[j]); // Keep the strobe signal
+                        continue;
+                    }
+
+                    // Add point to decimated array
+                    ++j;
+                    vLisX[j]    = vLisX[i];
+                    vLisY[j]    = vLisY[i];
+                }
+                ++j;
+
+                lsp_trace("frame size = %d", int(j));
+
+                // Emit the figure data with fixed-size frames
+                for (size_t i=0; i<j; )
+                {
+                    size_t count = stream->add_frame(j - i);                // Add a frame
+                    stream->write_frame(0, &vLisX[i], 0, count);            // X'es
+                    stream->write_frame(1, &vLisY[i], 0, count);            // Y's
+                    stream->write_frame(2, &vLisS[i], 0, count);            // Strobe signal
+                    stream->commit_frame();                                 // Commit the frame
+
+                    // Move the index in the source buffer
+                    i += count;
+                }
+            }
+        }
 
         // Query inline display for redraw
         pWrapper->query_display_draw();
@@ -498,6 +571,8 @@ namespace lsp
     void filter_analyzer::set_sample_rate(long sr)
     {
         plugin_t::set_sample_rate(sr);
+
+
 
         // Update filter parameters
         for (size_t i=0; i<2; ++i)

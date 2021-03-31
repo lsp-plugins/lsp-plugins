@@ -282,6 +282,12 @@ namespace lsp
             float               set_lookahead(float lk_ahead);
 
             /**
+             * Get maximum possible latency according to the configuration
+             * @return maximum possible latency
+             */
+            inline size_t       max_latency() const                 { return nMaxLookahead;     }
+
+            /**
              * Get knee of the limiter
              * @return knee of the limiter
              */

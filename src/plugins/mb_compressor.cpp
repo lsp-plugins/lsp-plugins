@@ -83,6 +83,17 @@ namespace lsp
         return b1 < b2;
     }
 
+    compressor_mode_t mb_compressor_base::decode_mode(int mode)
+    {
+        switch (mode)
+        {
+            case mb_compressor_base_metadata::CM_DOWNWARD: return CM_DOWNWARD;
+            case mb_compressor_base_metadata::CM_UPWARD: return CM_UPWARD;
+            case mb_compressor_base_metadata::CM_BOOSTING: return CM_BOOSTING;
+            default: return CM_DOWNWARD;
+        }
+    }
+
     void mb_compressor_base::init(IWrapper *wrapper)
     {
         // Initialize plugin
@@ -126,6 +137,7 @@ namespace lsp
                     MBC_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
                     2 * filter_mesh_size + // vTr of each channel
                     filter_mesh_size + // vTrMem of each channel
+                    MBC_BUFFER_SIZE * sizeof(float) + // vInBuffer for each channel
                     MBC_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
                     MBC_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
                     ((bSidechain) ? MBC_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
@@ -192,6 +204,8 @@ namespace lsp
             c->vOut         = NULL;
             c->vScIn        = NULL;
 
+            c->vInBuffer    = reinterpret_cast<float *>(ptr);
+            ptr            += MBC_BUFFER_SIZE * sizeof(float);
             c->vBuffer      = reinterpret_cast<float *>(ptr);
             ptr            += MBC_BUFFER_SIZE * sizeof(float);
             c->vScBuffer    = reinterpret_cast<float *>(ptr);
@@ -300,6 +314,7 @@ namespace lsp
                 b->pRatio       = NULL;
                 b->pKnee        = NULL;
                 b->pBThresh     = NULL;
+                b->pBoost       = NULL;
                 b->pMakeup      = NULL;
                 b->pFreqEnd     = NULL;
                 b->pCurveGraph  = NULL;
@@ -476,6 +491,7 @@ namespace lsp
                     b->pRatio       = sb->pRatio;
                     b->pKnee        = sb->pKnee;
                     b->pBThresh     = sb->pBThresh;
+                    b->pBoost       = sb->pBoost;
                     b->pMakeup      = sb->pMakeup;
 
                     b->pFreqEnd     = sb->pFreqEnd;
@@ -538,6 +554,8 @@ namespace lsp
                     b->pKnee        = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pBThresh     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    b->pBoost       = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     b->pMakeup      = vPorts[port_id++];
 
@@ -753,7 +771,7 @@ namespace lsp
                 float attack    = b->pAttLevel->getValue();
                 float release   = b->pRelLevel->getValue() * attack;
                 float makeup    = b->pMakeup->getValue();
-                float mode      = b->pMode->getValue();
+                compressor_mode_t mode = decode_mode(b->pMode->getValue());
                 bool enabled    = b->pEnable->getValue() >= 0.5f;
                 if (enabled && (j > 0))
                     enabled         = c->vSplit[j-1].bEnabled;
@@ -778,12 +796,12 @@ namespace lsp
                     b->nSync       |= S_EQ_CURVE;
                 }
 
-                b->sComp.set_mode((mode >= 1.0f) ? CM_UPWARD : CM_DOWNWARD);
+                b->sComp.set_mode(mode);
                 b->sComp.set_threshold(attack, release);
                 b->sComp.set_timings(b->pAttTime->getValue(), b->pRelTime->getValue());
                 b->sComp.set_ratio(b->pRatio->getValue());
                 b->sComp.set_knee(b->pKnee->getValue());
-                b->sComp.set_boost_threshold(b->pBThresh->getValue());
+                b->sComp.set_boost_threshold((mode != CM_BOOSTING) ? b->pBThresh->getValue() : b->pBoost->getValue());
 
                 if (b->sComp.modified())
                 {
@@ -1014,9 +1032,7 @@ namespace lsp
             for (size_t j=0; j<c->nPlanSize; ++j)
             {
                 comp_band_t *b  = c->vPlan[j];
-
-                if (latency < b->nLookahead)
-                    latency = b->nLookahead;
+                latency         = lsp_max(latency, b->nLookahead);
             }
         }
 
@@ -1032,6 +1048,7 @@ namespace lsp
                 comp_band_t *b  = c->vPlan[j];
                 b->sDelay.set_delay(latency - b->nLookahead);
             }
+            c->sDelay.set_delay(latency);
         }
 
         // Debug:
@@ -1271,7 +1288,8 @@ namespace lsp
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
-                    c->sDelay.process(c->vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
+                    c->sDelay.process(c->vInBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
+                    dsp::copy(vBuffer, c->vInBuffer, to_process);
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
@@ -1288,8 +1306,9 @@ namespace lsp
                     channel_t *c        = &vChannels[i];
 
                     // Originally, there is no signal
-                    c->sDelay.process(vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature, store into vBuffer
-                    dsp::fill_zero(c->vBuffer, to_process); // Clear the channel buffer
+                    c->sDelay.process(c->vInBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature, store into vBuffer
+                    dsp::copy(vBuffer, c->vInBuffer, to_process);
+                    dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
@@ -1317,7 +1336,10 @@ namespace lsp
 
             // Post-process data (if needed)
             if (nMode == MBCM_MS)
+            {
                 dsp::ms_to_lr(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, to_process);
+                dsp::ms_to_lr(vChannels[0].vInBuffer, vChannels[1].vInBuffer, vChannels[0].vInBuffer, vChannels[1].vInBuffer, to_process);
+            }
 
             // Final metering
             for (size_t i=0; i<channels; ++i)
@@ -1325,10 +1347,10 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 // Apply dry/wet gain and bypass
-                dsp::mix2(c->vBuffer, c->vIn, fWetGain, fDryGain, to_process);
+                dsp::mix2(c->vBuffer, c->vInBuffer, fWetGain, fDryGain, to_process);
                 float level         = dsp::abs_max(c->vBuffer, to_process);
                 c->pOutLvl->setValue(level);
-                c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_process);
+                c->sBypass.process(c->vOut, c->vInBuffer, c->vBuffer, to_process);
 
                 // Update pointers
                 c->vIn             += to_process;

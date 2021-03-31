@@ -68,6 +68,9 @@
         <Filename>in.lsp_plug.lsp_plugins_multisampler_x48.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_multisampler_x48_do.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_oscillator_mono.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_oscilloscope_x1.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_oscilloscope_x2.desktop</Filename>
+        <Filename>in.lsp_plug.lsp_plugins_oscilloscope_x4.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_para_equalizer_x16_lr.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_para_equalizer_x16_mono.desktop</Filename>
         <Filename>in.lsp_plug.lsp_plugins_para_equalizer_x16_ms.desktop</Filename>

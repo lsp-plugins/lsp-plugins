@@ -720,6 +720,8 @@ namespace lsp
 
     void loud_comp_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write("nChannels", nChannels);
         v->write("nMode", nMode);
         v->write("nRank", nRank);

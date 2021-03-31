@@ -43,7 +43,7 @@ namespace lsp
         pWrapper        = wrapper;
     }
 
-    void plugin_t::set_sample_rate(long sr)
+    void plugin_t::set_sample_rate(ssize_t sr)
     {
         if (fSampleRate != sr)
         {
@@ -122,6 +122,10 @@ namespace lsp
 
     void plugin_t::dump(IStateDumper *v) const
     {
+        v->write("fSampleRate", fSampleRate);
+        v->write("nLatency", nLatency);
+        v->write("bActivated", bActivated);
+        v->write("bUIActive", bUIActive);
     }
 }
 

@@ -1,4 +1,39 @@
 {
+	"art_delay": {
+		"line_0": "Ligne de délai 0",
+		"line_1": "Ligne de délai 1",
+		"line_2": "Ligne de délai 2",
+		"line_3": "Ligne de délai 3",
+		"line_4": "Ligne de délai 4",
+		"line_5": "Ligne de délai 5",
+		"line_6": "Ligne de délai 6",
+		"line_7": "Ligne de délai 7",
+		"line_8": "Ligne de délai 8",
+		"line_9": "Ligne de délai 9",
+		"line_10": "Ligne de délai 10",
+		"line_11": "Ligne de délai 11",
+		"line_12": "Ligne de délai 12",
+		"line_13": "Ligne de délai 13",
+		"line_14": "Ligne de délai 14",
+		"line_15": "Ligne de délai 15",
+
+		"tempo_0": "Tempo 0",
+		"tempo_1": "Tempo 1",
+		"tempo_2": "Tempo 2",
+		"tempo_3": "Tempo 3",
+		"tempo_4": "Tempo 4",
+		"tempo_5": "Tempo 5",
+		"tempo_6": "Tempo 6",
+		"tempo_7": "Tempo 7",
+
+		"modes": {
+			"notes": "Notes",
+			"off": "Off",
+			"time": "Temps"
+		},
+		"none": "Aucun"
+	},
+
 	"bool": {
 		"off": "off",
 		"on": "on"
@@ -34,7 +69,6 @@
 	},
 	
 	"dither": {
-        "none": "Aucun",
         "bits": {
 	        "11": "11bit",
 	        "12": "12bit",
@@ -44,7 +78,8 @@
 	        "24": "24bit",
 	        "7": "7bit",
 	        "8": "8bit"
-        }
+        },
+        "none": "Aucun"
 	},
 	
 	"dyna_proc": {
@@ -107,7 +142,8 @@
 		"type": {
 			"fir": "FIR",
 			"fft": "FFT",
-			"iir": "IIR"
+			"iir": "IIR",
+			"spm": "SPM"
 		}
 	},
 	
@@ -286,27 +322,70 @@
 		"classic": "Classique",
 		"modern": "Moderne"
 	},
-	
+
+	"oscilloscope": {
+		"coupling": {
+			"ac": "AC",
+			"dc": "DC"
+		},
+		"mode": {
+			"goniometer": "Goniomètre",
+			"triggered": "Déclenché",
+			"xy": "XY"
+		},
+		"oversampler": {
+			"2x": "2X",
+			"3x": "3X",
+			"4x": "4X",
+			"6x": "6X",
+			"8x": "8X",
+			"none": "Aucun"
+		},
+		"sweeptype": {
+			"sawtooth": "Dent de scie",
+			"triangular": "Triangulaire",
+			"sine": "Sinusoïde"
+		},
+		"trigger": {
+			"input": {
+				"ext": "EXT",
+				"y": "Y"
+			},
+			"mode": {
+				"manual": "Manuel",
+				"repeat": "Répéter",
+				"single": "Simple"
+			},
+			"type": {
+				"advanced_falling_edge": "Chute avancée",
+				"advanced_rising_edge": "Montée avancée",
+				"none": "Aucun",
+				"simple_falling_edge": "Chute simple",
+				"simple_rising_edge": "Montée simple"
+			}
+		}
+	},
+
 	"oscillator": {
 		"add": "Ajouter",
-        "bl_rect": "Bande limité rectangulaire",
-        "bl_saw": "Bande limité dents de scie",
-        "bl_trap": "Bande limité trapézoïde",
-        "bl_pulse": "Bande limité train d'impulsions",
-        "bl_para": "Bande limité parabolique",
-        "cos": "Cosinus",
-        "mul": "Multiplie",
-        "pulse": "Train d'impulsions",
-        "para": "Parabolique",
-        "rect": "Rectangulaire",
-        "rep": "Remplacer",
-        "saw": "Dents de scie",
-        "sin": "Sinusoïde",
-        "sqr_sin": "Sinusoïde carrée",
-        "sqr_cos": "Cosinus carré",
-        "trap": "Trapézoïde",
-        "wave_dc": "Onde DC",
-        "zero_dc": "Zéro DC"
+        	"bl_rect": "Bande limité rectangulaire",
+        	"bl_saw": "Bande limité dents de scie",
+        	"bl_trap": "Bande limité trapézoïde",
+        	"bl_pulse": "Bande limité train d'impulsions",
+        	"bl_para": "Bande limité parabolique",
+        	"cos": "Cosinus",
+		"mul": "Multiplie",
+		"pulse": "Train d'impulsions",
+		"para": "Parabolique",
+		"rect": "Rectangulaire",
+		"rep": "Remplacer",
+		"saw": "Dents de scie",
+		"sin": "Sinusoïde",
+		"sqr_sin": "Sinusoïde carrée",
+		"sqr_cos": "Cosinus carré",
+		"trap": "Trapézoïde",
+		"wave_dc": "Onde DC",
+		"zero_dc": "Zéro DC"
 	},
 	
 	"oversampler": {
@@ -335,6 +414,17 @@
 			"8x3": "Moitié x8(3L)"
 		},
 		"normal": {
+			"2x2": "x2(2L)",
+			"2x3": "x2(3L)",
+			"3x2": "x3(2L)",
+			"3x3": "x3(3L)",
+			"4x2": "x4(2L)",
+			"4x3": "x4(3L)",
+			"6x2": "x6(2L)",
+			"6x3": "x6(3L)",
+			"8x2": "x8(2L)",
+			"8x3": "x8(3L)",
+
 			"x2": "x2",
 			"x3": "x3",
 			"x4": "x4",

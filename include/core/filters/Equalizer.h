@@ -148,7 +148,13 @@ namespace lsp
              *
              * @return equalizer latency
              */
-            inline size_t       get_latency() const { return nLatency; }
+            size_t              get_latency();
+
+            /**
+             * Get maximum possible latency for the equalizer
+             * @return maximum possible latency
+             */
+            inline size_t       max_latency() const { return nFirSize + (nFirSize >> 1); }
 
             /** Get frequency chart of the specific filter
              *

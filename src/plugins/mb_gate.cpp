@@ -88,7 +88,7 @@ namespace lsp
         plugin_t::init(wrapper);
 
         // Determine number of channels
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
 
         // Allocate channels
         vChannels       = new channel_t[channels];
@@ -126,6 +126,7 @@ namespace lsp
                     MBG_BUFFER_SIZE * sizeof(float) + // Global vSc[] for each channel
                     2 * filter_mesh_size + // vTr of each channel
                     filter_mesh_size + // vTrMem of each channel
+                    MBG_BUFFER_SIZE * sizeof(float) + // vInBuffer for each channel
                     MBG_BUFFER_SIZE * sizeof(float) + // vBuffer for each channel
                     MBG_BUFFER_SIZE * sizeof(float) + // vScBuffer for each channel
                     ((bSidechain) ? MBG_BUFFER_SIZE * sizeof(float) : 0) + // vExtScBuffer for each channel
@@ -191,6 +192,8 @@ namespace lsp
             c->vOut         = NULL;
             c->vScIn        = NULL;
 
+            c->vInBuffer    = reinterpret_cast<float *>(ptr);
+            ptr            += MBG_BUFFER_SIZE * sizeof(float);
             c->vBuffer      = reinterpret_cast<float *>(ptr);
             ptr            += MBG_BUFFER_SIZE * sizeof(float);
             c->vScBuffer    = reinterpret_cast<float *>(ptr);
@@ -383,7 +386,7 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
-            if ((i > 0) && (nMode == MBEM_STEREO))
+            if ((i > 0) && (nMode == MBGM_STEREO))
             {
                 channel_t *sc           = &vChannels[0];
                 c->pAmpGraph            = sc->pAmpGraph;
@@ -424,7 +427,7 @@ namespace lsp
             {
                 split_t *s      = &vChannels[i].vSplit[j];
 
-                if ((i > 0) && (nMode == MBEM_STEREO))
+                if ((i > 0) && (nMode == MBGM_STEREO))
                 {
                     split_t *sc     = &vChannels[0].vSplit[j];
                     s->pEnabled     = sc->pEnabled;
@@ -448,7 +451,7 @@ namespace lsp
             {
                 gate_band_t *b   = &vChannels[i].vBands[j];
 
-                if ((i > 0) && (nMode == MBEM_STEREO))
+                if ((i > 0) && (nMode == MBGM_STEREO))
                 {
                     gate_band_t *sb     = &vChannels[0].vBands[j];
 
@@ -491,7 +494,7 @@ namespace lsp
                         TRACE_PORT(vPorts[port_id]);
                         b->pExtSc           = vPorts[port_id++];
                     }
-                    if (nMode != MBEM_MONO)
+                    if (nMode != MBGM_MONO)
                     {
                         TRACE_PORT(vPorts[port_id]);
                         b->pScSource        = vPorts[port_id++];
@@ -570,7 +573,7 @@ namespace lsp
     void mb_gate_base::destroy()
     {
         // Determine number of channels
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
 
         // Destroy channels
         if (vChannels != NULL)
@@ -629,7 +632,7 @@ namespace lsp
         filter_params_t fp;
 
         // Determine number of channels
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
         int active_channels = 0;
         size_t env_boost    = pEnvBoost->getValue();
 
@@ -763,7 +766,7 @@ namespace lsp
 
                 b->sSC.set_mode(b->pScMode->getValue());
                 b->sSC.set_reactivity(b->pScReact->getValue());
-                b->sSC.set_stereo_mode((nMode == MBEM_MS) ? SCSM_MIDSIDE : SCSM_STEREO);
+                b->sSC.set_stereo_mode((nMode == MBGM_MS) ? SCSM_MIDSIDE : SCSM_STEREO);
                 b->sSC.set_source((b->pScSource != NULL) ? b->pScSource->getValue() : SCS_MIDDLE);
 
                 if (sc_gain != b->fScPreamp)
@@ -1028,6 +1031,7 @@ namespace lsp
                 gate_band_t *b   = c->vPlan[j];
                 b->sDelay.set_delay(latency - b->nLookahead);
             }
+            c->sDelay.set_delay(latency);
         }
 
         nEnvBoost       = env_boost;
@@ -1037,7 +1041,7 @@ namespace lsp
     void mb_gate_base::update_sample_rate(long sr)
     {
         // Determine number of channels
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
         size_t max_delay    = millis_to_samples(sr, mb_gate_base_metadata::LOOKAHEAD_MAX);
 
         // Update analyzer's sample rate
@@ -1076,7 +1080,7 @@ namespace lsp
 
     void mb_gate_base::ui_activated()
     {
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -1092,7 +1096,7 @@ namespace lsp
 
     void mb_gate_base::process(size_t samples)
     {
-        size_t channels     = (nMode == MBEM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == MBGM_MONO) ? 1 : 2;
 
         // Bind input signal
         for (size_t i=0; i<channels; ++i)
@@ -1119,13 +1123,13 @@ namespace lsp
             }
 
             // Pre-process channel data
-            if (nMode == MBEM_MS)
+            if (nMode == MBGM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_process);
                 dsp::mul_k2(vChannels[0].vBuffer, fInGain, to_process);
                 dsp::mul_k2(vChannels[1].vBuffer, fInGain, to_process);
             }
-            else if (nMode == MBEM_MONO)
+            else if (nMode == MBGM_MONO)
                 dsp::mul_k3(vChannels[0].vBuffer, vChannels[0].vIn, fInGain, to_process);
             else
             {
@@ -1134,13 +1138,13 @@ namespace lsp
             }
             if (bSidechain)
             {
-                if (nMode == MBEM_MS)
+                if (nMode == MBGM_MS)
                 {
                     dsp::lr_to_ms(vChannels[0].vExtScBuffer, vChannels[1].vExtScBuffer, vChannels[0].vScIn, vChannels[1].vScIn, to_process);
                     dsp::mul_k2(vChannels[0].vExtScBuffer, fInGain, to_process);
                     dsp::mul_k2(vChannels[1].vExtScBuffer, fInGain, to_process);
                 }
-                else if (nMode == MBEM_MONO)
+                else if (nMode == MBGM_MONO)
                     dsp::mul_k3(vChannels[0].vExtScBuffer, vChannels[0].vScIn, fInGain, to_process);
                 else
                 {
@@ -1229,7 +1233,8 @@ namespace lsp
                 for (size_t i=0; i<channels; ++i)
                 {
                     channel_t *c        = &vChannels[i];
-                    c->sDelay.process(c->vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
+                    c->sDelay.process(c->vInBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature
+                    dsp::copy(vBuffer, c->vInBuffer, to_process);
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
@@ -1246,8 +1251,9 @@ namespace lsp
                     channel_t *c        = &vChannels[i];
 
                     // Originally, there is no signal
-                    c->sDelay.process(vBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature, store into vBuffer
-                    dsp::fill_zero(c->vBuffer, to_process); // Clear the channel buffer
+                    c->sDelay.process(c->vInBuffer, c->vBuffer, to_process); // Apply delay to compensate lookahead feature, store into vBuffer
+                    dsp::copy(vBuffer, c->vInBuffer, to_process);
+                    dsp::fill_zero(c->vBuffer, to_process);                 // Clear the channel buffer
 
                     for (size_t j=0; j<c->nPlanSize; ++j)
                     {
@@ -1274,8 +1280,11 @@ namespace lsp
             sAnalyzer.process(vAnalyze, to_process);
 
             // Post-process data (if needed)
-            if (nMode == MBEM_MS)
+            if (nMode == MBGM_MS)
+            {
                 dsp::ms_to_lr(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vBuffer, vChannels[1].vBuffer, to_process);
+                dsp::ms_to_lr(vChannels[0].vInBuffer, vChannels[1].vInBuffer, vChannels[0].vInBuffer, vChannels[1].vInBuffer, to_process);
+            }
 
             // Final metering
             for (size_t i=0; i<channels; ++i)
@@ -1509,7 +1518,7 @@ namespace lsp
         b->v[3][0]          = 1.0f;
         b->v[3][width+1]    = 1.0f;
 
-        size_t channels = ((nMode == MBEM_MONO) || (nMode == MBEM_STEREO)) ? 1 : 2;
+        size_t channels = ((nMode == MBGM_MONO) || (nMode == MBGM_STEREO)) ? 1 : 2;
         static uint32_t c_colors[] = {
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
@@ -1548,35 +1557,35 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // Expander derivatives
-    mb_gate_mono::mb_gate_mono() : mb_gate_base(metadata, false, MBEM_MONO)
+    mb_gate_mono::mb_gate_mono() : mb_gate_base(metadata, false, MBGM_MONO)
     {
     }
 
-    mb_gate_stereo::mb_gate_stereo() : mb_gate_base(metadata, false, MBEM_STEREO)
+    mb_gate_stereo::mb_gate_stereo() : mb_gate_base(metadata, false, MBGM_STEREO)
     {
     }
 
-    mb_gate_lr::mb_gate_lr() : mb_gate_base(metadata, false, MBEM_LR)
+    mb_gate_lr::mb_gate_lr() : mb_gate_base(metadata, false, MBGM_LR)
     {
     }
 
-    mb_gate_ms::mb_gate_ms() : mb_gate_base(metadata, false, MBEM_MS)
+    mb_gate_ms::mb_gate_ms() : mb_gate_base(metadata, false, MBGM_MS)
     {
     }
 
-    sc_mb_gate_mono::sc_mb_gate_mono() : mb_gate_base(metadata, true, MBEM_MONO)
+    sc_mb_gate_mono::sc_mb_gate_mono() : mb_gate_base(metadata, true, MBGM_MONO)
     {
     }
 
-    sc_mb_gate_stereo::sc_mb_gate_stereo() : mb_gate_base(metadata, true, MBEM_STEREO)
+    sc_mb_gate_stereo::sc_mb_gate_stereo() : mb_gate_base(metadata, true, MBGM_STEREO)
     {
     }
 
-    sc_mb_gate_lr::sc_mb_gate_lr() : mb_gate_base(metadata, true, MBEM_LR)
+    sc_mb_gate_lr::sc_mb_gate_lr() : mb_gate_base(metadata, true, MBGM_LR)
     {
     }
 
-    sc_mb_gate_ms::sc_mb_gate_ms() : mb_gate_base(metadata, true, MBEM_MS)
+    sc_mb_gate_ms::sc_mb_gate_ms() : mb_gate_base(metadata, true, MBGM_MS)
     {
     }
 }

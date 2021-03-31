@@ -251,7 +251,7 @@ namespace lsp
 
             /** Set the phase factor of the oscillator:
              *
-             *  @ param phase phase factor of the oscillator [rad].
+             *  @param phase phase factor of the oscillator [rad].
              */
             inline void set_phase(float phase)
             {
@@ -286,7 +286,7 @@ namespace lsp
 
             /** Set the DC Reference
              *
-             * @param dcReference
+             * @param dcReference DC reference
              */
             inline void set_dc_reference(dc_reference_t dcReference)
             {
@@ -310,6 +310,10 @@ namespace lsp
                 bSync = true;
             }
 
+            /** Set the parabolic inversion
+             *
+             * @param invert inversion value
+             */
             inline void set_parabolic_inversion(bool invert)
             {
                 if (sParabolic.bInvert == invert)
