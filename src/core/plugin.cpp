@@ -43,7 +43,7 @@ namespace lsp
         pWrapper        = wrapper;
     }
 
-    void plugin_t::set_sample_rate(long sr)
+    void plugin_t::set_sample_rate(ssize_t sr)
     {
         if (fSampleRate != sr)
         {

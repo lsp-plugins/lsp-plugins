@@ -46,7 +46,7 @@ namespace lsp
             const plugin_metadata_t    *pMetadata;
             IWrapper                   *pWrapper;
 
-            long                        fSampleRate;
+            ssize_t                     fSampleRate;
             ssize_t                     nLatency;
             bool                        bActivated;
             bool                        bUIActive;
@@ -64,9 +64,9 @@ namespace lsp
             inline IPort *port(size_t id)               { return vPorts[id];        };
             inline size_t ports_count() const           { return vPorts.size();     };
 
-            void set_sample_rate(long sr);
+            void set_sample_rate(ssize_t sr);
 
-            inline long get_sample_rate() const         { return fSampleRate;       };
+            inline ssize_t get_sample_rate() const      { return fSampleRate;       };
             inline bool active() const                  { return bActivated;        };
             inline bool ui_active() const               { return bUIActive;         };
 
