@@ -1629,7 +1629,8 @@ namespace lsp
             if (!c->bVisible)
                 continue;
 
-            for (size_t i=0; i<c->nIDisplay; ++i)
+            size_t dlen = lsp_min(c->nIDisplay, di_length);
+            for (size_t i=0; i<dlen; ++i)
             {
                 b->v[0][i] = halfv * (c->vIDisplay_x[i] + 1.0f);
                 b->v[1][i] = halfh * (-c->vIDisplay_y[i] + 1.0f);
@@ -1638,7 +1639,7 @@ namespace lsp
             // Set color and draw
             cv->set_color_rgb(cols[ch]);
             cv->set_line_width(2);
-            cv->draw_lines(b->v[0], b->v[1], c->nIDisplay);
+            cv->draw_lines(b->v[0], b->v[1], dlen);
         }
 
         cv->set_anti_aliasing(aa);
