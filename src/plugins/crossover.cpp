@@ -1000,6 +1000,8 @@ namespace lsp
 
     void crossover_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         // Determine number of channels
         size_t channels     = (nMode == XOVER_MONO) ? 1 : 2;
 

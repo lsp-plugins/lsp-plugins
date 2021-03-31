@@ -21,7 +21,7 @@ export BUILD_R3D_BACKENDS
 
 # Configure list of targets to execute
 INSTALLATIONS           =
-UNINSTALLATIONS         =
+UNINSTALLATIONS         = uninstall_xdg
 RELEASES                =
 INCLUDE                 = -I"${CURDIR}/include"
 

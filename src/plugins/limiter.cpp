@@ -783,6 +783,8 @@ namespace lsp
 
     void limiter_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write("nChannels", nChannels);
         v->write("bSidechain", bSidechain);
         v->begin_array("vChannels", vChannels, nChannels);

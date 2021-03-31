@@ -1006,6 +1006,8 @@ namespace lsp
 
     void compressor_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         size_t channels = (nMode == CM_MONO) ? 1 : 2;
 
         v->write("nMode", nMode);

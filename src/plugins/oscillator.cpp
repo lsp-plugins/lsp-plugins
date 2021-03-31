@@ -397,6 +397,8 @@ namespace lsp
 
     void oscillator_mono::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write_object("sOsc", &sOsc);
         v->write_object("sBypass", &sBypass);
 

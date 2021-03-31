@@ -239,9 +239,6 @@ namespace lsp
             dc_block_t  sDCBlockParams;
             size_t      nChannels;
             channel_t  *vChannels;
-
-            size_t      nSampleRate;
-
             uint8_t    *pData;
 
             // Common Controls

@@ -122,6 +122,10 @@ namespace lsp
 
     void plugin_t::dump(IStateDumper *v) const
     {
+        v->write("fSampleRate", fSampleRate);
+        v->write("nLatency", nLatency);
+        v->write("bActivated", bActivated);
+        v->write("bUIActive", bUIActive);
     }
 }
 

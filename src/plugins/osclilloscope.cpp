@@ -175,7 +175,7 @@ namespace lsp
 
     void oscilloscope_base::reconfigure_dc_block_filters()
     {
-        double omega = 2.0 * M_PI * DC_BLOCK_CUTOFF_HZ / nSampleRate; // Normalised frequency
+        double omega = 2.0 * M_PI * DC_BLOCK_CUTOFF_HZ / fSampleRate; // Normalised frequency
 
         double c = cos(omega);
         double g = 1.9952623149688795; // This is 10^(3/10), used to calculate the parameter alpha so that it is exactly associated to the cutoff frequency (-3 dB).
@@ -283,15 +283,13 @@ namespace lsp
 
         // All are set the same way, use any to get these variables
         c->nOversampling    = c->sOversampler_x.get_oversampling();
-        c->nOverSampleRate  = c->nOversampling * nSampleRate;
+        c->nOverSampleRate  = c->nOversampling * fSampleRate;
     }
 
     oscilloscope_base::oscilloscope_base(const plugin_metadata_t &metadata, size_t channels): plugin_t(metadata)
     {
         nChannels           = channels;
         vChannels           = NULL;
-
-        nSampleRate         = 0;
 
         pData               = NULL;
 
@@ -1171,8 +1169,6 @@ namespace lsp
 
     void oscilloscope_base::update_sample_rate(long sr)
     {
-        nSampleRate = sr;
-
         reconfigure_dc_block_filters();
 
         for (size_t ch = 0; ch < nChannels; ++ch)
@@ -1188,7 +1184,7 @@ namespace lsp
             c->sOversampler_ext.set_sample_rate(sr);
             c->sOversampler_ext.update_settings();
 
-            c->nOverSampleRate = c->nOversampling * nSampleRate;
+            c->nOverSampleRate = c->nOversampling * sr;
 
             c->sSweepGenerator.set_sample_rate(sr);
             c->sSweepGenerator.update_settings();
@@ -1373,9 +1369,10 @@ namespace lsp
             pWrapper->query_display_draw();
     }
 
-    // TODO: THIS MUST BE UPDATED !!!
     void oscilloscope_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->begin_object("sDCBlockParams", &sDCBlockParams, sizeof(sDCBlockParams));
         {
             v->write("fAlpha", sDCBlockParams.fAlpha);
@@ -1530,7 +1527,6 @@ namespace lsp
         }
         v->end_array();
 
-        v->write("nSampleRate", nSampleRate);
         v->write("pData", pData);
 
         v->write("pStrobeHistSize", pStrobeHistSize);

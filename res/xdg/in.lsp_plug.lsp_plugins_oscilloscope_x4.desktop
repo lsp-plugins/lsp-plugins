@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Oscilloscope 4 Channels
+GenericName=Oscilloscope
+GenericName[ru]=Осциллограф
+Comment=Implements an oscilloscope tool for graphic signal analysis.
+Comment[ru]=Реализует осциллограф для графического анализа сигналов.
+Exec=lsp-plugins-oscilloscope-x4
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;

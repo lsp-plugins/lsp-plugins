@@ -1221,6 +1221,8 @@ namespace lsp
 
     void art_delay_base::dump(IStateDumper *v) const
     {
+        plugin_t::dump(v);
+
         v->write("bStereoIn", bStereoIn);
         v->write("bMono", bMono);
         v->write("nMaxDelay", nMaxDelay);
