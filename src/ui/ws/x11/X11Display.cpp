@@ -233,7 +233,7 @@ namespace lsp
                 while (!atomic_cas(&hLock, 0, 1)) { /* Wait */ }
 
                 // Dispatch errors between Displays
-                for (X11Display *dp = pHandlers; dp != NULL; ++dp)
+                for (X11Display *dp = pHandlers; dp != NULL; dp = dp->pNextHandler)
                     if (dp->pDisplay == dpy)
                         dp->handle_error(ev);
 

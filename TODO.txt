@@ -28,6 +28,10 @@
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
 
+=== 1.1.31 ===
+
+* Fixed X11 error handling routine that could crash under certain conditions.
+
 *******************************************************************************
 * New plugin check list before release
 *******************************************************************************
