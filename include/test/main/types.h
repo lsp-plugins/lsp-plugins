@@ -42,7 +42,7 @@
     #include <fcntl.h>
 #endif /* PLATFORM_UNIX_COMPATIBLE */
 
-#ifdef PLATFORM_LINUX
+#if defined(PLATFORM_LINUX) && defined(__GLIBC__)
     #include <mcheck.h>
 #endif /* PLATFORM_LINUX */
 

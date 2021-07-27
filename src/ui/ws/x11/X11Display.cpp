@@ -23,7 +23,7 @@
 
 #ifdef USE_X11_DISPLAY
 
-#include <sys/poll.h>
+#include <poll.h>
 #include <errno.h>
 #include <stdlib.h>
 
