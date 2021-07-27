@@ -633,7 +633,7 @@ namespace lsp
     }
 #endif /* PLATFORM_WINDOWS */
 
-#ifdef PLATFORM_LINUX
+#if defined(PLATFORM_LINUX) && defined(__GLIBC__)
     void TestExecutor::start_memcheck(test::Test *v)
     {
         if (!pCfg->mtrace)

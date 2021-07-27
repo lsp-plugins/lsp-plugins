@@ -41,7 +41,7 @@
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glu.h>
-#include <sys/poll.h>
+#include <poll.h>
 
 //#define TEST_DEBUG
 
