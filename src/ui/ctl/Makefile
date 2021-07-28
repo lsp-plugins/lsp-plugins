@@ -1,3 +1,9 @@
+# Command-line flag to silence nested $(MAKE).
+$(VERBOSE)MAKESILENT = -s
+
+# Suppress display of executed commands.
+$(VERBOSE).SILENT:
+
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS					= 
@@ -6,10 +12,10 @@ SUBDIRS					=
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"
-	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)  
+	$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)  
 
 $(OBJ_CTL_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) -o $(OBJ_CTL_CORE) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
+	$(LD) -o $(OBJ_CTL_CORE) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
 
 all: $(OBJ_CTL_CORE) $(SUBDIRS)

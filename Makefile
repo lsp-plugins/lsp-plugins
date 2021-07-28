@@ -1,3 +1,9 @@
+# Command-line flag to silence nested $(MAKE).
+$(VERBOSE)MAKESILENT = -s
+
+# Suppress display of executed commands.
+$(VERBOSE).SILENT:
+
 # Common definitions
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src build-*.sh include res Makefile release.sh
@@ -166,24 +172,24 @@ compile_info:
 	@echo "-------------------------------------------------------------------------------"
 
 compile: | compile_info
-	@mkdir -p $(OBJDIR)/src
-	@mkdir -p $(CFGDIR)
-	@test -f "$(CFGDIR)/$(PREFIX_FILE)" || echo -n "$(PREFIX)" > "$(CFGDIR)/$(PREFIX_FILE)"
-	@test -f "$(CFGDIR)/$(MODULES_FILE)" || echo -n "$(BUILD_MODULES)" > "$(CFGDIR)/$(MODULES_FILE)"
-	@test -f "$(CFGDIR)/$(BUILD_PROFILE)" || echo -n "$(BUILD_PROFILE)" > "$(CFGDIR)/$(BUILD_PROFILE_FILE)"
-	@test -f "$(CFGDIR)/$(R3D_BACKENDS_FILE)" || echo -n "$(BUILD_R3D_BACKENDS)" > "$(CFGDIR)/$(R3D_BACKENDS_FILE)"
-	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
+	mkdir -p $(OBJDIR)/src
+	mkdir -p $(CFGDIR)
+	test -f "$(CFGDIR)/$(PREFIX_FILE)" || echo -n "$(PREFIX)" > "$(CFGDIR)/$(PREFIX_FILE)"
+	test -f "$(CFGDIR)/$(MODULES_FILE)" || echo -n "$(BUILD_MODULES)" > "$(CFGDIR)/$(MODULES_FILE)"
+	test -f "$(CFGDIR)/$(BUILD_PROFILE)" || echo -n "$(BUILD_PROFILE)" > "$(CFGDIR)/$(BUILD_PROFILE_FILE)"
+	test -f "$(CFGDIR)/$(R3D_BACKENDS_FILE)" || echo -n "$(BUILD_R3D_BACKENDS)" > "$(CFGDIR)/$(R3D_BACKENDS_FILE)"
+	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 	
 test_compile: | compile_info
-	@mkdir -p $(OBJDIR)/src
-	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
+	mkdir -p $(OBJDIR)/src
+	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Test Build OK"
 
 clean:
-	@-rm -rf $(BUILDDIR)
-	@-rm -rf $(TESTDIR)
-	@-rm -rf $(CFGDIR)
+	-rm -rf $(BUILDDIR)
+	-rm -rf $(TESTDIR)
+	-rm -rf $(CFGDIR)
 	@echo "Clean OK"
 
 # Build targets
@@ -209,63 +215,63 @@ install: $(INSTALLATIONS)
 
 install_ladspa: all
 	@echo "Installing LADSPA plugins to $(DESTDIR)$(LADSPA_PATH)/"
-	@mkdir -p $(DESTDIR)$(LADSPA_PATH)
-	@$(INSTALL) $(LIB_LADSPA) $(DESTDIR)$(LADSPA_PATH)/
+	mkdir -p $(DESTDIR)$(LADSPA_PATH)
+	$(INSTALL) $(LIB_LADSPA) $(DESTDIR)$(LADSPA_PATH)/
 	
 install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@mkdir -p "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@$(INSTALL) $(LIB_LV2) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/"
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(UTL_GENTTL) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
+	mkdir -p "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
+	$(INSTALL) $(LIB_LV2) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/"
+	test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
+	$(UTL_GENTTL) "$(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	
 install_vst: all
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/$(VST_ID)"
-	@mkdir -p "$(DESTDIR)$(VST_PATH)/$(VST_ID)"
-	@$(INSTALL) $(LIB_VST) "$(DESTDIR)$(VST_PATH)/$(VST_ID)/"
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	mkdir -p "$(DESTDIR)$(VST_PATH)/$(VST_ID)"
+	$(INSTALL) $(LIB_VST) "$(DESTDIR)$(VST_PATH)/$(VST_ID)/"
+	test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
 	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
-	@mkdir -p "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
-	@$(INSTALL) $(LIB_JACK) "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
-	@test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
+	mkdir -p "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)"
+	$(INSTALL) $(LIB_JACK) "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
+	test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
-	@mkdir -p "$(DESTDIR)$(BIN_PATH)"
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
+	mkdir -p "$(DESTDIR)$(BIN_PATH)"
+	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
 
 install_xdg:
 	@echo "Installing desktop icons to $(DESTDIR)$(SHARE_PATH)/applications"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/applications"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
-	@mkdir -p "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps"
-	@mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps"
-	@cp res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
-	@cp res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
-	@cp res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
-	@cp -f res/icons/$(ARTIFACT_ID)-16.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-22.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-24.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-32.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-48.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-64.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-128.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-256.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).png"
-	@cp -f res/icons/$(ARTIFACT_ID)-exp.svg "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).svg"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/applications"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/desktop-directories"
+	mkdir -p "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps"
+	mkdir -p "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps"
+	cp res/xdg/*.desktop "$(DESTDIR)$(SHARE_PATH)/applications/"
+	cp res/xdg/lsp-plugins.directory "$(DESTDIR)$(SHARE_PATH)/desktop-directories/"
+	cp res/xdg/lsp-plugins.menu "$(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/"
+	cp -f res/icons/$(ARTIFACT_ID)-16.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-22.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-24.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-32.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-48.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-64.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-128.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-256.png "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).png"
+	cp -f res/icons/$(ARTIFACT_ID)-exp.svg "$(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).svg"
 
 install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
-	@mkdir -p $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
-	@cp -r $(OBJDIR)/html/* $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+	mkdir -p $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+	cp -r $(OBJDIR)/html/* $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 
 # Release targets
 dbg_release: export CFLAGS        += -DLSP_TRACE -O2
@@ -279,67 +285,67 @@ release: $(RELEASES)
 
 release_prepare: all
 	@echo "Releasing plugins for architecture $(BUILD_PROFILE)"
-	@mkdir -p $(RELEASE)
-	@mkdir -p $(DESTDIR)
+	mkdir -p $(RELEASE)
+	mkdir -p $(DESTDIR)
 	
 release_ladspa: DESTDIR=$(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_ladspa: | release_prepare install_ladspa
 	@echo "Releasing LADSPA binaries"
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(DESTDIR)
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	rm -rf $(DESTDIR)
 	
 release_lv2: DESTDIR=$(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_lv2: | release_prepare install_lv2
 	@echo "Releasing LV2 binaries"
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(DESTDIR)
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	rm -rf $(DESTDIR)
 	
 release_vst: DESTDIR=$(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_vst: | release_prepare install_vst
 	@echo "Releasing VST binaries"
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(DESTDIR)
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	rm -rf $(DESTDIR)
 	
 release_jack: DESTDIR=$(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_jack: | release_prepare install_jack
 	@echo "Releasing JACK binaries"
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(DESTDIR)
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	rm -rf $(DESTDIR)
 
 release_profile: DESTDIR=$(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 release_profile: | release_prepare
 	@echo "Releasing PROFILE binaries"
-	@$(INSTALL) $(BIN_PROFILE) $(DESTDIR)/
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	$(INSTALL) $(BIN_PROFILE) $(DESTDIR)/
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE_BIN) -czf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	rm -rf $(RELEASE_BIN)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 
 release_src: DESTDIR=$(RELEASE)/$(SRC_ID)
 release_src: | release_prepare
 	@echo "Releasing source code binaries"
-	@mkdir -p $(DESTDIR)
-	@mkdir -p $(DESTDIR)/scripts
-	@cp -R $(RELEASE_SRC) $(DESTDIR)/
-	@cp -R $(RELEASE_SCRIPTS) $(DESTDIR)/scripts/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
-	@rm -rf $(DESTDIR)
+	mkdir -p $(DESTDIR)
+	mkdir -p $(DESTDIR)/scripts
+	cp -R $(RELEASE_SRC) $(DESTDIR)/
+	cp -R $(RELEASE_SCRIPTS) $(DESTDIR)/scripts/
+	tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
+	rm -rf $(DESTDIR)
 
 release_doc: DESTDIR=$(RELEASE)/$(DOC_ID)
 release_doc: | release_prepare
 	@echo "Releasing documentation"
-	@mkdir -p $(DESTDIR)
-	@cp -r $(OBJDIR)/html/* $(DESTDIR)/
-	@cp $(RELEASE_TEXT) $(DESTDIR)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
-	@rm -rf $(DESTDIR)
+	mkdir -p $(DESTDIR)
+	cp -r $(OBJDIR)/html/* $(DESTDIR)/
+	cp $(RELEASE_TEXT) $(DESTDIR)/
+	tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
+	rm -rf $(DESTDIR)
 
 # Unrelease target
 unrelease: clean
-	@-rm -rf $(RELEASE)
+	-rm -rf $(RELEASE)
 	@echo "Unrelease OK"
 
 # Uninstall target
@@ -348,41 +354,41 @@ uninstall: $(UNINSTALLATIONS)
 	
 uninstall_ladspa:
 	@echo "Uninstalling LADSPA"
-	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
+	-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	
 uninstall_lv2:
 	@echo "Uninstalling LV2"
-	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	
 uninstall_vst:
 	@echo "Uninstalling VST"
-	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
-	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*
-	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
+	-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
+	-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*
+	-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	
 uninstall_jack:
 	@echo "Uninstalling JACK"
-	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
-	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
-	@-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
-	@-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
+	-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
+	-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
+	-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
+	-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_xdg:
 	@echo "Uninstalling desktop icons"
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
-	@-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
-	@-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
+	-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
+	-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
+	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
 
 uninstall_doc:
 	@echo "Uninstalling DOC"
-	@-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+	-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 

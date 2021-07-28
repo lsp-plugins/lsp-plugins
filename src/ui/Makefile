@@ -1,3 +1,9 @@
+# Command-line flag to silence nested $(MAKE).
+$(VERBOSE)MAKESILENT = -s
+
+# Suppress display of executed commands.
+$(VERBOSE).SILENT:
+
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS					= ws tk ctl plugins
@@ -8,15 +14,15 @@ PACKAGES                = $(OBJ_WS_CORE) $(OBJ_TK_CORE) $(OBJ_CTL_CORE)
 
 $(SUBDIRS):
 	@echo "Building $@"
-	@mkdir -p $(OBJDIR)/$(@)
-	@$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
+	mkdir -p $(OBJDIR)/$(@)
+	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"
-	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)
+	$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)
 
 $(OBJ_UI_CORE): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) -o $(OBJ_UI_CORE) $(OBJ_PLUGIN_UIS) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
+	$(LD) -o $(OBJ_UI_CORE) $(OBJ_PLUGIN_UIS) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
 
 all: $(OBJ_UI_CORE)
