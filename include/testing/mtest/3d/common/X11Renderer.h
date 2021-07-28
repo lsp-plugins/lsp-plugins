@@ -30,7 +30,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <sys/poll.h>
+#include <poll.h>
 
 #include <rendering/backend.h>
 #include <core/ipc/Library.h>

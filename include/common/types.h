@@ -564,6 +564,12 @@
 #endif /* DEFAULT_ALIGN */
 
 //-----------------------------------------------------------------------------
+// Detect some libraries
+#ifdef __GLIBC__
+    #define USE_GLIBC                           __GLIBC__
+#endif /* GLIBC */
+
+//-----------------------------------------------------------------------------
 // Type definitions
 __IF_32( typedef        uint32_t            umword_t );
 __IF_32( typedef        int32_t             smword_t );

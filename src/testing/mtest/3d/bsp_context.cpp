@@ -39,7 +39,7 @@
 #include <X11/keysymdef.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <sys/poll.h>
+#include <poll.h>
 
 //#define TEST_DEBUG
 
