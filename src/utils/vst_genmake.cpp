@@ -100,6 +100,11 @@ namespace lsp
         }
 
         fprintf(out, "# Auto generated makefile, do not edit\n\n");
+        fprintf(out, "MAKE_OPTS              += VERBOSE=$(VERBOSE)\n");
+        fprintf(out, "ifneq ($(VERBOSE),1)\n");
+        fprintf(out, ".SILENT:\n");
+        fprintf(out, "endif\n");
+        fprintf(out, "\n");
 
         fprintf(out, "FILES                   = $(patsubst %%.cpp, %%.so, $(wildcard *.cpp))\n");
         fprintf(out, "FILE                    = $(@:%%.so=%%.cpp)\n");
@@ -110,8 +115,8 @@ namespace lsp
         fprintf(out, "all: $(FILES)\n\n");
 
         fprintf(out, "$(FILES):\n");
-        fprintf(out, "\t@echo \"  $(CXX) $(FILE)\"\n");
-        fprintf(out, "\t@$(CXX) -o $(@) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE) $(SO_FLAGS) $(DL_LIBS)\n\n");
+        fprintf(out, "\techo \"  $(CXX) $(FILE)\"\n");
+        fprintf(out, "\t$(CXX) -o $(@) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE) $(SO_FLAGS) $(DL_LIBS)\n\n");
 
         // Close file
         fclose(out);
