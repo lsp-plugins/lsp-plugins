@@ -1,8 +1,8 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 SUBDIRS                 = core metadata utils 
 MODULES                 = $(SUBDIRS)
@@ -64,6 +64,7 @@ ifeq ($(NEED_UI),1)
   CONTAINER_DEPS         += $(OBJ_UI_CORE) $(OBJ_RES_CORE) rendering
 endif
 
+.DEFAULT_GOAL          := all
 .PHONY: all $(MODULES)
 
 all: $(MODULES)
@@ -74,7 +75,7 @@ target: all
 $(SUBDIRS):
 	@echo "Building $(@)"
 	mkdir -p $(OBJDIR)/$(@)
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
+	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
 
 # Object dependencies
 $(OBJ_CORE): core
@@ -121,11 +122,11 @@ vst_stub: $(UTL_VSTMAKE)
 	mkdir -p $(OBJDIR)/vst
 	$(UTL_VSTMAKE) $(OBJDIR)/vst
 	-rm gmon.out >/dev/null 2>&1
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
+	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
 jack_stub: $(UTL_JACKMAKE)
 	@echo "Building JACK stub"
 	mkdir -p $(OBJDIR)/jack
 	$(UTL_JACKMAKE) $(OBJDIR)/jack
 	-rm gmon.out >/dev/null 2>&1
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
+	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack

@@ -1,8 +1,8 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 NATIVE_IMPL             = $(OBJDIR)/native.o
 
@@ -57,6 +57,7 @@ ifeq ($(BUILD_PROFILE), aarch64)
 LINK_OBJECTS           += $(AARCH64_IMPL) $(ASIMD_IMPL)
 endif
 
+.DEFAULT_GOAL          := all
 .PHONY: all target
 
 target: all

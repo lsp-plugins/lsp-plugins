@@ -1,12 +1,13 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 PHPDIR      = $(BUILDDIR)/src/doc
 HTMLDIR     = $(BUILDDIR)/html
 
+.DEFAULT_GOAL          := all
 .PHONY: all target
 
 target: all
@@ -24,4 +25,4 @@ $(PHPDIR)/Makefile:
 
 all: $(PHPDIR)/Makefile
 	@echo "Generating HTML documentation"
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $(PHPDIR)
+	$(MAKE) $(MAKE_OPTS) -C $(PHPDIR)

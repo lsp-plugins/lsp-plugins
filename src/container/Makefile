@@ -1,8 +1,8 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
@@ -59,6 +59,7 @@ ifeq ($(VST_UI),1)
   X_VST_LIBS             += $(UI_LIBS)
 endif
 
+.DEFAULT_GOAL          := all
 .PHONY: all
 
 all: $(MODULES)
@@ -76,7 +77,7 @@ $(LIB_LADSPA):
 $(LIB_LV2): $(X_LV2_DEPS)
 	@echo "  $(CXX) lv2.cpp"
 	$(CXX) -o $(OBJDIR)/lv2.o -c lv2.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(CAIRO_HEADERS) $(LV2_HEADERS)
-	@echo "  $(CXX) $(notdir $(X_LIB_LV2))"
+	@echo "  $(CXX) $(notdir $(LIB_LV2))"
 	$(CXX) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(X_LV2_OBJFILES) $(SO_FLAGS) $(X_LV2_LIBS)
 
 $(LIB_VST):

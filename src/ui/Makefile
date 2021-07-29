@@ -1,8 +1,8 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
@@ -15,7 +15,7 @@ PACKAGES                = $(OBJ_WS_CORE) $(OBJ_TK_CORE) $(OBJ_CTL_CORE)
 $(SUBDIRS):
 	@echo "Building $@"
 	mkdir -p $(OBJDIR)/$(@)
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
+	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"

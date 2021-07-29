@@ -1,8 +1,8 @@
 # Command-line flag to silence nested $(MAKE).
-$(VERBOSE)MAKESILENT = -s
-
-# Suppress display of executed commands.
-$(VERBOSE).SILENT:
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
 
 # Common definitions
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
@@ -178,12 +178,12 @@ compile: | compile_info
 	test -f "$(CFGDIR)/$(MODULES_FILE)" || echo -n "$(BUILD_MODULES)" > "$(CFGDIR)/$(MODULES_FILE)"
 	test -f "$(CFGDIR)/$(BUILD_PROFILE)" || echo -n "$(BUILD_PROFILE)" > "$(CFGDIR)/$(BUILD_PROFILE_FILE)"
 	test -f "$(CFGDIR)/$(R3D_BACKENDS_FILE)" || echo -n "$(BUILD_R3D_BACKENDS)" > "$(CFGDIR)/$(R3D_BACKENDS_FILE)"
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
+	$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 	
 test_compile: | compile_info
 	mkdir -p $(OBJDIR)/src
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
+	$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Test Build OK"
 
 clean:
@@ -239,7 +239,7 @@ install_jack: all
 	test ! "$(BUILD_R3D_BACKENDS)" || $(INSTALL) $(OBJDIR)/$(R3D_ARTIFACT_ID)*.so "$(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)/"
 	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
 	mkdir -p "$(DESTDIR)$(BIN_PATH)"
-	$(MAKE) $(MAKESILENT) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
+	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH="$(DESTDIR)$(BIN_PATH)" INSTALL="$(INSTALL)"
 
 install_xdg:
 	@echo "Installing desktop icons to $(DESTDIR)$(SHARE_PATH)/applications"
