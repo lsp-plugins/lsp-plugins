@@ -120,7 +120,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating builtin resources"
 	mkdir -p $(OBJDIR)/res
 	$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(RESOURCE_PATHS)
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 
 # Target dependencies
@@ -139,12 +139,12 @@ vst_stub: $(UTL_VSTMAKE)
 	@echo "Building VST stub"
 	mkdir -p $(OBJDIR)/vst
 	$(UTL_VSTMAKE) $(OBJDIR)/vst
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
 jack_stub: $(UTL_JACKMAKE)
 	@echo "Building JACK stub"
 	mkdir -p $(OBJDIR)/jack
 	$(UTL_JACKMAKE) $(OBJDIR)/jack
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
