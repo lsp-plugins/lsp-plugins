@@ -161,8 +161,11 @@ debugfile: export CFLAGS    += -DLSP_TRACEFILE
 debugfile: export CXXFLAGS  += -DLSP_TRACEFILE
 debugfile: debug
 
-gdb: export CFLAGS          += -Og -g3 -DLSP_TRACE
-gdb: export CXXFLAGS        += -Og -g3 -DLSP_TRACE
+gdb: export CFLAGS          = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
+gdb: export CXXFLAGS        = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
+gdb: export HOST_CXXFLAGS   = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
+gdb: export EXE_FLAGS       = -g3
+gdb: export HOST_EXE_FLAGS  = -g3
 gdb: compile
 
 profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie -fno-pie -fPIC
