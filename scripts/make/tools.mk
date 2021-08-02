@@ -11,8 +11,8 @@ TOOL_HOST_PKG_CONFIG    = PKG_CONFIG_SYSROOT_DIR=/ pkg-config
 # Setup preferred flags
 FLAG_RELRO              = -Wl,-z,relro,-z,now
 FLAG_VERSION            = -DLSP_MAIN_VERSION=\"$(LSP_VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
-FLAG_CTUNE              = -std=c++98 \
-                          -fno-exceptions -fno-rtti \
+FLAG_CXXSTANDARD        = -std=c++98
+FLAGS_CTUNE             = -fno-exceptions -fno-rtti \
                           -fdata-sections -ffunction-sections -fno-asynchronous-unwind-tables \
                           -fvisibility=hidden \
                           -pipe -Wall
@@ -34,9 +34,11 @@ HOST_LD                  ?= $(TOOL_HOST_LD)
 PKG_CONFIG               ?= $(TOOL_PKG_CONFIG)
 HOST_PKG_CONFIG          ?= $(TOOL_HOST_PKG_CONFIG)
 
-CFLAGS                   += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
-CXXFLAGS                 += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
-HOST_CXXFLAGS            += $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
+CFLAGS                   += $(CC_ARCH) $(FLAG_CXXSTANDARD) $(FLAGS_CTUNE) \
+                            $(CC_FLAGS) $(FLAG_VERSION)
+CXXFLAGS                 += $(CC_ARCH) $(FLAG_CXXSTANDARD) $(FLAGS_CTUNE) \
+                            $(CC_FLAGS) $(FLAG_VERSION)
+HOST_CXXFLAGS            += $(FLAG_CXXSTANDARD) $(FLAGS_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 SO_FLAGS                 += $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 MERGE_FLAGS              += $(LD_ARCH) -r
 EXE_TEST_FLAGS           += $(LDFLAGS) $(CC_ARCH)
