@@ -217,10 +217,10 @@ utils: | compile_info
 	@echo "Utils Build OK"
 
 clean:
-	-rm -rf $(BUILDDIR)
-	-rm -rf $(HOST_BUILDDIR)
-	-rm -rf $(TESTDIR)
-	-rm -rf $(CFGDIR)
+	rm -rf $(BUILDDIR)
+	rm -rf $(HOST_BUILDDIR)
+	rm -rf $(TESTDIR)
+	rm -rf $(CFGDIR)
 	@echo "Clean OK"
 
 # Build targets
@@ -376,7 +376,7 @@ release_doc: | release_prepare
 
 # Unrelease target
 unrelease: clean
-	-rm -rf $(RELEASE)
+	rm -rf $(RELEASE)
 	@echo "Unrelease OK"
 
 # Uninstall target
@@ -385,41 +385,41 @@ uninstall: $(UNINSTALLATIONS)
 	
 uninstall_ladspa:
 	@echo "Uninstalling LADSPA"
-	-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
+	rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	
 uninstall_lv2:
 	@echo "Uninstalling LV2"
-	-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	
 uninstall_vst:
 	@echo "Uninstalling VST"
-	-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
-	-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*
-	-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
+	rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
+	rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*
+	rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	
 uninstall_jack:
 	@echo "Uninstalling JACK"
-	-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
-	-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
-	-rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
-	-rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
+	rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
+	rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
+	rm -f $(DESTDIR)$(LIB_PATH)/$(R3D_ARTIFACT_ID)
+	rm -rf $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)
 
 uninstall_xdg:
 	@echo "Uninstalling desktop icons"
-	-rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
-	-rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
-	-rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
-	-rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/applications/in.lsp_plug.*.desktop
+	rm -f $(DESTDIR)$(SHARE_PATH)/desktop-directories/lsp-plugins.directory
+	rm -f $(DESTDIR)$(ETC_PATH)/xdg/menus/applications-merged/lsp-plugins.menu
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/16x16/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/22x22/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/24x24/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/32x32/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/48x48/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/64x64/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/128x128/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/256x256/apps/$(ARTIFACT_ID).*
+	rm -f $(DESTDIR)$(SHARE_PATH)/icons/hicolor/scalable/apps/$(ARTIFACT_ID).*
 
 uninstall_doc:
 	@echo "Uninstalling DOC"
-	-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+	rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 
