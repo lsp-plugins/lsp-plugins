@@ -98,7 +98,7 @@ SRC_ID                 := $(ARTIFACT_ID)-src-$(LSP_VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(LSP_VERSION)
 
 .DEFAULT_GOAL          := all
-.PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug testprofile compile test_compile
+.PHONY: all experimental trace debug tracefile debugfile profile gdb test check testdebug testprofile compile test_compile
 .PHONY: compile_info
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc install_xdg
 .PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc uninstall_xdg
@@ -129,6 +129,10 @@ test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: export BUILD_MODULES   = jack
 test: test_compile
+
+# Run unit tests
+check: test
+	.test/lsp-plugins-test utest
 
 testdebug: OBJDIR                 = $(TESTDIR)
 testdebug: export CFLAGS         += -Og -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
