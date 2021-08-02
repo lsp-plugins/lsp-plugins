@@ -131,8 +131,8 @@ test: export BUILD_MODULES   = jack
 test: test_compile
 
 testdebug: OBJDIR                 = $(TESTDIR)
-testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
-testdebug: export CXXFLAGS       += -O0 -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
+testdebug: export CFLAGS         += -Og -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
+testdebug: export CXXFLAGS       += -Og -DLSP_TESTING -DLSP_TRACE -g3 -fstack-protector
 testdebug: export EXE_TEST_FLAGS += -g3
 testdebug: export MAKE_OPTS      += LSP_TESTING=1
 testdebug: export BUILD_MODULES   = jack
@@ -157,8 +157,8 @@ debugfile: export CFLAGS    += -DLSP_TRACEFILE
 debugfile: export CXXFLAGS  += -DLSP_TRACEFILE
 debugfile: debug
 
-gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
-gdb: export CXXFLAGS        += -O0 -g3 -DLSP_TRACE
+gdb: export CFLAGS          += -Og -g3 -DLSP_TRACE
+gdb: export CXXFLAGS        += -Og -g3 -DLSP_TRACE
 gdb: compile
 
 profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie -fno-pie -fPIC
