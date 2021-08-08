@@ -139,7 +139,6 @@ namespace lsp
             {
             	float 				fReverbTime; 			// Reverberation time [seconds]
             	size_t 				nReverbTime; 			// Reverberation time [samples]
-//            	float 				fPosTime; 				// Length of the IR positive time axis [seconds]
             	float 				fCorrCoeff; 			// Energy decay correlation coefficient
             	float 				fIntgLimit; 			// IR intgration limit [seconds]
             	bool 				bRTAccuray; 			// If true, dynamic range and bacjground noise are optimal for RT accuracy.
@@ -148,7 +147,6 @@ namespace lsp
             typedef struct channel_t
             {
                 Bypass              sBypass;
-//                Oscillator          sCalOscillator;         // For calibration
                 LatencyDetector     sLatencyDetector;       // For latency assessment
                 ResponseTaker       sResponseTaker;         // To take response of system after Synch Chirp stimulation
 
@@ -187,7 +185,6 @@ namespace lsp
             {
                 status_codes    enSaveStatus;
                 float           fSavePercent;
-
             } save_t;
 
         protected:
@@ -201,7 +198,6 @@ namespace lsp
             state_t             nState;                 // Object State
 
             Oscillator          sCalOscillator;         // For calibration
-
             SyncChirpProcessor  sSyncChirpProcessor;    // To handle Synch Chirp profiling signal and related operations
 
             ipc::IExecutor     *pExecutor;              // Executor Service
@@ -268,13 +264,13 @@ namespace lsp
             virtual ~profiler_base();
 
         public:
-            virtual void init(IWrapper *wrapper);
-            virtual void destroy();
+            virtual void        init(IWrapper *wrapper);
+            virtual void        destroy();
 
-            virtual void update_settings();
-            virtual void update_sample_rate(long sr);
+            virtual void        update_settings();
+            virtual void        update_sample_rate(long sr);
 
-            virtual void process(size_t samples);
+            virtual void        process(size_t samples);
     };
 
     class profiler_mono: public profiler_base, public profiler_mono_metadata

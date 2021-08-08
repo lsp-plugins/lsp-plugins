@@ -33,6 +33,7 @@
 * Fixed X11 error handling routine that could crash under certain conditions.
 * Better support for musl libc (contributed by Artur Sinila).
 * Added support of VERBOSE parameter for build system (contributed by Artur Sinila).
+* Fixed possible system crash in profiler plugin.
 
 *******************************************************************************
 * New plugin check list before release
