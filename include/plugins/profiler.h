@@ -183,11 +183,20 @@ namespace lsp
             	uint8_t 	   *pData;
             } response_t;
 
+            typedef struct save_t
+            {
+                status_codes    enSaveStatus;
+                float           fSavePercent;
+
+            } save_t;
+
         protected:
             size_t              nChannels;
 			channel_t          *vChannels;
 
 			response_t 			sResponseData;
+
+			save_t              sSaveData;
 
             state_t             nState;                 // Object State
 
@@ -252,6 +261,7 @@ namespace lsp
             void                commit_state_change();
             void                reset_tasks();
             bool                update_post_processing_info();
+            void                update_saving_info();
 
         public:
             profiler_base(const plugin_metadata_t &metadata, size_t channels);
