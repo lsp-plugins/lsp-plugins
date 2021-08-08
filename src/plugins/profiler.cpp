@@ -166,15 +166,10 @@ namespace lsp
     status_t profiler_base::Saver::run()
     {
         // Doing Checks:
-        if (pCore->bIRMeasured)
+        if (!pCore->bIRMeasured)
         {
-            pCore->pIRSaveStatus->setValue(STATUS_LOADING);
-            pCore->pIRSavePercent->setValue(0.0f);
-        }
-        else
-        {
-            pCore->pIRSaveStatus->setValue(STATUS_NO_DATA);
-            pCore->pIRSavePercent->setValue(0.0f);
+            pCore->sSaveData.enSaveStatus = STATUS_NO_DATA;
+            pCore->sSaveData.fSavePercent = 0.0f;
             return STATUS_NO_DATA;
         }
 
@@ -235,13 +230,13 @@ namespace lsp
 
         if (returnValue == STATUS_OK)
         {
-            pCore->pIRSavePercent->setValue(100.0f);
-            pCore->pIRSaveStatus->setValue(STATUS_OK);
+            pCore->sSaveData.enSaveStatus = STATUS_OK;
+            pCore->sSaveData.fSavePercent = 100.0f;
         }
         else
         {
-            pCore->pIRSavePercent->setValue(0.0f);
-            pCore->pIRSaveStatus->setValue(STATUS_UNKNOWN_ERR);
+            pCore->sSaveData.enSaveStatus = STATUS_UNKNOWN_ERR;
+            pCore->sSaveData.fSavePercent = 0.0f;
         }
 
         return returnValue;
@@ -254,6 +249,9 @@ namespace lsp
 
     	sResponseData.vResponses 	= NULL;
     	sResponseData.vOffsets 		= NULL;
+
+    	sSaveData.enSaveStatus      = STATUS_OK;
+    	sSaveData.fSavePercent      = 0.0f;
 
         nState                  	= IDLE;
 
@@ -379,6 +377,7 @@ namespace lsp
         sCalOscillator.destroy();
     }
 
+    // Called only from process()
     void profiler_base::update_pre_processing_info()
     {
         pActualDuration->setValue(sSyncChirpProcessor.get_chirp_duration_seconds());
@@ -389,6 +388,7 @@ namespace lsp
         }
     }
 
+    // Called only from process()
     bool profiler_base::update_post_processing_info()
     {
         ssize_t nIROffset = pPostProcessor->get_ir_offset();
@@ -424,6 +424,13 @@ namespace lsp
             pWrapper->query_display_draw();
 
         return true;
+    }
+
+    // Called only from process()
+    void profiler_base::update_saving_info()
+    {
+        pIRSaveStatus->setValue(sSaveData.enSaveStatus);
+        pIRSavePercent->setValue(sSaveData.fSavePercent);
     }
 
     scp_rtcalc_t profiler_base::get_rt_algorithm(size_t algorithm)
@@ -634,8 +641,6 @@ namespace lsp
         	TRACE_PORT(vPorts[port_id]);
         	vChannels[ch].pResultMesh     	= vPorts[port_id++];
         }
-
-        pStateLEDs->setValue(nState);
     }
 
     void profiler_base::update_sample_rate(long sr)
@@ -897,9 +902,16 @@ namespace lsp
 				case SAVING:
 				{
 					if (pSaver->idle())
+					{
+					    sSaveData.enSaveStatus = STATUS_LOADING;
+					    sSaveData.fSavePercent = 0.0f;
+					    update_saving_info();
+
 						pExecutor->submit(pSaver);
+					}
 					else if (pSaver->completed())
 					{
+					    update_saving_info();
 						nState      = IDLE;
 						pSaver->reset();
 					}
@@ -993,6 +1005,7 @@ namespace lsp
         	vChannels[ch].sResponseTaker.reset_capture();
     }
 
+    // Called only from process()
     void profiler_base::commit_state_change()
     {
         switch (nState)
@@ -1118,7 +1131,6 @@ namespace lsp
             for (size_t ch = 0; ch < nChannels; ++ch)
             	vChannels[ch].sLatencyDetector.reset_capture();
 
-            reset_saver	= true;
             nState   	= IDLE;
         }
 
