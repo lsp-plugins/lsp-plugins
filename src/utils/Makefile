@@ -4,14 +4,20 @@ ifneq ($(VERBOSE),1)
 .SILENT:
 endif
 
+CXX                     = $(HOST_CXX)
+CXXFLAGS                = $(HOST_CXXFLAGS)
+MAKE_OPTS              += CXX=$(HOST_CXX) CXXFLAGS=$(HOST_CXXFLAGS)
+
 MODULES                 = $(UTL_RESGEN) 
 FILELIST                = resource_gen.o 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
-OBJ_FILES               = $(OBJ_CORE) $(OBJ_METADATA)
+OBJ_FILES               = $(HOST_OBJ_CORE) $(HOST_OBJ_METADATA) $(HOST_OBJ_DSP)
 OBJ_LIBS                = $(PTHREAD_LIBS) $(MATH_LIBS)
 OBJ_EXTRA               =
 INCLUDE_EXTRA           =
+
+export PKG_CONFIG_SYSROOT_DIR = /
 
 ifeq ($(BUILD_PLATFORM),BSD)
   OBJ_LIBS               += $(ICONV_LIBS)
@@ -24,7 +30,7 @@ endif
 ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
   MODULES                += $(UTL_GENTTL)
   FILELIST               += lv2_genttl.o
-  INCLUDE_EXTRA          += $(LV2_HEADERS)
+  INCLUDE_EXTRA          += $(HOST_LV2_HEADERS)
 endif
 ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
   MODULES                += $(UTL_VSTMAKE)
@@ -54,28 +60,26 @@ $(SUBDIRS):
 	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
 
 $(FILES):
-	@echo "  $(CXX) $(FILE)"
-	$(CXX) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CXXFLAGS) $(INCLUDE) $(INCLUDE_EXTRA)
+	@echo "  $(HOST_CXX) $(FILE)"
+	$(HOST_CXX) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(HOST_CXXFLAGS) $(INCLUDE) $(INCLUDE_EXTRA)
 
 # Rules for each utility
-$(UTL_GENTTL): $(FILES) $(SUBDIRS)
-	@echo "  $(CXX) $(notdir $(UTL_GENTTL))"
-	$(CXX) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS) $(LV2_LIBS)
+$(UTL_GENTTL): $(OBJ_FILES) $(FILES) $(SUBDIRS)
+	@echo "  $(HOST_CXX) $(notdir $(UTL_GENTTL))"
+	$(HOST_CXX) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_FILES) $(HOST_EXE_FLAGS) $(HOST_SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS) $(LV2_LIBS)
 	
-$(UTL_JACKMAKE): $(FILES) $(SUBDIRS)
-	@echo "  $(CXX) $(notdir $(UTL_JACKMAKE))"
-	$(CXX) -o $(UTL_JACKMAKE) $(OBJDIR)/jack_genmake.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
+$(UTL_JACKMAKE): $(OBJ_FILES) $(FILES) $(SUBDIRS)
+	@echo "  $(HOST_CXX) $(notdir $(UTL_JACKMAKE))"
+	$(HOST_CXX) -o $(UTL_JACKMAKE) $(OBJDIR)/jack_genmake.o $(OBJ_FILES) $(HOST_EXE_FLAGS) $(HOST_SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
 	
-$(UTL_VSTMAKE): $(FILES) $(SUBDIRS)
-	@echo "  $(CXX) $(notdir $(UTL_VSTMAKE))"
-	$(CXX) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_FILES) $(EXE_FLAGS) $(DL_LIBS) $(OBJ_LIBS)
+$(UTL_VSTMAKE): $(OBJ_FILES) $(FILES) $(SUBDIRS)
+	@echo "  $(HOST_CXX) $(notdir $(UTL_VSTMAKE))"
+	$(HOST_CXX) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_FILES) $(HOST_EXE_FLAGS) $(HOST_SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
 	
-$(UTL_GENPHP): $(FILES) $(SUBDIRS)
-	@echo "  $(CXX) $(notdir $(UTL_GENPHP))"
-	$(CXX) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
+$(UTL_GENPHP): $(OBJ_FILES) $(FILES) $(SUBDIRS)
+	@echo "  $(HOST_CXX) $(notdir $(UTL_GENPHP))"
+	$(HOST_CXX) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_FILES) $(HOST_EXE_FLAGS) $(HOST_SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
 	
-$(UTL_RESGEN): $(FILES) $(SUBDIRS)
-	@echo "  $(CXX) $(notdir $(UTL_RESGEN))"
-	$(CXX) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_FILES) $(OBJ_DSP) $(OBJ_EXTRA) $(EXE_FLAGS) $(SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
-
-	
+$(UTL_RESGEN): $(OBJ_FILES) $(FILES) $(SUBDIRS)
+	@echo "  $(HOST_CXX) $(notdir $(UTL_RESGEN))"
+	$(HOST_CXX) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_FILES) $(OBJ_EXTRA) $(HOST_EXE_FLAGS) $(HOST_SNDFILE_LIBS) $(DL_LIBS) $(OBJ_LIBS)
