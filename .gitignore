@@ -3,6 +3,7 @@
 /design/*
 /.builconfig/*
 /.build/*
+/.host_build/*
 /.buildconfig/*
 /.test/*
 /.release/*

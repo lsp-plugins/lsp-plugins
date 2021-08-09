@@ -37,7 +37,52 @@ export BUILD_PLATFORM
 export LV2_UI
 export VST_UI
 
-# Detect processor architecture
+# Detect host processor architecture
+ifeq ($(BUILD_PLATFORM),Windows)
+  ifndef HOST_BUILD_PROFILE
+    HOST_BUILD_ARCH           = i586
+    HOST_BUILD_PROFILE             = i586
+    ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+      HOST_BUILD_ARCH         = i586
+      HOST_BUILD_PROFILE      = i586
+    endif
+    ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+      HOST_BUILD_ARCH              = x86_64
+      HOST_BUILD_PROFILE           = x86_64
+    endif
+  endif
+else # BUILD_PLATFORM != Windows
+  ifndef HOST_BUILD_PROFILE
+    HOST_BUILD_ARCH    ?= $(shell cat "$(OBJDIR)/$(BUILD_PROFILE_FILE)" 2>/dev/null || uname -m)
+    HOST_BUILD_PROFILE  = $(HOST_BUILD_ARCH)
+    ifeq ($(patsubst armv6%,armv6,$(HOST_BUILD_ARCH)), armv6)
+      HOST_BUILD_PROFILE      = armv6a
+    endif
+    ifeq ($(patsubst armv7%,armv7,$(HOST_BUILD_ARCH)), armv7)
+      HOST_BUILD_PROFILE      = armv7a
+    endif
+    ifeq ($(patsubst armv8%,armv8,$(HOST_BUILD_ARCH)), armv8)
+      HOST_BUILD_PROFILE      = armv8a
+    endif
+    ifeq ($(patsubst aarch64%,aarch64,$(HOST_BUILD_ARCH)), aarch64)
+      HOST_BUILD_PROFILE      = aarch64
+    endif
+    ifeq ($(HOST_BUILD_ARCH),x86_64)
+      HOST_BUILD_PROFILE      = x86_64
+    endif
+    ifeq ($(HOST_BUILD_ARCH),amd64)
+      HOST_BUILD_PROFILE      = x86_64
+    endif
+    ifeq ($(HOST_BUILD_ARCH),i86pc)
+      HOST_BUILD_PROFILE      = x86_64
+    endif
+    ifeq ($(patsubst i%86,i586,$(HOST_BUILD_ARCH)), i586)
+      HOST_BUILD_PROFILE      = i586
+    endif
+  endif
+endif # BUILD_PLATFORM != Windows
+
+# Detect target processor architecture
 ifeq ($(BUILD_PLATFORM),Windows)
   ifndef BUILD_PROFILE
     BUILD_ARCH                = i586
@@ -53,7 +98,7 @@ ifeq ($(BUILD_PLATFORM),Windows)
   endif
 else # BUILD_PLATFORM != Windows
   ifndef BUILD_PROFILE
-    BUILD_ARCH              = $(shell cat "$(OBJDIR)/$(BUILD_PROFILE_FILE)" 2>/dev/null || uname -m)
+    BUILD_ARCH              ?= $(shell cat "$(OBJDIR)/$(BUILD_PROFILE_FILE)" 2>/dev/null || uname -m)
     BUILD_PROFILE           = $(BUILD_ARCH)
     ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
       BUILD_PROFILE           = armv6a
@@ -82,5 +127,7 @@ else # BUILD_PLATFORM != Windows
   endif
 endif # BUILD_PLATFORM != Windows
 
-export BUILD_PROFILE
+HOST_BUILD_PROFILE ?= $(shell uname -m)
 
+export BUILD_PROFILE
+export HOST_BUILD_PROFILE

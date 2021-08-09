@@ -24,8 +24,10 @@ export RESDIR           = ${CURDIR}/res
 export RELEASE          = ${CURDIR}/.release
 export RELEASE_BIN      = $(RELEASE)/$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 export BUILDDIR         = ${CURDIR}/.build
+export HOST_BUILDDIR    = ${CURDIR}/.host_build
 export TESTDIR          = ${CURDIR}/.test
 OBJDIR                  = $(BUILDDIR)
+export HOST_OBJDIR      = $(HOST_BUILDDIR)
 
 # Installation locations
 BIN_PATH               ?= $(PREFIX)/bin
@@ -41,20 +43,23 @@ VST_PATH                = $(LIB_PATH)/vst
 export BASEDIR          = ${CURDIR}
 
 # Objects
-export OBJ_CORE         = $(OBJDIR)/core.o
-export OBJ_DSP          = $(OBJDIR)/dsp.o
-export OBJ_CTL_CORE     = $(OBJDIR)/ctl_core.o
-export OBJ_TK_CORE      = $(OBJDIR)/tk_core.o
-export OBJ_WS_CORE      = $(OBJDIR)/ws_core.o
-export OBJ_WS_X11_CORE  = $(OBJDIR)/ws_x11_core.o
-export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
-export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
-export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
-export OBJ_TESTING_CORE = $(OBJDIR)/testing_core.o
-export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
-export OBJ_PLUGIN_UIS	= $(OBJDIR)/plugin_uis.o
-export OBJ_METADATA     = $(OBJDIR)/metadata.o
-export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
+export OBJ_CORE          = $(OBJDIR)/core.o
+export HOST_OBJ_CORE     = $(HOST_OBJDIR)/core.o
+export OBJ_DSP           = $(OBJDIR)/dsp.o
+export HOST_OBJ_DSP      = $(HOST_OBJDIR)/dsp.o
+export OBJ_CTL_CORE      = $(OBJDIR)/ctl_core.o
+export OBJ_TK_CORE       = $(OBJDIR)/tk_core.o
+export OBJ_WS_CORE       = $(OBJDIR)/ws_core.o
+export OBJ_WS_X11_CORE   = $(OBJDIR)/ws_x11_core.o
+export OBJ_UI_CORE       = $(OBJDIR)/ui_core.o
+export OBJ_RES_CORE      = $(OBJDIR)/res_core.o
+export OBJ_TEST_CORE     = $(OBJDIR)/test_core.o
+export OBJ_TESTING_CORE  = $(OBJDIR)/testing_core.o
+export OBJ_PLUGINS       = $(OBJDIR)/plugins.o
+export OBJ_PLUGIN_UIS	 = $(OBJDIR)/plugin_uis.o
+export OBJ_METADATA      = $(OBJDIR)/metadata.o
+export HOST_OBJ_METADATA = $(HOST_OBJDIR)/metadata.o
+export OBJ_FILES         = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
 
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
@@ -68,11 +73,14 @@ export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
 export BIN_TEST         = $(OBJDIR)/$(ARTIFACT_ID)-test
 
 # Utils
-export UTL_GENTTL       = $(OBJDIR)/lv2_genttl.exe
-export UTL_VSTMAKE      = $(OBJDIR)/vst_genmake.exe
-export UTL_JACKMAKE     = $(OBJDIR)/jack_genmake.exe
-export UTL_GENPHP       = $(OBJDIR)/gen_php.exe
-export UTL_RESGEN       = $(OBJDIR)/gen_resources.exe
+ifeq ($(BUILD_SYSTEM),Windows)
+  BIN_SUFFIX := .exe
+endif
+export UTL_GENTTL       = $(HOST_OBJDIR)/lv2_genttl$(BIN_SUFFIX)
+export UTL_VSTMAKE      = $(HOST_OBJDIR)/vst_genmake$(BIN_SUFFIX)
+export UTL_JACKMAKE     = $(HOST_OBJDIR)/jack_genmake$(BIN_SUFFIX)
+export UTL_GENPHP       = $(HOST_OBJDIR)/gen_php$(BIN_SUFFIX)
+export UTL_RESGEN       = $(HOST_OBJDIR)/gen_resources$(BIN_SUFFIX)
 export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGEN)
 
 # Files
@@ -103,6 +111,7 @@ all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
 all: export CXXFLAGS        += -O2 -DLSP_NO_EXPERIMENTAL
 all: export EXE_FLAGS       += -pie -fPIE
 all: compile
+
 
 experimental: export CFLAGS += -O2
 experimental: export CXXFLAGS += -O2
@@ -161,17 +170,17 @@ profile: compile
 compile_info:
 	@echo "-------------------------------------------------------------------------------"
 	@echo "Building binaries"
-	@echo "  target architecture : $(BUILD_PROFILE)"
-	@echo "  target platform     : $(BUILD_PLATFORM)"
-	@echo "  target system       : $(BUILD_SYSTEM)"
-	@echo "  compiler            : $(BUILD_COMPILER)"
-	@echo "  modules             : $(BUILD_MODULES)"
-	@echo "  UI                  : LV2=$(LV2_UI), VST=$(VST_UI)"
-	@echo "  3D rendering        : $(BUILD_R3D_BACKENDS)"
-	@echo "  build directory     : $(OBJDIR)"
+	@echo "  platform             : $(BUILD_PLATFORM)"
+	@echo "  system               : $(BUILD_SYSTEM)"
+	@echo "  target compiler      : $(CXX)"
+	@echo "  target architecture  : $(BUILD_PROFILE)"
+	@echo "  modules              : $(BUILD_MODULES)"
+	@echo "  UI                   : LV2=$(LV2_UI), VST=$(VST_UI)"
+	@echo "  3D rendering         : $(BUILD_R3D_BACKENDS)"
+	@echo "  build directory      : $(OBJDIR)"
 	@echo "-------------------------------------------------------------------------------"
 
-compile: | compile_info
+compile: utils | compile_info
 	mkdir -p $(OBJDIR)/src
 	mkdir -p $(CFGDIR)
 	test -f "$(CFGDIR)/$(PREFIX_FILE)" || echo -n "$(PREFIX)" > "$(CFGDIR)/$(PREFIX_FILE)"
@@ -181,13 +190,31 @@ compile: | compile_info
 	$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 	
-test_compile: | compile_info
+test_compile: utils | compile_info
 	mkdir -p $(OBJDIR)/src
 	$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Test Build OK"
 
+utils: export BUILD_PROFILE=$(HOST_BUILD_PROFILE)
+utils: export OBJDIR=$(HOST_OBJDIR)
+utils: export OBJ_CORE=$(HOST_OBJ_CORE)
+utils: export OBJ_DSP=$(HOST_OBJ_DSP)
+utils: export OBJ_METADATA=$(HOST_OBJ_METADATA)
+utils: export CXX=$(HOST_CXX)
+utils: export CXXFLAGS=$(HOST_CXXFLAGS)
+utils: export LD=$(HOST_LD)
+utils: export SNDFILE_HEADERS=$(HOST_SNDFILE_HEADERS)
+utils: export SNDFILE_LIBS=$(HOST_SNDFILE_LIBS)
+utils: export LV2_HEADERS=$(HOST_LV2_HEADERS)
+utils: export LV2_LIBS=$(HOST_LV2_LIBS)
+utils: | compile_info
+	mkdir -p $(HOST_OBJDIR)/src/utils
+	$(MAKE) $(MAKE_OPTS) -C src utils
+	@echo "Utils Build OK"
+
 clean:
 	-rm -rf $(BUILDDIR)
+	-rm -rf $(HOST_BUILDDIR)
 	-rm -rf $(TESTDIR)
 	-rm -rf $(CFGDIR)
 	@echo "Clean OK"
