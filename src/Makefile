@@ -1,3 +1,5 @@
+# Estimate different pre-requisites before launching build
+
 # Command-line flag to silence nested $(MAKE).
 MAKE_OPTS              += VERBOSE=$(VERBOSE)
 ifneq ($(VERBOSE),1)
@@ -7,7 +9,8 @@ endif
 SUBDIRS                 = core metadata utils 
 MODULES                 = $(SUBDIRS)
 CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES)
-UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
+UTL_DEPS                = $(HOST_OBJ_CORE) $(HOST_OBJ_DSP) $(HOST_OBJ_METADATA)
+OBJDIR                  ?= $(BUILDDIR)
 
 NEED_UI                 = 0
 NEED_PLUGINS            = 0
@@ -73,18 +76,33 @@ target: all
 
 # Rules
 $(SUBDIRS):
-	@echo "Building $(@)"
+	@echo "$(BUILDDIR)"
 	mkdir -p $(OBJDIR)/$(@)
-	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
+	$(MAKE) $(MAKE_OPTS) -C $@ all \
+		CXX="$(CXX)" \
+		CXXFLAGS="$(CXXFLAGS)" \
+		LD="$(LD)" \
+		OBJDIR="$(OBJDIR)/$(@)" \
+		BUILD_PROFILE="$(BUILD_PROFILE)" \
+		SNDFILE_HEADERS="$(SNDFILE_HEADERS)" \
+		SNDFILE_LIBS="$(SNDFILE_LIBS)" \
+		LV2_HEADERS="$(LV2_HEADERS)" \
+		LV2_LIBS="$(LV2_LIBS)"
 
 # Object dependencies
 $(OBJ_CORE): core
 
+$(HOST_OBJ_CORE): core
+
 $(OBJ_DSP): dsp
+
+$(HOST_OBJ_DSP): dsp
 
 $(OBJ_PLUGINS): plugins
 
 $(OBJ_METADATA): metadata
+
+$(HOST_OBJ_METADATA): metadata
 
 $(OBJ_UI_CORE): ui
 
@@ -102,7 +120,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating builtin resources"
 	mkdir -p $(OBJDIR)/res
 	$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(RESOURCE_PATHS)
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 
 # Target dependencies
@@ -121,12 +139,12 @@ vst_stub: $(UTL_VSTMAKE)
 	@echo "Building VST stub"
 	mkdir -p $(OBJDIR)/vst
 	$(UTL_VSTMAKE) $(OBJDIR)/vst
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
 jack_stub: $(UTL_JACKMAKE)
 	@echo "Building JACK stub"
 	mkdir -p $(OBJDIR)/jack
 	$(UTL_JACKMAKE) $(OBJDIR)/jack
-	-rm gmon.out >/dev/null 2>&1
+	rm -f gmon.out >/dev/null 2>&1
 	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack

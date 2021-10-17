@@ -40,10 +40,12 @@ namespace lsp
 {
     static const char *vst_core_paths[] =
     {
+    #ifdef LSP_INSTALL_PREFIX
         LSP_LIB_PREFIX("/lib"),
         LSP_LIB_PREFIX("/lib64"),
         LSP_LIB_PREFIX("/bin"),
         LSP_LIB_PREFIX("/sbin"),
+    #endif /* LSP_INSTALL_PREFIX */
         "/usr/local/lib64",
         "/usr/lib64",
         "/lib64",
