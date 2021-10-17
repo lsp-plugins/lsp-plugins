@@ -1,9 +1,8 @@
 /.svn/*
 /.settings/*
 /design/*
-/.builconfig/*
 /.build/*
-/.host_build/*
+/.native/*
 /.buildconfig/*
 /.test/*
 /.release/*

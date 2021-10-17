@@ -24,7 +24,7 @@ export RESDIR           = ${CURDIR}/res
 export RELEASE          = ${CURDIR}/.release
 export RELEASE_BIN      = $(RELEASE)/$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 export BUILDDIR         = ${CURDIR}/.build
-export HOST_BUILDDIR    = ${CURDIR}/.host_build
+export HOST_BUILDDIR    = ${CURDIR}/.native
 export TESTDIR          = ${CURDIR}/.test
 OBJDIR                  = $(BUILDDIR)
 export HOST_OBJDIR      = $(HOST_BUILDDIR)
@@ -44,9 +44,7 @@ export BASEDIR          = ${CURDIR}
 
 # Objects
 export OBJ_CORE          = $(OBJDIR)/core.o
-export HOST_OBJ_CORE     = $(HOST_OBJDIR)/core.o
 export OBJ_DSP           = $(OBJDIR)/dsp.o
-export HOST_OBJ_DSP      = $(HOST_OBJDIR)/dsp.o
 export OBJ_CTL_CORE      = $(OBJDIR)/ctl_core.o
 export OBJ_TK_CORE       = $(OBJDIR)/tk_core.o
 export OBJ_WS_CORE       = $(OBJDIR)/ws_core.o
@@ -58,8 +56,12 @@ export OBJ_TESTING_CORE  = $(OBJDIR)/testing_core.o
 export OBJ_PLUGINS       = $(OBJDIR)/plugins.o
 export OBJ_PLUGIN_UIS	 = $(OBJDIR)/plugin_uis.o
 export OBJ_METADATA      = $(OBJDIR)/metadata.o
-export HOST_OBJ_METADATA = $(HOST_OBJDIR)/metadata.o
 export OBJ_FILES         = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
+
+# Host-related objects
+export HOST_OBJ_CORE     = $(HOST_OBJDIR)/core.o
+export HOST_OBJ_DSP      = $(HOST_OBJDIR)/dsp.o
+export HOST_OBJ_METADATA = $(HOST_OBJDIR)/metadata.o
 
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
@@ -73,9 +75,6 @@ export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
 export BIN_TEST         = $(OBJDIR)/$(ARTIFACT_ID)-test
 
 # Utils
-ifeq ($(BUILD_SYSTEM),Windows)
-  BIN_SUFFIX := .exe
-endif
 export UTL_GENTTL       = $(HOST_OBJDIR)/lv2_genttl$(BIN_SUFFIX)
 export UTL_VSTMAKE      = $(HOST_OBJDIR)/vst_genmake$(BIN_SUFFIX)
 export UTL_JACKMAKE     = $(HOST_OBJDIR)/jack_genmake$(BIN_SUFFIX)
@@ -111,7 +110,6 @@ all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
 all: export CXXFLAGS        += -O2 -DLSP_NO_EXPERIMENTAL
 all: export EXE_FLAGS       += -pie -fPIE
 all: compile
-
 
 experimental: export CFLAGS += -O2
 experimental: export CXXFLAGS += -O2
@@ -163,8 +161,8 @@ debugfile: debug
 
 gdb: export CFLAGS          = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
 gdb: export CXXFLAGS        = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
-gdb: export HOST_CXXFLAGS   = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
 gdb: export EXE_FLAGS       = -g3
+gdb: export HOST_CXXFLAGS   = -std=c++98 -Og -fno-inline -g3 -DLSP_TRACE
 gdb: export HOST_EXE_FLAGS  = -g3
 gdb: compile
 

@@ -24,7 +24,7 @@ export BUILD_R3D_BACKENDS
 INSTALLATIONS           =
 UNINSTALLATIONS         = uninstall_xdg
 RELEASES                =
-INCLUDE                 := -I"${CURDIR}/include"
+INCLUDE                := -I"${CURDIR}/include"
 
 ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
   INSTALLATIONS          += install_ladspa
@@ -129,8 +129,9 @@ export INCLUDE
 
 # Dependencies: compile headers and linkage libraries
 ifeq ($(BUILD_SYSTEM),Windows)
-# TODO
+  export BIN_SUFFIX          := .exe
 else
+  export BIN_SUFFIX          :=
   export PTHREAD_LIBS         = -lpthread
   export ICONV_LIBS           = -liconv
   export MATH_LIBS            = -lm
