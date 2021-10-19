@@ -14,9 +14,9 @@
 		"s_ize_x:": "Ta X :",
 		"s_ize_y:": "Ta Y :",
 		"s_ize_z:": "Ta Z :",
-		"scale_x": "Échel X",
-		"scale_y": "Échel Y",
-		"scale_z": "Échel Z",
+		"scale_x": "Échelle X",
+		"scale_y": "Échelle Y",
+		"scale_z": "Échelle Z",
 		"size": "Taille",
 		"size_x:": "Taille X :",
 		"size_y:": "Taille Y :",
@@ -52,7 +52,7 @@
 	"balance": "Balance",
 	
 	"band": "Bande",
-	"band_hue": "Teinte de la Bande",
+	"band_hue": "Teinte de la bande",
 	
 	"bool": {
 		"off": "off",
@@ -215,7 +215,7 @@
 		"bass": "Basse",
 		"high_cut": "Coupure haute",
 		"low_cut": "Coupure basse",
-		"middle": "Medium",
+		"middle": "Médium",
 		"presence": "Présence",
 		"show_": "Affi",
 		"subs": "Subs",
@@ -235,7 +235,7 @@
 		"compression": "COMPRESSION",
 		"correlation": "CORRELATION",
 		"curve": "COURBE",
-		"delay_line": "DÉLAIS",
+		"delay_line": "LIGNE DE DELAI",
 		"delay_graph": "GRAPH DE DÉLAI",
 		"expansion": "EXPENSION",
 		"frequency": "GRAPH DE FRÉQUENCE",
@@ -265,7 +265,7 @@
 	"ir_equalizer": "IR égaliseur",
 	
 	"knee": "Courbure",
-	"knee_:db": "Courbure\n(dB)",
+	"knee_:db": "Crbr\n(dB)",
 
 	"latency:ms": "Latence (ms)",
 	"launch": "Lancer",
@@ -364,7 +364,7 @@
 		"horizontal": "Horizontal",
 		"max_dots": "Points max",
 		"mode": "Mode",
-		"oversampler_mode": " Mode de sur-échantillonnage",
+		"oversampler_mode": "Sur-échantillonneur",
 		"position": "Position",
 		"sweep_type": "Type de balayage",
 		"trigger_hold_time": "Temps de maintien",
@@ -382,7 +382,7 @@
 	"output:db": "Sortie (dB)",
 	"oversampling": "Suréchantillonnage",
 	
-	"panning": "Balance",
+	"panning": "Panoramique",
 	"panorama": "Panorama",
 	"panorama:pc": "Panorama (%)",
 	"pause": "Pause",
@@ -422,14 +422,14 @@
 	"quality": "Qualité",
 	
 	"ramp": "Rampe",
-	"range": "Interval",
-	"range_id": "Interval {@id}",
-	"ranges": "Intervals",
+	"range": "Intervalle",
+	"range_id": "Intervalle {@id}",
+	"ranges": "Intervalles",
 	
 	"ratio": "Ratio",
 	"ratio_high": "Ratio haut",
 	"ratio_low": "Ratio bas",
-	"ratio_knee:db": "Ratio,\ncourbure (dB)",
+	"ratio_knee:db": "Ratio,\nCourbure (dB)",
 	
 	"reduction": "Réduction",
 	
@@ -491,7 +491,7 @@
 	},
 	"settings": "Paramètres",
 	
-	"side_direction": "Cotés directivité", 
+	"side_direction": "Directivité des cotés", 
 	"sidechain": "Chaîne latérale",
 	
 	"signal": {
@@ -512,7 +512,7 @@
 		"in_lr": "Entrée G/D",
 		"invert": "Inverser",
 		"mono": "Mono",
-		"negative_width": "Largeur négatif",
+		"negative_width": "Largeur négative",
 		"out_lr": "Sortie G/D",
 		"pan": "Pan",
 		"pan_l": "Pan G",
@@ -521,7 +521,7 @@
 		"pan_right": "Pan droite",
 		"peak": "Pic",
 		"phase": "Phase",
-		"positive_width": "Largeur positif",
+		"positive_width": "Largeur positive",
 		"raise": "Augmenter",
 		"reference": "Référence",
 		"relative": "Relatif",
