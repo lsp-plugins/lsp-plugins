@@ -233,7 +233,7 @@
 	
 	"graphs": {
 		"compression": "COMPRESSION",
-		"correlation": "CORRELATION",
+		"correlation": "GRAPH DE CORRELATION",
 		"curve": "COURBE",
 		"delay_line": "LIGNE DE DELAI",
 		"delay_graph": "GRAPH DE DÉLAI",
