@@ -28,8 +28,8 @@
 #define ALIGN64                         0x40
 #define ALIGN_SIZE(x, size)             (((x) + (size) - 1) & (~size_t((size) - 1)))
 
-#define __LSP_STRINGIFY(s)              #s
-#define LSP_STRINGIFY(s)                __LSP_STRINGIFY(s)
+#define LSP_STRINGIFY__(s)              #s
+#define LSP_STRINGIFY(s)                LSP_STRINGIFY__(s)
 
 // Array management
 #define DROP_ARRAY(ptr)     \

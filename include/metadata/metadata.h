@@ -23,6 +23,7 @@
 #define METADATA_METADATA_H_
 
 #include <core/types.h>
+#include <core/sugar.h>
 
 #define LSP_BASE_URI                                    "http://lsp-plug.in/"
 #define LSP_ACRONYM                                     "LSP"
@@ -72,9 +73,6 @@
 #else
     #define LSP_ARCHITECTURE                                "unknown"
 #endif /* ARCH */
-
-#define LSP_STRINGIFY_(x) #x
-#define LSP_STRINGIFY(x) LSP_STRINGIFY_(x)
 
 #ifndef LSP_MAIN_VERSION
     #define LSP_MAIN_VERSION                                "0.0.0"
