@@ -258,7 +258,7 @@ Tobbe:
     A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.
     Wish I could! Not my area of expertise.
     
-    http://www.kvraudio.com/product/bdm-broken-drum-machine-by-nusofting
+    https://www.kvraudio.com/product/bdm-broken-drum-machine-by-nusofting
     BDM is a plugin instrument designed for the musicians who love chaos and usually find the unpredictable behaviour of an
     uncontrollable sound machine stimulating and inspiring.
     BDM basically offers 4 drum pads like an old, small, beat box with: Bass Drum, Snare, Hi-Hat and Stick, each of those has
@@ -359,10 +359,10 @@ Tobbe:
 
   pms967:
     would be really nice to have: a good "Blumelein Shuffler".
-    See: http://www.aes.org/e-lib/browse.cfm?elib=6686
-    See also here: http://www.audiosignal.co.uk/Resources/Stereo_shuffling_A4.pdf
+    See: https://www.aes.org/e-lib/browse.cfm?elib=6686
+    See also here: https://www.audiosignal.co.uk/Resources/Stereo_shuffling_A4.pdf
     (there you'll also find a very interesting PFB-based analog implementation, which may be inspiring)
-    ...and here: http://kokkinizita.linuxaudio.org/linuxaudio/zita-bls1-doc/quickguide.html
+    ...and here: https://kokkinizita.linuxaudio.org/linuxaudio/zita-bls1-doc/quickguide.html
     (but this otherwise very nice implementation -unfortunately available only as a stand-alone jack app, no plugin-
     is somewhat specific and optimized for a special use-case).
     Well, I know that a similar results can be obtained e.g. applying different shelving eq. to the mid/side

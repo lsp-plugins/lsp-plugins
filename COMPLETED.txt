@@ -115,7 +115,7 @@ unfa:
   Amadeus Folego:
     You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
 
-    Something like baudline (http://baudline.com) with LV2 would be amazing.
+    Something like baudline (https://baudline.com) with LV2 would be amazing.
 
 ==== Link order of libraries ====
 
