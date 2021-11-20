@@ -1,5 +1,5 @@
 function C = powersin_ampl(N, A)
-    % Code from http://ant-novak.com/Nonlinear_System_Identification_Waveguide.php
+    % Code from https://ant-novak.com/pages/sss/
 
     % C = powersin_ampl(N,A);
     % .... N = number of harmonics
