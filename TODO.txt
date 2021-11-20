@@ -37,6 +37,7 @@
 * Introduced HOST_BUILD_ARCH, HOST_CXX, etc. to make cross compilation possible.
 * Updated LV2 TTL generator, now instrument plugins are better compatible with Ardour DAW.
 * Updated french translation (contributed by wargreen at Github and Olivier Humbert).
+* Migrated hyperlinks from HTTP to HTTPS protocol (contributed by Bruno Vernay).
 
 *******************************************************************************
 * New plugin check list before release
