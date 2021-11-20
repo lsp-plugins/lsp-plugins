@@ -35,6 +35,7 @@
 * Added support of VERBOSE parameter for build system (contributed by Artur Sinila).
 * Fixed possible system crash in profiler plugin.
 * Introduced HOST_BUILD_ARCH, HOST_CXX, etc. to make cross compilation possible.
+* Updated LV2 TTL generator, now instrument plugins are better compatible with Ardour DAW.
 
 *******************************************************************************
 * New plugin check list before release
