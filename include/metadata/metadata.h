@@ -25,6 +25,7 @@
 #include <core/types.h>
 #include <core/sugar.h>
 
+#define LSP_SITE_URL                                    "https://lsp-plug.in/"
 #define LSP_BASE_URI                                    "http://lsp-plug.in/"
 #define LSP_ACRONYM                                     "LSP"
 #define LSP_PREFIX                                      "lsp"
