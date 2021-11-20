@@ -76,7 +76,6 @@ target: all
 
 # Rules
 $(SUBDIRS):
-	@echo "$(BUILDDIR)"
 	mkdir -p $(OBJDIR)/$(@)
 	$(MAKE) $(MAKE_OPTS) -C $@ all \
 		CXX="$(CXX)" \

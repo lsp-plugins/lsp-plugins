@@ -106,7 +106,8 @@ namespace lsp
         { C_LOWPASS, "LowpassPlugin" },
         { C_GENERATOR, "GeneratorPlugin" },
         { C_CONSTANT, "ConstantPlugin" },
-        { C_INSTRUMENT, "InstrumentPlugin" },
+        // InstrumentPlugin has extra processing.
+        // { C_INSTRUMENT, "InstrumentPlugin" },
         { C_OSCILLATOR, "OscillatorPlugin" },
         { C_MODULATOR, "ModulatorPlugin" },
         { C_CHORUS, "ChorusPlugin" },
@@ -173,9 +174,19 @@ namespace lsp
         { -1, NULL }
     };
 
-    static void print_additional_groups(FILE *out, const int *c)
+    bool is_instrument_plugin(const plugin_metadata_t &m)
     {
-        while ((c != NULL) && ((*c) >= 0))
+        for (const int *c = m.classes; ((c != NULL) && ((*c) >= 0)); ++c)
+        {
+            if (*c == C_INSTRUMENT)
+                return true;
+        }
+        return false;
+    }
+
+    static void print_additional_groups(FILE *out, const plugin_metadata_t &m)
+    {
+        for (const int *c = m.classes; ((c != NULL) && ((*c) >= 0)); ++c)
         {
             const lv2_plugin_group_t *grp = lv2_plugin_groups;
 
@@ -188,8 +199,6 @@ namespace lsp
                 }
                 grp++;
             }
-
-            c++;
         }
     }
 
@@ -575,8 +584,8 @@ namespace lsp
 
         // Output plugin
         fprintf(out, LSP_PREFIX ":%s\n", m.lv2_uid);
-        fprintf(out, "\ta lv2:Plugin, doap:Project");
-        print_additional_groups(out, m.classes);
+        fprintf(out, "\ta %s, doap:Project", (is_instrument_plugin(m)) ? "lv2:InstrumentPlugin" : "lv2:Plugin" );
+        print_additional_groups(out, m);
         fprintf(out, " ;\n");
         fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s\", \"" LSP_ACRONYM " %s\"@de ;\n", m.description, m.name);
         fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
