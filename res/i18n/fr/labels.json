@@ -235,7 +235,7 @@
 		"compression": "COMPRESSION",
 		"correlation": "GRAPH DE CORRELATION",
 		"curve": "COURBE",
-		"delay_line": "LIGNE DE DELAI",
+		"delay_line": "LIGNE DE DÉLAI",
 		"delay_graph": "GRAPH DE DÉLAI",
 		"expansion": "EXPENSION",
 		"frequency": "GRAPH DE FRÉQUENCE",
@@ -394,7 +394,7 @@
 		"gate": "Porte (gate)",
 		"latency_detector": "Détecteur de latence",
 		"limiter": "Limiteur",
-		"surge_filter": "Déclickeur",
+		"surge_filter": "Décliqueur",
 		"trigger": "Déclencheur"
 	},
 	
@@ -491,7 +491,7 @@
 	},
 	"settings": "Paramètres",
 	
-	"side_direction": "Directivité des cotés", 
+	"side_direction": "Directivité des côtés", 
 	"sidechain": "Chaîne latérale",
 	
 	"signal": {
