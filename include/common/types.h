@@ -39,8 +39,10 @@
 //-----------------------------------------------------------------------------
 // Detect build architecture
 #if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64) || defined(_M_AMD64)
+    #define ARCH_X86
     #define ARCH_X86_64
 #elif defined(__i386__) || defined(__i386)
+    #define ARCH_X86
     #define ARCH_I386
 #elif defined(__aarch64__)
     #define ARCH_AARCH64
@@ -56,6 +58,12 @@
     #define ARCH_MIPS
 #elif defined(__sparc__) || defined(__sparc)
     #define ARCH_SPARC
+#elif defined(__riscv) && (__riscv_xlen == 64)
+    #define ARCH_RISCV
+    #define ARCH_RISCV64
+#elif defined(__riscv) && (__riscv_xlen == 32)
+    #define ARCH_RISCV
+    #define ARCH_RISCV32
 #endif
 
 //-----------------------------------------------------------------------------
@@ -90,28 +98,22 @@
 
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
-#if defined(ARCH_I386) || defined(ARCH_X86_64)
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
     #define IF_ARCH_X86(...)        __VA_ARGS__
     #define ARCH_X86_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+#endif /* ARCH_X86 */
 
-    #ifdef ARCH_I386
-        #define ARCH_I386_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
-    #endif /* ARCH_I386 */
+#if defined(ARCH_I386)
+    #define IF_ARCH_I386(...)       __VA_ARGS__
+    #define ARCH_I386_ASM(...)      __asm__ __volatile__ ( __VA_ARGS__ )
+    #define ARCH_STRING             "i386"
+#endif /* ARCH_X86 */
 
-    #ifdef ARCH_X86_64
-        #define ARCH_X86_64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
-    #endif /* ARCH_I386 */
-
-    #define ARCH_X86
-
-    #if defined(ARCH_I386)
-        #define ARCH_STRING             "i386"
-        #define IF_ARCH_I386(...)       __VA_ARGS__
-    #else
-        #define ARCH_STRING             "x86_64"
-        #define IF_ARCH_X86_64(...)     __VA_ARGS__
-    #endif
-#endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
+#if defined(ARCH_X86_64)
+    #define IF_ARCH_X86_64(...)     __VA_ARGS__
+    #define ARCH_X86_64_ASM(...)    __asm__ __volatile__ ( __VA_ARGS__ )
+    #define ARCH_STRING             "x86_64"
+#endif /* defined(ARCH_X86_64) */
 
 #if defined(ARCH_ARM)
     #define IF_ARCH_ARM(...)            __VA_ARGS__
@@ -150,7 +152,7 @@
         #define ARCH_ARM8
         #define IF_ARCH_ARM8(...)        __VA_ARGS__
     #endif
-#endif /* defined(ARCH_ARM) */
+#endif /* defined(ARCH_AARCH64) */
 
 #if defined(ARCH_PPC)
     #define IF_ARCH_PPC(...)            __VA_ARGS__
@@ -164,28 +166,47 @@
     #define ARCH_PPC64_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
 
     #define ARCH_STRING                 "ppc64"
-#endif /* defined(ARCH_PPC) */
+#endif /* defined(ARCH_PPC64) */
 
 #if defined(ARCH_S390)
     #define IF_ARCH_S390(...)           __VA_ARGS__
     #define ARCH_S390_ASM(...)          __asm__ __volatile__ ( __VA_ARGS__ )
 
     #define ARCH_STRING                 "S390"
-#endif /* defined(ARCH_PPC) */
+#endif /* defined(ARCH_S390) */
 
 #if defined(ARCH_MIPS)
     #define IF_ARCH_MIPS(...)           __VA_ARGS__
     #define ARCH_MIPS_ASM(...)          __asm__ __volatile__ ( __VA_ARGS__ )
 
     #define ARCH_STRING                 "MIPS"
-#endif /* defined(ARCH_PPC) */
+#endif /* defined(ARCH_MIPS) */
 
 #if defined(ARCH_SPARC)
     #define IF_ARCH_SPARC(...)          __VA_ARGS__
     #define ARCH_SPARC_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
 
     #define ARCH_STRING                 "SPARC"
-#endif /* defined(ARCH_PPC) */
+#endif /* defined(ARCH_SPARC) */
+
+#if defined(ARCH_RISCV)
+    #define IF_ARCH_RISCV(...)            __VA_ARGS__
+    #define ARCH_RISCV_ASM(...)           __asm__ __volatile__ ( __VA_ARGS__ )
+#endif /* ARCH_RISCV */
+
+#if defined(ARCH_RISCV64)
+    #define IF_ARCH_RISCV64(...)          __VA_ARGS__
+    #define ARCH_RISCV64_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "RISCV64"
+#endif /* defined(ARCH_RISCV64) */
+
+#if defined(ARCH_RISCV32)
+    #define IF_ARCH_RISCV32(...)          __VA_ARGS__
+    #define ARCH_RISCV32_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "RISCV32"
+#endif /* defined(ARCH_RISCV32) */
 
 #if defined(ARCH_LE)
     #define __IF_LEBE(le, be)   le
@@ -336,6 +357,14 @@
 #ifndef ARCH_SPARC_ASM
     #define ARCH_SPARC_ASM(...)
 #endif /* ARCH_SPARC_ASM */
+
+#ifndef ARCH_RISCV64_ASM
+    #define ARCH_RISCV64_ASM(...)
+#endif /* ARCH_RISCV64_ASM */
+
+#ifndef ARCH_RISCV32_ASM
+    #define ARCH_RISCV32_ASM(...)
+#endif /* ARCH_RISCV32_ASM */
 
 #define __ASM_ARG_TMP(var)                      __IF_32P("=&g"(var)) __IF_32NP("=&r"(var)) __IF_64("=&r"(var))
 #define __ASM_ARG_RW(var)                       __IF_32P("+g"(var))  __IF_32NP("+r"(var))  __IF_64("+r"(var))
@@ -501,7 +530,15 @@
 
 #ifndef IF_ARCH_SPARC
     #define IF_ARCH_SPARC(...)
-#endif /* IF_ARCH_MIPS */
+#endif /* IF_ARCH_SPARC */
+
+#ifndef IF_ARCH_RISCV64
+    #define IF_ARCH_RISCV64(...)
+#endif /* IF_ARCH_RISCV64 */
+
+#ifndef IF_ARCH_RISCV32
+    #define IF_ARCH_RISCV32(...)
+#endif /* IF_ARCH_RISCV32 */
 
 //-----------------------------------------------------------------------------
 // Default platform
