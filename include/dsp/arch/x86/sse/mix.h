@@ -634,7 +634,7 @@ namespace sse
         );
     }
 
-#if defined(LSP_PROFILING) && defined(ARCH_I386)
+#if defined(ARCH_I386)
     void mix_copy4(float *dst, const float *a, const float *b, const float *c,
             const float *d, float k1, float k2, float k3, float k4, size_t count)
     {

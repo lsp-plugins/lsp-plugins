@@ -38,6 +38,7 @@
 * Updated LV2 TTL generator, now instrument plugins are better compatible with Ardour DAW.
 * Updated french translation (contributed by wargreen at Github and Olivier Humbert).
 * Migrated hyperlinks from HTTP to HTTPS protocol (contributed by Bruno Vernay).
+* Fixed build for 32-bit x86 architecture for newest GCC compilers.
 
 *******************************************************************************
 * New plugin check list before release
