@@ -34,32 +34,27 @@ LINK_OBJECTS            = $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL)
 
 # Build different DSP modules dependent on architecture
 ifeq ($(BUILD_PROFILE), i586)
-  LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE2_IMPL) $(SSE3_IMPL) \
-                            $(SSE4_IMPL) $(AVX_IMPL) $(AVX2_IMPL)
+LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE2_IMPL) $(SSE3_IMPL) $(SSE4_IMPL) $(AVX_IMPL) $(AVX2_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), x86_64)
-LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE2_IMPL) $(SSE3_IMPL) \
-                          $(SSE4_IMPL) $(AVX_IMPL) $(AVX2_IMPL)
+LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE2_IMPL) $(SSE3_IMPL) $(SSE4_IMPL) $(AVX_IMPL) $(AVX2_IMPL)
 endif
 ifeq ($(BUILD_PLATFORM), BSD)
   ifeq ($(BUILD_PROFILE), arm)
-    LINK_OBJECTS         += $(ARM_IMPL) $(NEON_D32_IMPL)
+    LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
   endif
 endif
-ifeq ($(BUILD_PROFILE), armv6a)
-  LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
-endif
 ifeq ($(BUILD_PROFILE), armv7a)
-  LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
+LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), armv7ve)
-  LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
+LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), arm32)
-  LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
+LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), aarch64)
-  LINK_OBJECTS           += $(AARCH64_IMPL) $(ASIMD_IMPL)
+LINK_OBJECTS           += $(AARCH64_IMPL) $(ASIMD_IMPL)
 endif
 
 .DEFAULT_GOAL          := all

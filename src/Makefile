@@ -9,8 +9,7 @@ endif
 SUBDIRS                 = core metadata utils 
 MODULES                 = $(SUBDIRS)
 CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES)
-UTL_DEPS                = $(HOST_OBJ_CORE) $(HOST_OBJ_DSP) $(HOST_OBJ_METADATA)
-OBJDIR                  ?= $(BUILDDIR)
+UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
 
 NEED_UI                 = 0
 NEED_PLUGINS            = 0
@@ -76,32 +75,18 @@ target: all
 
 # Rules
 $(SUBDIRS):
+	@echo "Building $(@)"
 	mkdir -p $(OBJDIR)/$(@)
-	$(MAKE) $(MAKE_OPTS) -C $@ all \
-		CXX="$(CXX)" \
-		CXXFLAGS="$(CXXFLAGS)" \
-		LD="$(LD)" \
-		OBJDIR="$(OBJDIR)/$(@)" \
-		BUILD_PROFILE="$(BUILD_PROFILE)" \
-		SNDFILE_HEADERS="$(SNDFILE_HEADERS)" \
-		SNDFILE_LIBS="$(SNDFILE_LIBS)" \
-		LV2_HEADERS="$(LV2_HEADERS)" \
-		LV2_LIBS="$(LV2_LIBS)"
+	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
 
 # Object dependencies
 $(OBJ_CORE): core
 
-$(HOST_OBJ_CORE): core
-
 $(OBJ_DSP): dsp
-
-$(HOST_OBJ_DSP): dsp
 
 $(OBJ_PLUGINS): plugins
 
 $(OBJ_METADATA): metadata
-
-$(HOST_OBJ_METADATA): metadata
 
 $(OBJ_UI_CORE): ui
 

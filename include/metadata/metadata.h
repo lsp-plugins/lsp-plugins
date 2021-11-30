@@ -77,12 +77,7 @@
 
 #ifndef LSP_MAIN_VERSION
     #define LSP_MAIN_VERSION                                "0.0.0"
-#else
-    #define LSP_MAIN_VERSION_STR LSP_STRINGIFY(LSP_MAIN_VERSION)
-    #undef LSP_MAIN_VERSION
-    #define LSP_MAIN_VERSION LSP_MAIN_VERSION_STR
 #endif /* LSP_MAIN_VERSION */
-
 
 #define LSP_LV2_LATENCY_PORT                            "out_latency"
 #define LSP_LV2_ATOM_PORT_IN                            "in_ui"
@@ -93,9 +88,9 @@
 #define LSP_LV2_OSC_PORT_OUT                            "out_osc"
 
 #ifdef LSP_INSTALL_PREFIX
-    #define LSP_LIB_PREFIX(x)                               LSP_STRINGIFY(LSP_INSTALL_PREFIX) x
+    #define LSP_LIB_PREFIX(x)       LSP_INSTALL_PREFIX x
 #else
-    #define LSP_LIB_PREFIX(x)                               x
+    #define LSP_LIB_PREFIX(x)       x
 #endif /* PREFIX */
 
 namespace lsp
