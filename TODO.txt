@@ -38,6 +38,7 @@
 * Updated french translation (contributed by wargreen at Github and Olivier Humbert).
 * Migrated hyperlinks from HTTP to HTTPS protocol (contributed by Bruno Vernay).
 * Added support of build for 32-bit and 64-bit RISC-V architecture (contributed by Xeonacid at GitHub).
+* Fixed window issue for the Fluxbox window manager.
 
 *******************************************************************************
 * New plugin check list before release
