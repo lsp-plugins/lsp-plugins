@@ -39,6 +39,7 @@
 * Migrated hyperlinks from HTTP to HTTPS protocol (contributed by Bruno Vernay).
 * Added support of build for 32-bit and 64-bit RISC-V architecture (contributed by Xeonacid at GitHub).
 * Fixed window issue for the Fluxbox window manager.
+* Fixed build for ARMv8 architecture (contributed by Marek Szuba).
 
 *******************************************************************************
 * New plugin check list before release
