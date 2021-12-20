@@ -3,8 +3,7 @@
 *******************************************************************************
 
 === Planned ===
-- Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
-  plugin series
+
 - Implemented dynamic equalizer plugin.
 - Implemented soundfont-based sampler.
 - Refactored and optimized filter transfer function calculation. 
@@ -27,19 +26,6 @@
 - Added 'Reset to default' button.
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
-
-=== 1.1.31 ===
-
-* Fixed X11 error handling routine that could crash under certain conditions.
-* Better support for musl libc (contributed by Artur Sinila).
-* Added support of VERBOSE parameter for build system (contributed by Artur Sinila).
-* Fixed possible system crash in profiler plugin.
-* Updated LV2 TTL generator, now instrument plugins are better compatible with Ardour DAW.
-* Updated french translation (contributed by wargreen at Github and Olivier Humbert).
-* Migrated hyperlinks from HTTP to HTTPS protocol (contributed by Bruno Vernay).
-* Added support of build for 32-bit and 64-bit RISC-V architecture (contributed by Xeonacid at GitHub).
-* Fixed window issue for the Fluxbox window manager.
-* Fixed build for ARMv8 architecture (contributed by Marek Szuba).
 
 *******************************************************************************
 * New plugin check list before release
