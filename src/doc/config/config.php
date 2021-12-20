@@ -1,4 +1,4 @@
 <?php
 	$SITEROOT = '';
-	$SITE_URL = 'http://lsp-plug.in/';
+	$SITE_URL = 'https://lsp-plug.in/';
 ?>

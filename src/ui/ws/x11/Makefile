@@ -1,3 +1,9 @@
+# Command-line flag to silence nested $(MAKE).
+MAKE_OPTS              += VERBOSE=$(VERBOSE)
+ifneq ($(VERBOSE),1)
+.SILENT:
+endif
+
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 INCLUDE                += $(XLIB_HEADERS) $(CAIRO_HEADERS)
@@ -8,9 +14,9 @@ all: $(OBJ_WS_X11_CORE)
 
 $(OBJ_WS_X11_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) -o $(OBJ_WS_X11_CORE) $(MERGE_FLAGS) -r $(FILES)
+	$(LD) -o $(OBJ_WS_X11_CORE) $(MERGE_FLAGS) -r $(FILES)
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"
-	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
+	$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 

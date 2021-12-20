@@ -97,6 +97,11 @@ namespace lsp
         }
 
         fprintf(out, "# Auto generated makefile, do not edit\n\n");
+        fprintf(out, "MAKE_OPTS              += VERBOSE=$(VERBOSE)\n");
+        fprintf(out, "ifneq ($(VERBOSE),1)\n");
+        fprintf(out, ".SILENT:\n");
+        fprintf(out, "endif\n");
+        fprintf(out, "\n");
 
         fprintf(out, "FILES                   = $(patsubst %%.cpp, %%, $(wildcard *.cpp))\n");
         fprintf(out, "FILE                    = $(@:%%=%%.cpp)\n");
@@ -107,11 +112,11 @@ namespace lsp
         fprintf(out, "all: $(FILES)\n\n");
 
         fprintf(out, "$(FILES):\n");
-        fprintf(out, "\t@echo \"  $(CXX) $(FILE)\"\n");
-        fprintf(out, "\t@$(CXX) -o $(@) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE) $(EXE_FLAGS) $(DL_LIBS)\n\n");
+        fprintf(out, "\techo \"  $(CXX) $(FILE)\"\n");
+        fprintf(out, "\t$(CXX) -o $(@) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE) $(EXE_FLAGS) $(DL_LIBS)\n\n");
 
         fprintf(out, "install: $(FILES)\n");
-        fprintf(out, "\t@$(INSTALL) $(FILES) $(TARGET_PATH)/");
+        fprintf(out, "\t$(INSTALL) $(FILES) $(TARGET_PATH)/");
 
         // Close file
         fclose(out);

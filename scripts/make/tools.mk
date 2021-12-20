@@ -25,7 +25,6 @@ CXX                      ?= $(TOOL_CXX)
 PHP                      ?= $(TOOL_PHP)
 LD                       ?= $(TOOL_LD)
 
-MAKE_OPTS                 = -s
 CFLAGS                   += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 CXXFLAGS                 += $(CC_ARCH) $(FLAG_CTUNE) $(CC_FLAGS) $(FLAG_VERSION)
 SO_FLAGS                  = $(CC_ARCH) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary -lc -fPIC
@@ -62,7 +61,6 @@ export CXX
 export PHP
 export LD
 
-export MAKE_OPTS
 export CFLAGS
 export CXXFLAGS
 export SO_FLAGS

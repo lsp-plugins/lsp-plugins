@@ -213,10 +213,10 @@ control parameters of some device or set of similar devices.</p>
 <h2>Inline display</h2>
 
 <p>Inline displays are not widgets or elements of plugin's UI at all. Instead of this, they're part of
-the host UI since the <a href="http://ardour.org/">Ardour DAW</a> implemented Inline Display extension for
+the host UI since the <a href="https://ardour.org/">Ardour DAW</a> implemented Inline Display extension for
 LV2 format.</p>
 <p>So they're available in the Ardour's mixer strip even if UI is not shown. Inline displays also are
-available in <a href="http://harrisonconsoles.com/">Mixbus DAW</a> as the relative to Ardour product.</p>
+available in <a href="https://harrisonconsoles.com/">Mixbus DAW</a> as the relative to Ardour product.</p>
 <p>Because inline display is an LV2-specific exension, it is available only for LV2 version of LSP plugins.
 But standalone JACK versions of plugins that support inline displays in LV2, draw them on window's icon.</p>
 
@@ -330,7 +330,7 @@ configuration file contents:</p>
 #   LADSPA identifier:   5002065
 #
 # (C) Linux Studio Plugins Project 
-#   http://lsp-plug.in/ 
+#   https://lsp-plug.in/ 
 #
 #-------------------------------------------------------------------------------
 

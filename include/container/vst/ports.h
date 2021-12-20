@@ -160,6 +160,7 @@ namespace lsp
                 nCurrRow            = meta->start;
                 nCols               = port_list_size(meta->members);
                 nRows               = list_size(meta->items);
+                nSID                = 0;
             }
 
             virtual ~VSTPortGroup()
@@ -167,6 +168,7 @@ namespace lsp
                 nCurrRow            = 0;
                 nCols               = 0;
                 nRows               = 0;
+                nSID                = 0;
             }
 
         public:

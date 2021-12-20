@@ -1315,7 +1315,7 @@ namespace lsp
             c.fmt_append_utf8   ("  LADSPA identifier:   %d\n", pMetadata->ladspa_id);
         c.append            ('\n');
         c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
-        c.append_utf8       ("  " LSP_BASE_URI " \n");
+        c.append_utf8       ("  " LSP_SITE_URL " \n");
     }
 
     status_t plugin_ui::export_settings(const char *filename, bool relative)

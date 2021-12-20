@@ -58,6 +58,11 @@
             #define __cdecl
         #elif defined(__mips__) || defined(__mips) || defined(__MIPS__)
             #define __cdecl
+        #elif defined(__riscv) && (__riscv_xlen == 64)
+            #define VST_64BIT_PLATFORM      1
+            #define __cdecl
+        #elif defined(__riscv) && (__riscv_xlen == 32)
+            #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
 #endif /* __GNUC__ */
@@ -79,11 +84,11 @@
     #endif
 
     #ifndef VST_64BIT_PLATFORM
-        #define VST_64BIT_PLATFORM  (__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__)
+        #define VST_64BIT_PLATFORM  ((__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__) || (defined(__riscv) && (__riscv_xlen == 64)))
     #endif /* VST_64BIT_PLATFORM */
 #else
     #ifndef VST_64BIT_PLATFORM
-        #define VST_64BIT_PLATFORM _WIN64 || __LP64__
+        #define VST_64BIT_PLATFORM (_WIN64 || __LP64__)
     #endif /* VST_64BIT_PLATFORM */
 #endif /* __GNUC__ */
 

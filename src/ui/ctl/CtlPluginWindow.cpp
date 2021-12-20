@@ -1206,15 +1206,15 @@ namespace lsp
                 p.set_cstring("project", LSP_FULL_NAME);
                 lbl  = create_plabel(vbox, "messages.greetings.1", &p);
                 lbl  = create_label(vbox, "messages.greetings.2");
-                create_hlink(vbox, LSP_DONATION_URI1, 0.02);
-                create_hlink(vbox, LSP_DONATION_URI2, 0.02);
+                create_hlink(vbox, LSP_DONATION_URL1, 0.02);
+                create_hlink(vbox, LSP_DONATION_URL2, 0.02);
 
                 lbl  = create_label(vbox, "messages.greetings.3");
                 lbl  = create_label(vbox, "messages.greetings.4");
 
                 lbl  = create_label(vbox, "messages.greetings.5", 1.0f);
                 lbl  = create_label(vbox, LSP_FULL_NAME, 1.0f);
-                create_hlink(vbox, LSP_BASE_URI, 1.0f);
+                create_hlink(vbox, LSP_SITE_URL, 1.0f);
 
                 LSPAlign *algn = new LSPAlign(pUI->display());
                 algn->init();
