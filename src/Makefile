@@ -1,134 +1,146 @@
-# Estimate different pre-requisites before launching build
+#
+# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+#
+# This file is part of lsp-plugins
+#
+# lsp-plugins is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+#
+# lsp-plugins is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with lsp-plugins.  If not, see <https://www.gnu.org/licenses/>.
+#
 
 # Command-line flag to silence nested $(MAKE).
-MAKE_OPTS              += VERBOSE=$(VERBOSE)
 ifneq ($(VERBOSE),1)
 .SILENT:
 endif
 
-SUBDIRS                 = core metadata utils 
-MODULES                 = $(SUBDIRS)
-CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES)
-UTL_DEPS                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
+BASEDIR                 = $(CURDIR)
+CONFIG                 := $(BASEDIR)/../.config.mk
+PROJECT                := $(BASEDIR)/../project.mk
 
-NEED_UI                 = 0
-NEED_PLUGINS            = 0
+include $(CONFIG)
+include $(PROJECT)
+include $(BASEDIR)/../make/functions.mk
 
-RESOURCE_PATHS = \
-  $(BASEDIR)/res/ui \
-  $(BASEDIR)/res/presets \
-  $(BASEDIR)/res/models \
-  $(BASEDIR)/res/i18n
+ifeq ($(TEST),1)
+  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) LSP_PLUGIN_FW $(ARTIFACT_ID) $(TEST_DEPENDENCIES))
+else
+  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) LSP_PLUGIN_FW $(ARTIFACT_ID))
+endif
+DEPENDENCIES            = $(UNIQ_DEPENDENCIES)
 
-ifeq ($(LSP_TESTING),1)
-  SUBDIRS                += test testing
-  CONTAINER_DEPS         += $(OBJ_TEST_CORE) $(OBJ_TESTING_CORE)
-  UTL_DEPS               += $(OBJ_TEST_CORE)
-  NEED_UI                 = 1
-  NEED_PLUGINS            = 1
+ARTIFACT_BIN            = $($(ARTIFACT_ID)_BIN)
+ARTIFACT_NAME           = $($(ARTIFACT_ID)_NAME)
+ARTIFACT_OBJ_META       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-meta.o
+ARTIFACT_OBJ_DSP        = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-dsp.o
+ARTIFACT_OBJ_UI         = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-ui.o
+ARTIFACT_OBJ_TEST       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-test.o
+ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_UI)
+ARTIFACT_CFLAGS         = $(foreach dep, $(DEPENDENCIES), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
+
+CXX_SRC_STUB            = $(ARTIFACT_BIN)/stub.cpp
+CXX_SRC_MAIN_META       = $(call rwildcard, main/meta, *.cpp)
+CXX_SRC_MAIN_DSP        = $(call rwildcard, main/plug, *.cpp)
+CXX_SRC_MAIN_UI         = $(call rwildcard, main/ui, *.cpp)
+CXX_SRC_TEST            = $(call rwildcard, test, *.cpp)
+CXX_SRC                 = $(CXX_SRC_MAIN_META) $(CXX_SRC_MAIN_DSP) $(CXX_SRC_MAIN_UI)
+
+OBJ_STUB                = $(patsubst %.cpp, %.o, $(CXX_SRC_STUB))
+OBJ_MAIN_META           = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_META))
+OBJ_MAIN_DSP            = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_DSP))
+OBJ_MAIN_UI             = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_UI))
+OBJ_TEST                = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_TEST))
+OBJ                     = $(OBJ_MAIN_META) $(OBJ_MAIN_DSP) $(OBJ_MAIN_UI)
+
+XOBJ_MAIN_META          = $(if $(OBJ_MAIN_META),$(OBJ_MAIN_META),$(OBJ_STUB))
+XOBJ_MAIN_DSP           = $(if $(OBJ_MAIN_DSP),$(OBJ_MAIN_DSP),$(OBJ_STUB))
+XOBJ_MAIN_UI            = $(if $(OBJ_MAIN_UI),$(OBJ_MAIN_UI),$(OBJ_STUB))
+XOBJ_TEST               = $(if $(OBJ_TEST),$(OBJ_TEST),$(OBJ_STUB))
+
+CXX_FILE                = $(patsubst $(ARTIFACT_BIN)/%.o,%.cpp, $(@))
+
+CFLAGS_DEPS             = $(foreach dep, $(call uniq, $(DEPENDENCIES)), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
+BUILD_ALL               = $(ARTIFACT_LIB) $(ARTIFACT_SLIB) $(ARTIFACT_PC)
+
+ifeq ($(TEST), 1)
+  CXX_SRC                += $(CXX_SRC_TEST)
+  ARTIFACT_OBJ           += $(ARTIFACT_OBJ_TEST)
+  DEPENDENCIES           += $(TEST_DEPENDENCIES)
 endif
 
-ifneq ($(LSP_TESTING),1)
-  ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
-    NEED_PLUGINS            = 1
-  endif
-  ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
-    ifeq ($(LV2_UI),1)
-      NEED_UI                 = 1
-    endif
-    NEED_PLUGINS            = 1
-  endif
-  ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
-    MODULES                += vst_stub
-    ifeq ($(VST_UI),1)
-      NEED_UI                 = 1
-    endif
-    NEED_PLUGINS            = 1
-  endif
-  ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
-    MODULES                += jack_stub
-    NEED_UI                 = 1
-    NEED_PLUGINS            = 1
-  endif
-  ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
-    SUBDIRS                += doc
-    MODULES                += doc
-  endif
-endif
+CXX_DEPS                = $(foreach src,$(CXX_SRC),$(patsubst %.cpp,$(ARTIFACT_BIN)/%.d,$(src)))
+CXX_DEPFILE             = $(patsubst $(ARTIFACT_BIN)/%.d,%.cpp,$(@))
+CXX_DEPTARGET           = $(patsubst $(ARTIFACT_BIN)/%.d,%.o,$(@))
 
-ifeq ($(NEED_PLUGINS), 1)
-  SUBDIRS                += dsp plugins container
-  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS)
-endif
-ifeq ($(NEED_UI),1)
-  SUBDIRS                += ui rendering
-  MODULES                += ui
-  CONTAINER_DEPS         += $(OBJ_UI_CORE) $(OBJ_RES_CORE) rendering
-endif
+.DEFAULT_GOAL = all
+.PHONY: compile depend dep_clean all install uninstall gen_stub
 
-.DEFAULT_GOAL          := all
-.PHONY: all $(MODULES)
+# Dependencies targets
+dep_clean:
 
-all: $(MODULES)
+$(CXX_DEPS): dep_clean
+	echo "  dep  [$(ARTIFACT_NAME)] $(CXX_DEPFILE)"
+	mkdir -p $(dir $(@))
+	$(CXX) -MM -MT "\$$($(ARTIFACT_ID)_BIN)/$(CXX_DEPTARGET)" -MF $(@) $(CXX_DEPFILE) $(CXXFLAGS) $(INCLUDE) $(CFLAGS_DEPS)
 
-target: all
+depend: $(CXX_DEPS)
+	$(foreach dep,$(DEPENDENCIES) $(ARTIFACT_ID),\
+	  $(if $($(dep)_INC), \
+	    $(eval SED_RULES += s/$(shell echo "$($(dep)_INC)" | sed "s/\\//\\\\\//g")/\$$$$\\($(dep)_INC\\)/g;)\
+	  )\
+	  $(if $($(dep)_BIN), \
+	    $(eval SED_RULES += s/$(shell echo "$($(dep)_BIN)" | sed "s/\\//\\\\\//g")/\\$$$$\\($(dep)_BIN\\)/g;)\
+	  )\
+	)
+	$(if $(CXX_DEPS),cat $(CXX_DEPS),echo "") | sed -E "$(SED_RULES)" >Makefile.d
 
-# Rules
-$(SUBDIRS):
-	@echo "Building $(@)"
-	mkdir -p $(OBJDIR)/$(@)
-	$(MAKE) $(MAKE_OPTS) -C $@ $(MAKECMDGOALS) OBJDIR=$(OBJDIR)/$(@)
+# Compilation targets
+compile: $(ARTIFACT_OBJ)
 
-# Object dependencies
-$(OBJ_CORE): core
+$(CXX_SRC_STUB):
+	echo "  gen  [$(ARTIFACT_NAME)] $(notdir $(CXX_FILE))"
+	echo "#include <stdio.h>" > $(CXX_SRC_STUB)
 
-$(OBJ_DSP): dsp
+$(OBJ_STUB): $(CXX_SRC_STUB)
+	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
+	mkdir -p $(dir $@)
+	$(CXX) -o $(@) -c $(CXX_SRC_STUB) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS)
 
-$(OBJ_PLUGINS): plugins
+$(OBJ):
+	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
+	mkdir -p $(dir $@)
+	$(CXX) -o $(@) -c $(CXX_FILE) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS)
 
-$(OBJ_METADATA): metadata
+# Linking targets
+$(ARTIFACT_OBJ_META): $(XOBJ_MAIN_META)
+	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_META))"
+	$(LD) -o $(ARTIFACT_OBJ_META) -r $(XOBJ_MAIN_META)
+	
+$(ARTIFACT_OBJ_DSP): $(XOBJ_MAIN_DSP)
+	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_DSP))"
+	$(LD) -o $(ARTIFACT_OBJ_DSP) -r $(XOBJ_MAIN_DSP)
+	
+$(ARTIFACT_OBJ_UI): $(XOBJ_MAIN_UI)
+	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_UI))"
+	$(LD) -o $(ARTIFACT_OBJ_UI) -r $(XOBJ_MAIN_UI)
+	
+$(ARTIFACT_OBJ_TEST): $(XOBJ_TEST)
+	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_TEST))"
+	$(LD) -o $(ARTIFACT_OBJ_TEST) -r $(XOBJ_TEST)
 
-$(OBJ_UI_CORE): ui
+# Deletaged targets
+all install uninstall:
+	$(MAKE) -C "$(LSP_PLUGIN_FW_PATH)" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)"
 
-$(UTL_FILES): utils
+# Dependencies
+-include $(CURDIR)/Makefile.d
 
-$(UTL_RESGEN): utils
-
-$(UTL_JACKMAKE): utils
-
-$(OBJ_TEST_CORE): test
-
-$(OBJ_TESTING_CORE): test testing rendering
-
-$(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
-	@echo "Generating builtin resources"
-	mkdir -p $(OBJDIR)/res
-	$(UTL_RESGEN) $(OBJDIR)/res/builtin_resource.cpp $(RESOURCE_PATHS)
-	rm -f gmon.out >/dev/null 2>&1
-	$(CXX) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/builtin_resource.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
-
-# Target dependencies
-container: $(CONTAINER_DEPS)
-
-utils: $(UTL_DEPS)
-
-doc: utils $(PHP_PLUGINS)
-
-# Additional processing
-$(PHP_PLUGINS): $(UTL_GENPHP)
-	@echo "Generating PHP file $(notdir $(PHP_PLUGINS))"
-	$(UTL_GENPHP) $(PHP_PLUGINS)
-
-vst_stub: $(UTL_VSTMAKE)
-	@echo "Building VST stub"
-	mkdir -p $(OBJDIR)/vst
-	$(UTL_VSTMAKE) $(OBJDIR)/vst
-	rm -f gmon.out >/dev/null 2>&1
-	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
-
-jack_stub: $(UTL_JACKMAKE)
-	@echo "Building JACK stub"
-	mkdir -p $(OBJDIR)/jack
-	$(UTL_JACKMAKE) $(OBJDIR)/jack
-	rm -f gmon.out >/dev/null 2>&1
-	$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack

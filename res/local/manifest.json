@@ -1,0 +1,13 @@
+{
+	"artifact": "lsp-plugin-fw",
+	"full_name": "Linux Studio Plugins",
+	"short_name": "LSP Plugins",
+	"copyright": "Linux Studio Plugins Project",
+	"brand": "LSP",
+	"brand_id": "lsp",
+	"site": "https://lsp-plug.in/",
+	"email": "lsp.plugin@gmail.com",
+	"license": "LGPL",
+	"lv2_license": "http://usefulinc.com/doap/licenses/lgpl",
+	"version": "1.2.0"
+}

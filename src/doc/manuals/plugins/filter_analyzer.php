@@ -1,3 +1,0 @@
-<?php
-	plugin_header();
-?>
