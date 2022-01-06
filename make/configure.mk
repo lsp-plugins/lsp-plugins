@@ -53,8 +53,14 @@ include $(BASEDIR)/project.mk
 include $(PLUGINS)
 
 # Compute the full list of dependencies
-UNIQ_DEPENDENCIES          := $(call uniq, $(DEPENDENCIES) $(TEST_DEPENDENCIES) $(PLUGIN_DEPENDENCIES))
-DEPENDENCIES                = $(UNIQ_DEPENDENCIES)
+MERGED_DEPENDENCIES        := \
+  $(DEPENDENCIES) \
+  $(DEPENDENCIES_BIN) \
+  $(TEST_DEPENDENCIES) \
+  $(TEST_DEPENDENCIES_UI) \
+  $(PLUGIN_DEPENDENCIES)
+UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
+DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
@@ -225,6 +231,7 @@ ifndef HOST_$(ARTIFACT_ID)_PATH
   HOST_$(ARTIFACT_ID)_PATH   := $(BASEDIR)
 endif
 
+ROOT_ARTIFACT_ID           := $(ARTIFACT_ID)
 $(ARTIFACT_ID)_TESTING      = $(TEST)
 $(ARTIFACT_ID)_TYPE        := src
 

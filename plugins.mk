@@ -20,7 +20,6 @@
 
 # Specify plugin package version
 PLUGIN_PACKAGE_VERSION                  := 1.2.0
-PLUGIN_ARTIFACT_ID                      := lsp-plugins
 
 # Specify description of plugin dependencies
 LSP_PLUGINS_COMP_DELAY_VERSION          := 1.0.3

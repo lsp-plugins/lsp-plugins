@@ -46,18 +46,6 @@ DEPENDENCIES_COMMON_UI = \
   LSP_TK_LIB \
   LSP_R3D_BASE_LIB
 
-DEPENDENCIES_BIN =
-
-ifeq ($(PLATFORM),Linux)
-  DEPENDENCIES_BIN += \
-    LSP_R3D_GLX_LIB
-endif
-
-ifeq ($(PLATFORM),BSD)
-  DEPENDENCIES_BIN += \
-    LSP_R3D_GLX_LIB
-endif
-
 ifeq ($(PLATFORM),Windows)
 endif
 
@@ -235,18 +223,31 @@ DEPENDENCIES = \
 
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
+  
+TEST_DEPENDENCIES_UI = \
+  LSP_TEST_FW
+  
+DEPENDENCIES_BIN =
 
 #------------------------------------------------------------------------------
 # Platform-specific dependencies
 ifeq ($(PLATFORM),Linux)
-  TEST_DEPENDENCIES += \
+  DEPENDENCIES_BIN += \
+    LSP_R3D_GLX_LIB
+
+  TEST_DEPENDENCIES_UI += \
     LSP_R3D_GLX_LIB \
+    LSP_R3D_COMMON_LIB \
     LIBGL
 endif
 
 ifeq ($(PLATFORM),BSD)
-  TEST_DEPENDENCIES += \
+  DEPENDENCIES_BIN += \
+    LSP_R3D_GLX_LIB
+
+  TEST_DEPENDENCIES_UI += \
     LSP_R3D_GLX_LIB \
+    LSP_R3D_COMMON_LIB \
     LIBGL
     
   DEPENDENCIES_COMMON += \
@@ -266,6 +267,7 @@ ALL_DEPENDENCIES = \
   $(DEPENDENCIES_COMMON) \
   $(DEPENDENCIES_COMMON_UI) \
   $(TEST_DEPENDENCIES) \
+  $(TEST_DEPENDENCIES_UI) \
   LIBJACK \
   LIBGL \
   LIBSNDFILE \
