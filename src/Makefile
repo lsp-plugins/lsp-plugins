@@ -32,9 +32,9 @@ include $(PROJECT)
 include $(BASEDIR)/../make/functions.mk
 
 ifeq ($(TEST),1)
-  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) LSP_PLUGIN_FW $(ARTIFACT_ID) $(TEST_DEPENDENCIES))
+  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) $(ARTIFACT_ID) $(TEST_DEPENDENCIES))
 else
-  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) LSP_PLUGIN_FW $(ARTIFACT_ID))
+  UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) $(ARTIFACT_ID))
 endif
 DEPENDENCIES            = $(UNIQ_DEPENDENCIES)
 
