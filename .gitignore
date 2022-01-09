@@ -9,8 +9,6 @@
 /Release/*
 /Debug AVX/*
 /Release AVX/*
-/.cproject
-/.project
 /.config.mk
 /Debug/
 /Release/
