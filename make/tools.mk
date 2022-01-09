@@ -112,6 +112,8 @@ CFLAGS             := \
   -fno-asynchronous-unwind-tables \
   -pipe \
   -Wall
+
+CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
   
 CXXFLAGS           := \
   $(CXXFLAGS_EXT) \
@@ -124,6 +126,8 @@ CXXFLAGS           := \
   -pipe \
   -Wall
 
+CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
+
 INCLUDE            :=
 LDFLAGS            := $(LDFLAGS_EXT) -r
 EXE_FLAGS          := $(EXE_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections
@@ -131,7 +135,9 @@ SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared -L
 
 # Define flags for host build
 HOST_CFLAGS        := $(CFLAGS)
+HOST_CDEFS         := $(CDEFS)
 HOST_CXXFLAGS      := $(CXXFLAGS)
+HOST_CXXDEFS       := $(CXXDEFS)
 HOST_LDFLAGS       := $(LDFLAGS)
 HOST_EXE_FLAGS     := $(EXE_FLAGS)
 HOST_SO_FLAGS      := $(SO_FLAGS)
@@ -140,10 +146,10 @@ HOST_SO_FLAGS      := $(SO_FLAGS)
 TOOL_VARS := \
   GIT INSTALL \
   PKG_CONFIG AS AR CC CXX LD \
-  CFLAGS CXXFLAGS LDFLAGS EXE_FLAGS SO_FLAGS \
+  CFLAGS CDEFS CXXFLAGS CXXDEFS LDFLAGS EXE_FLAGS SO_FLAGS \
   INCLUDE \
   HOST_PKG_CONFIG HOST_AS HOST_AR HOST_CC HOST_CXX HOST_LD \
-  HOST_CFLAGS HOST_CXXFLAGS HOST_LDFLAGS HOST_EXE_FLAGS HOST_SO_FLAGS \
+  HOST_CFLAGS HOST_CDEFS HOST_CXXFLAGS HOST_CXXDEFS HOST_LDFLAGS HOST_EXE_FLAGS HOST_SO_FLAGS \
   
 
 .PHONY: toolvars
@@ -152,17 +158,21 @@ toolvars:
 	echo "  AR                        Archiver tool for target build"
 	echo "  AS                        Assembler tool for target build"
 	echo "  CC                        C compiler execution command line for target build"
+	echo "  CDEFS                     C compiler build macro definitions for target build"
 	echo "  CFLAGS                    C compiler build flags for target build"
 	echo "  CXX                       C++ compiler execution command line for target build"
+	echo "  CXXDEFS                   C++ compiler build defiintions for target build"
 	echo "  CXXFLAGS                  C++ compiler build flags for target build"
 	echo "  EXE_FLAGS                 Flags to link executable files for target build"
 	echo "  GIT                       The name of the Git version control tool"
 	echo "  HOST_AR                   Archiver tool for host build"
 	echo "  HOST_AS                   Assembler tool for host build"
 	echo "  HOST_CC                   C compiler execution command line for host build"
-	echo "  HOST_CFLAGS               C compiler build flags for target build"
+	echo "  HOST_CDEFS                C compiler macro definitions for host build"
+	echo "  HOST_CFLAGS               C compiler build flags for host build"
 	echo "  HOST_CXX                  C++ compiler execution command line for target build"
-	echo "  HOST_CXXFLAGS             C++ compiler build flags for target build"
+	echo "  HOST_CXXDEFS              C++ compiler macro definitions for host build"
+	echo "  HOST_CXXFLAGS             C++ compiler build flags for host build"
 	echo "  HOST_EXE_FLAGS            Flags to link executable files for target build"
 	echo "  HOST_CXX                  C++ compiler execution command line for host build"
 	echo "  HOST_LD                   Linker execution command line for host build "
