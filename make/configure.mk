@@ -48,16 +48,15 @@ endif
 include $(BASEDIR)/make/functions.mk
 include $(BASEDIR)/make/system.mk
 include $(BASEDIR)/make/tools.mk
-include $(BASEDIR)/dependencies.mk
+include $(BASEDIR)/modules.mk
 include $(BASEDIR)/project.mk
+include $(BASEDIR)/dependencies.mk
 include $(PLUGINS)
 
 # Compute the full list of dependencies
 MERGED_DEPENDENCIES        := \
   $(DEPENDENCIES) \
-  $(DEPENDENCIES_BIN) \
   $(TEST_DEPENDENCIES) \
-  $(TEST_DEPENDENCIES_UI) \
   $(PLUGIN_DEPENDENCIES)
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
@@ -191,7 +190,7 @@ define plugconfig =
   $(if $($(name)_SRC),,          $(eval $(name)_SRC          := $($(name)_PATH)/src))
   $(if $($(name)_TEST),,         $(eval $(name)_TEST         := $($(name)_PATH)/test))
   $(if $($(name)_BIN),,          $(eval $(name)_BIN          := $(TARGET_BUILDDIR)/$($(name)_NAME)))
-  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "-I\"$($(name)_INC)\""$(if $(builtin)," -D$(name)_BUILTIN")))
+  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "-I\"$($(name)_INC)\"" $(if $(builtin),"-D$(name)_BUILTIN")))
   $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      :=))
   $(if $($(name)_OBJ_META),,     $(eval $(name)_OBJ_META     := "$($(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $($(name)_OBJ_DSP),,      $(eval $(name)_OBJ_DSP      := "$($(name)_BIN)/$($(name)_NAME)-dsp.o"))
@@ -204,7 +203,7 @@ define plugconfig =
   $(if $(HOST_$(name)_SRC),,     $(eval HOST_$(name)_SRC     := $(HOST_$(name)_PATH)/src))
   $(if $(HOST_$(name)_TEST),,    $(eval HOST_$(name)_TEST    := $(HOST_$(name)_PATH)/test))
   $(if $(HOST_$(name)_BIN),,     $(eval HOST_$(name)_BIN     := $(HOST_BUILDDIR)/$($(name)_NAME)))
-  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "-I\"$(HOST_$(name)_INC)\""$(if $(builtin)," -D$(name)_BUILTIN")))
+  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "-I\"$(HOST_$(name)_INC)\"" $(if $(builtin),"-D$(name)_BUILTIN")))
   $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS :=))
   $(if $(HOST_$(name)_OBJ_META),,$(eval HOST_$(name)_OBJ_META:= "$(HOST_$(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $(HOST_$(name)_OBJ_DSP),, $(eval HOST_$(name)_OBJ_DSP := "$(HOST_$(name)_BIN)/$($(name)_NAME)-dsp.o"))
@@ -226,8 +225,15 @@ define vardef =
 endef
 
 # Define predefined variables
+ifndef ARTIFACT_TYPE
+  ARTIFACT_TYPE              := src
+endif
+
 ifndef $(ARTIFACT_ID)_NAME
   $(ARTIFACT_ID)_NAME        := $(ARTIFACT_NAME)
+endif
+ifndef $(ARTIFACT_ID)_TYPE
+  $(ARTIFACT_ID)_TYPE        := $(ARTIFACT_TYPE)
 endif
 ifndef $(ARTIFACT_ID)_DESC
   $(ARTIFACT_ID)_DESC        := $(ARTIFACT_DESC)
@@ -244,9 +250,8 @@ endif
 
 ROOT_ARTIFACT_ID           := $(ARTIFACT_ID)
 $(ARTIFACT_ID)_TESTING      = $(TEST)
-$(ARTIFACT_ID)_TYPE        := src
 
-OVERALL_DEPS := $(DEPENDENCIES) $(ARTIFACT_ID)
+OVERALL_DEPS := $(call uniq,$(DEPENDENCIES) $(ARTIFACT_ID))
 __tmp := $(foreach dep,$(OVERALL_DEPS),$(call vardef, $(dep)))
 
 CONFIG_VARS = \

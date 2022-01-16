@@ -21,35 +21,36 @@ ifneq ($(VERBOSE),1)
 .SILENT:
 endif
 
-BASEDIR            := $(CURDIR)
-PLUGINS            := $(BASEDIR)/plugins.mk
-DEPLIST            := $(BASEDIR)/dependencies.mk
-PROJECT            := $(BASEDIR)/project.mk
-CONFIG             := $(CURDIR)/.config.mk
+BASEDIR                := $(CURDIR)
+CONFIG                 := $(BASEDIR)/.config.mk
 
+include $(BASEDIR)/project.mk
 include $(BASEDIR)/make/functions.mk
 ifeq ($(TREE),1)
-  include $(DEPLIST)
+  include $(BASEDIR)/make/system.mk
+  include $(BASEDIR)/make/tools.mk
+  include $(BASEDIR)/modules.mk
 else
   -include $(CONFIG)
 endif
-
-include $(PLUGINS)
-include $(PROJECT)
+include $(BASEDIR)/dependencies.mk
+include $(BASEDIR)/plugins.mk
 
 MERGED_DEPENDENCIES        := \
   $(DEPENDENCIES) \
-  $(DEPENDENCIES_BIN) \
   $(TEST_DEPENDENCIES) \
-  $(TEST_DEPENDENCIES_UI) \
   $(PLUGIN_DEPENDENCIES)
-UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
-UNIQ_ALL_DEPENDENCIES      := $(call uniq, $(ALL_DEPENDENCIES) $(PLUGIN_DEPENDENCIES))
+UNIQ_MERGED_DEPENDENCIES   := $(filter-out $(ARTIFACT_ID),$(call uniq, $(MERGED_DEPENDENCIES)))
+UNIQ_ALL_DEPENDENCIES      := $(filter-out $(ARTIFACT_ID),$(call uniq, $(ALL_DEPENDENCIES) $(PLUGIN_DEPENDENCIES)))
 
 # Find the proper branch of the GIT repository
 ifeq ($(TREE),1)
   MODULES                := $(BASEDIR)/modules
   GIT                    := git
+  
+  $(foreach dep,$(UNIQ_ALL_DEPENDENCIES), \
+    $(eval $(dep)_URL=$($(dep)_URL_RO)) \
+  )
   
   ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
     $(foreach dep, $(UNIQ_ALL_DEPENDENCIES), \
