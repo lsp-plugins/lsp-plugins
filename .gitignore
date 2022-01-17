@@ -4,6 +4,7 @@
 /.buildconfig/*
 /.test/*
 /.release/*
+/.install/*
 /test_data/*
 /Debug/*
 /Release/*
