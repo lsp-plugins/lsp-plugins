@@ -8,7 +8,7 @@
 	"brand_id": "lsp",
 	"site": "https://lsp-plug.in/",
 	"email": "lsp.plugin@gmail.com",
-	"license": "LGPL",
+	"license": "LGPLv3",
 	"lv2_license": "http://usefulinc.com/doap/licenses/lgpl",
 	"version": "${ARTIFACT_VERSION}"
 }
