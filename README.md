@@ -28,6 +28,7 @@ For more information about licensing, please read COPYING and COPYING.LESSER.
 # SYSTEM REQUIREMENTS
 
 Current matrix of hardware architecture and platform (OS) support is:
+
 ```
   ┌───────────┬───────────┬─────────┐
   │Arch / OS  │ GNU/Linux │ FreeBSD │
@@ -47,6 +48,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   │s390x      │     C     │    U    │
   └───────────┴───────────┴─────────┘
 ```
+
 
  * F - Full support.
  * C - The code does compile, not enough knowledge about it's correct work.
@@ -89,7 +91,7 @@ Known list of supported plugin hosts:
   * Renoise
   * Tracktion
 
-==== VERSIONING ====
+# VERSIONING
 
 Binary releases are the mostly actual releases and contain all
 possible plugins. These are packaged into archive named according to
@@ -112,7 +114,7 @@ attached CHANGELOG.txt.
 
 Source code is also ready for building, see 'BUILDING' section for details.
 
-==== INSTALLATION ====
+# INSTALLATION
 
 Binary distributions are ready to launch, just copy them to
 the appropriate directory.
@@ -166,7 +168,7 @@ The usual directories for JACK binaries are:
 The profiling release does not require special installations and can be executed
 from any location. After execution, the gprof profiling file 'gmon.out' is created.
 
-==== BUILDING ====
+# BUILDING
 
 You may build plugins from scratch.
 
@@ -270,7 +272,7 @@ same way with BUILD_PROFILE is possible:
 To remove all previsously built tarballs, just issue:
   make unrelease 
 
-==== PROFILING / DEBUGGING ====
+# PROFILING / DEBUGGING
 
 To profile code, untar special profiling release into directory on the file
 system and simply launch it:
@@ -293,7 +295,7 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
   * After Ardour crashes, type 'thread apply all bt' in console and attach the output
     to the bug report.
 
-==== TESTING ====
+# TESTING
 
 Since release 1.1.4 there is implemented testing subsystem that allows:
   * perform manual tests (mtest module);
@@ -377,7 +379,7 @@ option:
 
 Manual tests are mostly designed for developers' purposes.
 
-==== TROUBLESHOOTING ====
+# TROUBLESHOOTING
 
 Because there are many GNU/Linux distributions and software configurations,
 and, possible, internal bugs, plugins may have bad performance or even crash.
@@ -402,14 +404,14 @@ To submit a good bug or crash report, you should answer these questions:
   * If plugins have serious performance regression, please provide profiling file.
     See 'PROFILING / DEBUGGING' section for details.
 
-==== CONTACTS ====
+# CONTACTS
 
 There is possible to submit feature requests and bugs on the
-Sourceforge.net page of the project:
-  https://sourceforge.net/p/lsp-plugins/tickets/
-
 GitHub.com page of the project:
   https://github.com/sadko4u/lsp-plugins/issues
+
+Sourceforge.net page of the project:
+  https://sourceforge.net/p/lsp-plugins/tickets/
 
 You may contact us on the special feedback page:
   https://lsp-plug.in/?page=feedback
