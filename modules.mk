@@ -266,6 +266,12 @@ LSP_PLUGINS_OSCILLOSCOPE_TYPE           := plug
 LSP_PLUGINS_OSCILLOSCOPE_URL_RO         := https://github.com/lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
 LSP_PLUGINS_OSCILLOSCOPE_URL_RW         := git@github.com:lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
 
+LSP_PLUGINS_NOISE_GENERATOR_VERSION        := 1.0.1
+LSP_PLUGINS_NOISE_GENERATOR_NAME           := lsp-plugins-noise-generator
+LSP_PLUGINS_NOISE_GENERATOR_TYPE           := plug
+LSP_PLUGINS_NOISE_GENERATOR_URL_RO         := https://github.com/lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+LSP_PLUGINS_NOISE_GENERATOR_URL_RW         := git@github.com:lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+
 # Specify description of library dependencies
 LIBSNDFILE_VERSION         := system
 LIBSNDFILE_NAME            := sndfile
