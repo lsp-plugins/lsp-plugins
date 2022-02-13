@@ -49,7 +49,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   └───────────┴───────────┴─────────┘
 ```
 
-
+The table legend is the following:
  * F - Full support.
  * C - The code does compile, not enough knowledge about it's correct work.
  * E - Experimental support, not enough feedback from users.
