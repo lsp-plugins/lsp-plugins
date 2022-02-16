@@ -403,6 +403,10 @@ To submit a good bug or crash report, you should answer these questions:
     See 'PROFILING / DEBUGGING' section for details.
   * If plugins have serious performance regression, please provide profiling file.
     See 'PROFILING / DEBUGGING' section for details.
+  * If the plugin behaves incorrectly, there is also good reason to provide the dump
+    of internal state of the plugin which can be performed by selectecting the
+    'Dump for debug' menu item from the main menu. The internal state of the plugin
+    will be saved into the 'test-dumps' subdirectory of the system temporary directory.
 
 # CONTACTS
 
