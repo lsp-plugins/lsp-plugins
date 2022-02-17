@@ -46,6 +46,10 @@ include $(BASEDIR)/project.mk
 CHK_CONFIG                  = test -f "$(CONFIG)" || (echo "System not properly configured. Please launch 'make config' first" && exit 1)
 DISTSRC_PATH                = $(BUILDDIR)/distsrc
 DISTSRC                     = $(DISTSRC_PATH)/$(ARTIFACT_NAME)
+DISTSRC_DIRS                = \
+  $(if $(wildcard $(BASEDIR)/include/*), $(BASEDIR)/include) \
+  $(if $(wildcard $(BASEDIR)/src/*), $(BASEDIR)/src) \
+  $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make)
 
 .DEFAULT_GOAL              := all
 .PHONY: all compile install uninstall depend clean
@@ -95,13 +99,13 @@ distsrc:
 	echo "Building source code archive"
 	mkdir -p "$(DISTSRC)/modules"
 	$(MAKE) -f "make/modules.mk" tree VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
-	cp -R $(BASEDIR)/include $(BASEDIR)/make $(BASEDIR)/src "$(DISTSRC)/"
-	cp $(BASEDIR)/CHANGELOG $(BASEDIR)/COPYING* $(BASEDIR)/Makefile $(BASEDIR)/*.mk "$(DISTSRC)/"
+	$(if $(DISTSRC_DIRS), cp -R $(DISTSRC_DIRS) "$(DISTSRC)/")
+	cp $(BASEDIR)/CHANGELOG $(BASEDIR)/COPYING* $(BASEDIR)/Makefile $(BASEDIR)/*.mk $(BASEDIR)/*.md $(BASEDIR)/*.txt "$(DISTSRC)/"
 	find "$(DISTSRC)" -iname '.git' | xargs -exec rm -rf {}
 	find "$(DISTSRC)" -iname '.gitignore' | xargs -exec rm -rf {}
 	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-$(ARTIFACT_VERSION)-src.tar.gz" "$(ARTIFACT_NAME)"
-	echo "Created archive: $(BUILDDIR)/$(ARTIFACT_NAME)-$(ARTIFACT_VERSION)-src.tar.gz"
-	ln -sf "$(ARTIFACT_NAME)-$(ARTIFACT_VERSION)-src.tar.gz" "$(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
+	echo "Created archive: $(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz"
+	ln -sf "$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
 	echo "Created symlink: $(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
 	rm -rf $(DISTSRC_PATH)
 	echo "Build OK"
@@ -127,3 +131,12 @@ help:
 	echo ""
 	$(MAKE) -f "$(BASEDIR)/make/configure.mk" $(@) VERBOSE="$(VERBOSE)"
 	echo ""
+	echo "Available FEATURES:"
+	echo "  doc                       Generate standalone HTML documentation"
+	echo "  jack                      Standalone JACK plugins"
+	echo "  ladspa                    LADSPA plugins"
+	echo "  lv2                       LV2 plugins"
+	echo "  vst2                      VST 2.x plugin binaries"
+	echo "  xdg                       Desktop integration icons"
+
+	

@@ -212,6 +212,7 @@ COMMON_VARS = \
 	PLATFORM \
 	ARCHITECTURE \
 	ARCHITECTURE_CFLAGS \
+	FEATURES \
 	LIBRARY_EXT \
 	LIBRARY_PREFIX \
 	STATICLIB_EXT \
@@ -219,6 +220,7 @@ COMMON_VARS = \
 	PKGCONFIG_EXT \
 	PREFIX \
 	LIBDIR \
+	SHAREDDIR \
 	BINDIR \
 	INCDIR \
 	TEMPDIR \
@@ -237,6 +239,7 @@ sysvars:
 	echo "  DEBUG                     build with debug options"
 	echo "  DEVEL                     build with modules checked out for read/write URL"
 	echo "  EXECUTABLE_EXT            file extension for executable files"
+	echo "  FEATURES                  list of features enabled in the build"
 	echo "  INCDIR                    location of the header files"
 	echo "  LIBDIR                    location of the library"
 	echo "  LIBRARY_EXT               file extension for library files"
@@ -245,6 +248,7 @@ sysvars:
 	echo "  PLATFORM                  target software platform to perform build"
 	echo "  PREFIX                    installation prefix for binary files"
 	echo "  PROFILE                   build with profile options"
+	echo "  SHAREDDIR                 location of the shared files"
 	echo "  STATICLIB_EXT             file extension for static library files"
 	echo "  TEMPDIR                   location of temporary directory"
 	echo "  TEST                      use test build"

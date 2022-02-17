@@ -43,6 +43,10 @@ dquery                  = $(foreach d,$(call uniq, $2),$(if $($(d)_$(strip $1)),
 # $(call cquery, OBJ_META, BIN, $(DEPENDENCIES))
 cquery                  = $(foreach d,$(call uniq, $3),$(if $($(d)_$(strip $1)),$($(d)_$(strip $2))))
 
+# Find intersection between two sets
+# $(call intersection, list1, list2)
+intersection            = $(foreach v,$1,$(if $(findstring $(v),$2),$(v)))
+
 # Fetch different versions from version string
 # $(call vmajor, <version-string>)
 vmajor                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\1/')

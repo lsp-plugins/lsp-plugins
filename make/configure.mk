@@ -25,6 +25,7 @@ endif
 PREFIX                     := /usr/local
 LIBDIR                     := $(PREFIX)/lib
 BINDIR                     := $(PREFIX)/bin
+SHAREDDIR                  := $(PREFIX)/share
 INCDIR                     := $(PREFIX)/include
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
@@ -61,6 +62,7 @@ MERGED_DEPENDENCIES        := \
   $(PLUGIN_SHARED)
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
+FEATURES                   := $(call uniq, $(DEFAULT_FEATURES))
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)

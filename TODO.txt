@@ -26,6 +26,8 @@
 - Added 'Reset to default' button.
 - Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
+- Added support of building under LoongArch32 and LoongArch64 architectures.
+- Added support of building under 32-bit and 64-bit RISC-V architectures.
 
 *******************************************************************************
 * New plugin check list before release

@@ -21,7 +21,14 @@ Still there is no absolute warranty about stability of the software on
 different platforms so you're using this software on your own risk.
 
 The project also does encourage donations that can be submitted here:
-https://salt.bountysource.com/teams/lsp-plugins
+  * https://liberapay.com/sadko4u/donate
+  * https://www.patreon.com/sadko4u
+  * https://paypal.me/sadko4u
+  * https://etherscan.io/address/0x079b24da78d78302cd3cfbb80c728cd554606cc6
+  * https://salt.bountysource.com/teams/lsp-plugins
+
+Licensed under the terms of GNU Lesser Public License v3 (LGPLv3):
+  * https://www.gnu.org/licenses/lgpl-3.0.en.html
 
 For more information about licensing, please read COPYING and COPYING.LESSER.
 
@@ -46,7 +53,11 @@ Current matrix of hardware architecture and platform (OS) support is:
   │ppc64      │     C     │    U    │
   ├───────────┼───────────┼─────────┤
   │s390x      │     C     │    U    │
-  └───────────┴───────────┴─────────┘
+  ├───────────┼───────────┼─────────┤
+  │loongarch32│     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │loongarch64│     C     │    U    │
+  └───────────┴───────────┴─────────┘ 
 ```
 
 The table legend is the following:
@@ -93,22 +104,25 @@ Known list of supported plugin hosts:
 
 # VERSIONING
 
-Binary releases are the mostly actual releases and contain all
-possible plugins. These are packaged into archive named according to
-the following format:
+Binary releases contain all possible plugins in one bundle. The binaries are packaged
+into archive named according to the following format:
 
+```
   lsp-plugins-<format>-<major>.<minor>.<micro>-<arch>.tar.gz
+```
 
 The property <format> is the format of plugins, currently available:
-  * jack - standalone version of plugins that require JACK for execution
-  * ladspa - plugins in LADSPA format (not all plugins due to format's restriction)
-  * lv2 - plugins in LV2 format
-  * lxvst - plugins in LinuxVST (VST v2.4) format
+  * doc - documentation;
+  * jack - standalone version of plugins that require JACK for execution;
+  * ladspa - plugins in LADSPA format (not all plugins due to format's restriction);
+  * lv2 - plugins in LV2 format;
+  * src - source code;
+  * vst2 - plugins in VST v2.4 format.
 
-Supporetd architectures (<arch>) are currently i586, x86_64 and armv7a.
-Properties <major>, <minor> and <micro> form the version of release.
+Property 'arch' contains short name of architecture the binaries are build for.
+Properties 'major', 'minor' and 'micro' form the version of release.
 If the <micro> version is odd, it contains mostly bug-fixes and patches for
-the plugin modules. The even <micro> version of plugins contains new features
+the plugin modules. The even 'micro' version of plugins contains new features
 and, in most cases, new plugin series. The history of changes may be seen in
 attached CHANGELOG.txt.
 
@@ -116,8 +130,7 @@ Source code is also ready for building, see 'BUILDING' section for details.
 
 # INSTALLATION
 
-Binary distributions are ready to launch, just copy them to
-the appropriate directory.
+Binary distributions are ready to launch, just copy them to the appropriate directory.
 
 Releases containing odd number in minor version provide only enhancements
 and critical fixes for the previous release.
@@ -185,104 +198,87 @@ For successful build you need the following packages to be installed:
   * php >= 5.5.14
   * libGL-devel >= 11.2.2
 
-Currently there is no automake/CMake supported, so to build plugins you
-have to type:
+To build the project from archive with source code, the following sequence of commands 
+should be performed:
+
+```
   make clean
+  make config
   make
   make install
+```
 
-By default, all supported formats of plugins are built. You may control
-list of built plugin formats by specifying BUILD_MODULES variable:
+To build the project from GIT repository, the additional 'make fetch' command should be issued
+to obtain all source code dependencies:
+
+```
   make clean
-  make BUILD_MODULES='lv2 vst doc'
+  make config
+  make fetch
+  make
   make install
+```
+
+By default, all supported formats of plugins are built except XDG. 
+Several DEs like GNOME don't support XDG format well, so desktop icon installations
+are disabled by default.
+The list of modules for build can be adjusted by specifying FEATURES variable 
+at the configuration stage:
+
+```
+  make config FEATURES='lv2 vst2 doc'
+```
 
 Available modules are:
-  * ladspa - LADSPA plugin binaries
-  * lv2 - LV2 plugin binaries
-  * vst - LinuxVST plugin binaries
-  * jack - JACK plugin binaries
-  * doc - HTML documentation
+  * doc - HTML documentation;
+  * jack - JACK plugin binaries;
+  * ladspa - LADSPA plugin binaries;
+  * lv2 - LV2 plugin binaries;
+  * vst2 - VST2 plugin binaries;
+  * xdg - the X11 desktop integration icons/ 
 
-Also possible (but not recommended) to specify compile targets:
-  make clean
-  make build_ladspa
-  make build_lv2
-  make build_vst
-  make build_jack
-  make build_doc
 
-By default plugins use '/usr/local' path as installation directory. To
-override this path, you can run build with specifying PREFIX variable:
-  make clean
-  make PREFIX=/usr
-  make install
+By default plugins use '/usr/local' path as a target directory for installation.
+To override this path, the PREFIX variable can be overridden:
 
-Several DEs like GNOME don't support XDG format, so desktop icon installations
-are available as a separate build task:
-  make install_xdg
+```
+  make config PREFIX=/usr
+```
 
-By default, 'make install' will install all plugin formats (LADSPA, LV2,
-LinuxVST, JACK) and documentation. To install them separately, you can issue
-following commands:
-  make clean
-  make
-  make install_ladspa
-  make install_lv2
-  make install_vst
-  make install_jack
-  make install_doc
+To build binaries for debugging, use the following commands:
 
-To build binaries for debugging/profiling, use the following commands:
-  make clean
-  make profile
+```
+  make config DEBUG=1
+```
 
 To build binaries for testing (developers only), use the following commands:
-  make clean
-  make test
-  
-To build both release binaries and binaries for testing, use the following commands:
-  make clean
-  make all test
 
-After issuing this command, the system will build release binaries into '.build'
-subdirectory and test binaries into '.test' subdirectory
+```
+  make config TEST=1
+```
 
-You may also specify the installation root by specifying DESTDIR attribute:
+To install plugins at the desired root directory, the DESTDIR variable can be specified:
+
+```
   make install DESTDIR=<installation-root>
+```
 
-To perform cross-building between different architectures, you first should
-have a corresponding toolchain. By default, LSP plugins use 'uname' tool for
-detecting target architecture and set internal variable BUILD_PROFILE to the
-detected value. Currently supported values are 'x86_64', 'i586', 'armv7a'.
-To build plugins for another architecture, just issue following commands:
-  make clean
-  make BUILD_PROFILE=<target architecture>
+To build standalone source code package, the following commands can be issued:
 
-To automatically build tarballs with binaries, you may use 'release' target:
-  make clean
-  make release
+```
+  make config
+  make distsrc
+```
 
-After issuing these commands, '.release' subdirectory will contain tarballs with
-binaries, documentation and sources. To perform release for another architecture,
-same way with BUILD_PROFILE is possible:
-  make clean
-  make BUILD_PROFILE=<target architecture> release
+After that, a stanalone archive with source code will be created in the `.build` directory.
 
-To remove all previsously built tarballs, just issue:
-  make unrelease 
+For more build options, issue:
 
-# PROFILING / DEBUGGING
+```
+  make help
+```
 
-To profile code, untar special profiling release into directory on the file
-system and simply launch it:
-  tar xzf lsp-plugins-profile-<version>-<arch>.tar.gz
-  cd lsp-plugins-profile-<version>-<arch>
-  ./lsp-plugins-profile <plugin-id>
-
-After the execution, the profiling file 'gmon.out' will be generated.
-To generate profiling information, issue the gprof command:
-  gprof ./lsp-plugins-profile gmon.out >lsp-plugins.profile
+# DEBUGGING
 
 For debugging purposes the GNU Debugger (gdb) may be used:
   gdb --args ./lsp-plugins-profile <plugin-id>
