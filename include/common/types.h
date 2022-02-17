@@ -64,6 +64,12 @@
 #elif defined(__riscv) && (__riscv_xlen == 32)
     #define ARCH_RISCV
     #define ARCH_RISCV32
+#elif defined(__loongarch64)
+    #define ARCH_LOONGARCH
+    #define ARCH_LOONGARCH64
+#elif defined(__loongarch32)
+    #define ARCH_LOONGARCH
+    #define ARCH_LOONGARCH32
 #endif
 
 //-----------------------------------------------------------------------------
@@ -207,6 +213,21 @@
 
     #define ARCH_STRING                 "RISCV32"
 #endif /* defined(ARCH_RISCV32) */
+
+#if defined(ARCH_LOONGARCH64)
+    #define IF_ARCH_LOONGARCH64(...)          __VA_ARGS__
+    #define ARCH_LOONGARCH64_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "LOONGARCH64"
+#endif /* defined(ARCH_LOONGARCH64) */
+
+#if defined(ARCH_LOONGARCH32)
+    #define IF_ARCH_LOONGARCH32(...)          __VA_ARGS__
+    #define ARCH_LOONGARCH32_ASM(...)         __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #define ARCH_STRING                 "LOONGARCH32"
+#endif /* defined(ARCH_LOONGARCH32) */
+
 
 #if defined(ARCH_LE)
     #define __IF_LEBE(le, be)   le

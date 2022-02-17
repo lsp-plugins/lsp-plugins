@@ -63,6 +63,11 @@
             #define __cdecl
         #elif defined(__riscv) && (__riscv_xlen == 32)
             #define __cdecl
+	#elif defined(__loongarch64)
+            #define VST_64BIT_PLATFORM      1
+	    #define __cdecl
+	#elif defined(__loongarch32)
+	    #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
 #endif /* __GNUC__ */
@@ -84,7 +89,7 @@
     #endif
 
     #ifndef VST_64BIT_PLATFORM
-        #define VST_64BIT_PLATFORM  ((__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__) || (defined(__riscv) && (__riscv_xlen == 64)))
+        #define VST_64BIT_PLATFORM  ((__x86_64__) || (__aarch64__) || (__ppc64__) || (__s390x__) || (__zarch__) || (defined(__riscv) && (__riscv_xlen == 64)) || (__loongarch64))
     #endif /* VST_64BIT_PLATFORM */
 #else
     #ifndef VST_64BIT_PLATFORM
