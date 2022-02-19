@@ -47,6 +47,10 @@ cquery                  = $(foreach d,$(call uniq, $3),$(if $($(d)_$(strip $1)),
 # $(call intersection, list1, list2)
 intersection            = $(foreach v,$1,$(if $(findstring $(v),$2),$(v)))
 
+# Subtract the first set from second set
+# $(call subtraction, list1, list2)
+subtraction             = $(foreach v,$2,$(if $(findstring $(v),$1),,$(v)))
+
 # Fetch different versions from version string
 # $(call vmajor, <version-string>)
 vmajor                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\1/')

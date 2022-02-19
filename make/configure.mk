@@ -27,6 +27,7 @@ LIBDIR                     := $(PREFIX)/lib
 BINDIR                     := $(PREFIX)/bin
 SHAREDDIR                  := $(PREFIX)/share
 INCDIR                     := $(PREFIX)/include
+ETCDIR                     := /etc
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
 BUILDDIR                   := $(BASEDIR)/.build
@@ -62,7 +63,7 @@ MERGED_DEPENDENCIES        := \
   $(PLUGIN_SHARED)
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
-FEATURES                   := $(call uniq, $(DEFAULT_FEATURES))
+FEATURES                   := $(call uniq, $(call subtraction,$(SUB_FEATURES),$(DEFAULT_FEATURES) $(ADD_FEATURES)))
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
@@ -311,6 +312,7 @@ $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
 config: $(CONFIG_VARS)
+	echo "Enabled FEATURES: $(FEATURES)"
 	echo "Configured OK"
 
 help: | toolvars sysvars
