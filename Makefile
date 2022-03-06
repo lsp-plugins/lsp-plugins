@@ -52,9 +52,9 @@ DISTSRC_DIRS                = \
   $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make)
 
 .DEFAULT_GOAL              := all
-.PHONY: all compile install uninstall depend clean
+.PHONY: all compile install uninstall depend clean package
 
-compile all install uninstall depend:
+compile all install uninstall depend package:
 	$(CHK_CONFIG)
 	$(MAKE) -C "$(BASEDIR)/src" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" DESTDIR="$(DESTDIR)"
 
@@ -123,6 +123,7 @@ help:
 	echo "  help                      Print this help message"
 	echo "  info                      Output build configuration"
 	echo "  install                   Install all binaries into the system"
+	echo "  package                   Create archive files with binaries"
 	echo "  prune                     Cleanup build and all fetched dependencies from git"
 	echo "  testconfig                Configure test build"
 	echo "  tree                      Fetch all possible source code dependencies from git"

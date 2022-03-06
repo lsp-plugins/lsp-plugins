@@ -87,7 +87,7 @@ CXX_DEPFILE             = $(patsubst $(ARTIFACT_BIN)/%.d,%.cpp,$(@))
 CXX_DEPTARGET           = $(patsubst $(ARTIFACT_BIN)/%.d,%.o,$(@))
 
 .DEFAULT_GOAL = all
-.PHONY: compile depend dep_clean all install uninstall gen_stub
+.PHONY: compile depend dep_clean all install uninstall package gen_stub
 
 # Dependencies targets
 dep_clean:
@@ -143,7 +143,7 @@ $(ARTIFACT_OBJ_TEST): $(XOBJ_TEST)
 	$(LD) -o $(ARTIFACT_OBJ_TEST) -r $(XOBJ_TEST)
 
 # Deletaged targets
-all install uninstall:
+all install uninstall package:
 	$(MAKE) -C "$(LSP_PLUGIN_FW_PATH)" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)"
 
 # Dependencies
