@@ -108,7 +108,7 @@ Binary releases contain all possible plugins in one bundle. The binaries are pac
 into archive named according to the following format:
 
 ```
-  lsp-plugins-<format>-<major>.<minor>.<micro>-<arch>.tar.gz
+  lsp-plugins-<format>-<major>.<minor>.<micro>-<platform>-<arch>.tar.gz
 ```
 
 The property <format> is the format of plugins, currently available:

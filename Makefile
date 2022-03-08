@@ -50,6 +50,14 @@ DISTSRC_DIRS                = \
   $(if $(wildcard $(BASEDIR)/include/*), $(BASEDIR)/include) \
   $(if $(wildcard $(BASEDIR)/src/*), $(BASEDIR)/src) \
   $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make)
+DISTSRC_FILES               = \
+  $(wildcard $(BASEDIR)/CHANGELOG) \
+  $(wildcard $(BASEDIR)/COPYING*) \
+  $(wildcard $(BASEDIR)/*LICENSE*) \
+  $(wildcard $(BASEDIR)/Makefile) \
+  $(wildcard $(BASEDIR)/*.mk) \
+  $(wildcard $(BASEDIR)/*.md) \
+  $(wildcard $(BASEDIR)/*.txt)
 
 .DEFAULT_GOAL              := all
 .PHONY: all compile install uninstall depend clean package
@@ -100,13 +108,11 @@ distsrc:
 	mkdir -p "$(DISTSRC)/modules"
 	$(MAKE) -f "make/modules.mk" tree VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
 	$(if $(DISTSRC_DIRS), cp -R $(DISTSRC_DIRS) "$(DISTSRC)/")
-	cp $(BASEDIR)/CHANGELOG $(BASEDIR)/COPYING* $(BASEDIR)/Makefile $(BASEDIR)/*.mk $(BASEDIR)/*.md $(BASEDIR)/*.txt "$(DISTSRC)/"
+	$(if $(DISTSRC_FILES), cp $(DISTSRC_FILES) "$(DISTSRC)/")
 	find "$(DISTSRC)" -iname '.git' | xargs -exec rm -rf {}
 	find "$(DISTSRC)" -iname '.gitignore' | xargs -exec rm -rf {}
-	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-$(ARTIFACT_VERSION)-src.tar.gz" "$(ARTIFACT_NAME)"
+	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(ARTIFACT_NAME)"
 	echo "Created archive: $(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz"
-	ln -sf "$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
-	echo "Created symlink: $(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
 	rm -rf $(DISTSRC_PATH)
 	echo "Build OK"
 
