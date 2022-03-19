@@ -209,6 +209,7 @@ sysvars:
 	echo "  ADD_FEATURES              list of features enabled in the build as an addition to default"
 	echo "  ARCHITECTURE              target architecture to perform build"
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
+	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
 	echo "  BINDIR                    location of the binaries"
 	echo "  BUILDDIR                  location of the build directory"
 	echo "  DEBUG                     build with debug options"
