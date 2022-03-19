@@ -66,6 +66,7 @@ FLAG_RELRO          = -Wl,-z,relro,-z,now
 FLAG_STDLIB         = -lc
 CFLAGS_EXT          = $(ARCHITECTURE_CFLAGS)
 CXXFLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
+EXE_FLAGS_EXT       = $(ARCHITECTURE_CFLAGS)
 LDFLAGS_EXT         = $(ARCHITECTURE_LDFLAGS)
 
 ifeq ($(PLATFORM),Solaris)
