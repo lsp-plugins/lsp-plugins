@@ -5,6 +5,7 @@
 /.test/*
 /.release/*
 /.install/*
+/tmp/*
 /test_data/*
 /Debug/*
 /Release/*
