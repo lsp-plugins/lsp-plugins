@@ -1,0 +1,17 @@
+/*
+ * This file contains list of bookmarked directories.
+ * 
+ * (C) Linux Studio Plugins Project 
+ */
+[
+    {
+        "path": "/path1",
+        "name": "Test path",
+        "origin": ["lsp"]
+    },
+    {
+        "path": "/home/some/path/1",
+        "name": "Additional path",
+        "origin": ["lsp", "gtk3", "qt5"]
+    }
+]

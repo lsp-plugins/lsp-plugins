@@ -62,6 +62,7 @@ ifeq ($(PLATFORM),BSD)
     LIBSNDFILE \
     LIBX11 \
     LIBCAIRO \
+    LIBICONV \
     LIBFREETYPE
   
   DEFAULT_FEATURES += jack
