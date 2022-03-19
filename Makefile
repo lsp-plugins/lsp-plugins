@@ -49,7 +49,8 @@ DISTSRC                     = $(DISTSRC_PATH)/$(ARTIFACT_NAME)
 DISTSRC_DIRS                = \
   $(if $(wildcard $(BASEDIR)/include/*), $(BASEDIR)/include) \
   $(if $(wildcard $(BASEDIR)/src/*), $(BASEDIR)/src) \
-  $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make)
+  $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make) \
+  $(if $(wildcard $(BASEDIR)/res/*), $(BASEDIR)/res)
 DISTSRC_FILES               = \
   $(wildcard $(BASEDIR)/CHANGELOG) \
   $(wildcard $(BASEDIR)/COPYING*) \
