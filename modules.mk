@@ -110,7 +110,7 @@ LSP_PLUGINS_COMP_DELAY_TYPE             := plug
 LSP_PLUGINS_COMP_DELAY_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_COMP_DELAY_NAME).git
 LSP_PLUGINS_COMP_DELAY_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_COMP_DELAY_NAME).git
 
-LSP_PLUGINS_PHASE_DETECTOR_VERSION      := 1.0.0
+LSP_PLUGINS_PHASE_DETECTOR_VERSION      := 1.0.1
 LSP_PLUGINS_PHASE_DETECTOR_NAME         := lsp-plugins-phase-detector
 LSP_PLUGINS_PHASE_DETECTOR_TYPE         := plug
 LSP_PLUGINS_PHASE_DETECTOR_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGINS_PHASE_DETECTOR_NAME).git
@@ -122,7 +122,7 @@ LSP_PLUGINS_SPECTRUM_ANALYZER_TYPE      := plug
 LSP_PLUGINS_SPECTRUM_ANALYZER_URL_RO    := https://github.com/lsp-plugins/$(LSP_PLUGINS_SPECTRUM_ANALYZER_NAME).git
 LSP_PLUGINS_SPECTRUM_ANALYZER_URL_RW    := git@github.com:lsp-plugins/$(LSP_PLUGINS_SPECTRUM_ANALYZER_NAME).git
 
-LSP_PLUGINS_SAMPLER_VERSION             := 1.0.3
+LSP_PLUGINS_SAMPLER_VERSION             := 1.0.4
 LSP_PLUGINS_SAMPLER_NAME                := lsp-plugins-sampler
 LSP_PLUGINS_SAMPLER_TYPE                := plug
 LSP_PLUGINS_SAMPLER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
