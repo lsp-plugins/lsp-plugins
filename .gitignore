@@ -1,23 +1,19 @@
-/.svn/*
 /.settings/*
-/design/*
 /.builconfig/*
 /.build/*
 /.buildconfig/*
 /.test/*
 /.release/*
-/test/im_reverbs/*
-/design/articles/*
+/.install/*
+/tmp/*
 /test_data/*
 /Debug/*
 /Release/*
 /Debug AVX/*
 /Release AVX/*
-/.cproject
-/.project
+/.config.mk
 /Debug/
 /Release/
-/design/
 /Debug AVX/
 /Release AVX/
 /INSTALL/*
