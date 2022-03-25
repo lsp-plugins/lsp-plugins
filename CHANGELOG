@@ -2,6 +2,19 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.0 ===
+
+* Decomposition of core modules into submodules.
+* Implemented multiple visual themes for the plugins.
+* Added possibility to change visual themes in runtime.
+* Added headless support for JACK plugins.
+* Fixed delay compensation issue for Dry/Wet balance for single-banded dynamic plugin series
+  (Compressor/Gate/Expander/Dynamic Processor).
+* Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+* Implemented 'Reset to default' button.
+* Added support of building under LoongArch32 and LoongArch64 architectures.
+* Added support of building under 32-bit and 64-bit RISC-V architectures.
+
 === 1.1.31 ===
 
 * Fixed X11 error handling routine that could crash under certain conditions.
