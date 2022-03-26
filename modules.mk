@@ -61,7 +61,7 @@ LSP_R3D_GLX_LIB_TYPE       := bin
 LSP_R3D_GLX_LIB_URL_RO     := https://github.com/lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 LSP_R3D_GLX_LIB_URL_RW     := git@github.com:lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 
-LSP_WS_LIB_VERSION         := 1.0.1
+LSP_WS_LIB_VERSION         := hotfix
 LSP_WS_LIB_NAME            := lsp-ws-lib
 LSP_WS_LIB_TYPE            := src
 LSP_WS_LIB_URL_RO          := https://github.com/lsp-plugins/$(LSP_WS_LIB_NAME).git
