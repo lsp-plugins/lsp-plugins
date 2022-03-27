@@ -4,6 +4,12 @@
 
 === 1.2.1 ===
 - Fixed bugs related to usage of custom installation prefix.
+- Fixed problem with the UI visibility status update for JACK plugin format
+  that could cause problems with missing some graphical content in the UI.
+- Fixed the XDG data installation script that forced to use '/usr/local/share'
+  location for shared icons.
+- Fixed invalid pointer dereference when exporting configuration file.
+
 
 === 1.2.0 ===
 
