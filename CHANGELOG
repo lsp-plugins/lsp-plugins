@@ -11,6 +11,7 @@
 - Fixed invalid pointer dereference when exporting configuration file.
 - Fixed bug that caused plugins working in headless mode to crash.
 - Fixed regression related to saving state of some controls using lv2:State interface.
+- Updated build (some resources were unnecessary added to builtin resources).
 
 === 1.2.0 ===
 
