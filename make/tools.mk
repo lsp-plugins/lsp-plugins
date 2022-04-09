@@ -63,7 +63,7 @@ INSTALL            := $(X_INSTALL_TOOL)
 
 # Patch flags and tools for (cross) build
 FLAG_RELRO          = -Wl,-z,relro,-z,now
-FLAG_STDLIB         = -lc
+FLAG_STDLIB         = 
 CFLAGS_EXT          = $(ARCHITECTURE_CFLAGS)
 CXXFLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
 EXE_FLAGS_EXT       = $(ARCHITECTURE_CFLAGS)
@@ -138,7 +138,7 @@ CXXFLAGS           += $(CXXDEFS)
 INCLUDE            :=
 LDFLAGS            := $(LDFLAGS_EXT) -r
 EXE_FLAGS          := $(EXE_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections
-SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary $(FLAG_STDLIB) -fPIC 
+SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared $(FLAG_STDLIB) -fPIC 
 
 # Define flags for host build
 HOST_CFLAGS        := $(CFLAGS)
