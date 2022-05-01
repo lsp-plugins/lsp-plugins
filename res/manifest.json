@@ -1,7 +1,7 @@
 {
 	"artifact": "${ARTIFACT_ID}",
 	"artifact_name": "${ARTIFACT_DESC}",
-	"full_name": "Linux Studio Plugins",
+	"full_name": "${ARTIFACT_DESC}",
 	"short_name": "LSP",
 	"copyright": "Linux Studio Plugins Project",
 	"brand": "LSP",
