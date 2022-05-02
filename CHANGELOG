@@ -12,6 +12,7 @@
 - Fixed bug that caused plugins working in headless mode to crash.
 - Fixed regression related to saving state of some controls using lv2:State interface.
 - Updated build (some resources were unnecessary added to builtin resources).
+- Updated serialization format of the KVT (Key-Value Tree) for the LV2 plugin format.
 
 === 1.2.0 ===
 
