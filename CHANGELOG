@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.2 ===
+
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.
 * Improved keyboard event handling for VST2 plugin format in the case the host prevents
