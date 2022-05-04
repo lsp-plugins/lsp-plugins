@@ -41,6 +41,14 @@ ifeq ($(TEST),1)
 else
   UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) $(ARTIFACT_ID))
 endif
+
+# Artifact settings
+ifeq ($(BUILD_HOST),1)
+  override HOST                    = HOST_
+else
+  override HOST                    =
+endif
+
 DEPENDENCIES            = $(UNIQ_DEPENDENCIES)
 
 ARTIFACT_BIN            = $($(ARTIFACT_ID)_BIN)
@@ -127,20 +135,20 @@ $(OBJ):
 
 # Linking targets
 $(ARTIFACT_OBJ_META): $(XOBJ_MAIN_META)
-	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_META))"
-	$(LD) -o $(ARTIFACT_OBJ_META) -r $(XOBJ_MAIN_META)
+	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_META))"
+	$($(HOST)LD) -o $(ARTIFACT_OBJ_META) $($(HOST)LDFLAGS) $(XOBJ_MAIN_META)
 	
 $(ARTIFACT_OBJ_DSP): $(XOBJ_MAIN_DSP)
-	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_DSP))"
-	$(LD) -o $(ARTIFACT_OBJ_DSP) -r $(XOBJ_MAIN_DSP)
+	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_DSP))"
+	$($(HOST)LD) -o $(ARTIFACT_OBJ_DSP) $($(HOST)LDFLAGS) $(XOBJ_MAIN_DSP)
 	
 $(ARTIFACT_OBJ_UI): $(XOBJ_MAIN_UI)
-	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_UI))"
-	$(LD) -o $(ARTIFACT_OBJ_UI) -r $(XOBJ_MAIN_UI)
+	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_UI))"
+	$($(HOST)LD) -o $(ARTIFACT_OBJ_UI) $($(HOST)LDFLAGS) $(XOBJ_MAIN_UI)
 	
 $(ARTIFACT_OBJ_TEST): $(XOBJ_TEST)
-	echo "  $(LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_TEST))"
-	$(LD) -o $(ARTIFACT_OBJ_TEST) -r $(XOBJ_TEST)
+	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_TEST))"
+	$($(HOST)LD) -o $(ARTIFACT_OBJ_TEST) $($(HOST)LDFLAGS) $(XOBJ_TEST)
 
 # Deletaged targets
 all install uninstall package:

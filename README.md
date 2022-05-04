@@ -40,23 +40,25 @@ Current matrix of hardware architecture and platform (OS) support is:
   ┌───────────┬───────────┬─────────┐
   │Arch / OS  │ GNU/Linux │ FreeBSD │
   ╞═══════════╪═══════════╪═════════╡
-  │i586       │     F     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │x86_64     │     F     │    E    │
+  │aarch64    │     E     │    U    │
   ├───────────┼───────────┼─────────┤
   │armv6-a    │     E     │    E    │
   ├───────────┼───────────┼─────────┤
   │armv7-ar   │     E     │    E    │
   ├───────────┼───────────┼─────────┤
-  │aarch64    │     E     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │ppc64      │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │s390x      │     C     │    U    │
+  │i586       │     F     │    E    │
   ├───────────┼───────────┼─────────┤
   │loongarch32│     C     │    U    │
   ├───────────┼───────────┼─────────┤
   │loongarch64│     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │ppc64      │     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │riscv-64   │     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │s390x      │     C     │    U    │
+  ├───────────┼───────────┼─────────┤
+  │x86_64     │     F     │    E    │
   └───────────┴───────────┴─────────┘ 
 ```
 
@@ -280,9 +282,6 @@ For more build options, issue:
 
 # DEBUGGING
 
-For debugging purposes the GNU Debugger (gdb) may be used:
-  gdb --args ./lsp-plugins-profile <plugin-id>
-
 For debugging and getting crash stack trace with Ardour, please follow these steps:
   * Open console
   * Run ardour from console with --gdb option
@@ -314,10 +313,11 @@ optimizations.
 
 To build testing subsystem, issue the following commands:
   make clean
-  make test
+  make config TEST=1
+  make
 
 After build, we can launch the test binary by issuing command:
-  .test/lsp-plugins-test
+  .build/host/lsp-plugin-fw/lsp-plugins-test
 
 This binary provides simple command-line interface, so here's the full usage:  
   USAGE: {utest|ptest|mtest} [args...] [test name...]
@@ -348,17 +348,17 @@ Each test has fully-qualified name separated by dot symbols, tests from differen
 test spaces (utest, ptest, mtest) may have similar fully-qualified names.
 
 To obtain a list of all unit tests we can issue:
-  .test/lsp-plugins-test utest --list
+  .build/host/lsp-plugin-fw/lsp-plugins-test utest --list
 
 And then we can launch all complex number processing unit tests and additionally
 'dsp.mix' unit test:
-  .test/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+  .build/host/lsp-plugin-fw/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
 
 If we don's specify any unit test name in argument, then all available unit tests
 will be launched.
 
 To start debugging of some unit test, you need to pass additional arguments:
-  .test/lsp-plugins-test utest --nofork --debug --verbose
+  .build/host/lsp-plugin-fw/lsp-plugins-test/lsp-plugins-test utest --nofork --debug --verbose
   
 Because unit tests are short-time fully-automated tests, they are parallelized and
 executed by default by number_of_cores*2 processes. To disable this, we specify option
@@ -371,7 +371,7 @@ We also can use performance tests to obtain full performance profile of target m
 Because performance tests in most cases take much time for gathering statistics,
 the final statistics for each test can be saved in a separate file by specifying --outfile
 option:
-  .test/lsp-plugins-test ptest -o performance-test.log
+  .build/host/lsp-plugin-fw/lsp-plugins-test ptest -o performance-test.log
 
 Manual tests are mostly designed for developers' purposes.
 
