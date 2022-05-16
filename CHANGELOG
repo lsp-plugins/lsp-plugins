@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.2 ===
+* Added german translations (contributed by Johannes Guenther).
 
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.
