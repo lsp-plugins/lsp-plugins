@@ -6,6 +6,7 @@
 * Added german translations (contributed by Johannes Guenther).
 * Added pitch control for the sample in the Sampler and Multisampler plugin series
   (contributed by Vitalius Kuchalskis).
+* Added pitch control for the sample in the Trigger plugin series.
 
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.
