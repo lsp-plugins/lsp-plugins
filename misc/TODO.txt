@@ -9,25 +9,19 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
-=== 1.2.0 ===
+=== 1.2.1 ===
 
-- Decomposition of core modules into submodules.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
 - Research the work of plugins under Audacity.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files.
-- Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
-- Add delay compensation feature between bands for spectrum analyzer plugin.
 - Additional code updates to get compatibility with WindowsNT platform.
 - Implemented Multiband Dynamic Processor plugin series.
 - Changed channel/device numbering to start with 1 in the UI.
 - Added support of auto-mute feature for plugins.
-- Added 'Reset to default' button.
-- Added possibility to change themes in runtime.
 - Complicated plugin UIs now allow to switch between Advanced and Novice modes.
-- Added support of building under LoongArch32 and LoongArch64 architectures.
-- Added support of building under 32-bit and 64-bit RISC-V architectures.
+
 
 *******************************************************************************
 * New plugin check list before release

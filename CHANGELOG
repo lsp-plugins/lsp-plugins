@@ -2,6 +2,49 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.2 ===
+* Added german translations (contributed by Johannes Guenther).
+* Added pitch control for the sample in the Sampler and Multisampler plugin series
+  (contributed by Vitalius Kuchalskis).
+* Added pitch control for the sample in the Trigger plugin series.
+
+=== 1.2.1 ===
+* Introduced JACK connection status indication for JACK plugin format.
+* Improved keyboard event handling for VST2 plugin format in the case the host prevents
+  plugins from directly receiving X11 events.
+* Updated serialization format of the KVT (Key-Value Tree) for the LV2 plugin format.
+* Updated parameter mapping LV2 URI for KVT.
+* Updated build (some resources were unnecessary added to builtin resources).
+* Updated version handling in the UI wrapper that allows to control multiple bundle
+  versions in one global configuration file.
+* Updated grammar in several text comments (contributed by Dennis Braun).
+* Fixed typo in Wavefront Object File Format name.
+* Fixed bugs related to usage of custom installation prefix in build scripts.
+* Fixed the XDG data installation script that forced to use '/usr/local/share'
+  location for shared icons.
+* Fixed problem with the UI visibility status update for JACK plugin format
+  that could cause problems of missing of some graphical content in the UI.
+* Fixed invalid pointer dereference when exporting configuration file that could cause crashes.
+* Fixed bug that caused plugins working in headless mode to crash.
+* Fixed regression related to saving state of some plugin controls using lv2:State interface.
+* Fixed missing serialization for high-precision parameters in the configuration file.
+* Fixed bug related to improper parsing of port name aliases in the UI.
+* Fixed typo in Wavefront Object File Format name.
+* Fixed bug that could cause improper window sizing in several cases.
+
+=== 1.2.0 ===
+
+* Decomposition of core modules into submodules.
+* Implemented multiple visual themes for the plugins.
+* Added possibility to change visual themes in runtime.
+* Added headless support for JACK plugins.
+* Fixed delay compensation issue for Dry/Wet balance for single-banded dynamic plugin series
+  (Compressor/Gate/Expander/Dynamic Processor).
+* Add support of LV2UI:scaleFactor extension - https://github.com/drobilla/lv2/pull/38/commits
+* Implemented 'Reset to default' button.
+* Added support of building under LoongArch32 and LoongArch64 architectures.
+* Added support of building under 32-bit and 64-bit RISC-V architectures.
+
 === 1.1.31 ===
 
 * Fixed X11 error handling routine that could crash under certain conditions.

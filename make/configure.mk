@@ -312,7 +312,8 @@ $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
 config: $(CONFIG_VARS)
-	echo "Enabled FEATURES: $(FEATURES)"
+	echo "Architecture: $(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
+	echo "Features:     $(FEATURES)"
 	echo "Configured OK"
 
 help: | toolvars sysvars

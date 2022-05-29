@@ -63,10 +63,12 @@ INSTALL            := $(X_INSTALL_TOOL)
 
 # Patch flags and tools for (cross) build
 FLAG_RELRO          = -Wl,-z,relro,-z,now
-FLAG_STDLIB         = -lc
+FLAG_STDLIB         = 
 CFLAGS_EXT          = $(ARCHITECTURE_CFLAGS)
 CXXFLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
-LDFLAGS_EXT         =
+EXE_FLAGS_EXT       = $(ARCHITECTURE_CFLAGS)
+SO_FLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
+LDFLAGS_EXT         = $(ARCHITECTURE_LDFLAGS)
 
 ifeq ($(PLATFORM),Solaris)
   FLAG_RELRO          =
@@ -108,6 +110,9 @@ else
 endif
 
 # Define flags for (cross) build
+CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
+CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
+
 CFLAGS             := \
   $(CFLAGS_EXT) \
   -fdata-sections \
@@ -116,8 +121,6 @@ CFLAGS             := \
   -pipe \
   -Wall
 
-CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
-  
 CXXFLAGS           := \
   $(CXXFLAGS_EXT) \
   -std=c++98 \
@@ -129,12 +132,13 @@ CXXFLAGS           := \
   -pipe \
   -Wall
 
-CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
+CFLAGS             += $(CDEFS)
+CXXFLAGS           += $(CXXDEFS)
 
 INCLUDE            :=
 LDFLAGS            := $(LDFLAGS_EXT) -r
 EXE_FLAGS          := $(EXE_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections
-SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared -Llibrary $(FLAG_STDLIB) -fPIC 
+SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared $(FLAG_STDLIB) -fPIC 
 
 # Define flags for host build
 HOST_CFLAGS        := $(CFLAGS)

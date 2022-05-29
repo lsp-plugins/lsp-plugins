@@ -49,12 +49,21 @@ DISTSRC                     = $(DISTSRC_PATH)/$(ARTIFACT_NAME)
 DISTSRC_DIRS                = \
   $(if $(wildcard $(BASEDIR)/include/*), $(BASEDIR)/include) \
   $(if $(wildcard $(BASEDIR)/src/*), $(BASEDIR)/src) \
-  $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make)
+  $(if $(wildcard $(BASEDIR)/make/*), $(BASEDIR)/make) \
+  $(if $(wildcard $(BASEDIR)/res/*), $(BASEDIR)/res)
+DISTSRC_FILES               = \
+  $(wildcard $(BASEDIR)/CHANGELOG) \
+  $(wildcard $(BASEDIR)/COPYING*) \
+  $(wildcard $(BASEDIR)/*LICENSE*) \
+  $(wildcard $(BASEDIR)/Makefile) \
+  $(wildcard $(BASEDIR)/*.mk) \
+  $(wildcard $(BASEDIR)/*.md) \
+  $(wildcard $(BASEDIR)/*.txt)
 
 .DEFAULT_GOAL              := all
-.PHONY: all compile install uninstall depend clean
+.PHONY: all compile install uninstall depend clean package
 
-compile all install uninstall depend:
+compile all install uninstall depend package:
 	$(CHK_CONFIG)
 	$(MAKE) -C "$(BASEDIR)/src" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" DESTDIR="$(DESTDIR)"
 
@@ -100,13 +109,11 @@ distsrc:
 	mkdir -p "$(DISTSRC)/modules"
 	$(MAKE) -f "make/modules.mk" tree VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
 	$(if $(DISTSRC_DIRS), cp -R $(DISTSRC_DIRS) "$(DISTSRC)/")
-	cp $(BASEDIR)/CHANGELOG $(BASEDIR)/COPYING* $(BASEDIR)/Makefile $(BASEDIR)/*.mk $(BASEDIR)/*.md $(BASEDIR)/*.txt "$(DISTSRC)/"
-	find "$(DISTSRC)" -iname '.git' | xargs -exec rm -rf {}
-	find "$(DISTSRC)" -iname '.gitignore' | xargs -exec rm -rf {}
-	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-$(ARTIFACT_VERSION)-src.tar.gz" "$(ARTIFACT_NAME)"
+	$(if $(DISTSRC_FILES), cp $(DISTSRC_FILES) "$(DISTSRC)/")
+	find "$(DISTSRC)" -iname '.git' | xargs rm -rf {}
+	find "$(DISTSRC)" -iname '.gitignore' | xargs rm -rf {}
+	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(ARTIFACT_NAME)"
 	echo "Created archive: $(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz"
-	ln -sf "$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
-	echo "Created symlink: $(BUILDDIR)/$(ARTIFACT_NAME)-src.tar.gz"
 	rm -rf $(DISTSRC_PATH)
 	echo "Build OK"
 
@@ -123,6 +130,7 @@ help:
 	echo "  help                      Print this help message"
 	echo "  info                      Output build configuration"
 	echo "  install                   Install all binaries into the system"
+	echo "  package                   Create archive files with binaries"
 	echo "  prune                     Cleanup build and all fetched dependencies from git"
 	echo "  testconfig                Configure test build"
 	echo "  tree                      Fetch all possible source code dependencies from git"
