@@ -110,9 +110,6 @@ else
 endif
 
 # Define flags for (cross) build
-CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
-CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
-
 CFLAGS             := \
   $(CFLAGS_EXT) \
   -fdata-sections \
@@ -121,6 +118,8 @@ CFLAGS             := \
   -pipe \
   -Wall
 
+CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
+  
 CXXFLAGS           := \
   $(CXXFLAGS_EXT) \
   -std=c++98 \
@@ -132,8 +131,7 @@ CXXFLAGS           := \
   -pipe \
   -Wall
 
-CFLAGS             += $(CDEFS)
-CXXFLAGS           += $(CXXDEFS)
+CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
 
 INCLUDE            :=
 LDFLAGS            := $(LDFLAGS_EXT) -r
