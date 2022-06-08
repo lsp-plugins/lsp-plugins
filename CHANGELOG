@@ -3,12 +3,13 @@
 *******************************************************************************
 
 === 1.2.2 ===
+* Implemented Multiband Dynamic Processor plugin series.
 * Added german translations (contributed by Johannes Guenther).
 * Added pitch control for the sample in the Sampler and Multisampler plugin series
   (contributed by Vitalius Kuchalskis).
 * Added pitch control for the sample in the Trigger plugin series.
 * Fixed plugin version tracking which didn't save the updated version
-  to the configuration file. 
+  to the configuration file.
 
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.

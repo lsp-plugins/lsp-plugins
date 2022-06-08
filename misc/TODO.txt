@@ -84,6 +84,7 @@
 * Loudness Compensator
 * Multi-Sampler
 * Multiband Compressor
+* Multiband Dynamic Processor
 * Multiband Expander
 * Multiband Gate
 * Parametric Equalizer
@@ -95,7 +96,6 @@
 * Surge filter
 * Trigger
 
-- Multiband Dynamic Processor
 - Dynamic equalizer
 - One-band compressor
 - Multiband limiter

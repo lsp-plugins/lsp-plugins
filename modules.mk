@@ -189,6 +189,12 @@ LSP_PLUGINS_MB_COMPRESSOR_TYPE          := plug
 LSP_PLUGINS_MB_COMPRESSOR_URL_RO        := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_COMPRESSOR_NAME).git
 LSP_PLUGINS_MB_COMPRESSOR_URL_RW        := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_COMPRESSOR_NAME).git
 
+LSP_PLUGINS_MB_DYNA_PROCESSOR_VERSION   := 1.0.0
+LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME      := lsp-plugins-mb-dyna-processor
+LSP_PLUGINS_MB_DYNA_PROCESSOR_TYPE      := plug
+LSP_PLUGINS_MB_DYNA_PROCESSOR_URL_RO    := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME).git
+LSP_PLUGINS_MB_DYNA_PROCESSOR_URL_RW    := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME).git
+
 LSP_PLUGINS_MB_EXPANDER_VERSION         := 1.0.2
 LSP_PLUGINS_MB_EXPANDER_NAME            := lsp-plugins-mb-expander
 LSP_PLUGINS_MB_EXPANDER_TYPE            := plug
