@@ -10,6 +10,7 @@
 * Added pitch control for the sample in the Trigger plugin series.
 * Fixed plugin version tracking which didn't save the updated version
   to the configuration file.
+* Fixed improper configuration file import in JACK headless mode.  
 
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.
