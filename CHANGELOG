@@ -12,6 +12,7 @@
   to the configuration file.
 * Fixed improper configuration file import in JACK headless mode.
 * Fixed segmentation fault error in JACK headless mode when JACK connection was lost.
+* Added window scaling button function for plugin window.
 
 === 1.2.1 ===
 * Introduced JACK connection status indication for JACK plugin format.
