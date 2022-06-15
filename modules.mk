@@ -189,6 +189,12 @@ LSP_PLUGINS_MB_COMPRESSOR_TYPE          := plug
 LSP_PLUGINS_MB_COMPRESSOR_URL_RO        := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_COMPRESSOR_NAME).git
 LSP_PLUGINS_MB_COMPRESSOR_URL_RW        := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_COMPRESSOR_NAME).git
 
+LSP_PLUGINS_MB_DYNA_PROCESSOR_VERSION   := 1.0.0
+LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME      := lsp-plugins-mb-dyna-processor
+LSP_PLUGINS_MB_DYNA_PROCESSOR_TYPE      := plug
+LSP_PLUGINS_MB_DYNA_PROCESSOR_URL_RO    := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME).git
+LSP_PLUGINS_MB_DYNA_PROCESSOR_URL_RW    := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_DYNA_PROCESSOR_NAME).git
+
 LSP_PLUGINS_MB_EXPANDER_VERSION         := 1.0.2
 LSP_PLUGINS_MB_EXPANDER_NAME            := lsp-plugins-mb-expander
 LSP_PLUGINS_MB_EXPANDER_TYPE            := plug
@@ -201,6 +207,12 @@ LSP_PLUGINS_MB_GATE_TYPE                := plug
 LSP_PLUGINS_MB_GATE_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 LSP_PLUGINS_MB_GATE_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 
+LSP_PLUGINS_NOISE_GENERATOR_VERSION     := 1.0.1
+LSP_PLUGINS_NOISE_GENERATOR_NAME        := lsp-plugins-noise-generator
+LSP_PLUGINS_NOISE_GENERATOR_TYPE        := plug
+LSP_PLUGINS_NOISE_GENERATOR_URL_RO      := https://github.com/lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+LSP_PLUGINS_NOISE_GENERATOR_URL_RW      := git@github.com:lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+
 LSP_PLUGINS_OSCILLATOR_VERSION          := 1.0.2
 LSP_PLUGINS_OSCILLATOR_NAME             := lsp-plugins-oscillator
 LSP_PLUGINS_OSCILLATOR_TYPE             := plug
@@ -212,12 +224,6 @@ LSP_PLUGINS_OSCILLOSCOPE_NAME           := lsp-plugins-oscilloscope
 LSP_PLUGINS_OSCILLOSCOPE_TYPE           := plug
 LSP_PLUGINS_OSCILLOSCOPE_URL_RO         := https://github.com/lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
 LSP_PLUGINS_OSCILLOSCOPE_URL_RW         := git@github.com:lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
-
-LSP_PLUGINS_NOISE_GENERATOR_VERSION     := 1.0.1
-LSP_PLUGINS_NOISE_GENERATOR_NAME        := lsp-plugins-noise-generator
-LSP_PLUGINS_NOISE_GENERATOR_TYPE        := plug
-LSP_PLUGINS_NOISE_GENERATOR_URL_RO      := https://github.com/lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
-LSP_PLUGINS_NOISE_GENERATOR_URL_RW      := git@github.com:lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
 
 LSP_PLUGINS_PARA_EQUALIZER_VERSION      := 1.0.6
 LSP_PLUGINS_PARA_EQUALIZER_NAME         := lsp-plugins-para-equalizer
@@ -285,6 +291,10 @@ LIBJACK_TYPE               := pkg
 LIBX11_VERSION             := system
 LIBX11_NAME                := x11
 LIBX11_TYPE                := pkg
+
+LIBXRANDR_VERSION          := system
+LIBXRANDR_NAME             := xrandr
+LIBXRANDR_TYPE             := pkg
 
 LIBCAIRO_VERSION           := system
 LIBCAIRO_NAME              := cairo

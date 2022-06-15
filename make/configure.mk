@@ -312,7 +312,7 @@ $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
 config: $(CONFIG_VARS)
-	echo "Architecture: $(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
+	echo "Architecture: $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
 	echo "Features:     $(FEATURES)"
 	echo "Configured OK"
 

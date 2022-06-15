@@ -50,6 +50,7 @@ ifeq ($(PLATFORM),Linux)
     LIBJACK \
     LIBSNDFILE \
     LIBX11 \
+    LIBXRANDR \
     LIBCAIRO \
     LIBFREETYPE
   
@@ -61,6 +62,7 @@ ifeq ($(PLATFORM),BSD)
     LIBJACK \
     LIBSNDFILE \
     LIBX11 \
+    LIBXRANDR \
     LIBCAIRO \
     LIBICONV \
     LIBFREETYPE
@@ -84,6 +86,7 @@ ALL_DEPENDENCIES = \
   LIBGL \
   LIBSNDFILE \
   LIBX11 \
+  LIBXRANDR \
   LIBCAIRO \
   LIBDL \
   LIBICONV \
