@@ -135,6 +135,16 @@
 ==== Equalizer snap-to-note feature ====
 
 rnbeatproducerextra
+  Let's say you have an Instrumental in the Key of C Minor. You then can choose all the Notes
+  from the Scale in the EQ and everytime you boost a certain frequency it will be boosted in the
+  respective key. It would automatically snap to the right Note, for example you boost 280 hz which
+  is the key of C#, but your Song is in C Minor so it would automatically boost 260 hz instead, the
+  key of C and so on. Also, everytime you cut it would just cut all the Notes that are out of key.
+  
+  > The use case is not very clear for me. Should all notes be boosted immediately or just several notes?
+  What with overtones? How the key should be selected and etc. This feature has to be explained in
+  much more details.
+
   Yes, I should have explained more about the "Snap to Note" idea, my bad.
   The way I imagined it is, if you boost a band, the nearest note of the, from your selected
   notes will be boosted, just for that single band. Each time you boost with an EQ band, it snaps
