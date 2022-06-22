@@ -56,51 +56,71 @@ endif
 # The current architecture can be obtained by: gcc -Q --help=target
 ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)),armv6)
   override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
   ARCHITECTURE_CFLAGS    := -march=armv6 -marm
 else ifeq ($(patsubst armv7ve%,armv7ve,$(BUILD_ARCH)),armv7ve)
   override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
   ARCHITECTURE_CFLAGS    := -march=armv7ve -marm
 else ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)),armv7)
   override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
   ARCHITECTURE_CFLAGS    := -march=armv7-a -marm
 else ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)),armv8)
   override ARCHITECTURE   = aarch64
+  ARCHITECTURE_FAMILY     = aarch64
   ARCHITECTURE_CFLAGS    := -march=armv8-a
 else ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)),aarch64)
   override ARCHITECTURE   = aarch64
+  ARCHITECTURE_FAMILY     = aarch64
   ARCHITECTURE_CFLAGS    := -march=armv8-a
 else ifeq ($(BUILD_ARCH),arm32)
   override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
   ARCHITECTURE_CFLAGS    := -march=armv6 -marm
 else ifeq ($(BUILD_ARCH),arm)
   override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
   ARCHITECTURE_CFLAGS    := -march=armv6 -marm
 else ifeq ($(patsubst %x86_64%,x86_64,$(BUILD_ARCH)),x86_64)
   override ARCHITECTURE   = x86_64
+  ARCHITECTURE_FAMILY     = x86_64
   ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
 else ifeq ($(patsubst %amd64%,amd64,$(BUILD_ARCH)),amd64)
   override ARCHITECTURE   = x86_64
+  ARCHITECTURE_FAMILY     = x86_64
   ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
 else ifeq ($(patsubst %AMD64%,AMD64,$(BUILD_ARCH)),AMD64)
   override ARCHITECTURE   = x86_64
+  ARCHITECTURE_FAMILY     = x86_64
   ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
 else ifeq ($(BUILD_ARCH),i86pc)
   override ARCHITECTURE   = x86_64
+  ARCHITECTURE_FAMILY     = x86_64
   ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
+else ifeq ($(patsubst %i686%,i686,$(BUILD_ARCH)),i686)
+  override ARCHITECTURE   = i686
+  ARCHITECTURE_FAMILY     = ia32
+  ARCHITECTURE_CFLAGS    := -march=i686 -m32
 else ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)),i586)
   override ARCHITECTURE   = i586
+  ARCHITECTURE_FAMILY     = ia32
   ARCHITECTURE_CFLAGS    := -march=i586 -m32
 else ifeq ($(BUILD_ARCH),x86)
   override ARCHITECTURE   = i586
+  ARCHITECTURE_FAMILY     = ia32
   ARCHITECTURE_CFLAGS    := -march=i586 -m32
 else ifeq ($(BUILD_ARCH),riscv32)
   override ARCHITECTURE   = riscv32
+  ARCHITECTURE_FAMILY     = riscv32
   ARCHITECTURE_CFLAGS    := -march=rv32imafdc -mabi=lp32d
 else ifeq ($(BUILD_ARCH),riscv64)
   override ARCHITECTURE   = riscv64
+  ARCHITECTURE_FAMILY     = riscv64
   ARCHITECTURE_CFLAGS    := -march=rv64imafdc -mabi=lp64d
 else
-  override ARCHITECTURE   =
+  override ARCHITECTURE   = $(BUILD_ARCH)
+  ARCHITECTURE_FAMILY     = generic
   ARCHITECTURE_CFLAGS    :=
 endif
 
@@ -182,6 +202,7 @@ COMMON_VARS = \
 	ROOT_ARTIFACT_ID \
 	PLATFORM \
 	ARCHITECTURE \
+	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
 	BUILDDIR \
 	FEATURES \
@@ -209,6 +230,7 @@ sysvars:
 	echo "  ADD_FEATURES              list of features enabled in the build as an addition to default"
 	echo "  ARCHITECTURE              target architecture to perform build"
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
+	echo "  ARCHITECTURE_FAMILY       compiler flags to specify architecture family"
 	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
 	echo "  BINDIR                    location of the binaries"
 	echo "  BUILDDIR                  location of the build directory"

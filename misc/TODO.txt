@@ -84,6 +84,7 @@
 * Loudness Compensator
 * Multi-Sampler
 * Multiband Compressor
+* Multiband Dynamic Processor
 * Multiband Expander
 * Multiband Gate
 * Parametric Equalizer
@@ -95,7 +96,6 @@
 * Surge filter
 * Trigger
 
-- Multiband Dynamic Processor
 - Dynamic equalizer
 - One-band compressor
 - Multiband limiter
@@ -131,6 +131,40 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== Equalizer snap-to-note feature ====
+
+rnbeatproducerextra
+  Let's say you have an Instrumental in the Key of C Minor. You then can choose all the Notes
+  from the Scale in the EQ and everytime you boost a certain frequency it will be boosted in the
+  respective key. It would automatically snap to the right Note, for example you boost 280 hz which
+  is the key of C#, but your Song is in C Minor so it would automatically boost 260 hz instead, the
+  key of C and so on. Also, everytime you cut it would just cut all the Notes that are out of key.
+  
+  > The use case is not very clear for me. Should all notes be boosted immediately or just several notes?
+  What with overtones? How the key should be selected and etc. This feature has to be explained in
+  much more details.
+
+  Yes, I should have explained more about the "Snap to Note" idea, my bad.
+  The way I imagined it is, if you boost a band, the nearest note of the, from your selected
+  notes will be boosted, just for that single band. Each time you boost with an EQ band, it snaps
+  to the nearest note. It wouldn't explicitly consider the fundamental or overtones,
+  it would just jump to the next "right" note you selected. You could select the notes individually
+  in the EQ (e.g. like MAutopitch by Melda Productions).
+  
+  FL Studios' Stock EQ can do a similar thing, for example. You can select a note for the individual
+  band and then when you boost or cut only that specific note will be affected. The only difference
+  here is, that it would snap automatically to the nearest note you've choosed in the frequency spectrum.
+
+==== Equalizer tilt filters ====
+
+rnbeatproducerextra
+  I would also like to see Tilt Filters such as Flat Tilt and Tilt shelf. 
+  
+  > "What do you mean under `tilt filters`? The filters with the specific amount of
+  the db/octave raising/falloff for the specific frequency range?"
+  
+  Yes, that's what I meant!
 
 ==== OSC-Send Plugin ====
 
