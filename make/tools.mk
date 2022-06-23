@@ -110,7 +110,7 @@ else
 endif
 
 # Define flags for (cross) build
-CFLAGS             ?= \
+CFLAGS             += \
   $(CFLAGS_EXT) \
   -fdata-sections \
   -ffunction-sections \
@@ -120,7 +120,7 @@ CFLAGS             ?= \
 
 CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
   
-CXXFLAGS           ?= \
+CXXFLAGS           += \
   $(CXXFLAGS_EXT) \
   -std=c++98 \
   -fno-exceptions \
