@@ -1,0 +1,64 @@
+---
+
+name: Build on various Operating Systems
+
+on:
+  push:
+    branches: [devel, master]
+  pull_request:
+    branches: [devel, master]
+
+jobs:
+  arch_linux:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git hicolor-icon-theme jack jq ladspa libglvnd libsndfile libx11 libxrandr lv2 lv2lint php valgrind
+      - uses: actions/checkout@v2
+      - name: Configure project
+        run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
+      - name: Fetch project dependencies
+        run: make fetch
+      - name: Build project
+        run: make VERBOSE=1
+      - name: Install binaries
+        run: make install
+      - name: Lint LV2 plugins
+        run: for _plugin in $(jq -r '.plugins[].id' .build/target/lsp-plugin-fw/plugins.json); do lv2lint -Mpack "http://lsp-plug.in/plugins/lv2/$_plugin"; done
+  opensuse_leap:
+    runs-on: ubuntu-latest
+    container:
+      image: opensuse/leap:latest
+    steps:
+      - name: Install dependencies
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ git make php valgrind libX11-devel libXrandr-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel lv2-devel ladspa-devel
+      - uses: actions/checkout@v2
+      - name: Configure project
+        run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
+      - name: Fetch project dependencies
+        run: make fetch
+      - name: Build project
+        run: make VERBOSE=1
+      - name: Install binaries
+        run: make install
+  debian_stable:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:stable
+    steps:
+      - name: Update repositories
+        run: apt-get update
+      - name: Install dependencies
+        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev lv2-dev ladspa-sdk
+      - uses: actions/checkout@v2
+      - name: Configure project
+        run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
+      - name: Fetch project dependencies
+        run: make fetch
+      - name: Build project
+        run: make VERBOSE=1
+      - name: Install binaries
+        run: make install
+
