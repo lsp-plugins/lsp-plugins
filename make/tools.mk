@@ -122,7 +122,6 @@ CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
   
 CXXFLAGS           += \
   $(CXXFLAGS_EXT) \
-  -std=c++98 \
   -fno-exceptions \
   -fno-rtti \
   -fdata-sections \
