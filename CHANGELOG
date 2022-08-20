@@ -3,6 +3,11 @@
 *******************************************************************************
 
 === 1.2.3 ===
+* Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
+* Updated compressor plugin bundles: added negative boosting gain option in 'Boosting' mode.
+* Updated gate plugin bundles: added negative gain option for ducking gateway option.
+* Assigned more correct names for sidechain types of dynamic processing plugins.
+* Several bugfixes in core libraries.
 
 === 1.2.2 ===
 * Implemented Multiband Dynamic Processor plugin series.
