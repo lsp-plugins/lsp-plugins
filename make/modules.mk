@@ -45,10 +45,10 @@ UNIQ_MERGED_DEPENDENCIES   := $(filter-out $(ARTIFACT_ID),$(call uniq, $(MERGED_
 UNIQ_ALL_DEPENDENCIES      := $(filter-out $(ARTIFACT_ID),$(call uniq, $(ALL_DEPENDENCIES) $(PLUGIN_DEPENDENCIES) $(PLUGIN_SHARED)))
 
 # Find the proper branch of the GIT repository
+MODULES                    ?= $(BASEDIR)/modules
+GIT                        ?= git
+
 ifeq ($(TREE),1)
-  MODULES                := $(BASEDIR)/modules
-  GIT                    := git
-  
   $(foreach dep,$(UNIQ_ALL_DEPENDENCIES), \
     $(eval $(dep)_URL=$($(dep)_URL_RO)) \
   )
@@ -92,10 +92,6 @@ $(ALL_SRC_MODULES) $(ALL_HDR_MODULES) $(ALL_BIN_MODULES) $(ALL_PLUG_MODULES):
 	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout -B "$($(@)_NAME)-$($(@)_BRANCH)" "origin/$($(@)_NAME)-$($(@)_BRANCH)" || \
 	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout "refs/tags/$($(@)_NAME)-$($(@)_BRANCH)"
 
-$(ALL_PATHS):
-	echo "Removing $(notdir $(@))"
-	-rm -rf $(@)
-
 fetch: $(SRC_MODULES) $(HDR_MODULES) $(BIN_MODULES) $(PLUG_MODULES)
 
 tree: $(ALL_SRC_MODULES) $(ALL_HDR_MODULES) $(ALL_BIN_MODULES) $(ALL_PLUG_MODULES)
@@ -104,5 +100,8 @@ clean:
 	echo rm -rf "$($(ARTIFACT_VARS)_BIN)/$(ARTIFACT_NAME)"
 	-rm -rf "$($(ARTIFACT_VARS)_BIN)/$(ARTIFACT_NAME)"
 
-prune: $(ALL_PATHS)
+prune:
+	echo "Removing $(notdir $(MODULES))"
+	-rm -rf $(MODULES)
+	
 

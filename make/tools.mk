@@ -40,26 +40,26 @@ X_GIT_TOOL         := git
 X_INSTALL_TOOL     := install
 
 # Define tool variables for (cross) build
-CC                 := $(X_CC_TOOL)
-CXX                := $(X_CXX_TOOL)
-AS                 := $(X_AS_TOOL)
-AR                 := $(X_AR_TOOL)
-LD                 := $(X_LD_TOOL)
-PHP                := $(X_PHP_TOOL)
-PKG_CONFIG         := $(X_PKG_CONFIG)
+CC                 ?= $(X_CC_TOOL)
+CXX                ?= $(X_CXX_TOOL)
+AS                 ?= $(X_AS_TOOL)
+AR                 ?= $(X_AR_TOOL)
+LD                 ?= $(X_LD_TOOL)
+PHP                ?= $(X_PHP_TOOL)
+PKG_CONFIG         ?= $(X_PKG_CONFIG)
 
 # Define tool variables for host build
-HOST_CC            := $(CC)
-HOST_CXX           := $(CXX)
-HOST_AS            := $(AS)
-HOST_AR            := $(AR)
-HOST_LD            := $(LD)
-HOST_PHP           := $(PHP)
-HOST_PKG_CONFIG    := $(PKG_CONFIG)
+HOST_CC            ?= $(CC)
+HOST_CXX           ?= $(CXX)
+HOST_AS            ?= $(AS)
+HOST_AR            ?= $(AR)
+HOST_LD            ?= $(LD)
+HOST_PHP           ?= $(PHP)
+HOST_PKG_CONFIG    ?= $(PKG_CONFIG)
 
 # Miscellaneous tools
-GIT                := $(X_GIT_TOOL)
-INSTALL            := $(X_INSTALL_TOOL)
+GIT                ?= $(X_GIT_TOOL)
+INSTALL            ?= $(X_INSTALL_TOOL)
 
 # Patch flags and tools for (cross) build
 FLAG_RELRO          = -Wl,-z,relro,-z,now
@@ -76,6 +76,9 @@ ifeq ($(PLATFORM),Solaris)
 else ifeq ($(PLATFORM),Windows)
   FLAG_RELRO          =
   FLAG_STDLIB         =
+  EXE_FLAGS_EXT      += -static-libgcc -static-libstdc++
+  SO_FLAGS_EXT       += -static-libgcc -static-libstdc++
+  LDFLAGS_EXT        += -T $(CURDIR)/make/ld-windows.script
 else ifeq ($(PLATFORM),BSD)
   EXE_FLAGS_EXT      += -L/usr/local/lib
   SO_FLAGS_EXT       += -L/usr/local/lib
@@ -102,11 +105,24 @@ endif
 ifeq ($(TEST),1)
   CFLAGS_EXT         += -DLSP_TESTING
   CXXFLAGS_EXT       += -DLSP_TESTING
+  EXPORT_SYMBOLS     ?= 1
 else
-  ifneq ($(ARTIFACT_EXPORT_ALL),1)
-    CFLAGS_EXT         += -fvisibility=hidden
-    CXXFLAGS_EXT       += -fvisibility=hidden
+  ifeq ($(ARTIFACT_EXPORT_SYMBOLS),1)
+    EXPORT_SYMBOLS     ?= 1
+  else
+    EXPORT_SYMBOLS     ?= 0
   endif
+endif
+
+ifneq ($(EXPORT_SYMBOLS),1)
+  CFLAGS_EXT         += -fvisibility=hidden
+  CXXFLAGS_EXT       += -fvisibility=hidden
+endif
+
+ifneq ($(ARTIFACT_EXPORT_HEADERS),0)
+  INSTALL_HEADERS    ?= 1
+else
+  INSTALL_HEADERS    ?= 0
 endif
 
 # Define flags for (cross) build
