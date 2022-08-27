@@ -7,6 +7,8 @@
 * Updated compressor plugin bundles: added negative boosting gain option in 'Boosting' mode.
 * Updated gate plugin bundles: added negative gain option for ducking gateway option.
 * Assigned more correct names for sidechain types of dynamic processing plugins.
+* Introduced several workarounds for the support of UI by the OBS host.
+* Fixed build of i386 DSP code under FreeBSD with Clang compiler.
 * Several bugfixes in core libraries.
 
 === 1.2.2 ===
