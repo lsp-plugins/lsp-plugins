@@ -74,6 +74,10 @@ else ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)),aarch64)
   override ARCHITECTURE   = aarch64
   ARCHITECTURE_FAMILY     = aarch64
   ARCHITECTURE_CFLAGS    := -march=armv8-a
+else ifeq ($(BUILD_ARCH),arm64)
+  override ARCHITECTURE   = aarch64
+  ARCHITECTURE_FAMILY     = aarch64
+  ARCHITECTURE_CFLAGS    := -march=armv8-a
 else ifeq ($(BUILD_ARCH),arm32)
   override ARCHITECTURE   = arm32
   ARCHITECTURE_FAMILY     = arm32
