@@ -84,6 +84,7 @@ ALL_PATHS           = $(foreach dep, $(ALL_SRC_MODULES) $(ALL_HDR_MODULES) $(ALL
 $(ALL_SRC_MODULES) $(ALL_HDR_MODULES) $(ALL_BIN_MODULES) $(ALL_PLUG_MODULES):
 	echo "Cloning $($(@)_URL) -> $($(@)_PATH) [$($(@)_BRANCH)]"
 	test -f "$($(@)_PATH)/.git/config" || $(GIT) clone "$($(@)_URL)" "$($(@)_PATH)"
+	mkdir -p $(dir $($(@)_PATH))
 	$(GIT) -C "$($(@)_PATH)" reset --hard
 	$(GIT) -C "$($(@)_PATH)" fetch origin --force --prune --prune-tags
 	$(GIT) -C "$($(@)_PATH)" fetch origin 'refs/tags/*:refs/tags/*' --force
