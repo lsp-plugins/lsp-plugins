@@ -19,7 +19,7 @@
 #
 
 # Variables that describe dependencies
-LSP_3RD_PARTY_VERSION      := 1.0.3
+LSP_3RD_PARTY_VERSION      := 1.0.4
 LSP_3RD_PARTY_NAME         := lsp-3rd-party
 LSP_3RD_PARTY_TYPE         := hdr
 LSP_3RD_PARTY_URL_RO       := https://github.com/lsp-plugins/$(LSP_3RD_PARTY_NAME).git
@@ -49,7 +49,7 @@ LSP_LLTL_LIB_TYPE          := src
 LSP_LLTL_LIB_URL_RO        := https://github.com/lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 LSP_LLTL_LIB_URL_RW        := git@github.com:lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 
-LSP_PLUGIN_FW_VERSION      := 1.0.5
+LSP_PLUGIN_FW_VERSION      := 1.0.6
 LSP_PLUGIN_FW_NAME         := lsp-plugin-fw
 LSP_PLUGIN_FW_TYPE         := src
 LSP_PLUGIN_FW_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGIN_FW_NAME).git
