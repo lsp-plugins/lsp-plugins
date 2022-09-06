@@ -40,7 +40,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ┌───────────┬───────────┬─────────┐
   │Arch / OS  │ GNU/Linux │ FreeBSD │
   ╞═══════════╪═══════════╪═════════╡
-  │aarch64    │     E     │    U    │
+  │aarch64    │     E     │    E    │
   ├───────────┼───────────┼─────────┤
   │armv6-a    │     E     │    E    │
   ├───────────┼───────────┼─────────┤
@@ -68,17 +68,6 @@ The table legend is the following:
  * E - Experimental support, not enough feedback from users.
  * U - Unknown, the code may be built but the correctness of it's work has not been tested.
  * N - No support, the code may compile but the work has not been tested.
-
-Details about architectures supported in experimental mode:
-  * ARMv7-AR support has been tested on:
-    * Raspbian buster @ Raspberry Pi 4 B.
-    * Raspbian stretch @ Raspberry Pi 3 B.
-    * Raspbian stretch @ Raspberry Pi 2 B+ v1.2.
-    * TinkerOS @ TinkerBoard S.
-    There is not enough feedback from users about correct work of all plugins.
-  * AArch64 support has been tested on:
-    * Arch Linux @ Raspberry Pi 3 B+.
-    There is not enough feedback from users about correct work of all plugins.
 
 Supported plugin formats:
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);

@@ -9,6 +9,8 @@
 * Assigned more correct names for sidechain types of dynamic processing plugins.
 * Introduced several workarounds for the support of UI by the OBS host.
 * Fixed build of i386 DSP code under FreeBSD with Clang compiler.
+* Better support of building code for ARMv6, ARMv7 and AArch64 under FreeBSD with Clang compiler.
+* Added basic CI tests introduced by GitHub CI.
 * Several bugfixes in core libraries.
 
 === 1.2.2 ===
