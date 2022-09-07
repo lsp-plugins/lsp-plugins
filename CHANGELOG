@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.4 ===
+
 === 1.2.3 ===
 * Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
 * Updated compressor plugin bundles: added negative boosting gain option in 'Boosting' mode.
