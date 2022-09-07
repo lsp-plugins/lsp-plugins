@@ -74,6 +74,10 @@ else ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)),aarch64)
   override ARCHITECTURE   = aarch64
   ARCHITECTURE_FAMILY     = aarch64
   ARCHITECTURE_CFLAGS    := -march=armv8-a
+else ifeq ($(BUILD_ARCH),arm64)
+  override ARCHITECTURE   = aarch64
+  ARCHITECTURE_FAMILY     = aarch64
+  ARCHITECTURE_CFLAGS    := -march=armv8-a
 else ifeq ($(BUILD_ARCH),arm32)
   override ARCHITECTURE   = arm32
   ARCHITECTURE_FAMILY     = arm32
@@ -198,29 +202,31 @@ TEST                       := 0
 
 # Set-up list of common variables
 COMMON_VARS = \
-	ROOTDIR \
-	ROOT_ARTIFACT_ID \
-	PLATFORM \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
+	BINDIR \
 	BUILDDIR \
+	DEBUG \
+	ETCDIR \
+	EXECUTABLE_EXT \
+	EXPORT_SYMBOLS \
 	FEATURES \
+	INCDIR \
+	INSTALL_HEADERS \
+	LIBDIR \
 	LIBRARY_EXT \
 	LIBRARY_PREFIX \
-	STATICLIB_EXT \
-	EXECUTABLE_EXT \
 	PKGCONFIG_EXT \
+	PLATFORM \
 	PREFIX \
-	LIBDIR \
+	ROOTDIR \
+	ROOT_ARTIFACT_ID \
+	PROFILE \
 	SHAREDDIR \
-	BINDIR \
-	INCDIR \
-	ETCDIR \
+	STATICLIB_EXT \
 	TEMPDIR \
 	TEST \
-	DEBUG \
-	PROFILE \
 	TRACE
 
 .PHONY: sysvars

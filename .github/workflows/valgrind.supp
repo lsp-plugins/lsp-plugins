@@ -1,0 +1,40 @@
+{
+   libdl is full of leaks
+   Memcheck:Leak
+   ...
+   fun:_dl_open
+   ...
+}
+{
+   libdl is full of leaks
+   Memcheck:Leak
+   ...
+   fun:_dl_close
+   ...
+}
+{
+   libdl is full of leaks
+   Memcheck:Leak
+   ...
+   fun:_dl_init
+}
+{
+   libdl is full of leaks
+   Memcheck:Leak
+   ...
+   fun:_dl_allocate_tls
+   ...
+}
+{
+   libdl is full of leaks
+   Memcheck:Leak
+   ...
+   fun:call_init.part.0
+}
+{
+   ignore XInitThreads
+   Memcheck:Leak
+   ...
+   fun:XInitThreads
+   ...
+}

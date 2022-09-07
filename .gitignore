@@ -6,21 +6,14 @@
 /.release/*
 /.install/*
 /tmp/*
-/test_data/*
-/Debug/*
-/Release/*
-/Debug AVX/*
-/Release AVX/*
 /.config.mk
-/Debug/
-/Release/
-/Debug AVX/
-/Release AVX/
-/INSTALL/*
 *.log
 /gmon.out
 **/*.gmon
 *.core
 *vgcore*
 *perf.data*
-
+/INSTALL/
+/modules/
+/Debug/
+/Release/

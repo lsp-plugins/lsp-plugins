@@ -21,9 +21,6 @@
 #------------------------------------------------------------------------------
 # List of all dependencies
 DEPENDENCIES = \
-  LIBPTHREAD \
-  LIBDL \
-  LIBGL \
   LSP_COMMON_LIB \
   LSP_DSP_LIB \
   LSP_DSP_UNITS \
@@ -47,6 +44,9 @@ DEFAULT_FEATURES = doc ladspa lv2 vst2
 # Platform-specific dependencies
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES += \
+    LIBPTHREAD \
+    LIBDL \
+    LIBGL \
     LIBJACK \
     LIBSNDFILE \
     LIBX11 \
@@ -59,6 +59,9 @@ endif
 
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES += \
+    LIBPTHREAD \
+    LIBDL \
+    LIBGL \
     LIBJACK \
     LIBSNDFILE \
     LIBX11 \
@@ -74,7 +77,14 @@ ifeq ($(PLATFORM),Windows)
   DEPENDENCIES += \
     LIBSHLWAPI \
     LIBWINMM \
-    LIBMSACM
+    LIBMSACM \
+    LIBMPR \
+    LIBGDI32 \
+    LIBD2D1 \
+    LIBOLE \
+    LIBWINCODEC \
+    LIBDWRITE \
+    LIBUUID
 endif
 
 #------------------------------------------------------------------------------
@@ -93,6 +103,9 @@ ALL_DEPENDENCIES = \
   LIBFREETYPE \
   LIBSHLWAPI \
   LIBWINMM \
-  LIBMSACM
+  LIBMSACM \
+  LIBD2D1 \
+  LIBOLE \
+  LIBWINCODEC
 
 
