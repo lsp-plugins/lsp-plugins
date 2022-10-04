@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.4 ===
+* Added built-in presets for some music genres for Parametric Equalizer
+  plugin series (contributed by Largos @ linuxmusicians).
 
 === 1.2.3 ===
 * Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
