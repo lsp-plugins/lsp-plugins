@@ -319,6 +319,12 @@ LSP_PLUGINS_MB_GATE_TYPE                := plug
 LSP_PLUGINS_MB_GATE_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 LSP_PLUGINS_MB_GATE_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 
+LSP_PLUGINS_NOISE_GENERATOR_VERSION     := 1.0.0
+LSP_PLUGINS_NOISE_GENERATOR_NAME        := lsp-plugins-noise-generator
+LSP_PLUGINS_NOISE_GENERATOR_TYPE        := plug
+LSP_PLUGINS_NOISE_GENERATOR_URL_RO      := https://github.com/lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+LSP_PLUGINS_NOISE_GENERATOR_URL_RW      := git@github.com:lsp-plugins/$(LSP_PLUGINS_NOISE_GENERATOR_NAME).git
+
 LSP_PLUGINS_OSCILLATOR_VERSION          := 1.0.4
 LSP_PLUGINS_OSCILLATOR_NAME             := lsp-plugins-oscillator
 LSP_PLUGINS_OSCILLATOR_TYPE             := plug

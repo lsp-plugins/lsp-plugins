@@ -3,8 +3,13 @@
 *******************************************************************************
 
 === 1.2.4 ===
+* Implemented noise generator plugin.
 * Added built-in presets for some music genres for Parametric Equalizer
   plugin series (contributed by Largos @ linuxmusicians).
+* Significantly optimized CPU consumption by the dspu::Limiter module.
+* Extended LSPC (LSP Chunk) file format to support additional chunks.
+* Several bug fixes in lsp-dsp-units library.
+* Several bug fixes in lsp-runtime-lib library.
 
 === 1.2.3 ===
 * Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
