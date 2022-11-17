@@ -12,6 +12,8 @@
 * Several bug fixes in lsp-runtime-lib library.
 * Added 'Min' and 'Max' sidechain sources for single-band and multiband dynamic
   processing plugins: Compressor, Dynamic Processor, Expander, Gate.
+* Added possibility to add several filters by performing mouse double click on the
+  graph area for the Parametric Equalizer plugin series.
 
 === 1.2.3 ===
 * Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
