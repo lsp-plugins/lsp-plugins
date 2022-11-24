@@ -28,7 +28,7 @@ jobs:
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
         run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq ladspa libglvnd libsndfile libx11 libxrandr lv2 lv2lint php valgrind
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure project
         run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
       - name: Fetch project dependencies
@@ -71,7 +71,7 @@ jobs:
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
         run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq ladspa libglvnd libsndfile libx11 libxrandr lv2 php valgrind
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure project
         run: make config DEBUG=1 VERBOSE=1 FEATURES='jack ladspa lv2 vst2' PREFIX=/usr
       - name: Fetch project dependencies
@@ -103,7 +103,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ git make php valgrind libX11-devel libXrandr-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel lv2-devel ladspa-devel
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure project
         run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
       - name: Fetch project dependencies
@@ -122,7 +122,7 @@ jobs:
         run: apt-get update
       - name: Install dependencies
         run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev lv2-dev ladspa-sdk
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure project
         run: make config VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
       - name: Fetch project dependencies
