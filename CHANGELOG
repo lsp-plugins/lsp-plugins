@@ -14,6 +14,7 @@
   processing plugins: Compressor, Dynamic Processor, Expander, Gate.
 * Added possibility to add several filters by performing mouse double click on the
   graph area for the Parametric Equalizer plugin series.
+* Fixed 32-bit ARM architecture detection under 64-bit CPU in makefiles.
 
 === 1.2.3 ===
 * Graphic Toolkit Library lsp-tk-lib has been ported to Windows.
