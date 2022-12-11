@@ -4,6 +4,10 @@
 
 === 1.2.4 ===
 * Implemented noise generator plugin.
+* Added 'Stretch' and 'Compensate' functions to the sampler plugin (contributed by
+  Vitalius Kuchalskis).
+* Added support of 'Loop' feature by the sampler plugin.
+* Fixed broken configuration save and load with relative file paths.s
 * Added built-in presets for some music genres for Parametric Equalizer
   plugin series (contributed by Largos @ linuxmusicians).
 * Significantly optimized CPU consumption by the dspu::Limiter module.
