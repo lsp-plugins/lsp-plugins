@@ -3,21 +3,30 @@
 *******************************************************************************
 
 === 1.2.4 ===
-* Implemented noise generator plugin.
+* Implemented Noise Generator plugin series.
 * Added 'Stretch' and 'Compensate' functions to the sampler plugin (contributed by
   Vitalius Kuchalskis).
-* Added support of 'Loop' feature by the sampler plugin.
-* Fixed broken configuration save and load with relative file paths.s
-* Added built-in presets for some music genres for Parametric Equalizer
-  plugin series (contributed by Largos @ linuxmusicians).
-* Significantly optimized CPU consumption by the dspu::Limiter module.
-* Extended LSPC (LSP Chunk) file format to support additional chunks.
-* Several bug fixes in lsp-dsp-units library.
-* Several bug fixes in lsp-runtime-lib library.
+* Added support of 'Loop' feature by the Sampler plugin series.
+* Added audio sample preview feature in the file open dialog for Sampler, Trigger,
+  Impulse Responses and Impulse Reverb plugin series.
+* Extended LSPC (LSP Chunk) file format to support additional types of chunks.
+* Added possibility to export Sampler configuration as a single bundle with
+  the configuration and audio files packaged together into the LSPC file format.
+* Fixed broken configuration save and load operations with relative file paths.
 * Added 'Min' and 'Max' sidechain sources for single-band and multiband dynamic
   processing plugins: Compressor, Dynamic Processor, Expander, Gate.
 * Added possibility to add several filters by performing mouse double click on the
   graph area for the Parametric Equalizer plugin series.
+* Added several built-in presets for the Parametric Equalizer plugin series
+  (contributed by Largos @ linuxmusicians).
+* Fixed performance regression of the UI.
+* Significant optimizations of CPU consumption by the dspu::Limiter module.
+* Introduced tab control for the lsp-tk lib and lsp-plugin-fw.
+* Raised the maximum supported sample rate from 192 kHz to 384 kHz.
+* Several bug fixes in lsp-dsp-units library.
+* Several bug fixes in lsp-runtime-lib library.
+* Several bug fixes in lsp-plugin-fw library.
+* Several bug fixes in lsp-tk-lib library.
 * Fixed 32-bit ARM architecture detection under 64-bit CPU in makefiles.
 
 === 1.2.3 ===
