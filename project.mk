@@ -24,4 +24,4 @@ ARTIFACT_NAME               = lsp-plugins
 ARTIFACT_TYPE               = plug
 ARTIFACT_DESC               = Linux Studio Plugins
 ARTIFACT_HEADERS            = lsp-plug.in
-ARTIFACT_VERSION            = 1.2.3
+ARTIFACT_VERSION            = 1.2.4
