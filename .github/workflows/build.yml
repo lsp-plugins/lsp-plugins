@@ -83,6 +83,23 @@ jobs:
       - name: Install binaries
         run: make install
 
+  opensuse_tumbleweed_clang:
+    runs-on: ubuntu-latest
+    container:
+      image: opensuse/tumbleweed:latest
+    steps:
+      - name: Install dependencies
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel lv2-devel ladspa-devel
+      - uses: actions/checkout@v3
+      - name: Configure project
+        run: make config CC=clang CXX=clang++ VERBOSE=1 FEATURES='doc jack ladspa lv2 vst2 xdg' PREFIX=/usr
+      - name: Fetch project dependencies
+        run: make fetch
+      - name: Build project
+        run: make VERBOSE=1
+      - name: Install binaries
+        run: make install
+
   debian_stable:
     runs-on: ubuntu-latest
     container:
