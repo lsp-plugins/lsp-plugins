@@ -2,6 +2,26 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.5 ===
+* Introduced CLAP plugin format support.
+* Introduced the 'Override Hydrogen drumkit' feature for Multisampler plugin series.
+* Reworked and simplified the behaviour of the parameters that define 'Stretch' and
+  'Loop' ranges.
+* Minimum and maximum values now depend on the sample length for several parameters
+  like 'Stretch', 'Loop', 'Fade in' and 'Fade out' in the Sampler and Multisampler
+  plugin series.
+* Fixed the application menu spam in GNOME environment by reworking the XDG files
+  (contributed by sdwolfz).
+* Changed VST parameter normalized value mapping for logarithmic parameters.
+* Added possibility to specify JACK connections that should be estimated by the
+  standalone JACK plugin when the plugin connects to the JACK server.
+* Implemented plugin metadata validator which runs at the build stage and verifies
+  the consistency of the plugin metadata.
+* Fixed bug related to modification of cyclic parameters for several plugin formats.
+* Fixed possible crash when importing configuration data from clipboard.
+* Added possibility to enable/disable Knob's scale actions.
+* Several bugfixes related to the memory access in the lsp-ws-lib.
+
 === 1.2.4 ===
 * Implemented Noise Generator plugin series.
 * Added 'Stretch' and 'Compensate' functions to the sampler plugin (contributed by
