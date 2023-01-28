@@ -38,7 +38,7 @@ DEPENDENCIES = \
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = doc ladspa lv2 vst2
+DEFAULT_FEATURES = doc ladspa lv2 vst2 clap
 
 #------------------------------------------------------------------------------
 # Platform-specific dependencies

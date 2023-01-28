@@ -103,12 +103,13 @@ into archive named according to the following format:
 ```
 
 The property <format> is the format of plugins, currently available:
+  * clap - plugins in [CLAP](https://github.com/free-audio/clap) format;
   * doc - documentation;
-  * jack - standalone version of plugins that require JACK for execution;
-  * ladspa - plugins in LADSPA format (not all plugins due to format's restriction);
-  * lv2 - plugins in LV2 format;
+  * jack - standalone version of plugins that require [JACK](https://jackaudio.org/) server for execution;
+  * ladspa - plugins in [LADSPA](https://en.wikipedia.org/wiki/LADSPA) format (not all plugins due to format's restriction);
+  * lv2 - plugins in [LV2](https://lv2plug.in/) format;
   * src - source code;
-  * vst2 - plugins in VST v2.4 format.
+  * vst2 - plugins in [VST 2.4](https://www.steinberg.net/) format.
 
 Property 'arch' contains short name of architecture the binaries are build for.
 Properties 'major', 'minor' and 'micro' form the version of release.
@@ -168,9 +169,13 @@ The usual directories for JACK binaries are:
   * /usr/sbin
   * /usr/local/sbin
   * /sbin
-
-The profiling release does not require special installations and can be executed
-from any location. After execution, the gprof profiling file 'gmon.out' is created.
+  
+The usual directories for CLAP are:
+  * /usr/lib/clap
+  * /usr/local/lib/clap
+  * /usr/lib64/clap
+  * /usr/local/lib64/clap
+  * ~/.clap
 
 # BUILDING
 
@@ -221,6 +226,7 @@ at the configuration stage:
 ```
 
 Available modules are:
+  * clap - CLAP plugin binaries;
   * doc - HTML documentation;
   * jack - JACK plugin binaries;
   * ladspa - LADSPA plugin binaries;
