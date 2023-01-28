@@ -117,13 +117,13 @@ LSP_PLUGINS_ART_DELAY_TYPE              := plug
 LSP_PLUGINS_ART_DELAY_URL_RO            := https://github.com/lsp-plugins/$(LSP_PLUGINS_ART_DELAY_NAME).git
 LSP_PLUGINS_ART_DELAY_URL_RW            := git@github.com:lsp-plugins/$(LSP_PLUGINS_ART_DELAY_NAME).git
 
-LSP_PLUGINS_COMP_DELAY_VERSION          := 1.0.10
+LSP_PLUGINS_COMP_DELAY_VERSION          := 1.0.11
 LSP_PLUGINS_COMP_DELAY_NAME             := lsp-plugins-comp-delay
 LSP_PLUGINS_COMP_DELAY_TYPE             := plug
 LSP_PLUGINS_COMP_DELAY_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_COMP_DELAY_NAME).git
 LSP_PLUGINS_COMP_DELAY_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_COMP_DELAY_NAME).git
 
-LSP_PLUGINS_COMPRESSOR_VERSION          := 1.0.11
+LSP_PLUGINS_COMPRESSOR_VERSION          := 1.0.12
 LSP_PLUGINS_COMPRESSOR_NAME             := lsp-plugins-compressor
 LSP_PLUGINS_COMPRESSOR_TYPE             := plug
 LSP_PLUGINS_COMPRESSOR_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_COMPRESSOR_NAME).git
@@ -135,31 +135,31 @@ LSP_PLUGINS_CROSSOVER_TYPE              := plug
 LSP_PLUGINS_CROSSOVER_URL_RO            := https://github.com/lsp-plugins/$(LSP_PLUGINS_CROSSOVER_NAME).git
 LSP_PLUGINS_CROSSOVER_URL_RW            := git@github.com:lsp-plugins/$(LSP_PLUGINS_CROSSOVER_NAME).git
 
-LSP_PLUGINS_DYNA_PROCESSOR_VERSION      := 1.0.10
+LSP_PLUGINS_DYNA_PROCESSOR_VERSION      := 1.0.11
 LSP_PLUGINS_DYNA_PROCESSOR_NAME         := lsp-plugins-dyna-processor
 LSP_PLUGINS_DYNA_PROCESSOR_TYPE         := plug
 LSP_PLUGINS_DYNA_PROCESSOR_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGINS_DYNA_PROCESSOR_NAME).git
 LSP_PLUGINS_DYNA_PROCESSOR_URL_RW       := git@github.com:lsp-plugins/$(LSP_PLUGINS_DYNA_PROCESSOR_NAME).git
 
-LSP_PLUGINS_EXPANDER_VERSION            := 1.0.10
+LSP_PLUGINS_EXPANDER_VERSION            := 1.0.11
 LSP_PLUGINS_EXPANDER_NAME               := lsp-plugins-expander
 LSP_PLUGINS_EXPANDER_TYPE               := plug
 LSP_PLUGINS_EXPANDER_URL_RO             := https://github.com/lsp-plugins/$(LSP_PLUGINS_EXPANDER_NAME).git
 LSP_PLUGINS_EXPANDER_URL_RW             := git@github.com:lsp-plugins/$(LSP_PLUGINS_EXPANDER_NAME).git
 
-LSP_PLUGINS_GATE_VERSION                := 1.0.10
+LSP_PLUGINS_GATE_VERSION                := 1.0.11
 LSP_PLUGINS_GATE_NAME                   := lsp-plugins-gate
 LSP_PLUGINS_GATE_TYPE                   := plug
 LSP_PLUGINS_GATE_URL_RO                 := https://github.com/lsp-plugins/$(LSP_PLUGINS_GATE_NAME).git
 LSP_PLUGINS_GATE_URL_RW                 := git@github.com:lsp-plugins/$(LSP_PLUGINS_GATE_NAME).git
 
-LSP_PLUGINS_GRAPH_EQUALIZER_VERSION     := 1.0.10
+LSP_PLUGINS_GRAPH_EQUALIZER_VERSION     := 1.0.11
 LSP_PLUGINS_GRAPH_EQUALIZER_NAME        := lsp-plugins-graph-equalizer
 LSP_PLUGINS_GRAPH_EQUALIZER_TYPE        := plug
 LSP_PLUGINS_GRAPH_EQUALIZER_URL_RO      := https://github.com/lsp-plugins/$(LSP_PLUGINS_GRAPH_EQUALIZER_NAME).git
 LSP_PLUGINS_GRAPH_EQUALIZER_URL_RW      := git@github.com:lsp-plugins/$(LSP_PLUGINS_GRAPH_EQUALIZER_NAME).git
 
-LSP_PLUGINS_IMPULSE_RESPONSES_VERSION   := 1.0.10
+LSP_PLUGINS_IMPULSE_RESPONSES_VERSION   := 1.0.11
 LSP_PLUGINS_IMPULSE_RESPONSES_NAME      := lsp-plugins-impulse-responses
 LSP_PLUGINS_IMPULSE_RESPONSES_TYPE      := plug
 LSP_PLUGINS_IMPULSE_RESPONSES_URL_RO    := https://github.com/lsp-plugins/$(LSP_PLUGINS_IMPULSE_RESPONSES_NAME).git
@@ -231,7 +231,7 @@ LSP_PLUGINS_OSCILLOSCOPE_TYPE           := plug
 LSP_PLUGINS_OSCILLOSCOPE_URL_RO         := https://github.com/lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
 LSP_PLUGINS_OSCILLOSCOPE_URL_RW         := git@github.com:lsp-plugins/$(LSP_PLUGINS_OSCILLOSCOPE_NAME).git
 
-LSP_PLUGINS_PARA_EQUALIZER_VERSION      := 1.0.11
+LSP_PLUGINS_PARA_EQUALIZER_VERSION      := 1.0.12
 LSP_PLUGINS_PARA_EQUALIZER_NAME         := lsp-plugins-para-equalizer
 LSP_PLUGINS_PARA_EQUALIZER_TYPE         := plug
 LSP_PLUGINS_PARA_EQUALIZER_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGINS_PARA_EQUALIZER_NAME).git
@@ -255,7 +255,7 @@ LSP_PLUGINS_ROOM_BUILDER_TYPE           := plug
 LSP_PLUGINS_ROOM_BUILDER_URL_RO         := https://github.com/lsp-plugins/$(LSP_PLUGINS_ROOM_BUILDER_NAME).git
 LSP_PLUGINS_ROOM_BUILDER_URL_RW         := git@github.com:lsp-plugins/$(LSP_PLUGINS_ROOM_BUILDER_NAME).git
 
-LSP_PLUGINS_SAMPLER_VERSION             := 1.0.10
+LSP_PLUGINS_SAMPLER_VERSION             := 1.0.11
 LSP_PLUGINS_SAMPLER_NAME                := lsp-plugins-sampler
 LSP_PLUGINS_SAMPLER_TYPE                := plug
 LSP_PLUGINS_SAMPLER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
@@ -267,7 +267,7 @@ LSP_PLUGINS_SLAP_DELAY_TYPE             := plug
 LSP_PLUGINS_SLAP_DELAY_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_SLAP_DELAY_NAME).git
 LSP_PLUGINS_SLAP_DELAY_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_SLAP_DELAY_NAME).git
 
-LSP_PLUGINS_SPECTRUM_ANALYZER_VERSION   := 1.0.12
+LSP_PLUGINS_SPECTRUM_ANALYZER_VERSION   := 1.0.13
 LSP_PLUGINS_SPECTRUM_ANALYZER_NAME      := lsp-plugins-spectrum-analyzer
 LSP_PLUGINS_SPECTRUM_ANALYZER_TYPE      := plug
 LSP_PLUGINS_SPECTRUM_ANALYZER_URL_RO    := https://github.com/lsp-plugins/$(LSP_PLUGINS_SPECTRUM_ANALYZER_NAME).git
