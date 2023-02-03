@@ -1,7 +1,7 @@
 # ABOUT
 
 LSP (Linux Studio Plugins) is a collection of open-source plugins
-currently compatible with LADSPA, LV2 and LinuxVST formats.
+currently compatible with CLAP, LADSPA, LV2 and LinuxVST formats.
 
 The basic idea is to fill the lack of good and useful plugins under
 the GNU/Linux platform.
@@ -11,6 +11,12 @@ was made to implement separate and independent plugin distribution.
 
 All supplementary information you will find on official web site:
   https://lsp-plug.in/
+
+Note that after 1.2.0 release the lsp-plugins repository was decomposed
+into multiple subprojects. As a result, it is the repository without any code
+and for build purposes it gathers source code as dependencies from another
+repositories which are located here:
+  https://github.com/lsp-plugins/
 
 # LICENSING
 
