@@ -169,6 +169,72 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.184571155" name="avx.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.273370169">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.273370169" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.1638984162" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -mavx -mvzeroupper" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.2025966785" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.234795745" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1747370605" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.436494437" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.603035135" name="sse3.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse3.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.494676090">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.494676090" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.723313103" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -msse3 -mssse3" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1165832292" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.1400663183" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.342706969" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.787365112" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.954913345" name="sse4.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse4.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1397466079">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1397466079" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.738844938" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -msse4 -msse4a" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.725950021" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.425602214" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1722344221" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.126623959" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1811895608" name="sse.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1877060791">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1877060791" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.1149843575" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -msse" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.241448904" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.2121733670" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1120823872" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.359806137" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.447652766" name="sse2.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse2.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.60120509">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.60120509" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.40335021" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -msse -msse2" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.731391721" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.23761449" name="Resource Custom Build Step">
+							<inputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.inputtype.1153196824" name="Resource Custom Build Step Input Type">
+								<additionalInput kind="additionalinputdependency" paths=""/>
+							</inputType>
+							<outputType id="org.eclipse.cdt.managedbuilder.ui.rcbs.outputtype.1569393166" name="Resource Custom Build Step Output Type"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1798465870" name="avx2.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx2.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.28869294">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.28869294" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.824468307" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -mavx -mavx2 -mvzeroupper" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1518977942" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
 						<entry excluding="modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
