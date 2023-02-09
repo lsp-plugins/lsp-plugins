@@ -2,6 +2,17 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.6 ===
+* Equalizer is now smoothly operating with frequency/gain/q factor for each
+  mode: FIR, IIR, FFT, SPM.
+* Added shared objects related to 3D rendering to LV2, VST and CLAP packages.
+* Fixed buggy tether for the parameter popup window. 
+* Fixed improper data stream synchronization using LV2:Atom protocol.
+* Implemented linear ramping lramp_* functions in the lsp-dsp-lib optimized for
+  i686, x86_64, ARM32 and AArch64 architectures.
+* Fixed avx::dyn_biquad_process_x8_fma3 function implementation which could cause
+  some data distortion in the output buffer.
+
 === 1.2.5 ===
 * Introduced CLAP plugin format support.
 * Introduced the 'Override Hydrogen drumkit' feature for Multisampler plugin series.
