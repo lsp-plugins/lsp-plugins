@@ -213,6 +213,12 @@ LSP_PLUGINS_MB_GATE_TYPE                := plug
 LSP_PLUGINS_MB_GATE_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 LSP_PLUGINS_MB_GATE_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_GATE_NAME).git
 
+LSP_PLUGINS_MIXER_VERSION             	:= 1.0.0
+LSP_PLUGINS_MIXER_NAME                	:= lsp-plugins-mixer
+LSP_PLUGINS_MIXER_TYPE                	:= plug
+LSP_PLUGINS_MIXER_URL_RO              	:= https://github.com/lsp-plugins/$(LSP_PLUGINS_MIXER_NAME).git
+LSP_PLUGINS_MIXER_URL_RW              	:= git@github.com:lsp-plugins/$(LSP_PLUGINS_MIXER_NAME).git
+
 LSP_PLUGINS_NOISE_GENERATOR_VERSION     := 1.0.2
 LSP_PLUGINS_NOISE_GENERATOR_NAME        := lsp-plugins-noise-generator
 LSP_PLUGINS_NOISE_GENERATOR_TYPE        := plug
