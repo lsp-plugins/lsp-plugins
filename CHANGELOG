@@ -13,6 +13,7 @@
   i686, x86_64, ARM32 and AArch64 architectures.
 * Fixed avx::dyn_biquad_process_x8_fma3 function implementation which could cause
   some data distortion in the output buffer.
+* Fixed plugin state out of sync for CLAP plugin format on state restore in REAPER.
 
 === 1.2.5 ===
 * Introduced CLAP plugin format support.
