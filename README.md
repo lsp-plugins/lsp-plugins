@@ -221,9 +221,7 @@ to obtain all source code dependencies:
   make install
 ```
 
-By default, all supported formats of plugins are built except XDG. 
-Several DEs like GNOME don't support XDG format well, so desktop icon installations
-are disabled by default.
+By default, all supported formats of plugins are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
 at the configuration stage:
 
@@ -238,8 +236,7 @@ Available modules are:
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
   * vst2 - VST2 plugin binaries;
-  * xdg - the X11 desktop integration icons/ 
-
+  * xdg - the X11 desktop integration icons.
 
 By default plugins use '/usr/local' path as a target directory for installation.
 To override this path, the PREFIX variable can be overridden:
