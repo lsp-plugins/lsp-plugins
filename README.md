@@ -286,6 +286,15 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
   * After Ardour crashes, type 'thread apply all bt' in console and attach the output
     to the bug report.
 
+# KNOWN PROBLEMS
+
+## unclutter
+
+People using the `unclutter` tool reported spontaneous freeze of the UI for LSP Plugins.
+The `unclutter` tool is pretty rare and has not been updated over the years. So it does
+not follow the latest changes made for X.Org. The problem can be solved by switching to
+`unclutter-xfixes` tool which works pretty OK with LSP UI.
+
 # TESTING
 
 Since release 1.1.4 there is implemented testing subsystem that allows:
