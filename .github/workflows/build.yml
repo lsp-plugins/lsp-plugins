@@ -119,3 +119,30 @@ jobs:
       - name: Install binaries
         run: make install
 
+  windows_mingw64:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2 and install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          release: false
+          update: false
+          install: >-
+            base-devel
+            git
+            mingw-w64-x86_64-gcc
+      - uses: actions/checkout@v3
+      - name: Configure project
+        shell: msys2 {0}
+        run: make config VERBOSE=1 FEATURES='clap ladspa lv2 vst2'
+      - name: Fetch project dependencies
+        shell: msys2 {0}
+        run: make fetch
+      - name: Build project
+        shell: msys2 {0}
+        run: make VERBOSE=1
+
