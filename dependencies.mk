@@ -98,6 +98,7 @@ endif
 #------------------------------------------------------------------------------
 # Windows dependencies
 WINDOWS_DEPENDENCIES = \
+  LIBADVAPI32 \
   LIBSHLWAPI \
   LIBWINMM \
   LIBMSACM \

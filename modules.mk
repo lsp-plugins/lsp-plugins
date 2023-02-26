@@ -292,6 +292,11 @@ LSP_PLUGINS_TRIGGER_URL_RO              := https://github.com/lsp-plugins/$(LSP_
 LSP_PLUGINS_TRIGGER_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_TRIGGER_NAME).git
 
 # System libraries
+LIBADVAPI_VERSION          := system
+LIBADVAPI_NAME             := libadvapi32
+LIBADVAPI_TYPE             := opt
+LIBADVAPI_LDFLAGS          := -ladvapi32
+
 LIBCAIRO_VERSION           := system
 LIBCAIRO_NAME              := cairo
 LIBCAIRO_TYPE              := pkg
