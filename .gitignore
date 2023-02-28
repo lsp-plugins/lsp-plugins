@@ -17,3 +17,5 @@
 /modules/
 /Debug/
 /Release/
+/DebugWin/
+/DebugLinux/
