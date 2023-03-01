@@ -58,6 +58,10 @@ ifeq ($(BUILD_ARCH),armel)
   override ARCHITECTURE   = $(BUILD_ARCH)
   ARCHITECTURE_FAMILY     = generic
   ARCHITECTURE_CFLAGS    :=
+else ifeq ($(BUILD_ARCH),armhf)
+  override ARCHITECTURE   = arm32
+  ARCHITECTURE_FAMILY     = arm32
+  ARCHITECTURE_CFLAGS    := -march=armv7-a+fp -marm
 else ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)),armv6)
   override ARCHITECTURE   = arm32
   ARCHITECTURE_FAMILY     = arm32
