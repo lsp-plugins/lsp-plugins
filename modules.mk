@@ -111,6 +111,12 @@ LSP_PLUGINS_SHARED_URL_RO  := https://github.com/lsp-plugins/$(LSP_PLUGINS_SHARE
 LSP_PLUGINS_SHARED_URL_RW  := git@github.com:lsp-plugins/$(LSP_PLUGINS_SHARED_NAME).git
 
 # Specify description of plugin dependencies
+LSP_PLUGINS_AB_TESTER_VERSION           := 1.0.0
+LSP_PLUGINS_AB_TESTER_NAME              := lsp-plugins-ab-tester
+LSP_PLUGINS_AB_TESTER_TYPE              := plug
+LSP_PLUGINS_AB_TESTER_URL_RO            := https://github.com/lsp-plugins/$(LSP_PLUGINS_AB_TESTER_NAME).git
+LSP_PLUGINS_AB_TESTER_URL_RW            := git@github.com:lsp-plugins/$(LSP_PLUGINS_AB_TESTER_NAME).git
+
 LSP_PLUGINS_ART_DELAY_VERSION           := 1.0.8
 LSP_PLUGINS_ART_DELAY_NAME              := lsp-plugins-art-delay
 LSP_PLUGINS_ART_DELAY_TYPE              := plug
