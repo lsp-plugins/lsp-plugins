@@ -43,29 +43,31 @@ For more information about licensing, please read COPYING and COPYING.LESSER.
 Current matrix of hardware architecture and platform (OS) support is:
 
 ```
-  ┌───────────┬───────────┬─────────┐
-  │Arch / OS  │ GNU/Linux │ FreeBSD │
-  ╞═══════════╪═══════════╪═════════╡
-  │aarch64    │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │armv6-a    │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │armv7-ar   │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │i586       │     F     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │loongarch32│     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │loongarch64│     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │ppc64      │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │riscv-64   │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │s390x      │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │x86_64     │     F     │    E    │
-  └───────────┴───────────┴─────────┘ 
+  ┌───────────┬───────────┬─────────┬─────────┐
+  │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │
+  ╞═══════════╪═══════════╪═════════╪═════════╡
+  │aarch64    │     F     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv5t     │     C     │    C    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv6-a    │     E     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv7-ar   │     E     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │i586       │     F     │    E    │    C    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │loongarch32│     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │loongarch64│     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │ppc64      │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │riscv-64   │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │s390x      │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │x86_64     │     F     │    E    │    C    │
+  └───────────┴───────────┴─────────┴─────────┘ 
 ```
 
 The table legend is the following:
@@ -76,6 +78,7 @@ The table legend is the following:
  * N - No support, the code may compile but the work has not been tested.
 
 Supported plugin formats:
+  * CLAP (full support);
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
   * LinuxVST 2.4 (full support);
