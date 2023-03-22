@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.7 ===
+
 === 1.2.6 ===
 * Implemented Mixer plugin series for 4, 8 and 16 Mono/Stereo channels.
 * Implemented A/B Tester plugin series with blind option.
