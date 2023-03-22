@@ -2,6 +2,33 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.6 ===
+* Implemented Mixer plugin series for 4, 8 and 16 Mono/Stereo channels.
+* Implemented A/B Tester plugin series with blind option.
+* Parametric Equalizer is now smoothly operating with frequency/gain/q factor for each
+  mode: FIR, IIR, FFT, SPM.
+* Added popup menu for more precise control over the equalizer dot on the graph for
+  Parametric Equalizer.
+* Added frequency and note displaying (with detune in cents) over the currently
+  configured filter in the Parametric Equalizer.
+* Implemented automatic and manual inspect mode for filters in Parametric Equalizer.
+* Implemented more user-friendly inspecting slider to the Spectrum Analyzer plugin series:
+  frequency value, amplitude and note (with detune in cents) are displayed now near the
+  slider which can be adjusted with mouse movements.
+* Added basic SFZ import support by the Multisampler plugin series.
+* Added shared objects related to 3D rendering to LV2, VST and CLAP packages.
+* Fixed buggy tether for the parameter popup window. 
+* Fixed improper data stream synchronization using LV2:Atom protocol.
+* Implemented linear ramping lramp_* functions in the lsp-dsp-lib optimized for
+  i686, x86_64, ARM32 and AArch64 architectures.
+* Fixed avx::dyn_biquad_process_x8_fma3 function implementation which could cause
+  some data distortion in the output buffer.
+* Fixed plugin state out of sync for CLAP plugin format on state restore in REAPER.
+* Several bugfixes in UI libraries.
+* Better support for build under different ARM architectures.
+* The Windows support status has been changed to 'Compiles'.
+* The AArch64 support status has been changed to 'Full'.
+
 === 1.2.5 ===
 * Introduced CLAP plugin format support.
 * Introduced the 'Override Hydrogen drumkit' feature for Multisampler plugin series.

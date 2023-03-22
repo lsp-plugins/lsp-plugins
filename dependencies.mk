@@ -32,80 +32,102 @@ DEPENDENCIES = \
   LSP_R3D_IFACE \
   LSP_WS_LIB \
   LSP_TK_LIB \
-  LSP_R3D_BASE_LIB \
-  LSP_R3D_GLX_LIB
+  LSP_R3D_BASE_LIB
 
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = doc ladspa lv2 vst2 clap
+DEFAULT_FEATURES = clap doc ladspa lv2 vst2 xdg
 
 #------------------------------------------------------------------------------
-# Platform-specific dependencies
+# Linux dependencies
+LINUX_DEPENDENCIES = \
+  LIBPTHREAD \
+  LIBDL \
+  LIBSNDFILE \
+  LIBCAIRO \
+  LIBFREETYPE \
+  LIBX11 \
+  LIBXRANDR \
+  LIBGL \
+  LIBJACK \
+  LSP_R3D_GLX_LIB
+
+LINUX_TEST_DEPENDENCIES =
+
 ifeq ($(PLATFORM),Linux)
-  DEPENDENCIES += \
-    LIBPTHREAD \
-    LIBDL \
-    LIBGL \
-    LIBJACK \
-    LIBSNDFILE \
-    LIBX11 \
-    LIBXRANDR \
-    LIBCAIRO \
-    LIBFREETYPE
-  
-  DEFAULT_FEATURES += jack
+  DEPENDENCIES             += $(LINUX_DEPENDENCIES)
+  TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
+  DEFAULT_FEATURES         += jack
 endif
 
+#------------------------------------------------------------------------------
+# BSD dependencies
+BSD_DEPENDENCIES = \
+  LIBPTHREAD \
+  LIBDL \
+  LIBSNDFILE \
+  LIBICONV \
+  LIBCAIRO \
+  LIBFREETYPE \
+  LIBX11 \
+  LIBXRANDR \
+  LIBGL \
+  LIBJACK \
+  LSP_R3D_GLX_LIB
+
+BSD_TEST_DEPENDENCIES = 
+
 ifeq ($(PLATFORM),BSD)
-  DEPENDENCIES += \
-    LIBPTHREAD \
-    LIBDL \
-    LIBGL \
-    LIBJACK \
-    LIBSNDFILE \
-    LIBX11 \
-    LIBXRANDR \
-    LIBCAIRO \
-    LIBICONV \
-    LIBFREETYPE
-  
-  DEFAULT_FEATURES += jack
+  DEPENDENCIES             += $(BSD_DEPENDENCIES)
+  TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
+  DEFAULT_FEATURES         += jack
 endif
+
 
 ifeq ($(PLATFORM),Windows)
   DEPENDENCIES += \
     LIBSHLWAPI \
     LIBWINMM \
     LIBMSACM \
-    LIBMPR \
-    LIBGDI32 \
     LIBD2D1 \
     LIBOLE \
-    LIBWINCODEC \
-    LIBDWRITE \
-    LIBUUID
+    LIBWINCODEC
+endif
+
+#------------------------------------------------------------------------------
+# Windows dependencies
+WINDOWS_DEPENDENCIES = \
+  LIBADVAPI32 \
+  LIBSHLWAPI \
+  LIBWINMM \
+  LIBMSACM \
+  LIBMPR \
+  LIBGDI32 \
+  LIBD2D1 \
+  LIBOLE \
+  LIBWINCODEC \
+  LIBDWRITE \
+  LIBUUID \
+  LIBOPENGL32 \
+  LSP_R3D_WGL_LIB
+
+WINDOWS_TEST_DEPENDENCIES = 
+
+ifeq ($(PLATFORM),Windows)
+  DEPENDENCIES             += $(WINDOWS_DEPENDENCIES)
+  TEST_DEPENDENCIES        += $(WINDOWS_TEST_DEPENDENCIES)
 endif
 
 #------------------------------------------------------------------------------
 # All possible dependencies
 ALL_DEPENDENCIES = \
   $(DEPENDENCIES) \
+  $(LINUX_DEPENDENCIES) \
+  $(BSD_DEPENDENCIES) \
+  $(WINDOWS_DEPENDENCIES) \
   $(TEST_DEPENDENCIES) \
-  LIBJACK \
-  LIBGL \
-  LIBSNDFILE \
-  LIBX11 \
-  LIBXRANDR \
-  LIBCAIRO \
-  LIBDL \
-  LIBICONV \
-  LIBFREETYPE \
-  LIBSHLWAPI \
-  LIBWINMM \
-  LIBMSACM \
-  LIBD2D1 \
-  LIBOLE \
-  LIBWINCODEC
-
+  $(LINUX_TEST_DEPENDENCIES) \
+  $(BSD_TEST_DEPENDENCIES) \
+  $(WINDOWS_TEST_DEPENDENCIES)
 

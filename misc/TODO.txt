@@ -132,6 +132,14 @@
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
 
+==== Spatial panner ====
+
+Organize plugin that can be used as a spatial placer and panner:
+  - Control the Mid/Side part;
+  - Control the position of instrument in the stereo space;
+  - Control the delay;
+  - Control the frequency fall-off.
+
 ==== Equalizer snap-to-note feature ====
 
 rnbeatproducerextra

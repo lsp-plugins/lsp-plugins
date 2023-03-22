@@ -1,7 +1,7 @@
 # ABOUT
 
 LSP (Linux Studio Plugins) is a collection of open-source plugins
-currently compatible with LADSPA, LV2 and LinuxVST formats.
+currently compatible with CLAP, LADSPA, LV2 and LinuxVST formats.
 
 The basic idea is to fill the lack of good and useful plugins under
 the GNU/Linux platform.
@@ -11,6 +11,12 @@ was made to implement separate and independent plugin distribution.
 
 All supplementary information you will find on official web site:
   https://lsp-plug.in/
+
+Note that after 1.2.0 release the lsp-plugins repository was decomposed
+into multiple subprojects. As a result, it is the repository without any code
+and for build purposes it gathers source code as dependencies from another
+repositories which are located here:
+  https://github.com/lsp-plugins/
 
 # LICENSING
 
@@ -37,29 +43,31 @@ For more information about licensing, please read COPYING and COPYING.LESSER.
 Current matrix of hardware architecture and platform (OS) support is:
 
 ```
-  ┌───────────┬───────────┬─────────┐
-  │Arch / OS  │ GNU/Linux │ FreeBSD │
-  ╞═══════════╪═══════════╪═════════╡
-  │aarch64    │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │armv6-a    │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │armv7-ar   │     E     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │i586       │     F     │    E    │
-  ├───────────┼───────────┼─────────┤
-  │loongarch32│     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │loongarch64│     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │ppc64      │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │riscv-64   │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │s390x      │     C     │    U    │
-  ├───────────┼───────────┼─────────┤
-  │x86_64     │     F     │    E    │
-  └───────────┴───────────┴─────────┘ 
+  ┌───────────┬───────────┬─────────┬─────────┐
+  │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │
+  ╞═══════════╪═══════════╪═════════╪═════════╡
+  │aarch64    │     F     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv5t     │     C     │    C    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv6-a    │     E     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │armv7-ar   │     E     │    E    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │i586       │     F     │    E    │    C    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │loongarch32│     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │loongarch64│     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │ppc64      │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │riscv-64   │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │s390x      │     C     │    U    │    U    │
+  ├───────────┼───────────┼─────────┼─────────┤
+  │x86_64     │     F     │    E    │    C    │
+  └───────────┴───────────┴─────────┴─────────┘ 
 ```
 
 The table legend is the following:
@@ -70,6 +78,7 @@ The table legend is the following:
  * N - No support, the code may compile but the work has not been tested.
 
 Supported plugin formats:
+  * CLAP (full support);
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
   * LinuxVST 2.4 (full support);
@@ -187,8 +196,6 @@ For successful build you need the following packages to be installed:
   * libgcc_s1 >= 5.2
   * libstdc++-devel >= 4.7
   * jack-devel >= 1.9.5
-  * lv2-devel >= 1.10
-  * ladspa-devel >= 1.13
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
@@ -215,9 +222,7 @@ to obtain all source code dependencies:
   make install
 ```
 
-By default, all supported formats of plugins are built except XDG. 
-Several DEs like GNOME don't support XDG format well, so desktop icon installations
-are disabled by default.
+By default, all supported formats of plugins are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
 at the configuration stage:
 
@@ -232,8 +237,7 @@ Available modules are:
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
   * vst2 - VST2 plugin binaries;
-  * xdg - the X11 desktop integration icons/ 
-
+  * xdg - the X11 desktop integration icons.
 
 By default plugins use '/usr/local' path as a target directory for installation.
 To override this path, the PREFIX variable can be overridden:
@@ -284,6 +288,15 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
   * Do usual stuff to reproduce the problem
   * After Ardour crashes, type 'thread apply all bt' in console and attach the output
     to the bug report.
+
+# KNOWN PROBLEMS
+
+## unclutter
+
+People using the `unclutter` tool reported spontaneous freeze of the UI for LSP Plugins.
+The `unclutter` tool is pretty rare and has not been updated over the years. So it does
+not follow the latest changes made for X.Org. The problem can be solved by switching to
+`unclutter-xfixes` tool which works pretty OK with LSP UI.
 
 # TESTING
 
