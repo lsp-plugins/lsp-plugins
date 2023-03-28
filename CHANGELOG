@@ -3,6 +3,9 @@
 *******************************************************************************
 
 === 1.2.7 ===
+* Fixed non-working solo button for Parametric Equalizer after 1.2.6 release.
+* Fixed build that disabled CairoCanvas for Inline Display feature.
+* Some output parameters like Bypass are not exported into configuration file anymore.
 
 === 1.2.6 ===
 * Implemented Mixer plugin series for 4, 8 and 16 Mono/Stereo channels.
