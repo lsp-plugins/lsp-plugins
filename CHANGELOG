@@ -5,6 +5,8 @@
 === 1.2.7 ===
 * Fixed non-working solo button for Parametric Equalizer after 1.2.6 release.
 * Fixed build that disabled CairoCanvas for Inline Display feature.
+* Fixed memory leakage issued by the libcairo font cache on the plugin UI close.
+  Moved custom font rendering solution to direct usage of libfreetype.
 * Some output parameters like Bypass are not exported into configuration file anymore.
 
 === 1.2.6 ===
