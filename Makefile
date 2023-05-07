@@ -61,9 +61,9 @@ DISTSRC_FILES               = \
   $(wildcard $(BASEDIR)/*.txt)
 
 .DEFAULT_GOAL              := all
-.PHONY: all compile install uninstall depend clean package
+.PHONY: all compile install uninstall clean package
 
-compile all install uninstall depend package:
+compile all install uninstall package:
 	$(CHK_CONFIG)
 	$(MAKE) -C "$(BASEDIR)/src" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" DESTDIR="$(DESTDIR)"
 
@@ -123,7 +123,6 @@ help:
 	echo "  all                       Build all binaries"
 	echo "  clean                     Clean all build files and configuration file"
 	echo "  config                    Configure build"
-	echo "  depend                    Update build dependencies for current project"
 	echo "  devel                     Configure build as development build"
 	echo "  distsrc                   Make tarball with source code for packagers"
 	echo "  fetch                     Fetch all desired source code dependencies from git"
