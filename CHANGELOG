@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.7 ===
+* Added measure button and meter line on graph for Spectrum Analyzer plugin series. 
 * Fixed non-working solo button for Parametric Equalizer after 1.2.6 release.
 * Fixed build that disabled CairoCanvas for Inline Display feature.
 * Fixed memory leakage issued by the libcairo font cache on the plugin UI close.
