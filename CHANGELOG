@@ -13,6 +13,8 @@
 * Some output parameters like Bypass are not exported into configuration file anymore.
 * Added display of filter number, filer channel and filter type near to the
   frequency and note.
+* Added possibility to change the thickness of lies on the spectrum graph for the
+  Spectrum Analyzer plugin series.
 * Removed Makefile.d. Dependencies are now automatically generated at the build stage.
 
 === 1.2.6 ===
