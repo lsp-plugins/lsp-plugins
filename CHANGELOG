@@ -15,6 +15,7 @@
   frequency and note.
 * Added possibility to change the thickness of lies on the spectrum graph for the
   Spectrum Analyzer plugin series.
+* Fixed CLAP UI support for Bitwig Studio.
 * Removed Makefile.d. Dependencies are now automatically generated at the build stage.
 
 === 1.2.6 ===
