@@ -23,6 +23,7 @@ endif
 
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
+PLUGINS                    := $(BASEDIR)/plugins.mk
 TEST                       := 0
 DEBUG                      := 0
 PROFILE                    := 0
