@@ -16,6 +16,8 @@
 * Added possibility to change the thickness of lies on the spectrum graph for the
   Spectrum Analyzer plugin series.
 * Fixed CLAP UI support for Bitwig Studio.
+* Fixed crash (BadMatch) for Fluxbox window manager on popup windows.
+* Fixed popup window heading display in Fluxbox.
 * Removed Makefile.d. Dependencies are now automatically generated at the build stage.
 
 === 1.2.6 ===
