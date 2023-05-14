@@ -119,9 +119,9 @@ else ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)),i586)
   ARCHITECTURE_FAMILY     = ia32
   ARCHITECTURE_CFLAGS    := -march=i586 -m32
 else ifeq ($(BUILD_ARCH),x86)
-  override ARCHITECTURE   = i586
+  override ARCHITECTURE   = i686
   ARCHITECTURE_FAMILY     = ia32
-  ARCHITECTURE_CFLAGS    := -march=i586 -m32
+  ARCHITECTURE_CFLAGS    := -march=i686 -m32
 else ifeq ($(BUILD_ARCH),riscv32)
   override ARCHITECTURE   = riscv32
   ARCHITECTURE_FAMILY     = riscv32
@@ -173,39 +173,6 @@ ifndef PKGCONFIG_EXT
   PKGCONFIG_EXT            := .pc
 endif
 
-# Installation prefix
-ifndef PREFIX
-  ifeq ($(PLATFORM),Windows)
-    PREFIX                   := $(ProgramFiles)
-  else
-    PREFIX                   := /usr/local
-  endif
-endif
-
-# Library prefix
-ifndef LIBDIR
-  LIBDIR                   := $(PREFIX)/lib
-endif
-
-# Binaries prefix
-ifndef BINDIR
-  BINDIR                   := $(PREFIX)/bin
-endif
-
-# Binaries prefix
-ifndef INCDIR
-  INCDIR                   := $(PREFIX)/include
-endif
-
-# Temporary directory
-ifndef TEMPDIR
-  ifeq ($(PLATFORM),Windows)
-    TEMPDIR                  := $(TEMP)
-  else
-    TEMPDIR                  := /tmp
-  endif
-endif
-
 TEST                       := 0
 
 # Set-up list of common variables
@@ -213,27 +180,18 @@ COMMON_VARS = \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
-	BINDIR \
-	BUILDDIR \
 	DEBUG \
-	ETCDIR \
 	EXECUTABLE_EXT \
 	EXPORT_SYMBOLS \
 	FEATURES \
-	INCDIR \
 	INSTALL_HEADERS \
-	LIBDIR \
 	LIBRARY_EXT \
 	LIBRARY_PREFIX \
 	PKGCONFIG_EXT \
 	PLATFORM \
-	PREFIX \
-	ROOTDIR \
 	ROOT_ARTIFACT_ID \
 	PROFILE \
-	SHAREDDIR \
 	STATICLIB_EXT \
-	TEMPDIR \
 	TEST \
 	TRACE
 
@@ -246,25 +204,19 @@ sysvars:
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
 	echo "  ARCHITECTURE_FAMILY       compiler flags to specify architecture family"
 	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
-	echo "  BINDIR                    location of the binaries"
-	echo "  BUILDDIR                  location of the build directory"
 	echo "  DEBUG                     build with debug options"
 	echo "  DEVEL                     build with modules checked out for read/write URL"
-	echo "  ETCDIR                    location of system configuration files"
 	echo "  EXECUTABLE_EXT            file extension for executable files"
+	echo "  EXPORT_SYMBOLS            make export symbols visible" 
 	echo "  FEATURES                  list of features enabled in the build"
-	echo "  INCDIR                    location of the header files"
-	echo "  LIBDIR                    location of the library"
+	echo "  INSTALL_HEADERS           install headers (enabled by default)"
 	echo "  LIBRARY_EXT               file extension for library files"
 	echo "  LIBRARY_PREFIX            prefix used for library file"
 	echo "  PKGCONFIG_EXT             file extension for pkgconfig files"
 	echo "  PLATFORM                  target software platform to perform build"
-	echo "  PREFIX                    installation prefix for binary files"
 	echo "  PROFILE                   build with profile options"
-	echo "  SHAREDDIR                 location of the shared files"
 	echo "  STATICLIB_EXT             file extension for static library files"
 	echo "  SUB_FEATURES              list of features disabled in the build as a subtraction of default"
-	echo "  TEMPDIR                   location of temporary directory"
 	echo "  TEST                      use test build"
 	echo "  TRACE                     compile with additional trace information output"
 
