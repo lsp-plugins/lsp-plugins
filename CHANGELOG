@@ -18,6 +18,7 @@
 * Fixed CLAP UI support for Bitwig Studio.
 * Fixed crash (BadMatch) for Fluxbox window manager on popup windows.
 * Fixed popup window heading display in Fluxbox.
+* Added frequency display and gain for each filter of Graphic Equalizer plugin series.
 * Removed Makefile.d. Dependencies are now automatically generated at the build stage.
 
 === 1.2.6 ===
