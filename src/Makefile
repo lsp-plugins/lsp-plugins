@@ -55,14 +55,16 @@ ARTIFACT_BIN            = $($(ARTIFACT_ID)_BIN)
 ARTIFACT_NAME           = $($(ARTIFACT_ID)_NAME)
 ARTIFACT_OBJ_META       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-meta.o
 ARTIFACT_OBJ_DSP        = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-dsp.o
+ARTIFACT_OBJ_SHARED     = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-shared.o
 ARTIFACT_OBJ_UI         = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-ui.o
 ARTIFACT_OBJ_TEST       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-test.o
-ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_UI)
+ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_SHARED) $(ARTIFACT_OBJ_UI)
 ARTIFACT_CFLAGS         = $(foreach dep, $(DEPENDENCIES), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
 
 CXX_SRC_STUB            = $(ARTIFACT_BIN)/stub.cpp
 CXX_SRC_MAIN_META       = $(call rwildcard, main/meta, *.cpp)
 CXX_SRC_MAIN_DSP        = $(call rwildcard, main/plug, *.cpp)
+CXX_SRC_MAIN_SHARED     = $(call rwildcard, main/shared, *.cpp)
 CXX_SRC_MAIN_UI         = $(call rwildcard, main/ui, *.cpp)
 CXX_SRC_TEST            = $(call rwildcard, test, *.cpp)
 CXX_SRC                 = $(CXX_SRC_MAIN_META) $(CXX_SRC_MAIN_DSP) $(CXX_SRC_MAIN_UI)
@@ -70,16 +72,19 @@ CXX_SRC                 = $(CXX_SRC_MAIN_META) $(CXX_SRC_MAIN_DSP) $(CXX_SRC_MAI
 OBJ_STUB                = $(patsubst %.cpp, %.o, $(CXX_SRC_STUB))
 OBJ_MAIN_META           = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_META))
 OBJ_MAIN_DSP            = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_DSP))
+OBJ_MAIN_SHARED         = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_SHARED))
 OBJ_MAIN_UI             = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_UI))
 OBJ_TEST                = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_TEST))
 OBJ                     = $(OBJ_MAIN_META) $(OBJ_MAIN_DSP) $(OBJ_MAIN_UI)
 
 XOBJ_MAIN_META          = $(if $(OBJ_MAIN_META),$(OBJ_MAIN_META),$(OBJ_STUB))
 XOBJ_MAIN_DSP           = $(if $(OBJ_MAIN_DSP),$(OBJ_MAIN_DSP),$(OBJ_STUB))
+XOBJ_MAIN_SHARED        = $(if $(OBJ_MAIN_SHARED),$(OBJ_MAIN_SHARED),$(OBJ_STUB))
 XOBJ_MAIN_UI            = $(if $(OBJ_MAIN_UI),$(OBJ_MAIN_UI),$(OBJ_STUB))
 XOBJ_TEST               = $(if $(OBJ_TEST),$(OBJ_TEST),$(OBJ_STUB))
 
 CXX_FILE                = $(patsubst $(ARTIFACT_BIN)/%.o,%.cpp, $(@))
+DEP_FILE                = $(patsubst %.o,%.d, $(@))
 
 CFLAGS_DEPS             = $(foreach dep, $(call uniq, $(DEPENDENCIES)), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
 BUILD_ALL               = $(ARTIFACT_LIB) $(ARTIFACT_SLIB) $(ARTIFACT_PC)
@@ -95,26 +100,7 @@ CXX_DEPFILE             = $(patsubst $(ARTIFACT_BIN)/%.d,%.cpp,$(@))
 CXX_DEPTARGET           = $(patsubst $(ARTIFACT_BIN)/%.d,%.o,$(@))
 
 .DEFAULT_GOAL = all
-.PHONY: compile depend dep_clean all install uninstall package gen_stub
-
-# Dependencies targets
-dep_clean:
-
-$(CXX_DEPS): dep_clean
-	echo "  dep  [$(ARTIFACT_NAME)] $(CXX_DEPFILE)"
-	mkdir -p $(dir $(@))
-	$(CXX) -MM -MT "\$$($(ARTIFACT_ID)_BIN)/$(CXX_DEPTARGET)" -MF $(@) $(CXX_DEPFILE) $(CXXFLAGS) $(INCLUDE) $(CFLAGS_DEPS)
-
-depend: $(CXX_DEPS)
-	$(foreach dep,$(DEPENDENCIES) $(ARTIFACT_ID),\
-	  $(if $($(dep)_INC), \
-	    $(eval SED_RULES += s/$(shell echo "$($(dep)_INC)" | sed "s/\\//\\\\\//g")/\$$$$\\($(dep)_INC\\)/g;)\
-	  )\
-	  $(if $($(dep)_BIN), \
-	    $(eval SED_RULES += s/$(shell echo "$($(dep)_BIN)" | sed "s/\\//\\\\\//g")/\\$$$$\\($(dep)_BIN\\)/g;)\
-	  )\
-	)
-	$(if $(CXX_DEPS),cat $(CXX_DEPS),echo "") | sed -E "$(SED_RULES)" >Makefile.d
+.PHONY: compile all install uninstall package
 
 # Compilation targets
 compile: $(ARTIFACT_OBJ)
@@ -126,12 +112,12 @@ $(CXX_SRC_STUB):
 $(OBJ_STUB): $(CXX_SRC_STUB)
 	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
 	mkdir -p $(dir $@)
-	$(CXX) -o $(@) -c $(CXX_SRC_STUB) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS)
+	$(CXX) -o $(@) -c $(CXX_SRC_STUB) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
 
 $(OBJ):
 	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
 	mkdir -p $(dir $@)
-	$(CXX) -o $(@) -c $(CXX_FILE) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS)
+	$(CXX) -o $(@) -c $(CXX_FILE) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
 
 # Linking targets
 $(ARTIFACT_OBJ_META): $(XOBJ_MAIN_META)
@@ -141,6 +127,10 @@ $(ARTIFACT_OBJ_META): $(XOBJ_MAIN_META)
 $(ARTIFACT_OBJ_DSP): $(XOBJ_MAIN_DSP)
 	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_DSP))"
 	$($(HOST)LD) -o $(ARTIFACT_OBJ_DSP) $($(HOST)LDFLAGS) $(XOBJ_MAIN_DSP)
+	
+$(ARTIFACT_OBJ_SHARED): $(XOBJ_MAIN_SHARED)
+	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_SHARED))"
+	$($(HOST)LD) -o $(ARTIFACT_OBJ_SHARED) $($(HOST)LDFLAGS) $(XOBJ_MAIN_SHARED)
 	
 $(ARTIFACT_OBJ_UI): $(XOBJ_MAIN_UI)
 	echo "  $($(HOST)LD)   [$(ARTIFACT_NAME)] $(notdir $(ARTIFACT_OBJ_UI))"
@@ -155,5 +145,5 @@ all install uninstall package:
 	$(MAKE) -C "$(LSP_PLUGIN_FW_PATH)" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)"
 
 # Dependencies
--include $(CURDIR)/Makefile.d
+-include $(foreach objfile,$(OBJ) $(OBJ_STUB),$(patsubst %.o,%.d,$(objfile)))
 

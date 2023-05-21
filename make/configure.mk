@@ -21,39 +21,29 @@ ifneq ($(VERBOSE),1)
 .SILENT:
 endif
 
-# Definitions
-PREFIX                     := /usr/local
-LIBDIR                     := $(PREFIX)/lib
-BINDIR                     := $(PREFIX)/bin
-SHAREDDIR                  := $(PREFIX)/share
-INCDIR                     := $(PREFIX)/include
-ETCDIR                     := /etc
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
-BUILDDIR                   := $(BASEDIR)/.build
-TARGET_BUILDDIR            := $(BUILDDIR)/target
-HOST_BUILDDIR              := $(BUILDDIR)/host
-MODULES                    := $(BASEDIR)/modules
-CONFIG                     := $(BASEDIR)/.config.mk
 PLUGINS                    := $(BASEDIR)/plugins.mk
 TEST                       := 0
 DEBUG                      := 0
 PROFILE                    := 0
 TRACE                      := 0
 
+# Configure system settings
+include $(BASEDIR)/project.mk
+include $(BASEDIR)/make/functions.mk
+include $(BASEDIR)/make/system.mk
+include $(BASEDIR)/make/paths.mk
+include $(BASEDIR)/make/tools.mk
+include $(BASEDIR)/modules.mk
+include $(BASEDIR)/dependencies.mk
+include $(PLUGINS)
+
 ifeq ($(DEVEL),1)
   X_URL_SUFFIX                = _RW
 else
   X_URL_SUFFIX                = _RO
 endif
-
-include $(BASEDIR)/project.mk
-include $(BASEDIR)/make/functions.mk
-include $(BASEDIR)/make/system.mk
-include $(BASEDIR)/make/tools.mk
-include $(BASEDIR)/modules.mk
-include $(BASEDIR)/dependencies.mk
-include $(PLUGINS)
 
 # Compute the full list of dependencies
 MERGED_DEPENDENCIES        := \
@@ -261,6 +251,7 @@ OVERALL_DEPS := $(call uniq,$(DEPENDENCIES) $(ARTIFACT_ID))
 __tmp := $(foreach dep,$(OVERALL_DEPS),$(call vardef, $(dep)))
 
 CONFIG_VARS = \
+  $(PATH_VARS) \
   $(COMMON_VARS) \
   $(TOOL_VARS) \
   $(foreach name, $(OVERALL_DEPS), \
@@ -318,7 +309,7 @@ config: $(CONFIG_VARS)
 	echo "Features:     $(FEATURES)"
 	echo "Configured OK"
 
-help: | toolvars sysvars
+help: | pathvars toolvars sysvars
 	echo ""
 	echo "List of variables for each dependency:"
 	echo "  <ARTIFACT>_BIN            location to put all binaries when building artifact"
