@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.8 ===
+* Implemented high-precision oversampling algorithms for Oscilloscope plugin series.
 
 === 1.2.7 ===
 * Fixed CLAP UI support for Bitwig Studio.
