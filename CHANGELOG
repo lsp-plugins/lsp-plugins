@@ -4,6 +4,8 @@
 
 === 1.2.8 ===
 * Implemented high-precision oversampling algorithms for Oscilloscope plugin series.
+* Fixed bug in the font manager which could yield memory corrption after complete font
+  manager cleanup (reproducible when switching visual schemas).
 
 === 1.2.7 ===
 * Fixed CLAP UI support for Bitwig Studio.
