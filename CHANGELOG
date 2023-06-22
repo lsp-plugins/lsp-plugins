@@ -5,6 +5,11 @@
 === 1.2.8 ===
 * Implemented high-precision oversampling algorithms for Oscilloscope plugin series.
 * Fixed missing audio preview for single-channel Sampler Plugin series.
+* Updated default values for file selectors in Impulse Responses and Impulse Reverb
+  plugin series.
+* Fixed missing output balance knobs in Impulse Reverb Mono plugin.
+* Added 'All' channel selector to Sampler and Multisampler plugin series which is now
+  the default value for channel selector.
 * Fixed bug in the font manager which could yield memory corrption after complete font
   manager cleanup (reproducible when switching visual schemas).
 
