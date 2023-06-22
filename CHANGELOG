@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.8 ===
+* Implemented GOTT Compressor plugin series.
 * Implemented high-precision oversampling algorithms for Oscilloscope plugin series.
 * Fixed missing audio preview for single-channel Sampler Plugin series.
 * Updated default values for file selectors in Impulse Responses and Impulse Reverb

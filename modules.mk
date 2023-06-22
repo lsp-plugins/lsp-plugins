@@ -160,6 +160,12 @@ LSP_PLUGINS_GATE_TYPE                   := plug
 LSP_PLUGINS_GATE_URL_RO                 := https://github.com/lsp-plugins/$(LSP_PLUGINS_GATE_NAME).git
 LSP_PLUGINS_GATE_URL_RW                 := git@github.com:lsp-plugins/$(LSP_PLUGINS_GATE_NAME).git
 
+LSP_PLUGINS_GOTT_COMPRESSOR_VERSION     := 1.0.0
+LSP_PLUGINS_GOTT_COMPRESSOR_NAME        := lsp-plugins-gott-compressor
+LSP_PLUGINS_GOTT_COMPRESSOR_TYPE        := plug
+LSP_PLUGINS_GOTT_COMPRESSOR_URL_RO      := https://github.com/lsp-plugins/$(LSP_PLUGINS_GOTT_COMPRESSOR_NAME).git
+LSP_PLUGINS_GOTT_COMPRESSOR_URL_RW      := git@github.com:lsp-plugins/$(LSP_PLUGINS_GOTT_COMPRESSOR_NAME).git
+
 LSP_PLUGINS_GRAPH_EQUALIZER_VERSION     := 1.0.14
 LSP_PLUGINS_GRAPH_EQUALIZER_NAME        := lsp-plugins-graph-equalizer
 LSP_PLUGINS_GRAPH_EQUALIZER_TYPE        := plug
