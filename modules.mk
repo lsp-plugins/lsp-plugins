@@ -154,6 +154,18 @@ LSP_PLUGINS_EXPANDER_TYPE               := plug
 LSP_PLUGINS_EXPANDER_URL_RO             := https://github.com/lsp-plugins/$(LSP_PLUGINS_EXPANDER_NAME).git
 LSP_PLUGINS_EXPANDER_URL_RW             := git@github.com:lsp-plugins/$(LSP_PLUGINS_EXPANDER_NAME).git
 
+LSP_PLUGINS_FILTER_VERSION             	:= 1.0.0
+LSP_PLUGINS_FILTER_NAME                	:= lsp-plugins-filter
+LSP_PLUGINS_FILTER_TYPE                	:= plug
+LSP_PLUGINS_FILTER_URL_RO              	:= https://github.com/lsp-plugins/$(LSP_PLUGINS_FILTER_NAME).git
+LSP_PLUGINS_FILTER_URL_RW              	:= git@github.com:lsp-plugins/$(LSP_PLUGINS_FILTER_NAME).git
+
+LSP_PLUGINS_FLANGER_VERSION             := 1.0.0
+LSP_PLUGINS_FLANGER_NAME                := lsp-plugins-flanger
+LSP_PLUGINS_FLANGER_TYPE                := plug
+LSP_PLUGINS_FLANGER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_FLANGER_NAME).git
+LSP_PLUGINS_FLANGER_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_FLANGER_NAME).git
+
 LSP_PLUGINS_GATE_VERSION                := 1.0.14
 LSP_PLUGINS_GATE_NAME                   := lsp-plugins-gate
 LSP_PLUGINS_GATE_TYPE                   := plug
