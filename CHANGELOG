@@ -17,6 +17,7 @@
   manager cleanup (reproducible when switching visual schemas).
 * Added generation of explicit element definitions for LV2 groups in TTL files as a
   workaround to LV2 problem related to missing predefined port groups' elements.
+* Fixed bug in ALR function which could cause random audio scratches.
 
 === 1.2.7 ===
 * Fixed CLAP UI support for Bitwig Studio.
