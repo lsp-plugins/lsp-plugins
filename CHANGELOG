@@ -21,6 +21,7 @@
 * Added generation of explicit element definitions for LV2 groups in TTL files as a
   workaround to LV2 problem related to missing predefined port groups' elements.
 * Fixed bug in ALR function which could cause random audio scratches.
+* Serveral bugfixes in core DSP modules provided by the lsp-dsp-units library.
 * Fixed gain jumping bug in A/B tester plugin.
 
 === 1.2.7 ===
