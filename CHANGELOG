@@ -2,6 +2,29 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.8 ===
+* Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
+* Implemented Filter plugin series.
+* Implemented Flanger plugin series.
+* Implemented Multiband Limiter plugin series.
+* Implemented high-precision oversampling algorithms for Oscilloscope plugin series.
+* Updated default values for file selectors in Impulse Responses and Impulse Reverb
+  plugin series.
+* Added generation of explicit element definitions for LV2 groups in TTL files as a
+  workaround to LV2 problem related to missing predefined port groups' elements.
+* Added 'All' channel selector to Sampler and Multisampler plugin series which is now
+  the default value for channel selector.
+* Added missing audio preview for single-channel Sampler Plugin series.
+* Adding missing output balance knobs in Impulse Reverb Mono plugin.
+* Fixed improper behaviour of the bypass switch for Multiband Compressor, Expander and
+  Dynamics Processor plugin series.
+* Fixed bug in the font manager which could yield memory corrption after complete font
+  manager cleanup (reproducible when switching visual schemas).
+* Fixed memory leakage in the UI (not freed resources on UI close).
+* Fixed bug in ALR function for Limiter plugin series which could cause random audio scratches.
+* Fixed gain jumping bug in A/B tester plugin.
+* Serveral bugfixes in the core DSP modules provided by the lsp-dsp-units library.
+
 === 1.2.7 ===
 * Fixed CLAP UI support for Bitwig Studio.
 * Fixed build that disabled CairoCanvas for Inline Display feature.
