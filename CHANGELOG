@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.9 ===
+* Fixed missing inline display for Phase Detector plugin.
+* Fixed invalid input signal level metering for Flanger plugin series.
 
 === 1.2.8 ===
 * Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
