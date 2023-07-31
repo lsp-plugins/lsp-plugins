@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.9 ===
+* Implemented shaper plugin series.
 * Fixed missing inline display for Phase Detector plugin.
 * Fixed invalid input signal level metering for Flanger plugin series.
 

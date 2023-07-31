@@ -298,6 +298,12 @@ LSP_PLUGINS_SAMPLER_TYPE                := plug
 LSP_PLUGINS_SAMPLER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
 LSP_PLUGINS_SAMPLER_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
 
+LSP_PLUGINS_SHAPER_VERSION              := 1.0.0
+LSP_PLUGINS_SHAPER_NAME                 := lsp-plugins-shaper
+LSP_PLUGINS_SHAPER_TYPE                 := plug
+LSP_PLUGINS_SHAPER_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_SHAPER_NAME).git
+LSP_PLUGINS_SHAPER_URL_RW               := git@github.com:lsp-plugins/$(LSP_PLUGINS_SHAPER_NAME).git
+
 LSP_PLUGINS_SLAP_DELAY_VERSION          := 1.0.12
 LSP_PLUGINS_SLAP_DELAY_NAME             := lsp-plugins-slap-delay
 LSP_PLUGINS_SLAP_DELAY_TYPE             := plug
