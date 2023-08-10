@@ -12,7 +12,11 @@
   * Dynamics Processor and Multiband Dynamics Processor;
   * Expander and Multiband Expander;
   * Gate and Multiband Gate;
-  * GOTT Compressor. 
+  * GOTT Compressor.
+* Added Allpass filter to the Filter plugin series.
+* Added Bandpass, Ladder-pass and Ladder-rej filters to Parametric Equalizer
+  plugin series.
+* Introduced Linear Phase mode for the Crossover plugin series.
 
 === 1.2.8 ===
 * Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
