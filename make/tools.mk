@@ -87,6 +87,8 @@ endif
 ifeq ($(DEBUG),1)
   CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -fsanitize=address
   CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -fsanitize=address
+  SO_FLAGS_EXT       += -static-libgcc -static-libstdc++
+  LDFLAGS_EXT        += -T $(CURDIR)/make/ld-windows.script
 else
   CFLAGS_EXT         += -O2
   CXXFLAGS_EXT       += -O2
