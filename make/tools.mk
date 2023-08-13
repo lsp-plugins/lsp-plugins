@@ -85,8 +85,8 @@ else ifeq ($(PLATFORM),BSD)
 endif
 
 ifeq ($(DEBUG),1)
-  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG
-  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG
+  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -fsanitize=address
+  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -fsanitize=address
 else
   CFLAGS_EXT         += -O2
   CXXFLAGS_EXT       += -O2
