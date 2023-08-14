@@ -84,11 +84,16 @@ else ifeq ($(PLATFORM),BSD)
   SO_FLAGS_EXT       += -L/usr/local/lib
 endif
 
+ifeq ($(ASAN),1)
+  CFLAGS_EXT         += -fsanitize=address
+  CXXFLAGS_EXT       += -fsanitize=address
+  EXE_FLAGS_EXT      += -fsanitize=address
+  SO_FLAGS_EXT       += -fsanitize=address
+endif
+
 ifeq ($(DEBUG),1)
-  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -fsanitize=address
-  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -fsanitize=address
-  SO_FLAGS_EXT       += -static-libgcc -static-libstdc++
-  LDFLAGS_EXT        += -T $(CURDIR)/make/ld-windows.script
+  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG
+  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG
 else
   CFLAGS_EXT         += -O2
   CXXFLAGS_EXT       += -O2
