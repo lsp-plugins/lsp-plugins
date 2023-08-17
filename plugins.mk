@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -27,6 +27,7 @@ PLUGIN_SHARED = \
 PLUGIN_DEPENDENCIES     = \
   LSP_PLUGINS_AB_TESTER \
   LSP_PLUGINS_ART_DELAY \
+  LSP_PLUGINS_BEAT_BREATHER \
   LSP_PLUGINS_COMP_DELAY \
   LSP_PLUGINS_COMPRESSOR \
   LSP_PLUGINS_CROSSOVER \
@@ -61,4 +62,3 @@ PLUGIN_DEPENDENCIES     = \
   LSP_PLUGINS_SURGE_FILTER \
   LSP_PLUGINS_TRIGGER
 
-  
