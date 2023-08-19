@@ -19,6 +19,11 @@
 * Added Bandpass, Ladder-pass and Ladder-rej filters to Parametric Equalizer
   plugin series.
 * Introduced Linear Phase mode for the Crossover plugin series.
+* Introduced Linear Phase mode for multiband plugin series:
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate.
 
 === 1.2.8 ===
 * Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
