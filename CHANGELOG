@@ -9,6 +9,7 @@
 * Fixed invalid input signal level metering for Flanger plugin series.
 * Fixed frequency inspection bug for LeftRight and MidSide versions of
   Parametric Equalizer plugin series.
+* Fixed improper latency value report by Multiband Limiter plugin series.
 * Implemented Stereo Split mode for stereo version of all dynamic plugins:
   * Compressor and Multiband Compressor;
   * Dynamics Processor and Multiband Dynamics Processor;
@@ -24,7 +25,8 @@
   * Multiband Compressor;
   * Multiband Dynamics Processor;
   * Multiband Expander;
-  * Multiband Gate.
+  * Multiband Gate;
+  * Multiband Limiter.
 
 === 1.2.8 ===
 * Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
