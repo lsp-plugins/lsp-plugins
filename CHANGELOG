@@ -20,6 +20,7 @@
   plugin series.
 * Introduced Linear Phase mode for the Crossover plugin series.
 * Introduced Linear Phase mode for multiband plugin series:
+  * GOTT Compressor;
   * Multiband Compressor;
   * Multiband Dynamics Processor;
   * Multiband Expander;
