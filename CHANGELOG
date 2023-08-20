@@ -5,11 +5,6 @@
 === 1.2.10 ===
 * Implemented Beat Breather plugin series.
 * Added phase switches to Delay Compensator plugin series.
-* Fixed missing inline display for Phase Detector plugin.
-* Fixed invalid input signal level metering for Flanger plugin series.
-* Fixed frequency inspection bug for LeftRight and MidSide versions of
-  Parametric Equalizer plugin series.
-* Fixed improper latency value report by Multiband Limiter plugin series.
 * Implemented Stereo Split mode for stereo version of all dynamic plugins:
   * Compressor and Multiband Compressor;
   * Dynamics Processor and Multiband Dynamics Processor;
@@ -27,6 +22,11 @@
   * Multiband Expander;
   * Multiband Gate;
   * Multiband Limiter.
+* Fixed missing inline display for Phase Detector plugin.
+* Fixed invalid input signal level metering for Flanger plugin series.
+* Fixed frequency inspection bug for LeftRight and MidSide versions of
+  Parametric Equalizer plugin series.
+* Fixed improper latency value report by Multiband Limiter plugin series.
 
 === 1.2.8 ===
 * Implemented GOTT (Grand Over-The-Top) Compressor plugin series.
