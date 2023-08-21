@@ -84,6 +84,13 @@ else ifeq ($(PLATFORM),BSD)
   SO_FLAGS_EXT       += -L/usr/local/lib
 endif
 
+ifeq ($(ASAN),1)
+  CFLAGS_EXT         += -fsanitize=address
+  CXXFLAGS_EXT       += -fsanitize=address
+  EXE_FLAGS_EXT      += -fsanitize=address
+  SO_FLAGS_EXT       += -fsanitize=address
+endif
+
 ifeq ($(DEBUG),1)
   CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG
   CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG
