@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.11 ===
+* Fixed improper band characteristics drawn on Mute for multiband plugins in
+  Linear Phase mode.
 
 === 1.2.10 ===
 * Implemented Beat Breather plugin series.
