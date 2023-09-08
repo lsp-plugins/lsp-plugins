@@ -69,6 +69,7 @@
 * PLUGIN LIST
 *******************************************************************************
 
+* A/B Tester
 * Compensation Delay
 * Compressor
 * Convolver
@@ -87,6 +88,7 @@
 * Multiband Dynamic Processor
 * Multiband Expander
 * Multiband Gate
+* Multiband limiter
 * Parametric Equalizer
 * Phase Detector
 * Room Builder
@@ -98,7 +100,6 @@
 
 - Dynamic equalizer
 - One-band compressor
-- Multiband limiter
 - Nonlinear audio profiler
 - Hysteresis-based saturator
 - Saturator
@@ -109,7 +110,6 @@
 - Transient Designer
 - Reverb Simulator
 - Pitch Shifter
-- Circuit Switcher
 - Corellometer
 - Transient designer
 - Decapitator
@@ -238,14 +238,6 @@ Tobbe:
     and tail cut/fade-out. Some of these things might be easier to do in Helm, 
     since the modulation and filter is already built in.
 
-==== Convolution Reverb ====
-  cooltechno
-    If it's possible, one feature request: to make a sound-preview in adding samples window in Klangerzeuger
-    
-  ufug:
-    LSP offers the most tweakable one, but it does not seem to have a browser for easily auditioning your
-    collection of impulse responses (as far as I can see)
-
 ==== UI ====
   tom-:
     - Make all grid lines more 'darken' in the UI.
@@ -277,19 +269,6 @@ Tobbe:
     P.S. I hear there is also a great need for a good noise reduction similar
     to the Audacity one.
 
-==== Spectrum analyzer ====
-  sysrqer:
-    I've been using the spectrum analyser recently and I have one question which is puzzling me - how can I
-    find out what the exact frequency is of a particular peak or area? I would expect to have a display of
-    where my mouse is to easily see the frequency. I tried to use the selector but it moves in increments
-    so sometimes it is not possible to get to the frequency you want to know, especially in the low end.
-    Am I missing something here or would this be a feature request?
-
-    I came across Melda's MMultiAnalyser in a video recently, it has a very interesting feature of showing
-    the frequency spectrum of collisions/clashes, would this be something could be implemented at some point?
-
-    Here is a quick overview of it https://youtu.be/Za7cbeKJUoY?t=164
-    
 ====
   bhilmers:
     A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.
