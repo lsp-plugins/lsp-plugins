@@ -383,6 +383,12 @@ option:
 
 Manual tests are mostly designed for developers' purposes.
 
+# SAST TOOLS
+
+The Code of the project has been verified by the following SAST tools:
+
+* [PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static analyzer for C, C++, C#, and Java code.
+
 # TROUBLESHOOTING
 
 Because there are many GNU/Linux distributions and software configurations,
