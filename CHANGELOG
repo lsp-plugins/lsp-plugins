@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.12 ===
+
 === 1.2.11 ===
 * Added partial support of AVX-512 instruction set.
 * Windows support changed to experimental.
