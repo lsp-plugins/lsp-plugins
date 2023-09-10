@@ -54,7 +54,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┤
   │armv7-ar   │     E     │    E    │    U    │
   ├───────────┼───────────┼─────────┼─────────┤
-  │i586       │     F     │    E    │    C    │
+  │i586       │     F     │    E    │    E    │
   ├───────────┼───────────┼─────────┼─────────┤
   │loongarch32│     C     │    U    │    U    │
   ├───────────┼───────────┼─────────┼─────────┤
@@ -66,7 +66,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┤
   │s390x      │     C     │    U    │    U    │
   ├───────────┼───────────┼─────────┼─────────┤
-  │x86_64     │     F     │    E    │    C    │
+  │x86_64     │     F     │    E    │    E    │
   └───────────┴───────────┴─────────┴─────────┘ 
 ```
 
@@ -382,6 +382,12 @@ option:
   .build/host/lsp-plugin-fw/lsp-plugins-test ptest -o performance-test.log
 
 Manual tests are mostly designed for developers' purposes.
+
+# SAST TOOLS
+
+The Code of the project has been verified by the following SAST tools:
+
+* [PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - static analyzer for C, C++, C#, and Java code.
 
 # TROUBLESHOOTING
 

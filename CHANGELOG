@@ -2,6 +2,13 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.11 ===
+* Added partial support of AVX-512 instruction set.
+* Windows support changed to experimental.
+* Fixed code issues reported by the PVS Studio static analyzer.
+* Fixed improper band characteristics drawn on band Mute for multiband plugins in
+  Linear Phase mode.
+
 === 1.2.10 ===
 * Implemented Beat Breather plugin series.
 * Added phase switches to Delay Compensator plugin series.
