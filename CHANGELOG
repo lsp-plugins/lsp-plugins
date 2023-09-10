@@ -3,9 +3,10 @@
 *******************************************************************************
 
 === 1.2.11 ===
+* Added partial support of AVX-512 instruction set.
 * Windows support changed to experimental.
-* Fixed issues reported by the PVS Studio static analyzer.
-* Fixed improper band characteristics drawn on Mute for multiband plugins in
+* Fixed code issues reported by the PVS Studio static analyzer.
+* Fixed improper band characteristics drawn on band Mute for multiband plugins in
   Linear Phase mode.
 
 === 1.2.10 ===
