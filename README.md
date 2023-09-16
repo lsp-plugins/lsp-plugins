@@ -190,7 +190,10 @@ The usual directories for CLAP are:
 
 You may build plugins from scratch.
 
-For successful build you need the following packages to be installed:
+The build process doesn't differ much for GNU/Linux, FreeBSD or Windows.
+Build of JACK standalone versions for Windows is yet not supported.
+
+For successful build for Linux/FreeBSD you need the following packages to be installed:
   * gcc >= 4.7 OR clang >= 10.0.1
   * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
@@ -199,7 +202,14 @@ For successful build you need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
+  * libiconv (for FreeBSD)
   * libGL-devel >= 11.2.2
+
+For Windows build, the following software needs to be installed:
+  * MinGW/MinGW-W64 >= 7.0
+  * Git >= 2.8 (optional)
+  * PHP >= 5.5.14
+  * GNU Make >= 4.2
 
 To build the project from archive with source code, the following sequence of commands 
 should be performed:
