@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.12 ===
+* Fixed invalid default values of parameters for CLAP plugin format.
 * Fixed double free of generated port metadata in CLAP, VST2 and LV2 wrappers.
 * Additional SIMD-optimized functions added to DSP library.
 
