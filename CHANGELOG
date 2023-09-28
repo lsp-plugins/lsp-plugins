@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.12 ===
+* Fixed double free of generated port metadata in CLAP, VST2 and LV2 wrappers.
+* Additional SIMD-optimized functions added to DSP library.
 
 === 1.2.11 ===
 * Added partial support of AVX-512 instruction set.
