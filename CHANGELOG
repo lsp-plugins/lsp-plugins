@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.12 ===
+* Implemented Autogain tool for controlling the loudness of the signal according
+  to ITU-R BS.1770-4 specificaions.
 * Fixed VST2 plugin crash on UI close in OBS Studio.
 * Fixed invalid default values of parameters for CLAP plugin format.
 * Fixed double free of generated port metadata in CLAP, VST2 and LV2 wrappers.
