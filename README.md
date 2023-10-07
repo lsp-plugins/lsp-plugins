@@ -308,6 +308,26 @@ The `unclutter` tool is pretty rare and has not been updated over the years. So 
 not follow the latest changes made for X.Org. The problem can be solved by switching to
 `unclutter-xfixes` tool which works pretty OK with LSP UI.
 
+## 3D backend not working
+
+This is the typical problem of interacting of the GUI with additional library that performs
+3D rendering. The reason can be:
+  * the library is missing in standard system libraries or nearby the plugin's binareis.
+  * the provided version of the library does not matched the required one by the UI.
+
+The short way to diagnose that the library was not found or not accepted by the UI is just to
+visit the `MENU` -> `3D rendering` (visible only for plugins that use 3D rendering) and
+ensure that there are no available items in the submenu.
+
+To solve the problem, you need:
+  * ensure that the `liblsp-r3d-glx` library is present in `/usr/lib` or in
+    `/usr/local/lib` system paths OR:
+  * ensure that the `liblsp-r3d-glx` library is placed nearby the plugin's binaries
+    if you have some custom installation of the bundle (for example, in your `HOME` directory);
+  * ensure that the version of the `liblsp-r3d-glx` is matching to installed binaries;
+  * install the proper version of the library to the usual place if at least one of the checks
+    above were not fulfilled.
+
 # TESTING
 
 Since release 1.1.4 there is implemented testing subsystem that allows:
