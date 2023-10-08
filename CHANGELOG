@@ -5,10 +5,13 @@
 === 1.2.12 ===
 * Implemented Autogain tool for controlling the loudness of the signal according
   to ITU-R BS.1770-4 specificaions.
+* Implemented SIMD-optimized curve and gain calculation functions for compressors
+  which allow to lower the CPU consumption by compressor plugins.
+* More AVX-512 optimized functions added to the low-level DSP code.
+* Additional SIMD-optimized functions added to DSP library.
 * Fixed VST2 plugin crash on UI close in OBS Studio.
 * Fixed invalid default values of parameters for CLAP plugin format.
-* Fixed double free of generated port metadata in CLAP, VST2 and LV2 wrappers.
-* Additional SIMD-optimized functions added to DSP library.
+* Fixed double memory free of generated port metadata in CLAP, VST2 and LV2 wrappers.
 
 === 1.2.11 ===
 * Added partial support of AVX-512 instruction set.
