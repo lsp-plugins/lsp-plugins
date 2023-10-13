@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.13 ===
+
 === 1.2.12 ===
 * Implemented Autogain plugin series for controlling the loudness of the signal
   according to the ITU-R BS.1770-4 specificaions.
