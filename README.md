@@ -190,7 +190,10 @@ The usual directories for CLAP are:
 
 You may build plugins from scratch.
 
-For successful build you need the following packages to be installed:
+The build process doesn't differ much for GNU/Linux, FreeBSD or Windows.
+Build of JACK standalone versions for Windows is yet not supported.
+
+For successful build for Linux/FreeBSD you need the following packages to be installed:
   * gcc >= 4.7 OR clang >= 10.0.1
   * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
@@ -199,7 +202,14 @@ For successful build you need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * php >= 5.5.14
+  * libiconv (for FreeBSD)
   * libGL-devel >= 11.2.2
+
+For Windows build, the following software needs to be installed:
+  * MinGW/MinGW-W64 >= 7.0
+  * Git >= 2.8 (optional)
+  * PHP >= 5.5.14
+  * GNU Make >= 4.2
 
 To build the project from archive with source code, the following sequence of commands 
 should be performed:
@@ -297,6 +307,26 @@ People using the `unclutter` tool reported spontaneous freeze of the UI for LSP 
 The `unclutter` tool is pretty rare and has not been updated over the years. So it does
 not follow the latest changes made for X.Org. The problem can be solved by switching to
 `unclutter-xfixes` tool which works pretty OK with LSP UI.
+
+## 3D backend not working
+
+This is the typical problem of interacting of the GUI with additional library that performs
+3D rendering. The reason can be:
+  * the library is missing in standard system libraries or nearby the plugin's binareis.
+  * the provided version of the library does not matched the required one by the UI.
+
+The short way to diagnose that the library was not found or not accepted by the UI is just to
+visit the `MENU` -> `3D rendering` (visible only for plugins that use 3D rendering) and
+ensure that there are no available items in the submenu.
+
+To solve the problem, you need:
+  * ensure that the `liblsp-r3d-glx` library is present in `/usr/lib` or in
+    `/usr/local/lib` system paths OR:
+  * ensure that the `liblsp-r3d-glx` library is placed nearby the plugin's binaries
+    if you have some custom installation of the bundle (for example, in your `HOME` directory);
+  * ensure that the version of the `liblsp-r3d-glx` is matching to installed binaries;
+  * install the proper version of the library to the usual place if at least one of the checks
+    above were not fulfilled.
 
 # TESTING
 
