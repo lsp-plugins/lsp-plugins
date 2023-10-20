@@ -3,6 +3,11 @@
 *******************************************************************************
 
 === 1.2.13 ===
+* Several optimizations of DSP library with AVX and AVX2 instruction sets.
+* Optimizations of compressor, expander and gate modules.
+* Gate module now uses lsp-dsp-lib for low-level gain and curve optimizations.
+* Reduced the gain curve refresh rate for all multiband plugins.
+* Optimized gain curve calculation for all multiband plugins.
 
 === 1.2.12 ===
 * Implemented Autogain plugin series for controlling the loudness of the signal
