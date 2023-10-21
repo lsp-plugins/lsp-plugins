@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.13 ===
+* Fixed bug in Multiband Limiter plugin series caused by invalid processing of
+  large input buffers.
+* Fixed bug in Compensation Delay plugin series caused by invalid processing of
+  large input buffers.
 * Several optimizations of DSP library with AVX and AVX2 instruction sets.
 * Optimizations of compressor, expander and gate modules.
 * Gate module now uses lsp-dsp-lib for low-level gain and curve optimizations.
