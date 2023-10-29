@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.14 ===
+
 === 1.2.13 ===
 * Fixed bug in Multiband Limiter plugin series caused by invalid processing of
   large input buffers.
