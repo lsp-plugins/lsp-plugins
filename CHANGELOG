@@ -2,6 +2,23 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.13 ===
+* Fixed bug in Multiband Limiter plugin series caused by invalid processing of
+  large input buffers.
+* Fixed bug in Compensation Delay plugin series caused by invalid processing of
+  large input buffers.
+* Fixed crackling sound caused by small buffer gaps in Autogain plugin series.
+* Fixed bug introduced in 1.2.11 version related to improper optimized function
+  for AVX-512 instruction set that could cause dynamic processing plugins (like
+  Compressor, Expander, Gate, etc) work improperly.
+* Several optimizations of DSP library with AVX and AVX2 instruction sets.
+* Many additional optimizations of DSP library with AVX-512 instruction set.
+* Optimizations of compressor, expander and gate modules with SIMD instructions.
+* Gate module now uses lsp-dsp-lib for low-level gain and curve optimizations.
+* Reduced the gain curve refresh rate for all multiband plugins which may reduce
+  CPU usage for small input buffer sizes.
+* Optimized common gain curve calculation for all multiband plugins.
+
 === 1.2.12 ===
 * Implemented Autogain plugin series for controlling the loudness of the signal
   according to the ITU-R BS.1770-4 specificaions.
