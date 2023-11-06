@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.14 ===
+* Added possibility to change frequency values by double click.
 
 === 1.2.13 ===
 * Fixed bug in Multiband Limiter plugin series caused by invalid processing of
