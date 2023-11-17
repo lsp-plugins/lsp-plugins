@@ -4,6 +4,24 @@
 
 === 1.2.14 ===
 * Added possibility to change frequency values by double click for GOTT Compressor.
+* Improved performance of expression language in the UI.
+* Implemented separate input and output signal spectrum analysis for plugin series:
+  * Filter.
+  * Graphic Equalizer.
+  * Parametric Equalizer.
+* Implemented automatic scale of spectrum graph switch for plugin series:
+  * Beat Breaher.
+  * Filter.
+  * GOTT Compressor.
+  * Graphic Equalizer.
+  * Multiband Compressor.
+  * Multiband Dynamic Processor.
+  * Multiband Gate.
+  * Multiband Expander.
+  * Multiband Limiter.
+  * Noise Generator.
+  * Parametric Equalizer.
+
 
 === 1.2.13 ===
 * Fixed bug in Multiband Limiter plugin series caused by invalid processing of
