@@ -92,8 +92,8 @@ ifeq ($(ASAN),1)
 endif
 
 ifeq ($(DEBUG),1)
-  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG
-  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG
+  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -falign-functions=16
+  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -falign-functions=16
 else
   CFLAGS_EXT         += -O2
   CXXFLAGS_EXT       += -O2
