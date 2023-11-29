@@ -226,6 +226,12 @@ LSP_PLUGINS_LOUD_COMP_TYPE              := plug
 LSP_PLUGINS_LOUD_COMP_URL_RO            := https://github.com/lsp-plugins/$(LSP_PLUGINS_LOUD_COMP_NAME).git
 LSP_PLUGINS_LOUD_COMP_URL_RW            := git@github.com:lsp-plugins/$(LSP_PLUGINS_LOUD_COMP_NAME).git
 
+LSP_PLUGINS_MB_CLIPPER_VERSION       	:= 1.0.0
+LSP_PLUGINS_MB_CLIPPER_NAME          	:= lsp-plugins-mb-clipper
+LSP_PLUGINS_MB_CLIPPER_TYPE          	:= plug
+LSP_PLUGINS_MB_CLIPPER_URL_RO        	:= https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_CLIPPER_NAME).git
+LSP_PLUGINS_MB_CLIPPER_URL_RW        	:= git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_CLIPPER_NAME).git
+
 LSP_PLUGINS_MB_COMPRESSOR_VERSION       := 1.0.17
 LSP_PLUGINS_MB_COMPRESSOR_NAME          := lsp-plugins-mb-compressor
 LSP_PLUGINS_MB_COMPRESSOR_TYPE          := plug
