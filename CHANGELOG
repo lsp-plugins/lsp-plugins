@@ -5,6 +5,7 @@
 === 1.2.14 ===
 * Implemented Clipper plugins series.
 * Implemented Multiband Clipper plugin series.
+* Updated VST 2.x plugin naming to fit the maximum possible length of 31 characters.
 * Added tracking of maximum values option for Spectrum Analyzer plugin series.
 * Added possibility to change frequency values by double click for GOTT Compressor.
 * Improved performance of expression language in the UI.
