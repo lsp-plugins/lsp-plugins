@@ -30,6 +30,11 @@
 * Added frequency and note displaying for band splits for all multiband plugin
   series.
 * Added support of storing current file type selection in file dialogs of UI.
+* Optimization of compressor and gate functions using AVX-512 instruction set.
+* Fixed bug in Mid/Side conversion functions for AArch64 architecture (contributed
+  by marcan at GitHub).
+* Introduced SIMD-optimized expander curve and gain functions.
+* Improved performance of logarithmic values calculations for DSP modules.
 
 === 1.2.13 ===
 * Fixed bug in Multiband Limiter plugin series caused by invalid processing of
