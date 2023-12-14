@@ -27,6 +27,8 @@
   * Parametric Equalizer.
 * Many code updates that could cause potential problems related to using another
   decimal point for floating-point number formatting.
+* Added frequency and note displaying for band splits for all multiband plugin
+  series.
 * Added support of storing current file type selection in file dialogs of UI.
 
 === 1.2.13 ===
