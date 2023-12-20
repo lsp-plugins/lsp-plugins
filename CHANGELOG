@@ -18,6 +18,7 @@
   and Parametric Equalizer plugin series.
 * Added gain level display for filter info of the Parametric Equalizer and Filter plugin series.
 * Added missing inline display to the Autogain plugin series.
+* Threshold markers are now editable for all dynamics and multiband dynamics plugins.
 * Implemented switch that controls automatic scaling of spectrum graph for plugin series:
   * Beat Breaher.
   * Filter.
