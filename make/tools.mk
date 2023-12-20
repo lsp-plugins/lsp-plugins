@@ -84,19 +84,19 @@ else ifeq ($(PLATFORM),BSD)
   SO_FLAGS_EXT       += -L/usr/local/lib
 endif
 
-ifeq ($(ASAN),1)
-  CFLAGS_EXT         += -fsanitize=address
-  CXXFLAGS_EXT       += -fsanitize=address
-  EXE_FLAGS_EXT      += -fsanitize=address
-  SO_FLAGS_EXT       += -fsanitize=address
-endif
-
 ifeq ($(DEBUG),1)
   CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -falign-functions=16
   CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -falign-functions=16
 else
   CFLAGS_EXT         += -O2
   CXXFLAGS_EXT       += -O2
+endif
+
+ifeq ($(ASAN),1)
+  CFLAGS_EXT         += -fsanitize=address
+  CXXFLAGS_EXT       += -fsanitize=address
+  EXE_FLAGS_EXT      += -fsanitize=address
+  SO_FLAGS_EXT       += -fsanitize=address
 endif
 
 ifeq ($(PROFILE),1)
@@ -107,6 +107,11 @@ endif
 ifeq ($(TRACE),1)
   CFLAGS_EXT         += -DLSP_TRACE
   CXXFLAGS_EXT       += -DLSP_TRACE
+endif
+
+ifeq ($(STRICT),1)
+  CFLAGS_EXT         += -Werror
+  CXXFLAGS_EXT       += -Werror
 endif
 
 ifeq ($(TEST),1)
