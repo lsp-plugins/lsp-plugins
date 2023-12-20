@@ -136,7 +136,7 @@ LSP_PLUGINS_BEAT_BREATHER_TYPE          := plug
 LSP_PLUGINS_BEAT_BREATHER_URL_RO        := https://github.com/lsp-plugins/$(LSP_PLUGINS_BEAT_BREATHER_NAME).git
 LSP_PLUGINS_BEAT_BREATHER_URL_RW        := git@github.com:lsp-plugins/$(LSP_PLUGINS_BEAT_BREATHER_NAME).git
 
-LSP_PLUGINS_CLIPPER_VERSION          	:= 1.0.19
+LSP_PLUGINS_CLIPPER_VERSION          	:= 1.0.0
 LSP_PLUGINS_CLIPPER_NAME             	:= lsp-plugins-clipper
 LSP_PLUGINS_CLIPPER_TYPE             	:= plug
 LSP_PLUGINS_CLIPPER_URL_RO           	:= https://github.com/lsp-plugins/$(LSP_PLUGINS_CLIPPER_NAME).git
