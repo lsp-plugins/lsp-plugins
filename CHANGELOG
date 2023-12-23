@@ -2,6 +2,46 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.14 ===
+* Implemented Clipper plugins series.
+* Implemented Multiband Clipper plugin series.
+* Implemented Parametric Equalizer x8 plugin series.
+* Updated VST 2.x plugin naming to fit the maximum possible length of 31 characters.
+* Added tracking of maximum values option for Spectrum Analyzer plugin series.
+* Added possibility to change frequency values by double click for GOTT Compressor.
+* Improved performance of expression language in the UI.
+* Implemented separate input and output signal spectrum analysis for Filter,
+  Graphic Equalizer and Parametric Equalizer plugin series.
+* Updated default value and extended range of the zoom fader for Filter, Graphic
+  Equalizer and Parametric Equalizer plugin series.
+* Added possibility to globally adjust filter point size for Filter, Graphic Equalizer
+  and Parametric Equalizer plugin series.
+* Added gain level display for filter info of the Parametric Equalizer and Filter plugin series.
+* Added missing inline display to the Autogain plugin series.
+* Threshold markers are now editable for all dynamics and multiband dynamics plugins.
+* Implemented switch that controls automatic scaling of spectrum graph for plugin series:
+  * Beat Breaher.
+  * Filter.
+  * GOTT Compressor.
+  * Graphic Equalizer.
+  * Multiband Compressor.
+  * Multiband Dynamic Processor.
+  * Multiband Gate.
+  * Multiband Expander.
+  * Multiband Limiter.
+  * Noise Generator.
+  * Parametric Equalizer.
+* Many code updates that could cause potential problems related to using another
+  decimal point for floating-point number formatting.
+* Added frequency and note displaying for band splits for all multiband plugin
+  series.
+* Added support of storing current file type selection in file dialogs of UI.
+* Optimization of compressor and gate functions using AVX-512 instruction set.
+* Fixed bug in Mid/Side conversion functions for AArch64 architecture (contributed
+  by marcan at GitHub).
+* Introduced SIMD-optimized expander curve and gain functions.
+* Improved performance of logarithmic values calculations for DSP modules.
+
 === 1.2.13 ===
 * Fixed bug in Multiband Limiter plugin series caused by invalid processing of
   large input buffers.

@@ -192,6 +192,7 @@ COMMON_VARS = \
 	ROOT_ARTIFACT_ID \
 	PROFILE \
 	STATICLIB_EXT \
+	STRICT \
 	TEST \
 	TRACE
 
@@ -216,6 +217,7 @@ sysvars:
 	echo "  PLATFORM                  target software platform to perform build"
 	echo "  PROFILE                   build with profile options"
 	echo "  STATICLIB_EXT             file extension for static library files"
+	echo "  STRICT                    strict compilation: treat compilation warnings as errors"
 	echo "  SUB_FEATURES              list of features disabled in the build as a subtraction of default"
 	echo "  TEST                      use test build"
 	echo "  TRACE                     compile with additional trace information output"
