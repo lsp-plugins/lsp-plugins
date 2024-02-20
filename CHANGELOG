@@ -3,6 +3,15 @@
 *******************************************************************************
 
 === 1.2.15 ===
+* Added experimental VST3 support.
+* Several bugfixes and improvements in implementations of VST2, LV2 and CLAP formats.
+* Added possibility to enter channel name in mixer.
+* Added MIDI velocity control code display in Sampler and Multisampler plugin series.
+* Added support of LR2 (12 dB/oct) filters by the Crossover plugins series.
+* Improved grid color and visibility for the Spectrum analyzer plugin series in
+  Spectralizer mode.
+* Re-implemented allpass filters for Equalizer that could yield to high frequency
+  pitch buildup.
 * Updated split editing behaviour for multiband plugin series.
 
 === 1.2.14 ===
