@@ -10,7 +10,8 @@
 * Added support of LR2 (12 dB/oct) filters by the Crossover plugins series.
 * Improved grid color and visibility for the Spectrum analyzer plugin series in
   Spectralizer mode.
-* Implemented the hold option for the Compressor plugin series.
+* Implemented the Hold option for the Compressor plugin series.
+* Added Dry/Wet balance control for the Compressor plugin series.
 * Re-implemented allpass filters for Equalizer that could yield to high frequency
   pitch buildup.
 * Updated split editing behaviour for multiband plugin series.
