@@ -12,7 +12,8 @@
   Spectralizer mode.
 * Implemented Hold option for Compressor, Dynamics Processor, Expander and Gate plugin series.
 * Implemented Hold option for Multiband Compressor, Dynamics Processor, Expander and Gate plugin series.
-* Added Dry/Wet balance control for Compressor, Dynamics Processor, Expander and Gate plugin series.
+* Added Dry/Wet balance control for Compressor, Dynamics Processor, Expander, 
+  Gate and Trigger plugin series.
 * Added Dry/Wet balance control for Multiband Compressor, Dynamics Processor, Expander,
   Gate and GOTT Compressor plugin series.
 * Fixed phasing issue between dry and wet signal for GOTT Compressor in Linear Phase mode.
