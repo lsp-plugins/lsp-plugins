@@ -13,6 +13,8 @@
 * Added possibility to enter channel name in mixer.
 * Added MIDI velocity control code display in Sampler and Multisampler plugin series.
 * Added support of LR2 (12 dB/oct) filters by the Crossover plugins series.
+* Added S/M Apply switch to Crossover plugin series that applies effect of Solo/Mute buttons
+  to corresponding frequency band's outputs.
 * Improved grid color and visibility for the Spectrum analyzer plugin series in
   Spectralizer mode.
 * Implemented Hold option for Compressor, Dynamics Processor, Expander and Gate plugin series.
