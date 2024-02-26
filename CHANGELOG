@@ -7,6 +7,8 @@
 * Fixed bug in smoothing mode of Parametric Equalizer and Filter plugins that could
   be caused when using large buffer sizes. Additional optimizations to reduce CPU
   resources when processing in smoothing mode. 
+* Updated behaviour of band frequency splits in the UI for Multiband Compressor,
+  Multiband Expander, Multiband Gate Multiband Dynamic Processor and Crossover plugin series.
 * Several bugfixes and improvements in implementations of VST2, LV2 and CLAP formats.
 * Added possibility to enter channel name in mixer.
 * Added MIDI velocity control code display in Sampler and Multisampler plugin series.
