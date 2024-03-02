@@ -141,6 +141,8 @@ of your VST directory, the subdirectory should contain substring
 'lsp-plugins'. Otherwise plugins won't find the VST core library.
 Please notice that '~' means user's home directory.
 
+## For Linux/FreeBSD
+
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
   * /usr/local/lib/ladspa
@@ -186,6 +188,14 @@ The usual directories for CLAP are:
   * /usr/local/lib64/clap
   * ~/.clap
 
+## For Windows
+
+The usual directory for VST binaries is:
+  * C:\Program Files\Common Files\VST
+
+The usual directory for CLAP binaries is:
+  * C:\Program Files\Common Files\CLAP
+
 # BUILDING
 
 You may build plugins from scratch.
@@ -210,6 +220,19 @@ For Windows build, the following software needs to be installed:
   * Git >= 2.8 (optional)
   * PHP >= 5.5.14
   * GNU Make >= 4.2
+  
+To perform toolchain setup for Windows, you may perform the following steps:
+  * Download [latest Git](https://git-scm.com/download/win)
+  * Download [latest MinGW-W64 GCC](from https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
+  * Download [latest PHP x64 Thread Safe ZIP package](https://windows.php.net/download/)
+  * Install Git
+  * Unpack PHP ZIP to C:\php
+  * Unpack MinGW to C:\mingw64
+  * To make all installed software accessible from command line, add to the PATH environment variable following elements:
+    * C:\Program Files\Git\cmd
+    * C:\Program Files\Git\usr\bin
+    * C:\mingw64\bin
+    * C:\php
 
 To build the project from archive with source code, the following sequence of commands 
 should be performed:
@@ -231,6 +254,9 @@ to obtain all source code dependencies:
   make
   make install
 ```
+
+For Windows, the `make install` command creates 'INSTALL' subdirectory and places the
+plugin content into desired folders.
 
 By default, all supported formats of plugins are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
