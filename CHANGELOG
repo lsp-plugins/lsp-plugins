@@ -4,13 +4,14 @@
 
 === 1.2.15 ===
 * Added experimental VST3 plugin format support.
+* Added built-in presets for Compressor plugin series.
 * Fixed bug in smoothing mode of Parametric Equalizer and Filter plugins that could
   be caused when using large buffer sizes. Additional optimizations to reduce CPU
   resources when processing in smoothing mode. 
 * Updated behaviour of band frequency splits in the UI for Multiband Compressor,
   Multiband Expander, Multiband Gate Multiband Dynamic Processor and Crossover plugin series.
 * Several bugfixes and improvements in implementations of VST2, LV2 and CLAP formats.
-* Added possibility to enter channel name in mixer.
+* Added possibility to manually enter channel name in Mixer plugin series.
 * Added MIDI velocity control code display in Sampler and Multisampler plugin series.
 * Added support of LR2 (12 dB/oct) filters by the Crossover plugins series.
 * Added S/M Apply switch to Crossover plugin series that applies effect of Solo/Mute buttons
@@ -27,7 +28,9 @@
 * Fixed invalid curve markers display in Multiband Gate plugin series.
 * Re-implemented allpass filters for Equalizer that could yield to high frequency
   pitch buildup.
-* Updated split editing behaviour for multiband plugin series.
+* Updated split editing behaviour for Multiband plugin series and Crossover plugin series.
+* Added basic UI design guidelines to the documentation.
+* Several bugfixes in graphic toolkit library.
 
 === 1.2.14 ===
 * Implemented Clipper plugins series.
