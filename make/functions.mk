@@ -61,3 +61,10 @@ vmajor                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9
 vminor                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\2/')
 vmicro                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\3/')
 vbranch                 = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\5/')
+
+ifeq ("$(MSYSTEM)","")
+  pathconv                = $1
+else
+  pathconv                = $(shell cygpath -w "$1")
+endif
+

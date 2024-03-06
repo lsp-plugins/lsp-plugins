@@ -2,6 +2,36 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.15 ===
+* Added experimental VST3 plugin format support.
+* Added built-in presets for Compressor plugin series.
+* Fixed bug in smoothing mode of Parametric Equalizer and Filter plugins that could
+  be caused when using large buffer sizes. Additional optimizations to reduce CPU
+  resources when processing in smoothing mode. 
+* Updated behaviour of band frequency splits in the UI for Multiband Compressor,
+  Multiband Expander, Multiband Gate Multiband Dynamic Processor and Crossover plugin series.
+* Several bugfixes and improvements in implementations of VST2, LV2 and CLAP formats.
+* Added possibility to manually enter channel name in Mixer plugin series.
+* Added MIDI velocity control code display in Sampler and Multisampler plugin series.
+* Added support of LR2 (12 dB/oct) filters by the Crossover plugins series.
+* Added S/M Apply switch to Crossover plugin series that applies effect of Solo/Mute buttons
+  to corresponding frequency band's outputs.
+* Improved grid color and visibility for the Spectrum analyzer plugin series in
+  Spectralizer mode.
+* Implemented Hold option for Compressor, Dynamics Processor, Expander and Gate plugin series.
+* Implemented Hold option for Multiband Compressor, Dynamics Processor, Expander and Gate plugin series.
+* Added Dry/Wet balance control for Compressor, Dynamics Processor, Expander, 
+  Gate and Trigger plugin series.
+* Added Dry/Wet balance control for Multiband Compressor, Dynamics Processor, Expander,
+  Gate and GOTT Compressor plugin series.
+* Fixed phasing issue between dry and wet signal for GOTT Compressor in Linear Phase mode.
+* Fixed invalid curve markers display in Multiband Gate plugin series.
+* Re-implemented allpass filters for Equalizer that could yield to high frequency
+  pitch buildup.
+* Updated split editing behaviour for Multiband plugin series and Crossover plugin series.
+* Added basic UI design guidelines to the documentation.
+* Several bugfixes in graphic toolkit library.
+
 === 1.2.14 ===
 * Implemented Clipper plugins series.
 * Implemented Multiband Clipper plugin series.
@@ -20,7 +50,7 @@
 * Added missing inline display to the Autogain plugin series.
 * Threshold markers are now editable for all dynamics and multiband dynamics plugins.
 * Implemented switch that controls automatic scaling of spectrum graph for plugin series:
-  * Beat Breaher.
+  * Beat Breather.
   * Filter.
   * GOTT Compressor.
   * Graphic Equalizer.

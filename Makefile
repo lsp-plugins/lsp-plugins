@@ -144,6 +144,7 @@ help:
 	echo "  ladspa                    LADSPA plugins"
 	echo "  lv2                       LV2 plugins"
 	echo "  vst2                      VST 2.x plugin binaries"
+	echo "  vst3                      VST 3.x plugin binaries"
 	echo "  xdg                       Desktop integration icons"
 
 	

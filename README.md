@@ -1,7 +1,8 @@
 # ABOUT
 
 LSP (Linux Studio Plugins) is a collection of open-source plugins
-currently compatible with CLAP, LADSPA, LV2 and LinuxVST formats.
+currently compatible with CLAP, LADSPA, LV2, VST2/LinuxVST, VST3 
+and JACK standalone formats.
 
 The basic idea is to fill the lack of good and useful plugins under
 the GNU/Linux platform.
@@ -79,10 +80,11 @@ The table legend is the following:
 
 Supported plugin formats:
   * CLAP (full support);
+  * JACK standalone (full support)
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
-  * LinuxVST 2.4 (full support);
-  * Standalone JACK (full support).
+  * VST2/LinuxVST (full support);
+  * VST3 (full support).
 
 The Linux distribution requirements:
   * glibc >= 2.19
@@ -118,7 +120,8 @@ The property <format> is the format of plugins, currently available:
   * ladspa - plugins in [LADSPA](https://en.wikipedia.org/wiki/LADSPA) format (not all plugins due to format's restriction);
   * lv2 - plugins in [LV2](https://lv2plug.in/) format;
   * src - source code;
-  * vst2 - plugins in [VST 2.4](https://www.steinberg.net/) format.
+  * vst2 - plugins in [VST 2.4](https://www.steinberg.net/) format;
+  * vst3 - plugins in [VST3](https://www.steinberg.net/) format.
 
 Property 'arch' contains short name of architecture the binaries are build for.
 Properties 'major', 'minor' and 'micro' form the version of release.
@@ -137,9 +140,11 @@ Releases containing odd number in minor version provide only enhancements
 and critical fixes for the previous release.
 
 IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
-of your VST directory, the subdirectory should contain substring
-'lsp-plugins'. Otherwise plugins won't find the VST core library.
+of your VST2 directory, the subdirectory should contain substring
+'lsp-plugins'. Otherwise plugins won't find the VST2 core library.
 Please notice that '~' means user's home directory.
+
+## For Linux/FreeBSD
 
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
@@ -186,6 +191,14 @@ The usual directories for CLAP are:
   * /usr/local/lib64/clap
   * ~/.clap
 
+## For Windows
+
+The usual directory for VST binaries is:
+  * C:\Program Files\Common Files\VST
+
+The usual directory for CLAP binaries is:
+  * C:\Program Files\Common Files\CLAP
+
 # BUILDING
 
 You may build plugins from scratch.
@@ -210,6 +223,19 @@ For Windows build, the following software needs to be installed:
   * Git >= 2.8 (optional)
   * PHP >= 5.5.14
   * GNU Make >= 4.2
+  
+To perform toolchain setup for Windows, you may perform the following steps:
+  * Download [latest Git](https://git-scm.com/download/win)
+  * Download [latest MinGW-W64 GCC](from https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
+  * Download [latest PHP x64 Thread Safe ZIP package](https://windows.php.net/download/)
+  * Install Git
+  * Unpack PHP ZIP to C:\php
+  * Unpack MinGW to C:\mingw64
+  * To make all installed software accessible from command line, add to the PATH environment variable following elements:
+    * C:\Program Files\Git\cmd
+    * C:\Program Files\Git\usr\bin
+    * C:\mingw64\bin
+    * C:\php
 
 To build the project from archive with source code, the following sequence of commands 
 should be performed:
@@ -232,6 +258,9 @@ to obtain all source code dependencies:
   make install
 ```
 
+For Windows, the `make install` command creates 'INSTALL' subdirectory and places the
+plugin content into desired folders.
+
 By default, all supported formats of plugins are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
 at the configuration stage:
@@ -246,7 +275,8 @@ Available modules are:
   * jack - JACK plugin binaries;
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
-  * vst2 - VST2 plugin binaries;
+  * vst2 - VST2/LinuxVST plugin binaries;
+  * vst3 - VST2 plugin binaries;
   * xdg - the X11 desktop integration icons.
 
 By default plugins use '/usr/local' path as a target directory for installation.
