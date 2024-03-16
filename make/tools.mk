@@ -76,6 +76,8 @@ ifeq ($(PLATFORM),Solaris)
 else ifeq ($(PLATFORM),Windows)
   FLAG_RELRO          =
   FLAG_STDLIB         =
+  CFLAGS_EXT         += -DWINVER=0x600 -D_WIN32_WINNT=0x600
+  CXXFLAGS_EXT       += -DWINVER=0x600 -D_WIN32_WINNT=0x600
   EXE_FLAGS_EXT      += -static-libgcc -static-libstdc++
   SO_FLAGS_EXT       += -static-libgcc -static-libstdc++
   LDFLAGS_EXT        += -T $(CURDIR)/make/ld-windows.script

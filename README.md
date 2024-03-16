@@ -78,6 +78,9 @@ The table legend is the following:
  * U - Unknown, the code may be built but the correctness of it's work has not been tested.
  * N - No support, the code may compile but the work has not been tested.
 
+
+Note that minimum supported Windows version is Windows Vista.
+
 Supported plugin formats:
   * CLAP (full support);
   * JACK standalone (full support)
