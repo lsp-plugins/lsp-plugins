@@ -136,11 +136,17 @@ LSP_PLUGINS_BEAT_BREATHER_TYPE          := plug
 LSP_PLUGINS_BEAT_BREATHER_URL_RO        := https://github.com/lsp-plugins/$(LSP_PLUGINS_BEAT_BREATHER_NAME).git
 LSP_PLUGINS_BEAT_BREATHER_URL_RW        := git@github.com:lsp-plugins/$(LSP_PLUGINS_BEAT_BREATHER_NAME).git
 
-LSP_PLUGINS_CLIPPER_VERSION          	:= 1.0.1
-LSP_PLUGINS_CLIPPER_NAME             	:= lsp-plugins-clipper
-LSP_PLUGINS_CLIPPER_TYPE             	:= plug
-LSP_PLUGINS_CLIPPER_URL_RO           	:= https://github.com/lsp-plugins/$(LSP_PLUGINS_CLIPPER_NAME).git
-LSP_PLUGINS_CLIPPER_URL_RW           	:= git@github.com:lsp-plugins/$(LSP_PLUGINS_CLIPPER_NAME).git
+LSP_PLUGINS_CHORUS_VERSION              := 1.0.1
+LSP_PLUGINS_CHORUS_NAME                 := lsp-plugins-chorus
+LSP_PLUGINS_CHORUS_TYPE                 := plug
+LSP_PLUGINS_CHORUS_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_CHORUS_NAME).git
+LSP_PLUGINS_CHORUS_URL_RW               := git@github.com:lsp-plugins/$(LSP_PLUGINS_CHORUS_NAME).git
+
+LSP_PLUGINS_CLIPPER_VERSION             := 1.0.1
+LSP_PLUGINS_CLIPPER_NAME                := lsp-plugins-clipper
+LSP_PLUGINS_CLIPPER_TYPE                := plug
+LSP_PLUGINS_CLIPPER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_CLIPPER_NAME).git
+LSP_PLUGINS_CLIPPER_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_CLIPPER_NAME).git
 
 LSP_PLUGINS_COMP_DELAY_VERSION          := 1.0.21
 LSP_PLUGINS_COMP_DELAY_NAME             := lsp-plugins-comp-delay
