@@ -424,6 +424,11 @@ LIBPTHREAD_NAME            := libpthread
 LIBPTHREAD_TYPE            := opt
 LIBPTHREAD_LDFLAGS         := -lpthread
 
+LIBRT_VERSION              := system
+LIBRT_NAME                 := librt
+LIBRT_TYPE                 := opt
+LIBRT_LDFLAGS              := -lrt
+
 LIBSNDFILE_VERSION         := system
 LIBSNDFILE_NAME            := sndfile
 LIBSNDFILE_TYPE            := pkg
