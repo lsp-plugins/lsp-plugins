@@ -3,6 +3,34 @@
 *******************************************************************************
 
 === 1.2.16 ===
+* Implemented Chorus plugin series.
+* Implemented advanced internal buffer cleanup algorithm that does not cause high CPU load
+  for Slap-Back Delay plugin.
+* Added stereo correlometer to the Spectrum Analyzer plugin series.
+* Added feedback to the Slap-Back delay plugin.
+* Implemented Dry/Wet balance knob for the following plugin series:
+  * Artistic Delay;
+  * Beat Breather;
+  * Compensation Delay;
+  * Flanger;
+  * Impulse Responses;
+  * Impulse Reverb;
+  * Room Builder;
+  * Sampler;
+  * Multisampler;
+  * Slap-Back delay.
+* Removed 'Amount' knob in Flanger plugin series as it can be fully replaced
+  by Dry/Wet/DryWet knobs.
+* Several fixes related to window position of VST3 plugin format.
+* Workaround for Bitwig Studio DAW memory leak when VST3 plugins extensively use messaging.
+* Fixed bug related to improper loading of RIFF files with 32-bit float sample format.
+* Fixed configuration export for LV2 format where plugins exported paths mapped by
+  a DAW instead of real file paths.
+* Fixed improper numpad key handling in UI for Windows.
+* Fixed Artistic Delay which could generate audio garbage on session startup.
+* Improved precision of bilinear transform for filters which could blow up signal when
+  using steep-curved filters.
+* Fixed jumping UI controls issues caused by variable widths of diffrent parameters.
 
 === 1.2.15 ===
 * Added experimental VST3 plugin format support.
