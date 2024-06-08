@@ -27,10 +27,10 @@ jobs:
           printf "[core-debug]\nInclude = /etc/pacman.d/mirrorlist\n[extra-debug]\nInclude = /etc/pacman.d/mirrorlist\n[multilib-debug]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
-        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr lv2lint php valgrind
+        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr lv2lint php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -55,10 +55,10 @@ jobs:
           printf "[core-debug]\nInclude = /etc/pacman.d/mirrorlist\n[extra-debug]\nInclude = /etc/pacman.d/mirrorlist\n[multilib-debug]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
-        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr php valgrind
+        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 DEBUG=1 VERBOSE=1 FEATURES='clap jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 DEBUG=1 VERBOSE=1 FEATURES='clap gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -72,10 +72,10 @@ jobs:
       image: opensuse/leap:latest
     steps:
       - name: Install dependencies
-        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ git make php valgrind libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ git make php valgrind libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -89,10 +89,10 @@ jobs:
       image: opensuse/tumbleweed:latest
     steps:
       - name: Install dependencies
-        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config CC=clang CXX=clang++ STRICT=1 VERBOSE=1 FEATURES='clap doc jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config CC=clang CXX=clang++ STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -108,10 +108,10 @@ jobs:
       - name: Update repositories
         run: apt-get update
       - name: Install dependencies
-        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev
+        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
