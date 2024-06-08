@@ -83,6 +83,7 @@ Note that minimum supported Windows version is Windows Vista.
 
 Supported plugin formats:
   * CLAP (full support);
+  * GStreamer (experimental support);
   * JACK standalone (full support)
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
@@ -95,7 +96,6 @@ The Linux distribution requirements:
   * libcairo >= 1.14
   * libfreetype >= 2.10
   * libGL
-  * Host compatible with LV2
   
 Known list of supported plugin hosts:
   * Ardour
@@ -103,7 +103,7 @@ Known list of supported plugin hosts:
   * Carla
   * Mixbus
   * Qtractor
-  * Reaper (native Linux version)
+  * Reaper
   * Renoise
   * Tracktion
 
@@ -119,6 +119,7 @@ into archive named according to the following format:
 The property <format> is the format of plugins, currently available:
   * clap - plugins in [CLAP](https://github.com/free-audio/clap) format;
   * doc - documentation;
+  * gst - plugins in [GStreamer](https://gstreamer.freedesktop.org/) format;
   * jack - standalone version of plugins that require [JACK](https://jackaudio.org/) server for execution;
   * ladspa - plugins in [LADSPA](https://en.wikipedia.org/wiki/LADSPA) format (not all plugins due to format's restriction);
   * lv2 - plugins in [LV2](https://lv2plug.in/) format;
@@ -149,27 +150,12 @@ Please notice that '~' means user's home directory.
 
 ## For Linux/FreeBSD
 
-The usual directories for LADSPA are:
-  * /usr/lib/ladspa
-  * /usr/local/lib/ladspa
-  * /usr/lib64/ladspa
-  * /usr/local/lib64/ladspa
-  * ~/.ladspa
-  
-The usual directories for LV2 are:
-  * /usr/lib/lv2
-  * /usr/local/lib/lv2
-  * /usr/lib64/lv2
-  * /usr/local/lib64/lv2
-  * ~/.lv2
-
-The usual directories for LinuxVST are:
-  * /usr/lib/vst
-  * /usr/local/lib/vst
-  * /usr/lib64/vst
-  * /usr/local/lib64/vst
-  * ~/.lxvst
-  * ~/.vst
+The usual directories for CLAP are:
+  * /usr/lib/clap
+  * /usr/local/lib/clap
+  * /usr/lib64/clap
+  * /usr/local/lib64/clap
+  * ~/.clap
 
 The usual directories for JACK core library are:
   * /usr/lib
@@ -186,13 +172,55 @@ The usual directories for JACK binaries are:
   * /usr/sbin
   * /usr/local/sbin
   * /sbin
+
+The usual directories for GStreamer core library:
+  * /usr/lib
+  * /usr/local/lib
+  * /lib
+  * /usr/lib64
+  * /usr/local/lib64
+  * /lib64
+
+The usual installation directory for GStreamer plugins can be obtained by the following command:
+
+```bash
+pkg-config --variable=pluginsdir gstreamer-1.0
+```
+
+The usual directories are the following:
+  * /usr/lib64/gstreamer-1.0
+  * /usr/lib/gstreamer-1.0
+  * /usr/local/lib64/gstreamer-1.0
+  * /usr/local/lib/gstreamer-1.0
+
+The usual directories for LADSPA are:
+  * /usr/lib/ladspa
+  * /usr/local/lib/ladspa
+  * /usr/lib64/ladspa
+  * /usr/local/lib64/ladspa
+  * ~/.ladspa
   
-The usual directories for CLAP are:
-  * /usr/lib/clap
-  * /usr/local/lib/clap
-  * /usr/lib64/clap
-  * /usr/local/lib64/clap
-  * ~/.clap
+The usual directories for LV2 are:
+  * /usr/lib/lv2
+  * /usr/local/lib/lv2
+  * /usr/lib64/lv2
+  * /usr/local/lib64/lv2
+  * ~/.lv2
+
+The usual directories for VST 2.x/LinuxVST are:
+  * /usr/lib/vst
+  * /usr/local/lib/vst
+  * /usr/lib64/vst
+  * /usr/local/lib64/vst
+  * ~/.lxvst
+  * ~/.vst
+  
+The usual directories for VST 3.x are:
+  * /usr/lib/vst3
+  * /usr/local/lib/vst3
+  * /usr/lib64/vst3
+  * /usr/local/lib64/vst3
+  * ~/.vst3
 
 ## For Windows
 
@@ -214,12 +242,14 @@ For successful build for Linux/FreeBSD you need the following packages to be ins
   * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
   * libstdc++-devel >= 4.7
-  * jack-devel >= 1.9.5
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
-  * php >= 5.5.14
+  * php >= 5.5.14 (for documentation)
+  * jack-devel >= 1.9.5 (for JACK)
   * libiconv (for FreeBSD)
   * libGL-devel >= 11.2.2
+  * gstreamer >= 1.20 (for GStreamer)
+  * gstreamer-plugins-base >= 1.20 (for GStreamer)
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -275,6 +305,7 @@ at the configuration stage:
 Available modules are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
+  * gst - GStreamer plugin binaries;
   * jack - JACK plugin binaries;
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
@@ -340,6 +371,11 @@ People using the `unclutter` tool reported spontaneous freeze of the UI for LSP 
 The `unclutter` tool is pretty rare and has not been updated over the years. So it does
 not follow the latest changes made for X.Org. The problem can be solved by switching to
 `unclutter-xfixes` tool which works pretty OK with LSP UI.
+
+## gstreamer
+
+There is no good support of MIDI interface in GStreamer now. Even if MIDI-based plugins are
+available for GStreamer, there is no guarantee that they will fully work.
 
 ## 3D backend not working
 

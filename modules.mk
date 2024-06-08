@@ -390,6 +390,10 @@ LIBGL_VERSION              := system
 LIBGL_NAME                 := gl
 LIBGL_TYPE                 := pkg
 
+LIBGSTREAMER_AUDIO_VERSION := system
+LIBGSTREAMER_AUDIO_NAME    := gstreamer-audio-1.0
+LIBGSTREAMER_AUDIO_TYPE    := pkg
+
 LIBICONV_VERSION           := system
 LIBICONV_NAME              := libiconv
 LIBICONV_TYPE              := opt
