@@ -51,6 +51,7 @@ LINUX_DEPENDENCIES = \
   LIBX11 \
   LIBXRANDR \
   LIBGL \
+  LIBGSTREAMER_AUDIO \
   LIBJACK \
   LSP_R3D_GLX_LIB
 
@@ -59,7 +60,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack
+  DEFAULT_FEATURES         += jack gst
 endif
 
 #------------------------------------------------------------------------------
@@ -75,6 +76,7 @@ BSD_DEPENDENCIES = \
   LIBX11 \
   LIBXRANDR \
   LIBGL \
+  LIBGSTREAMER_AUDIO \
   LIBJACK \
   LSP_R3D_GLX_LIB
 
@@ -83,7 +85,7 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack
+  DEFAULT_FEATURES         += jack gst
 endif
 
 

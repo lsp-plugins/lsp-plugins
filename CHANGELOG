@@ -4,6 +4,7 @@
 
 === 1.2.17 ===
 * Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
+* Added basic GStreamer plugin support.
 
 === 1.2.16 ===
 * Implemented Chorus plugin series.
