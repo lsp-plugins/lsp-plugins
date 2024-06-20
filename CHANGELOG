@@ -6,6 +6,7 @@
 * Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
 * Added basic GStreamer plugin support.
 * Added balance knobs to LSP Slap-back Delay Stereo plugin.
+* Added Suntory Hall Tokyo 3D model to Room Builder presets (contributed by Fowly).
 * Updated makefile scripts related to Git checkout (contributed by Johannes Lorenz).
 
 === 1.2.16 ===
