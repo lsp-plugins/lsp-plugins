@@ -4,6 +4,8 @@
 
 === 1.2.17 ===
 * Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
+* Improved build tools: UI resources are now built-in only for libraries that
+  need them.
 * Added basic GStreamer plugin support.
 * Added balance knobs to LSP Slap-back Delay Stereo plugin.
 * Added Suntory Hall Tokyo 3D model to Room Builder presets (contributed by Fowly).
