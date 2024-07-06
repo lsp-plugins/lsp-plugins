@@ -224,8 +224,15 @@ The usual directories for VST 3.x are:
 
 ## For Windows
 
-The usual directory for VST binaries is:
+The usual directory for LV2 binaries is:
+  * C:\Program Files\Common Files\LV2
+
+The usual directory for VST2 binaries is:
   * C:\Program Files\Common Files\VST
+
+The usual directory for VST3 binaries is:
+  * C:\Program Files\Common Files\VST3
+  * C:\Program Files (x86)\Common Files\VST3 - for 32-bit plugins on 64-bit Windows. 
 
 The usual directory for CLAP binaries is:
   * C:\Program Files\Common Files\CLAP
@@ -376,6 +383,22 @@ not follow the latest changes made for X.Org. The problem can be solved by switc
 
 There is no good support of MIDI interface in GStreamer now. Even if MIDI-based plugins are
 available for GStreamer, there is no guarantee that they will fully work.
+
+## Wayland and XWayland
+
+LSP Plugins don't support Wayland protocol at this moment and are required to run under
+XWayland if Wayland is used as a system compositor. The implementation of XWayland is still
+imperfect and there are known cases where it can cause several problems with graphics.
+
+There are several reasons why LSP Plugins don't support Wayland at this moment:
+  * It's a new protocol, and adding it's support requires some time;
+  * It provides some backward compatibility with X11, and the lack of Wayland support
+    is not so critical;
+  * Only few plugin formats and DAWs support Wayland at this moment. CLAP is the only known
+    plugin format that supports Wayland and the Presonus Studio for Linux is the only DAW
+    that requires Wayland as a must.
+
+If you meet problems using LSP Plugins with Wayland, please consider switching back to X11. 
 
 ## 3D backend not working
 
