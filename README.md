@@ -345,6 +345,12 @@ To install plugins at the desired root directory, the DESTDIR variable can be sp
   make install DESTDIR=<installation-root>
 ```
 
+To install only specific formats, use INSTALL_FEATURES option:
+
+```
+  make install INSTALL_FEATURES=lv2
+```
+
 To build standalone source code package, the following commands can be issued:
 
 ```

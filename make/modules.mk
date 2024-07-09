@@ -48,9 +48,15 @@ UNIQ_ALL_DEPENDENCIES      := $(filter-out $(ARTIFACT_ID),$(call uniq, $(ALL_DEP
 MODULES                    ?= $(BASEDIR)/modules
 GIT                        ?= git
 
+ifeq ($(DEVEL),1)
+  X_URL_SUFFIX                = _RW
+else
+  X_URL_SUFFIX                = _RO
+endif
+
 ifeq ($(TREE),1)
   $(foreach dep,$(UNIQ_ALL_DEPENDENCIES), \
-    $(eval $(dep)_URL=$($(dep)_URL_RO)) \
+    $(eval $(dep)_URL=$($(dep)_URL$(X_URL_SUFFIX))) \
   )
   
   ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
