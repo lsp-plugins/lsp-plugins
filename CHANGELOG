@@ -4,6 +4,12 @@
 
 === 1.2.17 ===
 * Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
+* Fixed improper phase compensation between Dry and Wet channels in
+  Linear Phase mode for multiband plugin series:
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate.
 * Improved build tools: UI resources are now built-in only for libraries that
   need them.
 * Added basic GStreamer plugin support.
