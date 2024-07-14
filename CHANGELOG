@@ -13,6 +13,7 @@
   * Multiband Gate.
 * Improved build tools: UI resources are now built-in only for libraries that
   need them.
+* Added ISO-226:2023 loudness compensation curves to Loudness Compensator plugin series.
 * Added basic GStreamer plugin support.
 * Added balance knobs to LSP Slap-back Delay Stereo plugin.
 * Added Suntory Hall Tokyo 3D model to Room Builder presets (contributed by Fowly).
