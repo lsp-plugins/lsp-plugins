@@ -11,6 +11,8 @@
   * Multiband Dynamics Processor;
   * Multiband Expander;
   * Multiband Gate.
+* Several bugfixes for VST3 wrapper.
+* Fixed not working MIDI channel setup for the Trigger MIDI plugin series.
 * Improved build tools: UI resources are now built-in only for libraries that
   need them.
 * Added ISO-226:2023 loudness compensation curves to Loudness Compensator plugin series.
