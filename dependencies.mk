@@ -37,7 +37,7 @@ DEPENDENCIES = \
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = clap doc ladspa lv2 vst2 vst3 xdg
+DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3 xdg
 
 #------------------------------------------------------------------------------
 # Linux dependencies
