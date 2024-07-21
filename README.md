@@ -339,6 +339,12 @@ To build binaries for testing (developers only), use the following commands:
   make config TEST=1
 ```
 
+To build without UI support, use the following commands:
+
+```
+  make config UI=0
+```
+
 To install plugins at the desired root directory, the DESTDIR variable can be specified:
 
 ```

@@ -58,7 +58,12 @@ ARTIFACT_OBJ_DSP        = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-dsp.o
 ARTIFACT_OBJ_SHARED     = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-shared.o
 ARTIFACT_OBJ_UI         = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-ui.o
 ARTIFACT_OBJ_TEST       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-test.o
-ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_SHARED) $(ARTIFACT_OBJ_UI)
+ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_SHARED)
+
+ifeq ($(UI),1)
+  ARTIFACT_OBJ += $(ARTIFACT_OBJ_UI)
+endif
+
 ARTIFACT_CFLAGS         = $(foreach dep, $(DEPENDENCIES), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
 
 CXX_SRC_STUB            = $(ARTIFACT_BIN)/stub.cpp
@@ -67,7 +72,11 @@ CXX_SRC_MAIN_DSP        = $(call rwildcard, main/plug, *.cpp)
 CXX_SRC_MAIN_SHARED     = $(call rwildcard, main/shared, *.cpp)
 CXX_SRC_MAIN_UI         = $(call rwildcard, main/ui, *.cpp)
 CXX_SRC_TEST            = $(call rwildcard, test, *.cpp)
-CXX_SRC                 = $(CXX_SRC_MAIN_META) $(CXX_SRC_MAIN_DSP) $(CXX_SRC_MAIN_UI)
+CXX_SRC                 = $(CXX_SRC_MAIN_META) $(CXX_SRC_MAIN_DSP)
+
+ifeq ($(UI),1)
+  CXX_SRC_MAIN += $(CXX_SRC_MAIN_UI)
+endif
 
 OBJ_STUB                = $(patsubst %.cpp, %.o, $(CXX_SRC_STUB))
 OBJ_MAIN_META           = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_META))
@@ -75,7 +84,11 @@ OBJ_MAIN_DSP            = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_
 OBJ_MAIN_SHARED         = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_SHARED))
 OBJ_MAIN_UI             = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_MAIN_UI))
 OBJ_TEST                = $(patsubst %.cpp, $(ARTIFACT_BIN)/%.o, $(CXX_SRC_TEST))
-OBJ                     = $(OBJ_MAIN_META) $(OBJ_MAIN_DSP) $(OBJ_MAIN_UI)
+OBJ                     = $(OBJ_MAIN_META) $(OBJ_MAIN_DSP)
+
+ifeq ($(UI),1)
+  OBJ += $(OBJ_MAIN_UI)
+endif
 
 XOBJ_MAIN_META          = $(if $(OBJ_MAIN_META),$(OBJ_MAIN_META),$(OBJ_STUB))
 XOBJ_MAIN_DSP           = $(if $(OBJ_MAIN_DSP),$(OBJ_MAIN_DSP),$(OBJ_STUB))

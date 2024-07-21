@@ -25,6 +25,7 @@ BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
 PLUGINS                    := $(BASEDIR)/plugins.mk
 TEST                       := 0
+UI                         := 1
 DEBUG                      := 0
 PROFILE                    := 0
 TRACE                      := 0
@@ -51,9 +52,18 @@ MERGED_DEPENDENCIES        := \
   $(TEST_DEPENDENCIES) \
   $(PLUGIN_DEPENDENCIES) \
   $(PLUGIN_SHARED)
+
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
 FEATURES                   := $(sort $(call subtraction,$(SUB_FEATURES),$(DEFAULT_FEATURES) $(ADD_FEATURES)))
+
+ifeq ($(UI),1)
+  MERGED_DEPENDENCIES += $(UI_DEPENDENCIES)
+else ifeq ($(TEST),1)
+  $(error "Can TEST=1 can not be set when UI=0")
+else ifeq ($(call fcheck,clap jack vst2 vst3,$(FEATURES),1),1)
+  $(error "Can not set UI=0 when FEATURES contains clap, jack, vst2 or vst3")
+endif
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
