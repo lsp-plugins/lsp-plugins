@@ -306,16 +306,17 @@ The list of modules for build can be adjusted by specifying FEATURES variable
 at the configuration stage:
 
 ```
-  make config FEATURES='lv2 vst2 doc'
+  make config FEATURES='lv2 vst2 ui doc'
 ```
 
-Available modules are:
+Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
   * gst - GStreamer plugin binaries;
   * jack - JACK plugin binaries;
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
+  * ui - build plugins wih UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
   * xdg - the X11 desktop integration icons.
