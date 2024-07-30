@@ -6,7 +6,8 @@
 * Changed the binary distribution of plugins. Plugins of different formats are
   now packed together into a 7-zip archive. The same is related to documentation
   and source code. This allows to gain the economy on the overall size of the
-  compressed data and number of archives required to download. 
+  compressed data and number of archives required to download.
+* Several AVX-512 optimizations of DSP library.
 * Plugins now can be built without UI support if the 'ui' option is omitted
   at the configuration stage.
 * Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
