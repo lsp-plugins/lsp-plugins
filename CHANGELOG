@@ -7,6 +7,7 @@
   now packed together into a 7-zip archive. The same is related to documentation
   and source code. This allows to gain the economy on the overall size of the
   compressed data and number of archives required to download.
+* Fixed several issues related to plugin window sizing in LV2.
 * Several AVX-512 optimizations of DSP library.
 * Plugins now can be built without UI support if the 'ui' option is omitted
   at the configuration stage.
