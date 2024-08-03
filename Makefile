@@ -107,7 +107,7 @@ config testconfig devel:
 distsrc:
 	echo "Building source code archive"
 	mkdir -p "$(DISTSRC)/modules"
-	$(MAKE) -f "make/modules.mk" tree VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
+	$(MAKE) -f "make/modules.mk" tree DEVEL=$(DEVEL) VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
 	$(if $(DISTSRC_DIRS), cp -R $(DISTSRC_DIRS) "$(DISTSRC)/")
 	$(if $(DISTSRC_FILES), cp $(DISTSRC_FILES) "$(DISTSRC)/")
 	find "$(DISTSRC)" -iname '.git' | xargs rm -rf {}
@@ -139,7 +139,9 @@ help:
 	$(MAKE) -f "$(BASEDIR)/make/configure.mk" $(@) VERBOSE="$(VERBOSE)"
 	echo ""
 	echo "Available FEATURES:"
+	echo "  clap                      CLAP plugins"
 	echo "  doc                       Generate standalone HTML documentation"
+	echo "  gst                       GStreamer plugins"
 	echo "  jack                      Standalone JACK plugins"
 	echo "  ladspa                    LADSPA plugins"
 	echo "  lv2                       LV2 plugins"

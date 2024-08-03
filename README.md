@@ -83,6 +83,7 @@ Note that minimum supported Windows version is Windows Vista.
 
 Supported plugin formats:
   * CLAP (full support);
+  * GStreamer (experimental support);
   * JACK standalone (full support)
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
@@ -95,7 +96,6 @@ The Linux distribution requirements:
   * libcairo >= 1.14
   * libfreetype >= 2.10
   * libGL
-  * Host compatible with LV2
   
 Known list of supported plugin hosts:
   * Ardour
@@ -103,7 +103,7 @@ Known list of supported plugin hosts:
   * Carla
   * Mixbus
   * Qtractor
-  * Reaper (native Linux version)
+  * Reaper
   * Renoise
   * Tracktion
 
@@ -119,6 +119,7 @@ into archive named according to the following format:
 The property <format> is the format of plugins, currently available:
   * clap - plugins in [CLAP](https://github.com/free-audio/clap) format;
   * doc - documentation;
+  * gst - plugins in [GStreamer](https://gstreamer.freedesktop.org/) format;
   * jack - standalone version of plugins that require [JACK](https://jackaudio.org/) server for execution;
   * ladspa - plugins in [LADSPA](https://en.wikipedia.org/wiki/LADSPA) format (not all plugins due to format's restriction);
   * lv2 - plugins in [LV2](https://lv2plug.in/) format;
@@ -149,27 +150,12 @@ Please notice that '~' means user's home directory.
 
 ## For Linux/FreeBSD
 
-The usual directories for LADSPA are:
-  * /usr/lib/ladspa
-  * /usr/local/lib/ladspa
-  * /usr/lib64/ladspa
-  * /usr/local/lib64/ladspa
-  * ~/.ladspa
-  
-The usual directories for LV2 are:
-  * /usr/lib/lv2
-  * /usr/local/lib/lv2
-  * /usr/lib64/lv2
-  * /usr/local/lib64/lv2
-  * ~/.lv2
-
-The usual directories for LinuxVST are:
-  * /usr/lib/vst
-  * /usr/local/lib/vst
-  * /usr/lib64/vst
-  * /usr/local/lib64/vst
-  * ~/.lxvst
-  * ~/.vst
+The usual directories for CLAP are:
+  * /usr/lib/clap
+  * /usr/local/lib/clap
+  * /usr/lib64/clap
+  * /usr/local/lib64/clap
+  * ~/.clap
 
 The usual directories for JACK core library are:
   * /usr/lib
@@ -186,18 +172,67 @@ The usual directories for JACK binaries are:
   * /usr/sbin
   * /usr/local/sbin
   * /sbin
+
+The usual directories for GStreamer core library:
+  * /usr/lib
+  * /usr/local/lib
+  * /lib
+  * /usr/lib64
+  * /usr/local/lib64
+  * /lib64
+
+The usual installation directory for GStreamer plugins can be obtained by the following command:
+
+```bash
+pkg-config --variable=pluginsdir gstreamer-1.0
+```
+
+The usual directories are the following:
+  * /usr/lib64/gstreamer-1.0
+  * /usr/lib/gstreamer-1.0
+  * /usr/local/lib64/gstreamer-1.0
+  * /usr/local/lib/gstreamer-1.0
+
+The usual directories for LADSPA are:
+  * /usr/lib/ladspa
+  * /usr/local/lib/ladspa
+  * /usr/lib64/ladspa
+  * /usr/local/lib64/ladspa
+  * ~/.ladspa
   
-The usual directories for CLAP are:
-  * /usr/lib/clap
-  * /usr/local/lib/clap
-  * /usr/lib64/clap
-  * /usr/local/lib64/clap
-  * ~/.clap
+The usual directories for LV2 are:
+  * /usr/lib/lv2
+  * /usr/local/lib/lv2
+  * /usr/lib64/lv2
+  * /usr/local/lib64/lv2
+  * ~/.lv2
+
+The usual directories for VST 2.x/LinuxVST are:
+  * /usr/lib/vst
+  * /usr/local/lib/vst
+  * /usr/lib64/vst
+  * /usr/local/lib64/vst
+  * ~/.lxvst
+  * ~/.vst
+  
+The usual directories for VST 3.x are:
+  * /usr/lib/vst3
+  * /usr/local/lib/vst3
+  * /usr/lib64/vst3
+  * /usr/local/lib64/vst3
+  * ~/.vst3
 
 ## For Windows
 
-The usual directory for VST binaries is:
+The usual directory for LV2 binaries is:
+  * C:\Program Files\Common Files\LV2
+
+The usual directory for VST2 binaries is:
   * C:\Program Files\Common Files\VST
+
+The usual directory for VST3 binaries is:
+  * C:\Program Files\Common Files\VST3
+  * C:\Program Files (x86)\Common Files\VST3 - for 32-bit plugins on 64-bit Windows. 
 
 The usual directory for CLAP binaries is:
   * C:\Program Files\Common Files\CLAP
@@ -214,12 +249,14 @@ For successful build for Linux/FreeBSD you need the following packages to be ins
   * gcc-c++ >= 4.7 OR clang-c++ >= 10.0.1
   * libgcc_s1 >= 5.2
   * libstdc++-devel >= 4.7
-  * jack-devel >= 1.9.5
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
-  * php >= 5.5.14
+  * php >= 5.5.14 (for documentation)
+  * jack-devel >= 1.9.5 (for JACK)
   * libiconv (for FreeBSD)
   * libGL-devel >= 11.2.2
+  * gstreamer >= 1.20 (for GStreamer)
+  * gstreamer-plugins-base >= 1.20 (for GStreamer)
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -269,15 +306,17 @@ The list of modules for build can be adjusted by specifying FEATURES variable
 at the configuration stage:
 
 ```
-  make config FEATURES='lv2 vst2 doc'
+  make config FEATURES='lv2 vst2 ui doc'
 ```
 
-Available modules are:
+Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
+  * gst - GStreamer plugin binaries;
   * jack - JACK plugin binaries;
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
+  * ui - build plugins wih UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
   * xdg - the X11 desktop integration icons.
@@ -305,6 +344,12 @@ To install plugins at the desired root directory, the DESTDIR variable can be sp
 
 ```
   make install DESTDIR=<installation-root>
+```
+
+To install only specific formats, use INSTALL_FEATURES option:
+
+```
+  make install INSTALL_FEATURES=lv2
 ```
 
 To build standalone source code package, the following commands can be issued:
@@ -340,6 +385,27 @@ People using the `unclutter` tool reported spontaneous freeze of the UI for LSP 
 The `unclutter` tool is pretty rare and has not been updated over the years. So it does
 not follow the latest changes made for X.Org. The problem can be solved by switching to
 `unclutter-xfixes` tool which works pretty OK with LSP UI.
+
+## gstreamer
+
+There is no good support of MIDI interface in GStreamer now. Even if MIDI-based plugins are
+available for GStreamer, there is no guarantee that they will fully work.
+
+## Wayland and XWayland
+
+LSP Plugins don't support Wayland protocol at this moment and are required to run under
+XWayland if Wayland is used as a system compositor. The implementation of XWayland is still
+imperfect and there are known cases where it can cause several problems with graphics.
+
+There are several reasons why LSP Plugins don't support Wayland at this moment:
+  * It's a new protocol, and adding it's support requires some time;
+  * It provides some backward compatibility with X11, and the lack of Wayland support
+    is not so critical;
+  * Only few plugin formats and DAWs support Wayland at this moment. CLAP is the only known
+    plugin format that supports Wayland and the Presonus Studio for Linux is the only DAW
+    that requires Wayland as a must.
+
+If you meet problems using LSP Plugins with Wayland, please consider switching back to X11. 
 
 ## 3D backend not working
 

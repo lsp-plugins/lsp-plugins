@@ -48,9 +48,15 @@ UNIQ_ALL_DEPENDENCIES      := $(filter-out $(ARTIFACT_ID),$(call uniq, $(ALL_DEP
 MODULES                    ?= $(BASEDIR)/modules
 GIT                        ?= git
 
+ifeq ($(DEVEL),1)
+  X_URL_SUFFIX                = _RW
+else
+  X_URL_SUFFIX                = _RO
+endif
+
 ifeq ($(TREE),1)
   $(foreach dep,$(UNIQ_ALL_DEPENDENCIES), \
-    $(eval $(dep)_URL=$($(dep)_URL_RO)) \
+    $(eval $(dep)_URL=$($(dep)_URL$(X_URL_SUFFIX))) \
   )
   
   ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
@@ -88,10 +94,15 @@ $(ALL_SRC_MODULES) $(ALL_HDR_MODULES) $(ALL_BIN_MODULES) $(ALL_PLUG_MODULES):
 	$(GIT) -C "$($(@)_PATH)" reset --hard
 	$(GIT) -C "$($(@)_PATH)" fetch origin --force --prune --prune-tags
 	$(GIT) -C "$($(@)_PATH)" fetch origin 'refs/tags/*:refs/tags/*' --force
-	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout -B "$($(@)_BRANCH)" "origin/$($(@)_BRANCH)" || \
-	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout "refs/tags/$($(@)_BRANCH)" || \
-	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout -B "$($(@)_NAME)-$($(@)_BRANCH)" "origin/$($(@)_NAME)-$($(@)_BRANCH)" || \
-	$(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout "refs/tags/$($(@)_NAME)-$($(@)_BRANCH)"
+	if $(GIT) -C "$($(@)_PATH)" rev-parse -q --verify "origin/$($(@)_BRANCH)" >/dev/null; then \
+	  $(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout -B "$($(@)_BRANCH)" "origin/$($(@)_BRANCH)" >/dev/null; \
+	elif $(GIT) -C "$($(@)_PATH)" rev-parse -q --verify "refs/tags/$($(@)_BRANCH)" >/dev/null; then \
+	  $(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout "refs/tags/$($(@)_BRANCH)"; \
+	elif $(GIT) -C "$($(@)_PATH)" rev-parse -q --verify "origin/$($(@)_NAME)-$($(@)_BRANCH)" >/dev/null; then \
+	  $(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout -B "$($(@)_NAME)-$($(@)_BRANCH)" "origin/$($(@)_NAME)-$($(@)_BRANCH)"; \
+	else \
+	  $(GIT) -c advice.detachedHead=false -C "$($(@)_PATH)" checkout "refs/tags/$($(@)_NAME)-$($(@)_BRANCH)"; \
+	fi
 
 fetch: $(SRC_MODULES) $(HDR_MODULES) $(BIN_MODULES) $(PLUG_MODULES)
 
