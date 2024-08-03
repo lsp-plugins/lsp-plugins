@@ -7,11 +7,19 @@
   now packed together into a 7-zip archive. The same is related to documentation
   and source code. This allows to gain the economy on the overall size of the
   compressed data and number of archives required to download.
-* Fixed several issues related to plugin window sizing in LV2.
-* Several AVX-512 optimizations of DSP library.
+* Added basic GStreamer plugin format support.
 * Plugins now can be built without UI support if the 'ui' option is omitted
   at the configuration stage.
-* Fixed improper port bindings for Compensation Delay x2 Stereo plugin.
+* Added ISO-226:2023 loudness compensation curves to Loudness Compensator plugin series.
+* Added balance knobs to LSP Slap-back Delay Stereo plugin.
+* Added Suntory Hall Tokyo 3D model to Room Builder presets (contributed by Fowly).
+* Updated makefile scripts related to Git checkout (contributed by Johannes Lorenz).
+* Improved build tools: UI resources are now built-in only for shared objects/libraries
+  that actually need them.
+* Several AVX-512 optimizations of DSP library.
+* Fixed not working MIDI channel setup for the Trigger MIDI plugin series.
+* Fixed regression: improper port bindings for Compensation Delay x2 Stereo plugin.
+* Fixed several issues related to plugin window sizing for LV2 format.
 * Fixed possible access to uninitialized memory when loading built-in resources.
 * Fixed improper phase compensation between Dry and Wet channels in
   Linear Phase mode for multiband plugin series:
@@ -20,14 +28,6 @@
   * Multiband Expander;
   * Multiband Gate.
 * Several bugfixes for VST3 wrapper.
-* Fixed not working MIDI channel setup for the Trigger MIDI plugin series.
-* Improved build tools: UI resources are now built-in only for libraries that
-  need them.
-* Added ISO-226:2023 loudness compensation curves to Loudness Compensator plugin series.
-* Added basic GStreamer plugin support.
-* Added balance knobs to LSP Slap-back Delay Stereo plugin.
-* Added Suntory Hall Tokyo 3D model to Room Builder presets (contributed by Fowly).
-* Updated makefile scripts related to Git checkout (contributed by Johannes Lorenz).
 
 === 1.2.16 ===
 * Implemented Chorus plugin series.
