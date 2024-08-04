@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.18 ===
+* Added documentation_path parameter in user configuration file which allows to
+  configure the path to the offline documentation installation.
 
 === 1.2.17 ===
 * Changed the binary distribution of plugins. Plugins of different formats are
