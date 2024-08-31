@@ -299,9 +299,9 @@ to obtain all source code dependencies:
 ```
 
 For Windows, the `make install` command creates 'INSTALL' subdirectory and places the
-plugin content into desired folders.
+plugin content into desired subfolders.
 
-By default, all supported formats of plugins are built.
+By default, all supported formats of plugins for the target platform are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
 at the configuration stage:
 
@@ -313,13 +313,13 @@ Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
   * gst - GStreamer plugin binaries;
-  * jack - JACK plugin binaries;
+  * jack - JACK plugin binaries (not available under Windows);
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
   * ui - build plugins wih UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
-  * xdg - the X11 desktop integration icons.
+  * xdg - the X11 desktop integration icons (not necessary for Windows).
 
 By default plugins use '/usr/local' path as a target directory for installation.
 To override this path, the PREFIX variable can be overridden:
