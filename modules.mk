@@ -316,6 +316,12 @@ LSP_PLUGINS_PROFILER_TYPE               := plug
 LSP_PLUGINS_PROFILER_URL_RO             := https://github.com/lsp-plugins/$(LSP_PLUGINS_PROFILER_NAME).git
 LSP_PLUGINS_PROFILER_URL_RW             := git@github.com:lsp-plugins/$(LSP_PLUGINS_PROFILER_NAME).git
 
+LSP_PLUGINS_RETURN_VERSION              := 1.0.0
+LSP_PLUGINS_RETURN_NAME                 := lsp-plugins-return
+LSP_PLUGINS_RETURN_TYPE                 := plug
+LSP_PLUGINS_RETURN_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_RETURN_NAME).git
+LSP_PLUGINS_RETURN_URL_RW               := git@github.com:lsp-plugins/$(LSP_PLUGINS_RETURN_NAME).git
+
 LSP_PLUGINS_ROOM_BUILDER_VERSION        := 1.0.21
 LSP_PLUGINS_ROOM_BUILDER_NAME           := lsp-plugins-room-builder
 LSP_PLUGINS_ROOM_BUILDER_TYPE           := plug
@@ -327,6 +333,12 @@ LSP_PLUGINS_SAMPLER_NAME                := lsp-plugins-sampler
 LSP_PLUGINS_SAMPLER_TYPE                := plug
 LSP_PLUGINS_SAMPLER_URL_RO              := https://github.com/lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
 LSP_PLUGINS_SAMPLER_URL_RW              := git@github.com:lsp-plugins/$(LSP_PLUGINS_SAMPLER_NAME).git
+
+LSP_PLUGINS_SEND_VERSION                := 1.0.0
+LSP_PLUGINS_SEND_NAME                   := lsp-plugins-send
+LSP_PLUGINS_SEND_TYPE                   := plug
+LSP_PLUGINS_SEND_URL_RO                 := https://github.com/lsp-plugins/$(LSP_PLUGINS_SEND_NAME).git
+LSP_PLUGINS_SEND_URL_RW                 := git@github.com:lsp-plugins/$(LSP_PLUGINS_SEND_NAME).git
 
 LSP_PLUGINS_SLAP_DELAY_VERSION          := 1.0.21
 LSP_PLUGINS_SLAP_DELAY_NAME             := lsp-plugins-slap-delay
