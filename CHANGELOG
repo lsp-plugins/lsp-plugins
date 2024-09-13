@@ -3,6 +3,13 @@
 *******************************************************************************
 
 === 1.2.18 ===
+* Implemented Send Mono and Send Stereo plugins for sending audio streams to
+  named connection points stored in shared memory.
+* Implemented Return Mono and Return Stereo plugins for receiving audio streams from
+  named connection points stored in shared memory.
+* Added inter-communication between Parametric and Graphic Equalizers using new
+  send/return communication primitives which allows to show the spectrogram of
+  another Equalizer's output on the graph.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
