@@ -180,6 +180,7 @@ COMMON_VARS = \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
+	CROSS_COMPILE \
 	DEBUG \
 	EXECUTABLE_EXT \
 	EXPORT_SYMBOLS \
@@ -205,6 +206,7 @@ sysvars:
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
 	echo "  ARCHITECTURE_FAMILY       compiler flags to specify architecture family"
 	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
+	echo "  CROSS_COMPILE             enable/disable cross-compilation"
 	echo "  DEBUG                     build with debug options"
 	echo "  DEVEL                     build with modules checked out for read/write URL"
 	echo "  EXECUTABLE_EXT            file extension for executable files"

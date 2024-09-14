@@ -42,7 +42,11 @@ SHAREDDIR                  := $(PREFIX)/share
 INCDIR                     := $(PREFIX)/include
 BUILDDIR                   := $(BASEDIR)/.build
 TARGET_BUILDDIR            := $(BUILDDIR)/target
-HOST_BUILDDIR              := $(BUILDDIR)/host
+ifeq ($(CROSS_COMPILE),1)
+  HOST_BUILDDIR              := $(BUILDDIR)/host
+else
+  HOST_BUILDDIR              := $(TARGET_BUILDDIR)
+endif
 MODULES                    := $(BASEDIR)/modules
 CONFIG                     := $(BASEDIR)/.config.mk
 

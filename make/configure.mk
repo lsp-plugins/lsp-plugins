@@ -121,11 +121,15 @@ define _modconfig =
   $(if $($(name)_TEST),,         $(eval $(name)_TEST         := $($(name)_PATH)/test))
   $(if $($(name)_TESTING),,      $(eval $(name)_TESTING      := 0))
   $(if $($(name)_BIN),,          $(eval $(name)_BIN          := $(TARGET_BUILDDIR)/$($(name)_NAME)))
-  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
+  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT),-I)\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
   $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      :=))
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ          := "$($(name)_BIN)/$($(name)_NAME).o"))
   $(if $($(name)_OBJ_TEST),,     $(eval $(name)_OBJ_TEST     := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
+  
+  $(if $(HOST_$(name)_NAME),,    $(eval HOST_$(name)_NAME    := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,    $(eval HOST_$(name)_DESC    := $($(name)_DESC)))
+  $(if $(HOST_$(name)_URL),,     $(eval HOST_$(name)_URL     := $($(name)_URL$(X_URL_SUFFIX))))
   
   $(if $(HOST_$(name)_PATH),,    $(eval HOST_$(name)_PATH    := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,     $(eval HOST_$(name)_INC     := $(HOST_$(name)_PATH)/include))
@@ -133,7 +137,7 @@ define _modconfig =
   $(if $(HOST_$(name)_TEST),,    $(eval HOST_$(name)_TEST    := $(HOST_$(name)_PATH)/test))
   $(if $(HOST_$(name)_TESTING),, $(eval HOST_$(name)_TESTING := 0))
   $(if $(HOST_$(name)_BIN),,     $(eval HOST_$(name)_BIN     := $(HOST_BUILDDIR)/$($(name)_NAME)))
-  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
+  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT),-I)\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
   $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS :=))
   $(if $(HOST_$(name)_OBJ),,     $(eval HOST_$(name)_OBJ     := "$(HOST_$(name)_BIN)/$($(name)_NAME).o"))
   $(if $(HOST_$(name)_OBJ_TEST),,$(eval HOST_$(name)_OBJ_TEST:= "$(HOST_$(name)_BIN)/$($(name)_NAME)-test.o"))
@@ -162,13 +166,17 @@ define hdrconfig =
   $(if $($(name)_PATH),,         $(eval $(name)_PATH         := $(MODULES)/$($(name)_NAME)))
   $(if $($(name)_INC),,          $(eval $(name)_INC          := $($(name)_PATH)/include))
   $(if $($(name)_TESTING),,      $(eval $(name)_TESTING      := 0))
-  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\""$(if $(publisher), "-D$(name)_PUBLISHER")))
+  $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT),-I)\"$($(name)_INC)\""$(if $(publisher), "-D$(name)_PUBLISHER")))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := "-D$(name)_BUILTIN -fvisibility=hidden"))
+
+  $(if $(HOST_$(name)_NAME),,    $(eval HOST_$(name)_NAME    := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,    $(eval HOST_$(name)_DESC    := $($(name)_DESC)))
+  $(if $(HOST_$(name)_URL),,     $(eval HOST_$(name)_URL     := $($(name)_URL$(X_URL_SUFFIX))))
   
   $(if $(HOST_$(name)_PATH),,    $(eval HOST_$(name)_PATH    := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,     $(eval HOST_$(name)_INC     := $(HOST_$(name)_PATH)/include))
   $(if $(HOST_$(name)_TESTING),, $(eval HOST_$(name)_TESTING := 0))
-  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$(HOST_$(name)_INC)\""$(if $(publisher), "-D$(name)_PUBLISHER")))
+  $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT),-I)\"$(HOST_$(name)_INC)\""$(if $(publisher), "-D$(name)_PUBLISHER")))
   $(if $(HOST_$(name)_MFLAGS),,  $(eval HOST_$(name)_MFLAGS  := "-D$(name)_BUILTIN -fvisibility=hidden"))
 endef
 
@@ -192,6 +200,9 @@ define plugconfig =
   $(if $($(name)_OBJ_UI),,          $(eval $(name)_OBJ_UI           := "$($(name)_BIN)/$($(name)_NAME)-ui.o"))
   $(if $($(name)_OBJ_TEST),,        $(eval $(name)_OBJ_TEST         := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,          $(eval $(name)_MFLAGS           := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
+
+  $(if $(HOST_$(name)_NAME),,       $(eval HOST_$(name)_NAME        := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,       $(eval HOST_$(name)_DESC        := $($(name)_DESC)))
   
   $(if $(HOST_$(name)_PATH),,       $(eval HOST_$(name)_PATH        := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,        $(eval HOST_$(name)_INC         := $(HOST_$(name)_PATH)/include))
@@ -277,6 +288,8 @@ CONFIG_VARS = \
     $(name)_OBJ_UI \
     $(name)_OBJ_TEST \
     \
+    HOST_$(name)_NAME \
+    HOST_$(name)_DESC \
     HOST_$(name)_PATH \
     HOST_$(name)_INC \
     HOST_$(name)_SRC \
