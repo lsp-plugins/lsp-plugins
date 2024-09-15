@@ -12,6 +12,7 @@
   another Equalizer's output on the graph.
 * Added Reverse button for Impulse Responses plugin series that allows to reverse
   the impulse response.
+* Added support of sidechain passed by shared memory link for Autogain plugin series.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
