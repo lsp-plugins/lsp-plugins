@@ -10,6 +10,8 @@
 * Added inter-communication between Parametric and Graphic Equalizers using new
   send/return communication primitives which allows to show the spectrogram of
   another Equalizer's output on the graph.
+* Added Reverse button for Impulse Responses plugin series that allows to reverse
+  the impulse response.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
