@@ -361,6 +361,22 @@ To build standalone source code package, the following commands can be issued:
 
 After that, a stanalone archive with source code will be created in the `.build` directory.
 
+When cross compiling, the AS, AR, CC, CXX, LD, etc. variables should be set in the environment according to the target/cross compile toolchain. The build host machine versions of those variables- HOST_AS, HOST_AR, HOST_CC, HOST_CXX, etc. have defaults set in the makefiles but may need to be overridden. To troubleshoot, run `make configure` with the VERBOSE option.
+Additional variables should be configured:
+  * set the ARCHITECTURE option to the target architecture
+  * set the CROSS_COMPILE option to 1
+
+Example cross compile procedure for aarch64 target on x86_64 build host:
+```
+  make clean
+  make config ARCHITECTURE="aarch64" CROSS_COMPILE="1"
+  make fetch
+  make
+  make install
+```
+
+After successful completion, the cross compiled artifacts should be located in the directory specified by PREFIX.
+
 For more build options, issue:
 
 ```

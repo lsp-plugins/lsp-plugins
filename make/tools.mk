@@ -63,7 +63,6 @@ PHP                ?= $(X_PHP_TOOL)
 PKG_CONFIG         ?= $(X_PKG_CONFIG)
 
 # Define tool variables for host build
-# Define tool variables for host build
 ifeq ($(CROSS_COMPILE),1)
   HOST_CC            ?= $(X_CC_TOOL)
   HOST_CXX           ?= $(X_CXX_TOOL)
@@ -87,13 +86,13 @@ GIT                ?= $(X_GIT_TOOL)
 INSTALL            ?= $(X_INSTALL_TOOL)
 
 # Patch flags and tools for (cross) build
-FLAG_RELRO          = -Wl,-z,relro,-z,now
-FLAG_STDLIB         = 
-CFLAGS_EXT          = $(ARCHITECTURE_CFLAGS)
-CXXFLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
-EXE_FLAGS_EXT       = $(ARCHITECTURE_CFLAGS)
-SO_FLAGS_EXT        = $(ARCHITECTURE_CFLAGS)
-LDFLAGS_EXT         = $(ARCHITECTURE_LDFLAGS)
+FLAG_RELRO         := -Wl,-z,relro,-z,now
+FLAG_STDLIB        := 
+NOARCH_CFLAGS      := 
+NOARCH_CXXFLAGS    := 
+NOARCH_EXE_FLAGS   := 
+NOARCH_SO_FLAGS    := 
+NOARCH_LDFLAGS     := 
 
 ifeq ($(PLATFORM),Solaris)
   FLAG_RELRO          =
@@ -101,49 +100,49 @@ ifeq ($(PLATFORM),Solaris)
 else ifeq ($(PLATFORM),Windows)
   FLAG_RELRO          =
   FLAG_STDLIB         =
-  CFLAGS_EXT         += -DWINVER=0x600 -D_WIN32_WINNT=0x600
-  CXXFLAGS_EXT       += -DWINVER=0x600 -D_WIN32_WINNT=0x600
-  EXE_FLAGS_EXT      += -static-libgcc -static-libstdc++
-  SO_FLAGS_EXT       += -static-libgcc -static-libstdc++
-  LDFLAGS_EXT        += -T $(CURDIR)/make/ld-windows.script
+  NOARCH_CFLAGS      += -DWINVER=0x600 -D_WIN32_WINNT=0x600
+  NOARCH_CXXFLAGS    += -DWINVER=0x600 -D_WIN32_WINNT=0x600
+  NOARCH_EXE_FLAGS   += -static-libgcc -static-libstdc++
+  NOARCH_SO_FLAGS    += -static-libgcc -static-libstdc++
+  NOARCH_LDFLAGS     += -T $(CURDIR)/make/ld-windows.script
 else ifeq ($(PLATFORM),BSD)
-  EXE_FLAGS_EXT      += -L/usr/local/lib
-  SO_FLAGS_EXT       += -L/usr/local/lib
+  NOARCH_EXE_FLAGS   += -L/usr/local/lib
+  NOARCH_SO_FLAGS    += -L/usr/local/lib
 endif
 
 ifeq ($(DEBUG),1)
-  CFLAGS_EXT         += -Og -g3 -DLSP_DEBUG -falign-functions=16
-  CXXFLAGS_EXT       += -Og -g3 -DLSP_DEBUG -falign-functions=16
+  NOARCH_CFLAGS      += -Og -g3 -DLSP_DEBUG -falign-functions=16
+  NOARCH_CXXFLAGS    += -Og -g3 -DLSP_DEBUG -falign-functions=16
 else
-  CFLAGS_EXT         += -O2
-  CXXFLAGS_EXT       += -O2
+  NOARCH_CFLAGS      += -O2
+  NOARCH_CXXFLAGS    += -O2
 endif
 
 ifeq ($(ASAN),1)
-  CFLAGS_EXT         += -fsanitize=address
-  CXXFLAGS_EXT       += -fsanitize=address
-  EXE_FLAGS_EXT      += -fsanitize=address
-  SO_FLAGS_EXT       += -fsanitize=address
+  NOARCH_CFLAGS      += -fsanitize=address
+  NOARCH_CXXFLAGS    += -fsanitize=address
+  NOARCH_EXE_FLAGS   += -fsanitize=address
+  NOARCH_SO_FLAGS    += -fsanitize=address
 endif
 
 ifeq ($(PROFILE),1)
-  CFLAGS_EXT         += -pg -DLSP_PROFILE
-  CXXFLAGS_EXT       += -pg -DLSP_PROFILE
+  NOARCH_CFLAGS      += -pg -DLSP_PROFILE
+  NOARCH_CXXFLAGS    += -pg -DLSP_PROFILE
 endif
 
 ifeq ($(TRACE),1)
-  CFLAGS_EXT         += -DLSP_TRACE
-  CXXFLAGS_EXT       += -DLSP_TRACE
+  NOARCH_CFLAGS      += -DLSP_TRACE
+  NOARCH_CXXFLAGS    += -DLSP_TRACE
 endif
 
 ifeq ($(STRICT),1)
-  CFLAGS_EXT         += -Werror
-  CXXFLAGS_EXT       += -Werror
+  NOARCH_CFLAGS      += -Werror
+  NOARCH_CXXFLAGS    += -Werror
 endif
 
 ifeq ($(TEST),1)
-  CFLAGS_EXT         += -DLSP_TESTING
-  CXXFLAGS_EXT       += -DLSP_TESTING
+  NOARCH_CFLAGS      += -DLSP_TESTING
+  NOARCH_CXXFLAGS    += -DLSP_TESTING
   EXPORT_SYMBOLS     ?= 1
 else
   ifeq ($(ARTIFACT_EXPORT_SYMBOLS),1)
@@ -154,8 +153,8 @@ else
 endif
 
 ifneq ($(EXPORT_SYMBOLS),1)
-  CFLAGS_EXT         += -fvisibility=hidden
-  CXXFLAGS_EXT       += -fvisibility=hidden
+  NOARCH_CFLAGS      += -fvisibility=hidden
+  NOARCH_CXXFLAGS    += -fvisibility=hidden
 endif
 
 ifneq ($(ARTIFACT_EXPORT_HEADERS),0)
@@ -165,18 +164,18 @@ else
 endif
 
 # Define flags for (cross) build
-CFLAGS             += \
-  $(CFLAGS_EXT) \
+NOARCH_CFLAGS      += \
   -fdata-sections \
   -ffunction-sections \
   -fno-asynchronous-unwind-tables \
   -pipe \
   -Wall
+CFLAGS             += $(ARCHITECTURE_CFLAGS) $(NOARCH_CFLAGS)
+HOST_CFLAGS        += $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_CFLAGS)
 
 CDEFS              += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
   
-CXXFLAGS           += \
-  $(CXXFLAGS_EXT) \
+NOARCH_CXXFLAGS    += \
   -fno-exceptions \
   -fno-rtti \
   -fdata-sections \
@@ -184,22 +183,24 @@ CXXFLAGS           += \
   -fno-asynchronous-unwind-tables \
   -pipe \
   -Wall
+CXXFLAGS           += $(ARCHITECTURE_CFLAGS) $(NOARCH_CXXFLAGS)
+HOST_CXXFLAGS      += $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_CXXFLAGS)
 
 CXXDEFS            += -DLSP_INSTALL_PREFIX=\\\"$(PREFIX)\\\"
 
 INCLUDE            :=
-LDFLAGS            := $(LDFLAGS_EXT) -r
-EXE_FLAGS          := $(EXE_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections
-SO_FLAGS           := $(SO_FLAGS_EXT) $(FLAG_RELRO) -Wl,--gc-sections -shared $(FLAG_STDLIB) -fPIC 
 
-# Define flags for host build
-HOST_CFLAGS        := $(CFLAGS)
-HOST_CDEFS         := $(CDEFS)
-HOST_CXXFLAGS      := $(CXXFLAGS)
-HOST_CXXDEFS       := $(CXXDEFS)
-HOST_LDFLAGS       := $(LDFLAGS)
-HOST_EXE_FLAGS     := $(EXE_FLAGS)
-HOST_SO_FLAGS      := $(SO_FLAGS)
+NOARCH_LDFLAGS     += -r
+LDFLAGS            := $(ARCHITECTURE_LDFLAGS) $(NOARCH_LDFLAGS)
+HOST_LDFLAGS       := $(HOST_ARCHITECTURE_LDFLAGS) $(NOARCH_LDFLAGS)
+
+NOARCH_EXE_FLAGS   += $(FLAG_RELRO) -Wl,--gc-sections
+EXE_FLAGS          := $(ARCHITECTURE_CFLAGS) $(NOARCH_EXE_FLAGS)
+HOST_EXE_FLAGS     := $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_EXE_FLAGS)
+
+NOARCH_SO_FLAGS    += $(FLAG_RELRO) -Wl,--gc-sections -shared $(FLAG_STDLIB) -fPIC 
+SO_FLAGS           := $(ARCHITECTURE_CFLAGS) $(NOARCH_SO_FLAGS)
+HOST_SO_FLAGS      := $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_SO_FLAGS)
 
 # The overall list of exported variables
 TOOL_VARS := \
