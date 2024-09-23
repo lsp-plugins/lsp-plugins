@@ -27,6 +27,20 @@ ifeq ($(PLATFORM),OpenBSD)
   X_AR_TOOL          := ar
   X_LD_TOOL          := ld
   X_PKG_CONFIG       := pkg-config
+else ifeq($(PLATFORM),BSD)
+  X_CC_TOOL          := clang
+  X_CXX_TOOL         := clang++
+  X_AS_TOOL          := as
+  X_AR_TOOL          := ar
+  X_LD_TOOL          := ld
+  X_PKG_CONFIG       := pkg-config
+else ifeq($(PLATFORM),MacOS)
+  X_CC_TOOL          := clang
+  X_CXX_TOOL         := clang++
+  X_AS_TOOL          := as
+  X_AR_TOOL          := ar
+  X_LD_TOOL          := ld
+  X_PKG_CONFIG       := pkg-config
 else
   X_CC_TOOL          := gcc
   X_CXX_TOOL         := g++

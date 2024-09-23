@@ -38,6 +38,10 @@ ifndef PLATFORM
     PLATFORM       := Linux
   else ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
     PLATFORM       := Solaris
+  else ifeq ($(findstring Darwin,$(BUILD_SYSTEM)),Darwin)
+    PLATFORM       := MacOS
+  else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
+    PLATFORM       := Haiku
   endif
 endif
 
