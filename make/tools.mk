@@ -63,13 +63,24 @@ PHP                ?= $(X_PHP_TOOL)
 PKG_CONFIG         ?= $(X_PKG_CONFIG)
 
 # Define tool variables for host build
-HOST_CC            ?= $(CC)
-HOST_CXX           ?= $(CXX)
-HOST_AS            ?= $(AS)
-HOST_AR            ?= $(AR)
-HOST_LD            ?= $(LD)
-HOST_PHP           ?= $(PHP)
-HOST_PKG_CONFIG    ?= $(PKG_CONFIG)
+# Define tool variables for host build
+ifeq ($(CROSS_COMPILE),1)
+  HOST_CC            ?= $(X_CC_TOOL)
+  HOST_CXX           ?= $(X_CXX_TOOL)
+  HOST_AS            ?= $(X_AS_TOOL)
+  HOST_AR            ?= $(X_AR_TOOL)
+  HOST_LD            ?= $(X_LD_TOOL)
+  HOST_PHP           ?= $(X_PHP_TOOL)
+  HOST_PKG_CONFIG    ?= $(X_PKG_CONFIG)
+else
+  HOST_CC            ?= $(CC)
+  HOST_CXX           ?= $(CXX)
+  HOST_AS            ?= $(AS)
+  HOST_AR            ?= $(AR)
+  HOST_LD            ?= $(LD)
+  HOST_PHP           ?= $(PHP)
+  HOST_PKG_CONFIG    ?= $(PKG_CONFIG)
+endif
 
 # Miscellaneous tools
 GIT                ?= $(X_GIT_TOOL)
