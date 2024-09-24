@@ -18,7 +18,16 @@
   * Compressor;
   * Dynamics Processor;
   * Expander;
-  * Gate.
+  * Gate;
+  * Limiter.
+* Added support of sidechain passed by shared memory link for multi-band dynamics processing
+  plugin series:
+  * GOTT Compressor;
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate;
+  * Multiband Limiter.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
