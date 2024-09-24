@@ -22,6 +22,8 @@
 ifndef PREFIX
   ifeq ($(PLATFORM),Windows)
     PREFIX                     := $(BASEDIR)/INSTALL
+  else ifeq ($(CROSS_COMPILE),1)
+    PREFIX                     := $(BASEDIR)/INSTALL
   else
     PREFIX                     := /usr/local
   endif
