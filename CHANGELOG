@@ -28,6 +28,8 @@
   * Multiband Expander;
   * Multiband Gate;
   * Multiband Limiter.
+* Several UI improvements related to instrument names in Multisampler plugin series:
+  instrument name is now displayed in drop-down list and heading of the drop-down group.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
