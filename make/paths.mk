@@ -67,6 +67,15 @@ ifndef INCDIR
   INCDIR                   := $(PREFIX)/include
 endif
 
+# Shared resources
+ifndef SHAREDDIR
+  ifeq ($(PLATFORM),Haiku)
+    SHAREDDIR                     := $(PREFIX)/data
+  else
+    SHAREDDIR                     := $(PREFIX)/share
+  endif
+endif
+
 # Temporary directory
 ifndef TEMPDIR
   ifeq ($(PLATFORM),Windows)
