@@ -33,6 +33,7 @@
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Fixed random crashes when navigating file dialog in Windows.
+* Update makefiles to simplify cross compiling, added cross compiling instruction to README.
 * Fixed regression in offline documentation build.
 
 === 1.2.17 ===
