@@ -32,8 +32,9 @@
   instrument name is now displayed in drop-down list and heading of the drop-down group.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
-* Fixed random crashes when navigating file dialog in Windows.
 * Update makefiles to simplify cross compiling, added cross compiling instruction to README.
+* Fixed random crashes when navigating file dialog in Windows.
+* Fixed invalid UI draw issue on Windows when using larger desktop DPI.
 * Fixed regression in offline documentation build.
 
 === 1.2.17 ===
