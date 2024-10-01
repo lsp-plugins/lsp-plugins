@@ -35,6 +35,7 @@
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
 * Update makefiles to simplify cross compiling, added cross compiling instruction to README.
+* Added LUFS meters to the Loudness Compensator plugin series.
 * Fixed random crashes when navigating file dialog in Windows.
 * Fixed invalid UI draw issue on Windows when using larger desktop DPI.
 * Fixed regression in offline documentation build.
