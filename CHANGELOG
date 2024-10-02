@@ -36,6 +36,8 @@
   configure the path to the offline documentation installation.
 * Update makefiles to simplify cross compiling, added cross compiling instruction to README.
 * Added LUFS meters to the Loudness Compensator plugin series.
+* Added reference Pink noise generator of different standard loudness levels to the Loudness
+  Compensator plugin series.
 * Added directory contents view and navigation of currently loaded sample in following plugin series:
   * Impulse Responses;
   * Impulse Reverb;
