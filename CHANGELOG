@@ -30,6 +30,8 @@
   * Multiband Limiter.
 * Mono samples are now played as stereo samples with duplicated left channel for Trigger,
   Sampler and Multisampler plugin series.
+* Added pre-reverse of the loaded sample before cuts, stretches and fades applied for
+  Sampler and Multisampler plugin series.
 * Several UI improvements related to instrument names in Multisampler plugin series:
   instrument name is now displayed in drop-down list and heading of the drop-down group.
 * Added documentation_path parameter in user configuration file which allows to
