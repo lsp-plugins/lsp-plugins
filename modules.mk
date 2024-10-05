@@ -19,93 +19,93 @@
 #
 
 # Variables that describe dependencies
-LSP_3RD_PARTY_VERSION      := 1.0.17
+LSP_3RD_PARTY_VERSION      := 1.0.18
 LSP_3RD_PARTY_NAME         := lsp-3rd-party
 LSP_3RD_PARTY_TYPE         := hdr
 LSP_3RD_PARTY_INC_OPT      := -idirafter
 LSP_3RD_PARTY_URL_RO       := https://github.com/lsp-plugins/$(LSP_3RD_PARTY_NAME).git
 LSP_3RD_PARTY_URL_RW       := git@github.com:lsp-plugins/$(LSP_3RD_PARTY_NAME).git
 
-LSP_COMMON_LIB_VERSION     := 1.0.37
+LSP_COMMON_LIB_VERSION     := 1.0.38
 LSP_COMMON_LIB_NAME        := lsp-common-lib
 LSP_COMMON_LIB_TYPE        := src
 LSP_COMMON_LIB_URL_RO      := https://github.com/lsp-plugins/$(LSP_COMMON_LIB_NAME).git
 LSP_COMMON_LIB_URL_RW      := git@github.com:lsp-plugins/$(LSP_COMMON_LIB_NAME).git
 
-LSP_DSP_LIB_VERSION        := 1.0.25
+LSP_DSP_LIB_VERSION        := 1.0.26
 LSP_DSP_LIB_NAME           := lsp-dsp-lib
 LSP_DSP_LIB_TYPE           := src
 LSP_DSP_LIB_URL_RO         := https://github.com/lsp-plugins/$(LSP_DSP_LIB_NAME).git
 LSP_DSP_LIB_URL_RW         := git@github.com:lsp-plugins/$(LSP_DSP_LIB_NAME).git
 
-LSP_DSP_UNITS_VERSION      := 1.0.24
+LSP_DSP_UNITS_VERSION      := 1.0.25
 LSP_DSP_UNITS_NAME         := lsp-dsp-units
 LSP_DSP_UNITS_TYPE         := src
 LSP_DSP_UNITS_URL_RO       := https://github.com/lsp-plugins/$(LSP_DSP_UNITS_NAME).git
 LSP_DSP_UNITS_URL_RW       := git@github.com:lsp-plugins/$(LSP_DSP_UNITS_NAME).git
 
-LSP_LLTL_LIB_VERSION       := 1.0.20
+LSP_LLTL_LIB_VERSION       := 1.0.21
 LSP_LLTL_LIB_NAME          := lsp-lltl-lib
 LSP_LLTL_LIB_TYPE          := src
 LSP_LLTL_LIB_URL_RO        := https://github.com/lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 LSP_LLTL_LIB_URL_RW        := git@github.com:lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 
-LSP_R3D_BASE_LIB_VERSION   := 1.0.19
+LSP_R3D_BASE_LIB_VERSION   := 1.0.20
 LSP_R3D_BASE_LIB_NAME      := lsp-r3d-base-lib
 LSP_R3D_BASE_LIB_TYPE      := src
 LSP_R3D_BASE_LIB_URL_RO    := https://github.com/lsp-plugins/$(LSP_R3D_BASE_LIB_NAME).git
 LSP_R3D_BASE_LIB_URL_RW    := git@github.com:lsp-plugins/$(LSP_R3D_BASE_LIB_NAME).git
 
-LSP_R3D_IFACE_VERSION      := 1.0.19
+LSP_R3D_IFACE_VERSION      := 1.0.20
 LSP_R3D_IFACE_NAME         := lsp-r3d-iface
 LSP_R3D_IFACE_TYPE         := src
 LSP_R3D_IFACE_URL_RO       := https://github.com/lsp-plugins/$(LSP_R3D_IFACE_NAME).git
 LSP_R3D_IFACE_URL_RW       := git@github.com:lsp-plugins/$(LSP_R3D_IFACE_NAME).git
 
-LSP_R3D_GLX_LIB_VERSION    := 1.0.19
+LSP_R3D_GLX_LIB_VERSION    := 1.0.20
 LSP_R3D_GLX_LIB_NAME       := lsp-r3d-glx-lib
 LSP_R3D_GLX_LIB_TYPE       := bin
 LSP_R3D_GLX_LIB_URL_RO     := https://github.com/lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 LSP_R3D_GLX_LIB_URL_RW     := git@github.com:lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 
-LSP_R3D_WGL_LIB_VERSION    := 1.0.14
+LSP_R3D_WGL_LIB_VERSION    := 1.0.15
 LSP_R3D_WGL_LIB_NAME       := lsp-r3d-wgl-lib
 LSP_R3D_WGL_LIB_TYPE       := bin
 LSP_R3D_WGL_LIB_URL_RO     := https://github.com/lsp-plugins/$(LSP_R3D_WGL_LIB_NAME).git
 LSP_R3D_WGL_LIB_URL_RW     := git@github.com:lsp-plugins/$(LSP_R3D_WGL_LIB_NAME).git
 
-LSP_RUNTIME_LIB_VERSION    := 1.0.23
+LSP_RUNTIME_LIB_VERSION    := 1.0.24
 LSP_RUNTIME_LIB_NAME       := lsp-runtime-lib
 LSP_RUNTIME_LIB_TYPE       := src
 LSP_RUNTIME_LIB_URL_RO     := https://github.com/lsp-plugins/$(LSP_RUNTIME_LIB_NAME).git
 LSP_RUNTIME_LIB_URL_RW     := git@github.com:lsp-plugins/$(LSP_RUNTIME_LIB_NAME).git
 
-LSP_TEST_FW_VERSION        := 1.0.26
+LSP_TEST_FW_VERSION        := 1.0.27
 LSP_TEST_FW_NAME           := lsp-test-fw
 LSP_TEST_FW_TYPE           := src
 LSP_TEST_FW_URL_RO         := https://github.com/lsp-plugins/$(LSP_TEST_FW_NAME).git
 LSP_TEST_FW_URL_RW         := git@github.com:lsp-plugins/$(LSP_TEST_FW_NAME).git
 
-LSP_TK_LIB_VERSION         := 1.0.23
+LSP_TK_LIB_VERSION         := 1.0.24
 LSP_TK_LIB_NAME            := lsp-tk-lib
 LSP_TK_LIB_TYPE            := src
 LSP_TK_LIB_URL_RO          := https://github.com/lsp-plugins/$(LSP_TK_LIB_NAME).git
 LSP_TK_LIB_URL_RW          := git@github.com:lsp-plugins/$(LSP_TK_LIB_NAME).git
 
-LSP_WS_LIB_VERSION         := 1.0.23
+LSP_WS_LIB_VERSION         := 1.0.24
 LSP_WS_LIB_NAME            := lsp-ws-lib
 LSP_WS_LIB_TYPE            := src
 LSP_WS_LIB_URL_RO          := https://github.com/lsp-plugins/$(LSP_WS_LIB_NAME).git
 LSP_WS_LIB_URL_RW          := git@github.com:lsp-plugins/$(LSP_WS_LIB_NAME).git
 
 # Plugin-related module dependencies
-LSP_PLUGIN_FW_VERSION      := 1.0.25
+LSP_PLUGIN_FW_VERSION      := 1.0.26
 LSP_PLUGIN_FW_NAME         := lsp-plugin-fw
 LSP_PLUGIN_FW_TYPE         := src
 LSP_PLUGIN_FW_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGIN_FW_NAME).git
 LSP_PLUGIN_FW_URL_RW       := git@github.com:lsp-plugins/$(LSP_PLUGIN_FW_NAME).git
 
-LSP_PLUGINS_SHARED_VERSION := 1.0.24
+LSP_PLUGINS_SHARED_VERSION := 1.0.25
 LSP_PLUGINS_SHARED_NAME    := lsp-plugins-shared
 LSP_PLUGINS_SHARED_TYPE    := src
 LSP_PLUGINS_SHARED_URL_RO  := https://github.com/lsp-plugins/$(LSP_PLUGINS_SHARED_NAME).git
