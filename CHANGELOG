@@ -2,6 +2,9 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.19 ===
+* Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.
+
 === 1.2.18 ===
 * Implemented Send Mono and Send Stereo plugins for sending audio streams to
   named connection points stored in shared memory.
