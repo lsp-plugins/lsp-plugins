@@ -30,17 +30,17 @@
   * Multiband Limiter.
 * Mono samples are now played as stereo samples with duplicated left channel for Trigger,
   Sampler and Multisampler plugin series.
-* Added pre-reverse of the loaded sample before cuts, stretches and fades applied for
-  Sampler and Multisampler plugin series.
+* Added pre-reverse button to apply sample reversal before cuts, stretches and fades being applied
+  in Sampler and Multisampler plugin series.
 * Several UI improvements related to instrument names in Multisampler plugin series:
   instrument name is now displayed in drop-down list and heading of the drop-down group.
 * Added documentation_path parameter in user configuration file which allows to
   configure the path to the offline documentation installation.
-* Update makefiles to simplify cross compiling, added cross compiling instruction to README.
+* Update makefiles to simplify cross-compiling, added cross compiling instructions to README.
 * Added LUFS meters to the Loudness Compensator plugin series.
 * Added reference Pink noise generator of different standard loudness levels to the Loudness
   Compensator plugin series.
-* Added directory contents view and navigation of currently loaded sample in following plugin series:
+* Added directory contents view and navigation of currently loaded sample for following plugin series:
   * Impulse Responses;
   * Impulse Reverb;
   * Multsampler;
