@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -38,108 +38,119 @@ ifndef PLATFORM
     PLATFORM       := Linux
   else ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
     PLATFORM       := Solaris
+  else ifeq ($(findstring Darwin,$(BUILD_SYSTEM)),Darwin)
+    PLATFORM       := MacOS
+  else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
+    PLATFORM       := Haiku
   endif
 endif
 
 # Detect system processor architecture
-ifndef ARCHITECTURE
-  ifeq ($(PLATFORM),Windows)
-    BUILD_ARCH             := $(PROCESSOR_ARCHITECTURE)
-  else
-    BUILD_ARCH             := $(shell uname -m)
-  endif
+ifeq ($(PLATFORM),Windows)
+  HOST_BUILD_ARCH        := $(PROCESSOR_ARCHITECTURE)
 else
-  BUILD_ARCH             := $(ARCHITECTURE)
+  HOST_BUILD_ARCH        := $(shell uname -m)
 endif
+BUILD_ARCH          := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
 
-# Set actual architecture
+# Set actual architecture for HOST and TARGET builds
 # The current architecture can be obtained by: gcc -Q --help=target
-ifeq ($(BUILD_ARCH),armel)
-  override ARCHITECTURE   = $(BUILD_ARCH)
-  ARCHITECTURE_FAMILY     = generic
-  ARCHITECTURE_CFLAGS    :=
-else ifeq ($(BUILD_ARCH),armhf)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv7-a+fp -marm
-else ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)),armv6)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv6 -marm
-else ifeq ($(patsubst armv7ve%,armv7ve,$(BUILD_ARCH)),armv7ve)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv7ve -marm
-else ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)),armv7)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv7-a -marm
-else ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)),armv8)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv7-a -marm
-else ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)),aarch64)
-  override ARCHITECTURE   = aarch64
-  ARCHITECTURE_FAMILY     = aarch64
-  ARCHITECTURE_CFLAGS    := -march=armv8-a
-else ifeq ($(BUILD_ARCH),arm64)
-  override ARCHITECTURE   = aarch64
-  ARCHITECTURE_FAMILY     = aarch64
-  ARCHITECTURE_CFLAGS    := -march=armv8-a
-else ifeq ($(BUILD_ARCH),arm32)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv6 -marm
-else ifeq ($(BUILD_ARCH),arm)
-  override ARCHITECTURE   = arm32
-  ARCHITECTURE_FAMILY     = arm32
-  ARCHITECTURE_CFLAGS    := -march=armv6 -marm
-else ifeq ($(patsubst %x86_64%,x86_64,$(BUILD_ARCH)),x86_64)
-  override ARCHITECTURE   = x86_64
-  ARCHITECTURE_FAMILY     = x86_64
-  ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
-else ifeq ($(patsubst %amd64%,amd64,$(BUILD_ARCH)),amd64)
-  override ARCHITECTURE   = x86_64
-  ARCHITECTURE_FAMILY     = x86_64
-  ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
-else ifeq ($(patsubst %AMD64%,AMD64,$(BUILD_ARCH)),AMD64)
-  override ARCHITECTURE   = x86_64
-  ARCHITECTURE_FAMILY     = x86_64
-  ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
-else ifeq ($(BUILD_ARCH),i86pc)
-  override ARCHITECTURE   = x86_64
-  ARCHITECTURE_FAMILY     = x86_64
-  ARCHITECTURE_CFLAGS    := -march=x86-64 -m64
-else ifeq ($(patsubst %i686%,i686,$(BUILD_ARCH)),i686)
-  override ARCHITECTURE   = i686
-  ARCHITECTURE_FAMILY     = ia32
-  ARCHITECTURE_CFLAGS    := -march=i686 -m32
-else ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)),i586)
-  override ARCHITECTURE   = i586
-  ARCHITECTURE_FAMILY     = ia32
-  ARCHITECTURE_CFLAGS    := -march=i586 -m32
-else ifeq ($(BUILD_ARCH),x86)
-  override ARCHITECTURE   = i686
-  ARCHITECTURE_FAMILY     = ia32
-  ARCHITECTURE_CFLAGS    := -march=i686 -m32
-else ifeq ($(BUILD_ARCH),riscv32)
-  override ARCHITECTURE   = riscv32
-  ARCHITECTURE_FAMILY     = riscv32
-  ARCHITECTURE_CFLAGS    := -march=rv32imafdc -mabi=lp32d
-else ifeq ($(BUILD_ARCH),riscv64)
-  override ARCHITECTURE   = riscv64
-  ARCHITECTURE_FAMILY     = riscv64
-  ARCHITECTURE_CFLAGS    := -march=rv64imafdc -mabi=lp64d
-else
-  override ARCHITECTURE   = $(BUILD_ARCH)
-  ARCHITECTURE_FAMILY     = generic
-  ARCHITECTURE_CFLAGS    :=
-endif
+define detect_architecture =
+  ifeq ($(1),armel)
+    $(2)_NAME        = $(1)
+    $(2)_FAMILY      = generic
+    $(2)_CFLAGS     :=
+  else ifeq ($(1),armhf)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv7-a+fp -marm
+  else ifeq ($(patsubst armv6%,armv6,$(1)),armv6)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv6 -marm
+  else ifeq ($(patsubst armv7ve%,armv7ve,$(1)),armv7ve)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv7ve -marm
+  else ifeq ($(patsubst armv7%,armv7,$(1)),armv7)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv7-a -marm
+  else ifeq ($(patsubst armv8%,armv8,$(1)),armv8)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv7-a -marm
+  else ifeq ($(patsubst aarch64%,aarch64,$(1)),aarch64)
+    $(2)_NAME        = aarch64
+    $(2)_FAMILY      = aarch64
+    $(2)_CFLAGS     := -march=armv8-a
+  else ifeq ($(1),arm64)
+    $(2)_NAME        = aarch64
+    $(2)_FAMILY      = aarch64
+    $(2)_CFLAGS     := -march=armv8-a
+  else ifeq ($(1),arm32)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv6 -marm
+  else ifeq ($(1),arm)
+    $(2)_NAME        = arm32
+    $(2)_FAMILY      = arm32
+    $(2)_CFLAGS     := -march=armv6 -marm
+  else ifeq ($(patsubst %x86_64%,x86_64,$(1)),x86_64)
+    $(2)_NAME        = x86_64
+    $(2)_FAMILY      = x86_64
+    $(2)_CFLAGS     := -march=x86-64 -m64
+  else ifeq ($(patsubst %amd64%,amd64,$(1)),amd64)
+    $(2)_NAME        = x86_64
+    $(2)_FAMILY      = x86_64
+    $(2)_CFLAGS     := -march=x86-64 -m64
+  else ifeq ($(patsubst %AMD64%,AMD64,$(1)),AMD64)
+    $(2)_NAME        = x86_64
+    $(2)_FAMILY      = x86_64
+    $(2)_CFLAGS     := -march=x86-64 -m64
+  else ifeq ($(1),i86pc)
+    $(2)_NAME        = x86_64
+    $(2)_FAMILY      = x86_64
+    $(2)_CFLAGS     := -march=x86-64 -m64
+  else ifeq ($(patsubst %i686%,i686,$(1)),i686)
+    $(2)_NAME        = i686
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i686 -m32
+  else ifeq ($(patsubst i%86,i586,$(1)),i586)
+    $(2)_NAME        = i586
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i586 -m32
+  else ifeq ($(1),x86)
+    $(2)_NAME        = i686
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i686 -m32
+  else ifeq ($(1),riscv32)
+    $(2)_NAME        = riscv32
+    $(2)_FAMILY      = riscv32
+    $(2)_CFLAGS     := -march=rv32imafdc -mabi=lp32d
+  else ifeq ($(1),riscv64)
+    $(2)_NAME        = riscv64
+    $(2)_FAMILY      = riscv64
+    $(2)_CFLAGS     := -march=rv64imafdc -mabi=lp64d
+  else
+    $(2)_NAME        = $(1)
+    $(2)_FAMILY      = generic
+    $(2)_CFLAGS     :=
+  endif
+endef
+
+$(eval $(call detect_architecture,$(BUILD_ARCH),ARCHITECTURE))
+$(eval $(call detect_architecture,$(HOST_BUILD_ARCH),HOST_ARCHITECTURE))
+
+override ARCHITECTURE          = $(ARCHITECTURE_NAME)
+override HOST_ARCHITECTURE     = $(HOST_ARCHITECTURE_NAME)
 
 # Extension of libraries
 ifndef LIBRARY_EXT
   ifeq ($(PLATFORM),Windows)
     LIBRARY_EXT              := .dll
+  else ifeq ($(PLATFORM),MacOS) 
+    LIBRARY_EXT              := .dylib
   else
     LIBRARY_EXT              := .so
   endif
@@ -180,10 +191,14 @@ COMMON_VARS = \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
+	CROSS_COMPILE \
 	DEBUG \
 	EXECUTABLE_EXT \
 	EXPORT_SYMBOLS \
 	FEATURES \
+	HOST_ARCHITECTURE \
+	HOST_ARCHITECTURE_FAMILY \
+	HOST_ARCHITECTURE_CFLAGS \
 	INSTALL_HEADERS \
 	LIBRARY_EXT \
 	LIBRARY_PREFIX \
@@ -205,6 +220,7 @@ sysvars:
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
 	echo "  ARCHITECTURE_FAMILY       compiler flags to specify architecture family"
 	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
+	echo "  CROSS_COMPILE             enable/disable cross-compilation"
 	echo "  DEBUG                     build with debug options"
 	echo "  DEVEL                     build with modules checked out for read/write URL"
 	echo "  EXECUTABLE_EXT            file extension for executable files"

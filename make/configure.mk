@@ -127,6 +127,10 @@ define _modconfig =
   $(if $($(name)_OBJ_TEST),,     $(eval $(name)_OBJ_TEST     := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
   
+  $(if $(HOST_$(name)_NAME),,    $(eval HOST_$(name)_NAME    := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,    $(eval HOST_$(name)_DESC    := $($(name)_DESC)))
+  $(if $(HOST_$(name)_URL),,     $(eval HOST_$(name)_URL     := $($(name)_URL$(X_URL_SUFFIX))))
+  
   $(if $(HOST_$(name)_PATH),,    $(eval HOST_$(name)_PATH    := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,     $(eval HOST_$(name)_INC     := $(HOST_$(name)_PATH)/include))
   $(if $(HOST_$(name)_SRC),,     $(eval HOST_$(name)_SRC     := $(HOST_$(name)_PATH)/src))
@@ -164,6 +168,10 @@ define hdrconfig =
   $(if $($(name)_TESTING),,      $(eval $(name)_TESTING      := 0))
   $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\""$(if $(publisher), "-D$(name)_PUBLISHER")))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := "-D$(name)_BUILTIN -fvisibility=hidden"))
+
+  $(if $(HOST_$(name)_NAME),,    $(eval HOST_$(name)_NAME    := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,    $(eval HOST_$(name)_DESC    := $($(name)_DESC)))
+  $(if $(HOST_$(name)_URL),,     $(eval HOST_$(name)_URL     := $($(name)_URL$(X_URL_SUFFIX))))
   
   $(if $(HOST_$(name)_PATH),,    $(eval HOST_$(name)_PATH    := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,     $(eval HOST_$(name)_INC     := $(HOST_$(name)_PATH)/include))
@@ -192,6 +200,9 @@ define plugconfig =
   $(if $($(name)_OBJ_UI),,          $(eval $(name)_OBJ_UI           := "$($(name)_BIN)/$($(name)_NAME)-ui.o"))
   $(if $($(name)_OBJ_TEST),,        $(eval $(name)_OBJ_TEST         := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,          $(eval $(name)_MFLAGS           := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
+
+  $(if $(HOST_$(name)_NAME),,       $(eval HOST_$(name)_NAME        := $($(name)_NAME)))
+  $(if $(HOST_$(name)_DESC),,       $(eval HOST_$(name)_DESC        := $($(name)_DESC)))
   
   $(if $(HOST_$(name)_PATH),,       $(eval HOST_$(name)_PATH        := $(MODULES)/$($(name)_NAME)))
   $(if $(HOST_$(name)_INC),,        $(eval HOST_$(name)_INC         := $(HOST_$(name)_PATH)/include))
@@ -277,6 +288,8 @@ CONFIG_VARS = \
     $(name)_OBJ_UI \
     $(name)_OBJ_TEST \
     \
+    HOST_$(name)_NAME \
+    HOST_$(name)_DESC \
     HOST_$(name)_PATH \
     HOST_$(name)_INC \
     HOST_$(name)_SRC \
@@ -305,8 +318,9 @@ $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
 config: $(CONFIG_VARS)
-	echo "Architecture: $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
-	echo "Features:     $(FEATURES)"
+	echo "Host architecture: $(HOST_ARCHITECTURE_FAMILY)/$(HOST_ARCHITECTURE) ($(HOST_ARCHITECTURE_CFLAGS))"
+	echo "Architecture:      $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
+	echo "Features:          $(FEATURES)"
 	echo "Configured OK"
 
 help: | pathvars toolvars sysvars

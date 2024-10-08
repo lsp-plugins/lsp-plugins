@@ -299,9 +299,9 @@ to obtain all source code dependencies:
 ```
 
 For Windows, the `make install` command creates 'INSTALL' subdirectory and places the
-plugin content into desired folders.
+plugin content into desired subfolders.
 
-By default, all supported formats of plugins are built.
+By default, all supported formats of plugins for the target platform are built.
 The list of modules for build can be adjusted by specifying FEATURES variable 
 at the configuration stage:
 
@@ -313,13 +313,13 @@ Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
   * gst - GStreamer plugin binaries;
-  * jack - JACK plugin binaries;
+  * jack - JACK plugin binaries (not available under Windows);
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
   * ui - build plugins wih UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
-  * xdg - the X11 desktop integration icons.
+  * xdg - the X11 desktop integration icons (not necessary for Windows).
 
 By default plugins use '/usr/local' path as a target directory for installation.
 To override this path, the PREFIX variable can be overridden:
@@ -360,6 +360,22 @@ To build standalone source code package, the following commands can be issued:
 ```
 
 After that, a stanalone archive with source code will be created in the `.build` directory.
+
+When cross compiling, the AS, AR, CC, CXX, LD, etc. variables should be set in the environment according to the target/cross compile toolchain. The build host machine versions of those variables- HOST_AS, HOST_AR, HOST_CC, HOST_CXX, etc. have defaults set in the makefiles but may need to be overridden. To troubleshoot, run `make configure` with the VERBOSE option.
+Additional variables should be configured:
+  * set the ARCHITECTURE option to the target architecture
+  * set the CROSS_COMPILE option to 1
+
+Example cross compile procedure for aarch64 target on x86_64 build host:
+```
+  make clean
+  make config ARCHITECTURE="aarch64" CROSS_COMPILE="1"
+  make fetch
+  make
+  make install
+```
+
+After successful completion, the cross compiled artifacts should be located in the directory specified by PREFIX.
 
 For more build options, issue:
 
