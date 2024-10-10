@@ -37,7 +37,7 @@ DEPENDENCIES = \
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3 xdg
+DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3
 
 #------------------------------------------------------------------------------
 # Linux dependencies
@@ -60,7 +60,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst
+  DEFAULT_FEATURES         += jack gst xdg
 endif
 
 #------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst
+  DEFAULT_FEATURES         += jack gst xdg
 endif
 
 
