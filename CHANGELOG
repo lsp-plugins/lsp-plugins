@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.19 ===
+* Updated build scripts.
+* Rolling back source code distribution to tar.gz archive format.
 * Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.
 
 === 1.2.18 ===
