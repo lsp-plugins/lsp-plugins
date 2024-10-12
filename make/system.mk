@@ -53,6 +53,17 @@ else
 endif
 BUILD_ARCH          := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
 
+ifeq ($(PLATFORM),Linux)
+  OBJ_LDFLAGS_X86       =  -m elf_i386
+  OBJ_LDFLAGS_X86_64    =  -m elf_x86_64
+else ifeq ($(PLATFORM),BSD)
+  OBJ_LDFLAGS_X86       =  -m elf_i386
+  OBJ_LDFLAGS_X86_64    =  -m elf_x86_64
+else ifeq ($(PLATFORM),Windows)
+  OBJ_LDFLAGS_X86       =  -m i386pe
+  OBJ_LDFLAGS_X86_64    =  -m i386pep
+endif
+
 # Set actual architecture for HOST and TARGET builds
 # The current architecture can be obtained by: gcc -Q --help=target
 define detect_architecture =
@@ -100,30 +111,37 @@ define detect_architecture =
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
   else ifeq ($(patsubst %amd64%,amd64,$(1)),amd64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
   else ifeq ($(patsubst %AMD64%,AMD64,$(1)),AMD64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
   else ifeq ($(1),i86pc)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
   else ifeq ($(patsubst %i686%,i686,$(1)),i686)
     $(2)_NAME        = i686
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i686 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
   else ifeq ($(patsubst i%86,i586,$(1)),i586)
     $(2)_NAME        = i586
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i586 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
   else ifeq ($(1),x86)
     $(2)_NAME        = i686
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i686 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
   else ifeq ($(1),riscv32)
     $(2)_NAME        = riscv32
     $(2)_FAMILY      = riscv32
@@ -191,11 +209,11 @@ COMMON_VARS = \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
+	BUILD_FEATURES \
 	CROSS_COMPILE \
 	DEBUG \
 	EXECUTABLE_EXT \
 	EXPORT_SYMBOLS \
-	FEATURES \
 	HOST_ARCHITECTURE \
 	HOST_ARCHITECTURE_FAMILY \
 	HOST_ARCHITECTURE_CFLAGS \

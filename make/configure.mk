@@ -53,7 +53,7 @@ MERGED_DEPENDENCIES        := \
   $(PLUGIN_SHARED)
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
-FEATURES                   := $(sort $(call subtraction,$(SUB_FEATURES),$(DEFAULT_FEATURES) $(ADD_FEATURES)))
+BUILD_FEATURES             := $(sort $(call subtraction,$(SUB_FEATURES),$(if $(FEATURES),$(FEATURES),$(DEFAULT_FEATURES)) $(ADD_FEATURES)))
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
@@ -320,7 +320,7 @@ $(CONFIG_VARS): prepare
 config: $(CONFIG_VARS)
 	echo "Host architecture: $(HOST_ARCHITECTURE_FAMILY)/$(HOST_ARCHITECTURE) ($(HOST_ARCHITECTURE_CFLAGS))"
 	echo "Architecture:      $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
-	echo "Features:          $(FEATURES)"
+	echo "Features:          $(BUILD_FEATURES)"
 	echo "Configured OK"
 
 help: | pathvars toolvars sysvars
