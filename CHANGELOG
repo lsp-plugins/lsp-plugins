@@ -3,13 +3,13 @@
 *******************************************************************************
 
 === 1.2.19 ===
-* Updated build scripts.
+* Rollback of source code distribution to tar.gz archive format.
+* Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.
+* Fixed window sizing for CLAP plugin format.
 * Updated CLAP SDK to 1.2.2.
 * Updated VST3 SDK to 3.7.12, may be breaking changes related to parameter identifiers as
   Steinberg has twice reduced the set of valid paremeter identifiers.
-* Rollback source code distribution to tar.gz archive format.
-* Fixed window sizing for CLAP plugin format.
-* Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.
+* Several fixes in build scripts.
 
 === 1.2.18 ===
 * Implemented Send Mono and Send Stereo plugins for sending audio streams to
