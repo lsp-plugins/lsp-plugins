@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.20 ===
+
 === 1.2.19 ===
 * Rollback of source code distribution to tar.gz archive format.
 * Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.
