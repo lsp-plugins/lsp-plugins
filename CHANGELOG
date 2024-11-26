@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.20 ===
+* Implemented Referencer plugin series.
 * Fixed possible file name loss on deactivated plugins for all modern plugin formats.
 * Fixed imprecise spectrum graph and left/right channel desynchronization when rapidly
   changing the frequency of filter in Parametric Equalizer plugin series.

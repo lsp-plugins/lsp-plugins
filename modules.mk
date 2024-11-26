@@ -316,6 +316,12 @@ LSP_PLUGINS_PROFILER_TYPE               := plug
 LSP_PLUGINS_PROFILER_URL_RO             := https://github.com/lsp-plugins/$(LSP_PLUGINS_PROFILER_NAME).git
 LSP_PLUGINS_PROFILER_URL_RW             := git@github.com:lsp-plugins/$(LSP_PLUGINS_PROFILER_NAME).git
 
+LSP_PLUGINS_REFERENCER_VERSION          := 1.0.0
+LSP_PLUGINS_REFERENCER_NAME             := lsp-plugins-referencer
+LSP_PLUGINS_REFERENCER_TYPE             := plug
+LSP_PLUGINS_REFERENCER_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_REFERENCER_NAME).git
+LSP_PLUGINS_REFERENCER_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_REFERENCER_NAME).git
+
 LSP_PLUGINS_RETURN_VERSION              := 1.0.1
 LSP_PLUGINS_RETURN_NAME                 := lsp-plugins-return
 LSP_PLUGINS_RETURN_TYPE                 := plug
