@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -88,6 +88,7 @@ INSTALL            ?= $(X_INSTALL_TOOL)
 # Patch flags and tools for (cross) build
 FLAG_RELRO         := -Wl,-z,relro,-z,now
 FLAG_STDLIB        := 
+FLAG_GC_SECTIONS   := -Wl,--gc-sections
 NOARCH_CFLAGS      := 
 NOARCH_CXXFLAGS    := 
 NOARCH_EXE_FLAGS   := 
@@ -105,6 +106,11 @@ else ifeq ($(PLATFORM),Windows)
   NOARCH_EXE_FLAGS   += -static-libgcc -static-libstdc++
   NOARCH_SO_FLAGS    += -static-libgcc -static-libstdc++
   NOARCH_LDFLAGS     += -T $(CURDIR)/make/ld-windows.script
+else ifeq ($(PLATFORM),MacOS)
+  FLAG_RELRO          =
+  FLAG_GC_SECTIONS    = 
+  NOARCH_CXXFLAGS    += -std=c++0x
+  NOARCH_LDFLAGS     += -keep_private_externs
 else ifeq ($(PLATFORM),BSD)
   NOARCH_EXE_FLAGS   += -L/usr/local/lib
   NOARCH_SO_FLAGS    += -L/usr/local/lib
@@ -194,11 +200,11 @@ NOARCH_LDFLAGS     += -r
 LDFLAGS            := $(ARCHITECTURE_LDFLAGS) $(NOARCH_LDFLAGS)
 HOST_LDFLAGS       := $(HOST_ARCHITECTURE_LDFLAGS) $(NOARCH_LDFLAGS)
 
-NOARCH_EXE_FLAGS   += $(FLAG_RELRO) -Wl,--gc-sections
+NOARCH_EXE_FLAGS   += $(FLAG_RELRO) $(FLAG_GC_SECTIONS)
 EXE_FLAGS          := $(ARCHITECTURE_CFLAGS) $(NOARCH_EXE_FLAGS)
 HOST_EXE_FLAGS     := $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_EXE_FLAGS)
 
-NOARCH_SO_FLAGS    += $(FLAG_RELRO) -Wl,--gc-sections -shared $(FLAG_STDLIB) -fPIC 
+NOARCH_SO_FLAGS    += $(FLAG_RELRO) $(FLAG_GC_SECTIONS) -shared $(FLAG_STDLIB) -fPIC 
 SO_FLAGS           := $(ARCHITECTURE_CFLAGS) $(NOARCH_SO_FLAGS)
 HOST_SO_FLAGS      := $(HOST_ARCHITECTURE_CFLAGS) $(NOARCH_SO_FLAGS)
 

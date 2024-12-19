@@ -2,6 +2,32 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.20 ===
+* Implemented Referencer plugin series.
+* Added "Automatically load files when navigating file list" feature that allows to
+  automatically load files when navigating file list nearby the loaded sample.
+* Added shared memory sends and returns to Mixer plugin series.
+* Added shared memory returns to A/B Tester plugin series.
+* Added tracking of maximum values to the Spectrum Analyzer plugin series.
+* Several fixes around UI Widgets.
+* Added 'Stop' button for file preview in plugins tha allow audio file loading:
+  * Impulse Responses;
+  * Impulse Reverb;
+  * Room Builder;
+  * Sampler and Multisampler;
+  * Trigger.
+* Better support of Enter and Escape keys in dialogs.
+* Yet more SIMD and AVX-512 optimizations in the DSP libray.
+* AVX-512 optimizations are now enabled for AMD Ryzen 7000 processor series and later.
+* DSP library now supports build for MacOS on Apple M1 and later chips.
+* Fixed possible file name loss on deactivated plugins for all modern plugin formats.
+* Fixed imprecise spectrum graph and left/right channel desynchronization when rapidly
+  changing the frequency of filter in Parametric Equalizer plugin series.
+* Fixed the behaviour of the 'Inspect' button in the VST3 version of Parametric Equalizer
+  plugin series. The fix may cause some regressions in user sessions by enabling the
+  inpection of the first filter.
+* Fixed regression related to he AArch64 version of plugins that freezed the host.
+
 === 1.2.19 ===
 * Rollback of source code distribution to tar.gz archive format.
 * Fixed unneeded resource object deletion and use-after-free in VST plugin wrapper.

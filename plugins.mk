@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2023 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2023 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -59,6 +59,7 @@ PLUGIN_DEPENDENCIES     = \
   LSP_PLUGINS_PARA_EQUALIZER \
   LSP_PLUGINS_PHASE_DETECTOR \
   LSP_PLUGINS_PROFILER \
+  LSP_PLUGINS_REFERENCER \
   LSP_PLUGINS_RETURN \
   LSP_PLUGINS_ROOM_BUILDER \
   LSP_PLUGINS_SAMPLER \
