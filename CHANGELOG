@@ -4,6 +4,8 @@
 
 === 1.2.21 ===
 * Fixed some typos in UI.
+* Added workaround for Renoise host related to latency reporting by VST2 and VST3 plugins
+  on state load.
 
 === 1.2.20 ===
 * Implemented Referencer plugin series.
