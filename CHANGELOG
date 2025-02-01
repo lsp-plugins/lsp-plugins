@@ -4,6 +4,11 @@
 
 === 1.2.21 ===
 * Fixed some typos in UI.
+* Implemented default OpenGL rendering engine for the UI for X11-based operating systems.
+  The rendering engine can be switched back to Cairo by setting LSP_WS_LIB_GLXSURFACE=off
+  environment variable.
+* Several optimizations related to scaling widgets in the graphical toolkit library.
+* Updated several core libraries for better support of MacOS.
 * Added workaround for Renoise host related to latency reporting by VST2 and VST3 plugins
   on state load.
 

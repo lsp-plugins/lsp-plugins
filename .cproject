@@ -25,6 +25,7 @@
 								<option defaultValue="gnu.cpp.compiler.debugging.level.max" id="gnu.cpp.compiler.exe.debug.option.debugging.level.1651302549" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.preprocessor.def.2044213978" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="LSP_TESTING"/>
+									<listOptionValue builtIn="false" value="USE_LIBGL"/>
 									<listOptionValue builtIn="false" value="USE_LIBJACK"/>
 									<listOptionValue builtIn="false" value="USE_LIBXRANDR"/>
 									<listOptionValue builtIn="false" value="USE_LADSPA"/>
@@ -111,6 +112,7 @@
 								<option defaultValue="gnu.c.debugging.level.max" id="gnu.c.compiler.exe.debug.option.debugging.level.1923388566" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.c.compiler.option.preprocessor.def.symbols.1947477353" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="LSP_TESTING"/>
+									<listOptionValue builtIn="false" value="USE_LIBGL"/>
 									<listOptionValue builtIn="false" value="USE_LIBJACK"/>
 									<listOptionValue builtIn="false" value="USE_LIBXRANDR"/>
 									<listOptionValue builtIn="false" value="USE_LIBCAIRO"/>
@@ -188,7 +190,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.845625899" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool commandLinePattern="${COMMAND} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS} ${FLAGS}" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.70869238" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.pthread.1321321178" name="Support for pthread (-pthread)" superClass="gnu.cpp.link.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.link.option.flags.1606142793" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-fsanitize=address $(shell pkg-config --libs jack x11 cairo sndfile gl freetype2 xrandr gstreamer-audio-1.0)" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.1606142793" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-fsanitize=address $(shell pkg-config --libs jack x11 cairo sndfile gl freetype2 fontconfig xrandr gstreamer-audio-1.0)" valueType="string"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.link.option.libs.1983583075" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="pthread"/>
 									<listOptionValue builtIn="false" value="rt"/>
