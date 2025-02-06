@@ -11,6 +11,7 @@
 * Updated several core libraries for better support of MacOS.
 * Added workaround for Renoise host related to latency reporting by VST2 and VST3 plugins
   on state load.
+* Added possibility to use custom scaling for each plugin bundle.
 
 === 1.2.20 ===
 * Implemented Referencer plugin series.
