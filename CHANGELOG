@@ -12,6 +12,22 @@
 * Added workaround for Renoise host related to latency reporting by VST2 and VST3 plugins
   on state load.
 * Added possibility to use custom scaling for each plugin bundle.
+* Added highlighting of active item in file navigator nearby sample preview.
+* Fixed unnecessary output parameter cleanup when importing configuration that caused several
+  bugs when importing plugin state from file.
+* Fixed regression related to impossibility of setting proper values for in several parameters
+  in the VST3 plugin format.
+* Additional AVX-512 optimizations of code DSP library.
+* Several changes in Sampler and Multisampler plugin series:
+  * Implemented possibility to Drag&Drop drumkits, SFZ files and LSPC files directly
+    to the plugin's window for import purpose.
+  * Muting button does not disable the listen button.
+  * Added 'velocity' button that allows to disable or enable the volume control
+    of a sample by the velocity value of the MIDI note.
+  * Added automatic instrument name assign same to current sample file name if UI behavior
+    option 'Take instrument name from file' is enabled and the name of instrument is
+    empty or similar to currently selected sample file.
+  * Updated several labels in the UI.
 
 === 1.2.20 ===
 * Implemented Referencer plugin series.
