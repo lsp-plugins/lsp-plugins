@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -42,17 +42,18 @@ DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3
 #------------------------------------------------------------------------------
 # Linux dependencies
 LINUX_DEPENDENCIES = \
-  LIBPTHREAD \
-  LIBDL \
-  LIBRT \
-  LIBSNDFILE \
   LIBCAIRO \
+  LIBDL \
+  LIBFONTCONFIG \
   LIBFREETYPE \
-  LIBX11 \
-  LIBXRANDR \
   LIBGL \
   LIBGSTREAMER_AUDIO \
   LIBJACK \
+  LIBPTHREAD \
+  LIBRT \
+  LIBSNDFILE \
+  LIBX11 \
+  LIBXRANDR \
   LSP_R3D_GLX_LIB
 
 LINUX_TEST_DEPENDENCIES =
@@ -66,18 +67,19 @@ endif
 #------------------------------------------------------------------------------
 # BSD dependencies
 BSD_DEPENDENCIES = \
-  LIBPTHREAD \
-  LIBDL \
-  LIBRT \
-  LIBSNDFILE \
-  LIBICONV \
   LIBCAIRO \
+  LIBDL \
+  LIBFONTCONFIG \
   LIBFREETYPE \
-  LIBX11 \
-  LIBXRANDR \
   LIBGL \
   LIBGSTREAMER_AUDIO \
+  LIBICONV \
   LIBJACK \
+  LIBPTHREAD \
+  LIBRT \
+  LIBSNDFILE \
+  LIBX11 \
+  LIBXRANDR \
   LSP_R3D_GLX_LIB
 
 BSD_TEST_DEPENDENCIES = 
@@ -88,21 +90,9 @@ ifeq ($(PLATFORM),BSD)
   DEFAULT_FEATURES         += jack gst xdg
 endif
 
-
-ifeq ($(PLATFORM),Windows)
-  DEPENDENCIES += \
-    LIBSHLWAPI \
-    LIBWINMM \
-    LIBMSACM \
-    LIBD2D1 \
-    LIBOLE \
-    LIBWINCODEC
-endif
-
 #------------------------------------------------------------------------------
 # Windows dependencies
 WINDOWS_DEPENDENCIES = \
-  LIBADVAPI32 \
   LIBSHLWAPI \
   LIBWINMM \
   LIBMSACM \
@@ -134,4 +124,3 @@ ALL_DEPENDENCIES = \
   $(LINUX_TEST_DEPENDENCIES) \
   $(BSD_TEST_DEPENDENCIES) \
   $(WINDOWS_TEST_DEPENDENCIES)
-

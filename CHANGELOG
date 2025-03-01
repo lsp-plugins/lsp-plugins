@@ -2,6 +2,33 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.21 ===
+* Implemented default OpenGL rendering engine for the UI for X11-based operating systems.
+  The rendering engine can be switched back to Cairo by setting LSP_WS_LIB_GLXSURFACE=off
+  environment variable.
+* Added possibility to use custom scaling for each plugin bundle.
+* Added highlighting of active item in file navigator nearby sample preview.
+* Several optimizations related to scaling widgets in the graphical toolkit library.
+* Updated several core libraries for better support of MacOS.
+* Additional AVX-512 optimizations of code DSP library.
+* Several changes in Sampler and Multisampler plugin series:
+  * Implemented possibility to Drag&Drop drumkits, SFZ files and LSPC files directly
+    to the plugin's window for import purpose.
+  * Muting button does not disable the listen button.
+  * Added 'velocity' button that allows to disable or enable the volume control
+    of a sample by the velocity value of the MIDI note.
+  * Added automatic instrument name assign same to current sample file name if UI behavior
+    option 'Take instrument name from file' is enabled and the name of instrument is
+    empty or similar to currently selected sample file.
+  * Updated several labels in the UI.
+* Added workaround for Renoise host related to latency reporting by VST2 and VST3 plugins
+  on state load.
+* Fixed unnecessary output parameter cleanup when importing configuration that caused several
+  bugs when importing plugin state from file.
+* Fixed regression related to impossibility of setting proper values for in several parameters
+  in the VST3 plugin format.
+* Fixed some typos in UI.
+
 === 1.2.20 ===
 * Implemented Referencer plugin series.
 * Added "Automatically load files when navigating file list" feature that allows to

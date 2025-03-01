@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -25,4 +25,4 @@ ARTIFACT_TYPE               = plug
 ARTIFACT_DESC               = Linux Studio Plugins
 ARTIFACT_HEADERS            = lsp-plug.in
 ARTIFACT_EXPORT_HEADERS     = 0
-ARTIFACT_VERSION            = 1.2.20
+ARTIFACT_VERSION            = 1.2.21
