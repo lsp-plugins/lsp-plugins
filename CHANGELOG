@@ -2,6 +2,9 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.22 ===
+
+
 === 1.2.21 ===
 * Implemented default OpenGL rendering engine for the UI for X11-based operating systems.
   The rendering engine can be switched back to Cairo by setting LSP_WS_LIB_GLXSURFACE=off
