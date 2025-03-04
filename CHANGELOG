@@ -3,7 +3,7 @@
 *******************************************************************************
 
 === 1.2.22 ===
-
+* Added several dependencies for MacOS.
 
 === 1.2.21 ===
 * Implemented default OpenGL rendering engine for the UI for X11-based operating systems.
