@@ -266,7 +266,7 @@ For Windows build, the following software needs to be installed:
   
 To perform toolchain setup for Windows, you may perform the following steps:
   * Download [latest Git](https://git-scm.com/download/win)
-  * Download [latest MinGW-W64 GCC](from https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
+  * Download [latest MinGW-W64 GCC](https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
   * Download [latest PHP x64 Thread Safe ZIP package](https://windows.php.net/download/)
   * Install Git
   * Unpack PHP ZIP to C:\php
