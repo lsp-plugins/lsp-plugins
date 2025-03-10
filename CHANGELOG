@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.22 ===
+* Fixed regression related to creating new global configuration file.
 * Added several dependencies for MacOS.
 
 === 1.2.21 ===
