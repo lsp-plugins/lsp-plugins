@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.22 ===
+* Fixed some command line options that caused JACK version to crash.
 * Fixed regression related to creating new global configuration file.
 * Added several dependencies for MacOS.
 
