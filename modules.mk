@@ -310,6 +310,12 @@ LSP_PLUGINS_PHASE_DETECTOR_TYPE         := plug
 LSP_PLUGINS_PHASE_DETECTOR_URL_RO       := https://github.com/lsp-plugins/$(LSP_PLUGINS_PHASE_DETECTOR_NAME).git
 LSP_PLUGINS_PHASE_DETECTOR_URL_RW       := git@github.com:lsp-plugins/$(LSP_PLUGINS_PHASE_DETECTOR_NAME).git
 
+LSP_PLUGINS_PHASER_VERSION              := 1.0.0
+LSP_PLUGINS_PHASER_NAME                 := lsp-plugins-phaser
+LSP_PLUGINS_PHASER_TYPE                 := plug
+LSP_PLUGINS_PHASER_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_PHASER_NAME).git
+LSP_PLUGINS_PHASER_URL_RW               := git@github.com:lsp-plugins/$(LSP_PLUGINS_PHASER_NAME).git
+
 LSP_PLUGINS_PROFILER_VERSION            := 1.0.24
 LSP_PLUGINS_PROFILER_NAME               := lsp-plugins-profiler
 LSP_PLUGINS_PROFILER_TYPE               := plug
