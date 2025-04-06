@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.22 ===
+* Implemented Chorus plugin series.
+* Fixed broken transport (tempo BPM) synchronization for CLAP plugin format.
 * Fixed some command line options that caused JACK version to crash.
 * Fixed regression related to creating new global configuration file.
 * Added several dependencies for MacOS.
