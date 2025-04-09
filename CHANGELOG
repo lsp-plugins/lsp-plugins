@@ -4,6 +4,8 @@
 
 === 1.2.22 ===
 * Implemented Chorus plugin series.
+* Added pitch knob for pitching files to the Impulse Responses and Impulse Reverb
+  plugin series.
 * Fixed broken transport (tempo BPM) synchronization for CLAP plugin format.
 * Fixed some command line options that caused JACK version to crash.
 * Fixed regression related to creating new global configuration file.
