@@ -7,6 +7,7 @@
 * Significantly reduced quantization noise for Chorus and Flanger plugin series.
 * Added pitch knob for pitching files to the Impulse Responses and Impulse Reverb
   plugin series.
+* Optimized resampling algorithms.
 * Fixed broken transport (tempo BPM) synchronization for CLAP plugin format.
 * Fixed some command line options that caused JACK version to crash.
 * Fixed regression related to creating new global configuration file.
