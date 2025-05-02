@@ -4,6 +4,7 @@
 
 === 1.2.22 ===
 * Implemented Chorus plugin series.
+* Significantly reduced quantization noise for Chorus and Flanger plugin series.
 * Added pitch knob for pitching files to the Impulse Responses and Impulse Reverb
   plugin series.
 * Fixed broken transport (tempo BPM) synchronization for CLAP plugin format.
