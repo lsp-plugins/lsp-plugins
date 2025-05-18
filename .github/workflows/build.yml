@@ -72,7 +72,7 @@ jobs:
       image: opensuse/leap:latest
     steps:
       - name: Install dependencies
-        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ git make php valgrind libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ glibc-locale git make php valgrind libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 ui vst2 vst3 xdg' PREFIX=/usr
@@ -89,7 +89,7 @@ jobs:
       image: opensuse/tumbleweed:latest
     steps:
       - name: Install dependencies
-        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
+        run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ glibc-locale glibc-gconv-modules-extra clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config CC=clang CXX=clang++ STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 ui vst2 vst3 xdg' PREFIX=/usr

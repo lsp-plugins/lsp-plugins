@@ -114,13 +114,32 @@ ifeq ($(PLATFORM),Windows)
 endif
 
 #------------------------------------------------------------------------------
+# MacOS dependencies
+MACOS_DEPENDENCIES = \
+  LIBAUDIOTOOLBOX \
+  LIBCOREFOUNDATION \
+  LIBICONV \
+  LIBJACK
+
+MACOS_TEST_DEPENDENCIES =
+
+ifeq ($(PLATFORM),MacOS)
+  DEPENDENCIES             += $(MACOS_DEPENDENCIES)
+  TEST_DEPENDENCIES        += $(MACOS_TEST_DEPENDENCIES)
+endif
+
+#------------------------------------------------------------------------------
 # All possible dependencies
 ALL_DEPENDENCIES = \
   $(DEPENDENCIES) \
   $(LINUX_DEPENDENCIES) \
   $(BSD_DEPENDENCIES) \
   $(WINDOWS_DEPENDENCIES) \
+  $(MACOS_DEPENDENCIES) \
   $(TEST_DEPENDENCIES) \
   $(LINUX_TEST_DEPENDENCIES) \
   $(BSD_TEST_DEPENDENCIES) \
-  $(WINDOWS_TEST_DEPENDENCIES)
+  $(WINDOWS_TEST_DEPENDENCIES) \
+  $(MACOS_TEST_DEPENDENCIES)
+
+  
