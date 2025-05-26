@@ -4,6 +4,11 @@
 
 === 1.2.23 ===
 * Added support of minimum-phase filter mode for Loudness Compensator plugin series.
+* Added 'M/S Link' and 'S/C Link' buttons to LeftRigth and MidSide versions of following plugins:
+  * Compressor;
+  * Multiband Compressor;
+  * Parametric Equalizer;
+  * Graphic Equalizer.
 
 === 1.2.22 ===
 * Implemented Phaser plugin series.
