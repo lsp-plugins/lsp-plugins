@@ -10,6 +10,10 @@
   * Multiband Compressor;
   * Parametric Equalizer;
   * Graphic Equalizer.
+* Added audio channel pre-mixing controls for the following plugins:
+  * Compressor, Dynamics Processor, Expander, Gate and Limiter;
+  * Multiband Compressor, Multiband Dynamics Processor, Multiband Expander, Multiband Gate and Multiband Limiter;
+  * GOTT Compressor.
 
 === 1.2.22 ===
 * Implemented Phaser plugin series.
