@@ -14,6 +14,8 @@
   * Compressor, Dynamics Processor, Expander, Gate and Limiter;
   * Multiband Compressor, Multiband Dynamics Processor, Multiband Expander, Multiband Gate and Multiband Limiter;
   * GOTT Compressor.
+* Added frequency linking button to the Phaser plugin series that allows to link minimum
+  and maximum LFO frequencies and to keep logarithmic frequency range being constant.
 
 === 1.2.22 ===
 * Implemented Phaser plugin series.
