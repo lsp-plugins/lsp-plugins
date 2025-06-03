@@ -72,14 +72,14 @@
 * Added shared memory returns to A/B Tester plugin series.
 * Added tracking of maximum values to the Spectrum Analyzer plugin series.
 * Several fixes around UI Widgets.
-* Added 'Stop' button for file preview in plugins tha allow audio file loading:
+* Added 'Stop' button for file preview in plugins that allow audio file loading:
   * Impulse Responses;
   * Impulse Reverb;
   * Room Builder;
   * Sampler and Multisampler;
   * Trigger.
 * Better support of Enter and Escape keys in dialogs.
-* Yet more SIMD and AVX-512 optimizations in the DSP libray.
+* Yet more SIMD and AVX-512 optimizations in the DSP library.
 * AVX-512 optimizations are now enabled for AMD Ryzen 7000 processor series and later.
 * DSP library now supports build for MacOS on Apple M1 and later chips.
 * Fixed possible file name loss on deactivated plugins for all modern plugin formats.
@@ -87,7 +87,7 @@
   changing the frequency of filter in Parametric Equalizer plugin series.
 * Fixed the behaviour of the 'Inspect' button in the VST3 version of Parametric Equalizer
   plugin series. The fix may cause some regressions in user sessions by enabling the
-  inpection of the first filter.
+  inspection of the first filter.
 * Fixed regression related to he AArch64 version of plugins that freezed the host.
 
 === 1.2.19 ===
@@ -96,7 +96,7 @@
 * Fixed window sizing for CLAP plugin format.
 * Updated CLAP SDK to 1.2.2.
 * Updated VST3 SDK to 3.7.12, may be breaking changes related to parameter identifiers as
-  Steinberg has twice reduced the set of valid paremeter identifiers.
+  Steinberg has twice reduced the set of valid parameter identifiers.
 * Several fixes in build scripts.
 
 === 1.2.18 ===
@@ -202,7 +202,7 @@
 * Fixed Artistic Delay which could generate audio garbage on session startup.
 * Improved precision of bilinear transform for filters which could blow up signal when
   using steep-curved filters.
-* Fixed jumping UI controls issues caused by variable widths of diffrent parameters.
+* Fixed jumping UI controls issues caused by variable widths of different parameters.
 
 === 1.2.15 ===
 * Added experimental VST3 plugin format support.
@@ -357,7 +357,7 @@
 * Fixed memory leakage in the UI (not freed resources on UI close).
 * Fixed bug in ALR function for Limiter plugin series which could cause random audio scratches.
 * Fixed gain jumping bug in A/B tester plugin.
-* Serveral bugfixes in the core DSP modules provided by the lsp-dsp-units library.
+* Several bugfixes in the core DSP modules provided by the lsp-dsp-units library.
 
 === 1.2.7 ===
 * Fixed CLAP UI support for Bitwig Studio.
@@ -550,7 +550,7 @@
 
 * Fixed latency computation error for FIR and FFT modes of the filter.
 * Optimize FIR and FFT equalizers to use fastconv_ routines instead of FFT.
-* Implemented SPM mode for Parameteric and Graphic Equalizer plugin series.
+* Implemented SPM mode for Parametric and Graphic Equalizer plugin series.
 * Fixed improper VST call handling for several calls.
 * Several typo fixes in documentation (contributed by Olivier Humbert).
 * Fixed improper output MIDI event sorting for all plugins.
@@ -594,7 +594,7 @@
 * Fixed small memory leakage in multiband plugins (Compressor, Gate, Expander) related to usage of
   Inline Display feature.
 * Added support of pg:mainInput and pg:mainOutput LV2 properties in TTL files for all plugins.
-* Updated all C++ heades and source files to match the LGPL3+ license headers.
+* Updated all C++ headers and source files to match the LGPL3+ license headers.
 
 === 1.1.24 ===
 
@@ -609,7 +609,7 @@
 * Added support of loading Hydrogen drumkits by the Multisampler plugin series.
 * Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
 * Fixed bug that caused Spectrum Analyzer to ignore window selection.
-* Fixed bug in AVX-optimized sidechaining funcion that could cause invalid behaviour of plugins that 
+* Fixed bug in AVX-optimized sidechaining function that could cause invalid behaviour of plugins that 
   use external/internal sidechain for processing.
 * Implemented back-buffering of the window surface, all UI controls now don't glitch on edit.
 * Refactored and simplified LV2 parameter transport between UI and plugin code.
@@ -719,7 +719,7 @@
 * Added possibility to double-click the parameter's value and enter it manually with keyboard.
 * Added bookmark support by file opening/saving dialogs. Bookmarks are also automatically imported from
   GNOME/KDE desktop environments' configuration files.
-* Refactored UI of the Parameteric Equalizer plugin series.
+* Refactored UI of the Parametric Equalizer plugin series.
 * Added allpass filters to Parametric Equalizer plugin.
 * Added knobs that allow to simultaneously shift frequency for all active filters
   in the Parametric Equalizer plugin series.
@@ -746,11 +746,11 @@
 * Additionally optimized DSP biquad filters for 32-bit ARM NEON instruction set.
 * Additional DSP optimizations for AArch64 architecture.
 * Additional DSP optimizations of code with AVX, AVX2 and FMA3 instruction set for i586 and x86_64 architectures.
-* Refactored clipboard mechanism for X11 protocol, addes support of INCR selection transfer protocol.
+* Refactored clipboard mechanism for X11 protocol, adds support of INCR selection transfer protocol.
 * Refactoring of the UI widgets, eliminated old UI code and some deprecated facilities from all widgets.
 * Implemented basic styling mechanism for UI widgets.
 * Implemented ipc::Process class that allows to run nested processes with I/O redirection.
-  Code now prefers vfork() system call agains fork().
+  Code now prefers vfork() system call over fork().
 * Fixed memory corruption bug in Analyzer core module that could crash the system on
   non-power-of-two buffer sizes. Affected plugins: Parametric Equalizer, Graphic Equalizer,
   Spectrum Analyzer, Multiband Compressor.
@@ -808,7 +808,7 @@
 
 * Implemented fully compatible with EqualizerAPO software digital filters that are
   now part of the Parametric Equalizer plugin series.
-* Fixed issue that caused VST plugins not to load from cusom user-defined path.
+* Fixed issue that caused VST plugins not to load from custom user-defined path.
 * Some code parts rewritten for better compatibility with WindowsNT platform.
 * Fixed file listing in the file dialog that caused improper reading of remote directories
   mounted on the local file system.
@@ -953,7 +953,7 @@
 * Bitwig Studio DAW is now supported by UI
 * REAPER native linux version is now supported by UI
 * Updated JACK plugin wrapper to support new UIs
-* Updated VST pluign wrapper to support new UIs
+* Updated VST plugin wrapper to support new UIs
 * Updated LV2 plugin wrapper to support new UIs
 * Implemented LV2:Instance support feature for optimizing LV2 DSP <-> UI transfers
 * Official Steinberg VST 2.4 SDK is not required more for building VST plugins
@@ -1111,7 +1111,7 @@
 * Fixed time drifting between Middle and Side channels in FIR/FFT mode for Graphic
   Equalizer and Parametric Equalizer.
 * Fixed and updated metadata of Graphic Equalizer plugin: now filters have individual
-  pre-defined frequencies, Graphic Equalizer's tranlation is corrected to 'Graphic Equalizer';.
+  pre-defined frequencies, Graphic Equalizer's translation is corrected to 'Graphic Equalizer';.
 * Re-worked LSP Parametrischer Equalizer plugin series: added filter mode parameter.
 * A bit improved support of LinuxVST for Tracktion DAW and other JUCE'd plugins. Great thanks
   to Nick Dowell, the developer of amsynth. Still, there are problems with UI redraw.
@@ -1131,13 +1131,13 @@
 * Added Inline Display LV2 extension support provided by Ardour to all LV2 plugin series that
   use interactive graphic output.
 * Standalone versions of plugins now draw their state on window icons similarly to Inline Display extension.
-* Optmized processing speed of IIR filters, overall acceleration is about 1.5x for filters with low
+* Optimized processing speed of IIR filters, overall acceleration is about 1.5x for filters with low
   number of poles and zeros, about 5x for filters with high amount of poles and zeros.
 * Optimized equalizer structure by using filter banks. Low-pole filters in equalizer are combined into 4x
   biquad filter banks. Overall performance improvement is about 4x.
 * Floating-point calculations are more accurate now for FIR filters.
 * Added output signal metering to LSP Parametrischer Entzerrer plugin series.
-* Moved spectrum analysis into separate core module for making re-usable.
+* Moved spectrum analysis into separate core module for making reusable.
 * Fixed bugs of floating-point number formatting by the 'indicator' widget.
 * Added possibility to minimize visual space used by plugin by reducing size of rack mount studs in the UI.
 * Plugin UIs now store global configuration in ~/.config/lsp-plugins/lsp-plugins.cfg file.
@@ -1188,7 +1188,7 @@
 
 === 1.0.6 ===
 
-* Reorganized source tree. Splitted plugin metadata into separate files and moved from core to the new directory.
+* Reorganized source tree. Split plugin metadata into separate files and moved from core to the new directory.
 * Fixed errors in formulas of noise envelopes for Spektrumanalysator.
 * Fixed some bugs in DSP SSE module functions caused to possible crash plugins on some conditions.
 * Implemented audio resampling algorithm for audio files using N-period Lanczos kernel convolution.
@@ -1204,7 +1204,7 @@
 * Implemented serialization/deserialization of plugin state to plain text files (available in UI when clicking on logo or model acronym).
 * Optimized the size of XML data (implemented 'ui:for' tag for cycles in XML documents).
 * Optimized LV2 TTL generator for more compact RDF output, fixed some problems in RDF format.
-* Changed the color of 'Bypass' swtich to red.
+* Changed the color of 'Bypass' switch to red.
 * Implemented Klangerzeuger (Sampler) plugin Mono/Stereo series.
 * Implemented Schlagzeug (Multi-Sampler) plugin x12, x24, x48 Stereo/Direktausgabe (DirectOut) series.
 
