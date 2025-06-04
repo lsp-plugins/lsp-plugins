@@ -16,6 +16,7 @@
   * GOTT Compressor.
 * Added frequency linking button to the Phaser plugin series that allows to link minimum
   and maximum LFO frequencies and to keep logarithmic frequency range being constant.
+* Added exciter-like effect presets for Phaser plugin series contributed by Attila Schler.
 * Fixed improper AVX-512 optimization for lanczos kernel genration function which could cause
   improper resampling of audio files and yield some plugins to not to work properly.
 
