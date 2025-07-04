@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.23 ===
+* VST3 plugin state format changed, not backward-compatible with previous versions
+  of plugins. Downgrading version may cause plugin state loss.
 * Added support of minimum-phase filter mode for Loudness Compensator plugin series.
 * Added possibility to automatically play samples when navigating file list.
 * Added 'M/S Link' and 'S/C Link' buttons to LeftRigth and MidSide versions of following plugins:
