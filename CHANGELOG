@@ -8,19 +8,20 @@
 * Added support of minimum-phase filter mode for Loudness Compensator plugin series.
 * Added possibility to automatically play samples when navigating file list.
 * Added 'M/S Link' and 'S/C Link' buttons to LeftRigth and MidSide versions of following plugins:
-  * Compressor;
-  * Multiband Compressor;
-  * Parametric Equalizer;
-  * Graphic Equalizer.
+  * Compressor, Dynamics Builder, Expander, Gate;
+  * Multiband plugins: Compressor, Dynamics Builder, Expander, Gate;
+  * Equalizers: Parametric Equalizer and Graphic Equalizer;
+  * Crossover plugin.
 * Added audio channel pre-mixing controls for the following plugins:
   * Compressor, Dynamics Processor, Expander, Gate and Limiter;
-  * Multiband Compressor, Multiband Dynamics Processor, Multiband Expander, Multiband Gate and Multiband Limiter;
+  * Multiband plugins: Compressor, Dynamics Processor, Expander, Gate and Limiter;
   * GOTT Compressor.
 * Added frequency linking button to the Phaser plugin series that allows to link minimum
   and maximum LFO frequencies and to keep logarithmic frequency range being constant.
 * Added exciter-like effect presets for Phaser plugin series contributed by Attila Schler.
 * Fixed improper AVX-512 optimization for lanczos kernel genration function which could cause
   improper resampling of audio files and yield some plugins to not to work properly.
+* Fixed bug in frequency split editing for Mid/Side and Left/Right versions of Crossover plugin.
 
 === 1.2.22 ===
 * Implemented Phaser plugin series.
