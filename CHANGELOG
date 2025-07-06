@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.23 ===
+* Added command line option for JACK that allows to specify client name.
+* Implemented preset management in the UI of the plugin.
+* Some bugfixes and improvements in VST3 plugin format, now UI works for editorhost
+  demo application from the Steinberg VST3 SDK.
 * VST3 plugin state format changed, not backward-compatible with previous versions
   of plugins. Downgrading version may cause plugin state loss.
 * Added support of minimum-phase filter mode for Loudness Compensator plugin series.
