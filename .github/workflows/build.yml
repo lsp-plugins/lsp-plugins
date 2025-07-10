@@ -165,3 +165,19 @@ jobs:
         shell: msys2 {0}
         run: make VERBOSE=1
 
+  macos_stable:
+    runs-on: macos-latest
+    steps:
+      - name: Update repositories
+        run: brew update
+      - name: Install dependencies
+        run: brew install make pkgconf cairo freetype
+      - uses: actions/checkout@v3
+      - name: Configure project
+        run: gmake config STRICT=1 VERBOSE=1 FEATURES='lv2 ui'
+      - name: Fetch project dependencies
+        run: gmake fetch
+      - name: Build project
+        run: gmake VERBOSE=1
+      - name: Install binaries
+        run: gmake install
