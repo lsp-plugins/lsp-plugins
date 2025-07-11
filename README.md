@@ -55,7 +55,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │armv7-ar   │     E     │    E    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
-  │i586       │     F     │    E    │    E    │    N    │
+  │i586       │     F     │    F    │    E    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │loongarch32│     C     │    U    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
@@ -67,7 +67,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │s390x      │     C     │    U    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
-  │x86_64     │     F     │    E    │    E    │    U    │
+  │x86_64     │     F     │    F    │    E    │    U    │
   └───────────┴───────────┴─────────┴─────────┴─────────┘ 
 ```
 
@@ -247,7 +247,7 @@ The usual directory for LV2 binaries is:
 You may build plugins from scratch.
 
 The build process doesn't differ much for GNU/Linux, FreeBSD or Windows. 
-For a build on macOS you should use `gmake` instead of `make`.
+For a build on macOS and FreeBSD you should use `gmake` instead of `make`.
 Build of JACK standalone versions for Windows is yet not supported.
 
 For successful build for Linux/FreeBSD you need the following packages to be installed:
