@@ -44,31 +44,31 @@ For more information about licensing, please read COPYING and COPYING.LESSER.
 Current matrix of hardware architecture and platform (OS) support is:
 
 ```
-  ┌───────────┬───────────┬─────────┬─────────┐
-  │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │
-  ╞═══════════╪═══════════╪═════════╪═════════╡
-  │aarch64    │     F     │    E    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │armv5t     │     C     │    C    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │armv6-a    │     E     │    E    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │armv7-ar   │     E     │    E    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │i586       │     F     │    E    │    E    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │loongarch32│     C     │    U    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │loongarch64│     C     │    U    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │ppc64      │     C     │    U    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │riscv-64   │     C     │    U    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │s390x      │     C     │    U    │    U    │
-  ├───────────┼───────────┼─────────┼─────────┤
-  │x86_64     │     F     │    E    │    E    │
-  └───────────┴───────────┴─────────┴─────────┘ 
+  ┌───────────┬───────────┬─────────┬─────────┬─────────┐
+  │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │  macOS  |
+  ╞═══════════╪═══════════╪═════════╪═════════╪═════════╡
+  │aarch64    │     F     │    E    │    U    │    E    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │armv5t     │     C     │    C    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │armv6-a    │     E     │    E    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │armv7-ar   │     E     │    E    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │i586       │     F     │    F    │    E    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │loongarch32│     C     │    U    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │loongarch64│     C     │    U    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │ppc64      │     C     │    U    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │riscv-64   │     C     │    U    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │s390x      │     C     │    U    │    U    │    N    │
+  ├───────────┼───────────┼─────────┼─────────┼─────────┤
+  │x86_64     │     F     │    F    │    E    │    U    │
+  └───────────┴───────────┴─────────┴─────────┴─────────┘ 
 ```
 
 The table legend is the following:
@@ -237,11 +237,17 @@ The usual directory for VST3 binaries is:
 The usual directory for CLAP binaries is:
   * C:\Program Files\Common Files\CLAP
 
+## For macOS
+
+The usual directory for LV2 binaries is:
+  * /usr/local/lib/lv2
+
 # BUILDING
 
 You may build plugins from scratch.
 
-The build process doesn't differ much for GNU/Linux, FreeBSD or Windows.
+The build process doesn't differ much for GNU/Linux, FreeBSD or Windows. 
+For a build on macOS and FreeBSD you should use `gmake` instead of `make`.
 Build of JACK standalone versions for Windows is yet not supported.
 
 For successful build for Linux/FreeBSD you need the following packages to be installed:
@@ -258,12 +264,18 @@ For successful build for Linux/FreeBSD you need the following packages to be ins
   * gstreamer >= 1.20 (for GStreamer)
   * gstreamer-plugins-base >= 1.20 (for GStreamer)
 
+For macOS build, the following software needs to be installed:
+  * make >= 4.4.1
+  * cairo >= 1.18.4
+  * freetype >= 2.13.3
+  * pkgconf >= 2.5.1
+
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
   * Git >= 2.8 (optional)
   * PHP >= 5.5.14
   * GNU Make >= 4.2
-  
+
 To perform toolchain setup for Windows, you may perform the following steps:
   * Download [latest Git](https://git-scm.com/download/win)
   * Download [latest MinGW-W64 GCC](https://sourceforge.net/projects/mingw-w64/files/mingw-w64/)
@@ -383,6 +395,17 @@ For more build options, issue:
   make help
 ```
 
+Build example for macOS:
+```
+  brew install make pkgconf cairo freetype
+  gmake clean
+  gmake config FEATURES="lv2 ui"
+  gmake fetch
+  gmake
+  sudo gmake install
+```
+
+
 # DEBUGGING
 
 For debugging and getting crash stack trace with Ardour, please follow these steps:
@@ -465,14 +488,19 @@ measuring single-core performance of different modules and functions and perform
 optimizations.
 
 To build testing subsystem, issue the following commands:
+```
   make clean
   make config TEST=1
   make
+```
 
 After build, we can launch the test binary by issuing command:
+```
   .build/host/lsp-plugin-fw/lsp-plugins-test
+```
 
 This binary provides simple command-line interface, so here's the full usage:  
+```
   USAGE: {utest|ptest|mtest} [args...] [test name...]
     First argument:
       utest                 Unit testing subsystem
@@ -496,23 +524,30 @@ This binary provides simple command-line interface, so here's the full usage:
       -s, --silent          Do not output additional information from tests
       -t, --tracepath path  Override default trace path with specified value
       -v, --verbose         Output additional information from tests
+```
 
 Each test has fully-qualified name separated by dot symbols, tests from different
 test spaces (utest, ptest, mtest) may have similar fully-qualified names.
 
 To obtain a list of all unit tests we can issue:
+```
   .build/host/lsp-plugin-fw/lsp-plugins-test utest --list
+```
 
 And then we can launch all complex number processing unit tests and additionally
 'dsp.mix' unit test:
+```
   .build/host/lsp-plugin-fw/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+```
 
 If we don's specify any unit test name in argument, then all available unit tests
 will be launched.
 
 To start debugging of some unit test, you need to pass additional arguments:
+```
   .build/host/lsp-plugin-fw/lsp-plugins-test/lsp-plugins-test utest --nofork --debug --verbose
-  
+```
+
 Because unit tests are short-time fully-automated tests, they are parallelized and
 executed by default by number_of_cores*2 processes. To disable this, we specify option
 --nofork. Also, unit test execution time is limited by 5 seconds by default, so when
@@ -524,7 +559,9 @@ We also can use performance tests to obtain full performance profile of target m
 Because performance tests in most cases take much time for gathering statistics,
 the final statistics for each test can be saved in a separate file by specifying --outfile
 option:
+```
   .build/host/lsp-plugin-fw/lsp-plugins-test ptest -o performance-test.log
+```
 
 Manual tests are mostly designed for developers' purposes.
 
