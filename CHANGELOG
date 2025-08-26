@@ -5,14 +5,18 @@
 === 1.2.23 ===
 * Added experimental support of UI for MacOS using FreeType and Cairo libraries.
   Contributed by Marvin Edeler.
-* Added command line option for JACK that allows to specify client name.
-* Implemented preset management in the UI of the plugin.
-* Some bugfixes and improvements in VST3 plugin format, now UI works for editorhost
-  demo application from the Steinberg VST3 SDK.
+* Implemented human-friendly preset management in the plugin's UI.
 * VST3 plugin state format changed, not backward-compatible with previous versions
   of plugins. Downgrading version may cause plugin state loss.
+* Added AHDBSSR (Attack, Hold, Decay, Break, Slope, Sustain, Release) envelope control
+  over loaded samples in Sampler and Multisampler plugin series.
+* Added DC offset control for Clipper and Multiband Clipper plugin series.
+* Added frequency linking button to the Phaser plugin series that allows to link minimum
+  and maximum LFO frequencies and to keep logarithmic frequency range being constant.
+* Added support of linear axis for frequency in Spectrum Analyzer plugin series.
+* Added frequency inspection mode to the Spectrum Analyzer plugin series activated by
+  'Inspect' button or Ctrl + Left Mouse Button on the graph.
 * Added support of minimum-phase filter mode for Loudness Compensator plugin series.
-* Added possibility to automatically play samples when navigating file list.
 * Added 'M/S Link' and 'S/C Link' buttons to LeftRigth and MidSide versions of following plugins:
   * Compressor, Dynamics Builder, Expander, Gate;
   * Multiband plugins: Compressor, Dynamics Builder, Expander, Gate;
@@ -22,12 +26,19 @@
   * Compressor, Dynamics Processor, Expander, Gate and Limiter;
   * Multiband plugins: Compressor, Dynamics Processor, Expander, Gate and Limiter;
   * GOTT Compressor.
-* Added frequency linking button to the Phaser plugin series that allows to link minimum
-  and maximum LFO frequencies and to keep logarithmic frequency range being constant.
+* Extended collection of built-in rooms for Room Builder plugin series by Boris Gotsulenko
+  aka borT.
 * Added exciter-like effect presets for Phaser plugin series contributed by Attila Schler.
+* Added possibility to automatically play samples when navigating file list.
+* Added command line option for JACK that allows to specify client name.
+* Some bugfixes and improvements in VST3 plugin format, now UI works for editorhost
+  demo application from the Steinberg VST3 SDK.
+* Additional optimizations of 3D space mathematics with AVX instruction set.
 * Fixed improper AVX-512 optimization for lanczos kernel genration function which could cause
   improper resampling of audio files and yield some plugins to not to work properly.
 * Fixed bug in frequency split editing for Mid/Side and Left/Right versions of Crossover plugin.
+* Fixed bug in Mid/Side conversion of stereo signal on 32-bit and 64-bit ARM processors.
+  Contributed by Asahi Lina.
 
 === 1.2.22 ===
 * Implemented Phaser plugin series.
