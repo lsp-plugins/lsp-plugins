@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.24 ===
+* Fixed crash when loading project with Loudness Compensator in IIR mode.
 
 === 1.2.23 ===
 * Added experimental support of UI for MacOS using FreeType and Cairo libraries.
