@@ -289,6 +289,8 @@ To perform toolchain setup for Windows, you may perform the following steps:
     * C:\mingw64\bin
     * C:\php
 
+> MacOS includes their own version of `make`, if you decide to install it from homebrew, replace all the commands with `gmake`.
+
 To build the project from archive with source code, the following sequence of commands 
 should be performed:
 
