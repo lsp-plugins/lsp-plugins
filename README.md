@@ -269,6 +269,7 @@ For macOS build, the following software needs to be installed:
   * cairo >= 1.18.4
   * freetype >= 2.13.3
   * pkgconf >= 2.5.1
+  * php >= 5.5.14 (for the docs)
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
