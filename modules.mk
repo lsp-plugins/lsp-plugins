@@ -334,6 +334,12 @@ LSP_PLUGINS_RETURN_TYPE                 := plug
 LSP_PLUGINS_RETURN_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_RETURN_NAME).git
 LSP_PLUGINS_RETURN_URL_RW               := git@github.com:lsp-plugins/$(LSP_PLUGINS_RETURN_NAME).git
 
+LSP_PLUGINS_RINGMOD_SC_VERSION          := 1.0.0
+LSP_PLUGINS_RINGMOD_SC_NAME             := lsp-plugins-ringmod-sc
+LSP_PLUGINS_RINGMOD_SC_TYPE             := plug
+LSP_PLUGINS_RINGMOD_SC_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_RINGMOD_SC_NAME).git
+LSP_PLUGINS_RINGMOD_SC_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_RINGMOD_SC_NAME).git
+
 LSP_PLUGINS_ROOM_BUILDER_VERSION        := 1.0.27
 LSP_PLUGINS_ROOM_BUILDER_NAME           := lsp-plugins-room-builder
 LSP_PLUGINS_ROOM_BUILDER_TYPE           := plug
