@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.24 ===
+* Implemented Ring-Modulated sidechain plugin series.
+* Implemented Multiband Ring-Modulated sidechain plugin series.
+* Fixed frequency range display for Multiband Compressor, Expander, Gate and
+  Dynamics Processor plugin series.
 * Fixed crash when loading project with Loudness Compensator in IIR mode.
 
 === 1.2.23 ===

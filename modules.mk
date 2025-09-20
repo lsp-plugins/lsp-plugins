@@ -274,6 +274,12 @@ LSP_PLUGINS_MB_LIMITER_TYPE             := plug
 LSP_PLUGINS_MB_LIMITER_URL_RO           := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_LIMITER_NAME).git
 LSP_PLUGINS_MB_LIMITER_URL_RW           := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_LIMITER_NAME).git
 
+LSP_PLUGINS_MB_RINGMOD_SC_VERSION       := 1.0.0
+LSP_PLUGINS_MB_RINGMOD_SC_NAME          := lsp-plugins-mb-ringmod-sc
+LSP_PLUGINS_MB_RINGMOD_SC_TYPE          := plug
+LSP_PLUGINS_MB_RINGMOD_SC_URL_RO        := https://github.com/lsp-plugins/$(LSP_PLUGINS_MB_RINGMOD_SC_NAME).git
+LSP_PLUGINS_MB_RINGMOD_SC_URL_RW        := git@github.com:lsp-plugins/$(LSP_PLUGINS_MB_RINGMOD_SC_NAME).git
+
 LSP_PLUGINS_MIXER_VERSION             	:= 1.0.18
 LSP_PLUGINS_MIXER_NAME                	:= lsp-plugins-mixer
 LSP_PLUGINS_MIXER_TYPE                	:= plug
