@@ -10,6 +10,7 @@
 * Added True Peak limiting modes to the Limiter and Multiband Limiter plugin series.
 * Added Piano keyboard layout to all plugins that provide frequency graph.
 * Added support of BeginEdit and EndEdit events for CLAP, LV2, VST2 and VST3 formats.
+* Moved Dry, Wet and Dry/Wet knobs into a separate Mix overlay for Trigger plugin series.
 * Fixed frequency range display for Multiband Compressor, Expander, Gate and
   Dynamics Processor plugin series.
 * Fixed regressions in LV2 plugin wrapper related to setting path parameters.
