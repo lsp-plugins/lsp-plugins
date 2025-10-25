@@ -269,6 +269,7 @@ For macOS build, the following software needs to be installed:
   * cairo >= 1.18.4
   * freetype >= 2.13.3
   * pkgconf >= 2.5.1
+  * php >= 5.5.14 (for the docs)
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -288,6 +289,8 @@ To perform toolchain setup for Windows, you may perform the following steps:
     * C:\Program Files\Git\usr\bin
     * C:\mingw64\bin
     * C:\php
+
+> MacOS includes their own version of `make`, if you decide to install it from homebrew, replace all the commands with `gmake`.
 
 To build the project from archive with source code, the following sequence of commands 
 should be performed:

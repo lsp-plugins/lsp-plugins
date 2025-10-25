@@ -2,6 +2,22 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.24 ===
+* Implemented Ring-Modulated sidechain plugin series.
+* Implemented Multiband Ring-Modulated sidechain plugin series.
+* Implemented A/B preset switching support by plugins.
+* Added support of integrated loudness metering for Referencer plugin series.
+* Added True Peak limiting modes to the Limiter and Multiband Limiter plugin series.
+* Added Piano keyboard layout to all plugins that provide frequency graph.
+* Added support of BeginEdit and EndEdit events for CLAP, LV2, VST2 and VST3 formats.
+* Moved Dry, Wet and Dry/Wet knobs into a separate Mix overlay for Trigger plugin series.
+* Fixed frequency range display for Multiband Compressor, Expander, Gate and
+  Dynamics Processor plugin series.
+* Fixed regressions in LV2 plugin wrapper related to setting path parameters.
+* Fixed crash when loading project with Loudness Compensator plugin in IIR mode.
+* Fixed VST3 plugins crash under Ardour related to improper IRunLoop interface
+  operations based on invalid API calls by the DAW.
+
 === 1.2.23 ===
 * Added experimental support of UI for MacOS using FreeType and Cairo libraries.
   Contributed by Marvin Edeler.

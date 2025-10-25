@@ -74,6 +74,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-noise-generator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
@@ -84,6 +85,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
@@ -161,6 +163,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscilloscope}/include&quot;"/>
@@ -170,6 +173,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
