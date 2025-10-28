@@ -2,7 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.2.26 ===
+=== 1.2.25 ===
+* Fixed VST3 crash on JUCE-based hosts.
 
 === 1.2.24 ===
 * Implemented Ring-Modulated sidechain plugin series.
