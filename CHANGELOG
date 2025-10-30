@@ -4,6 +4,7 @@
 
 === 1.2.25 ===
 * Fixed VST3 crash on JUCE-based hosts.
+* Fixed Room Builder plugin that could not render impulse responses for some built-in rooms. 
 
 === 1.2.24 ===
 * Implemented Ring-Modulated sidechain plugin series.
