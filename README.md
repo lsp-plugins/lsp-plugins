@@ -1,7 +1,7 @@
 # ABOUT
 
 LSP (Linux Studio Plugins) is a collection of open-source plugins
-currently compatible with CLAP, LADSPA, LV2, VST2/LinuxVST, VST3 
+currently compatible with CLAP, LADSPA, LV2, VST2/LinuxVST, VST3
 and JACK standalone formats.
 
 The basic idea is to fill the lack of good and useful plugins under
@@ -68,7 +68,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   │s390x      │     C     │    U    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │x86_64     │     F     │    F    │    E    │    U    │
-  └───────────┴───────────┴─────────┴─────────┴─────────┘ 
+  └───────────┴───────────┴─────────┴─────────┴─────────┘
 ```
 
 The table legend is the following:
@@ -96,7 +96,7 @@ The Linux distribution requirements:
   * libcairo >= 1.14
   * libfreetype >= 2.10
   * libGL
-  
+
 Known list of supported plugin hosts:
   * Ardour
   * Bitwig Studio
@@ -199,7 +199,7 @@ The usual directories for LADSPA are:
   * /usr/lib64/ladspa
   * /usr/local/lib64/ladspa
   * ~/.ladspa
-  
+
 The usual directories for LV2 are:
   * /usr/lib/lv2
   * /usr/local/lib/lv2
@@ -214,7 +214,7 @@ The usual directories for VST 2.x/LinuxVST are:
   * /usr/local/lib64/vst
   * ~/.lxvst
   * ~/.vst
-  
+
 The usual directories for VST 3.x are:
   * /usr/lib/vst3
   * /usr/local/lib/vst3
@@ -232,7 +232,7 @@ The usual directory for VST2 binaries is:
 
 The usual directory for VST3 binaries is:
   * C:\Program Files\Common Files\VST3
-  * C:\Program Files (x86)\Common Files\VST3 - for 32-bit plugins on 64-bit Windows. 
+  * C:\Program Files (x86)\Common Files\VST3 - for 32-bit plugins on 64-bit Windows.
 
 The usual directory for CLAP binaries is:
   * C:\Program Files\Common Files\CLAP
@@ -246,7 +246,7 @@ The usual directory for LV2 binaries is:
 
 You may build plugins from scratch.
 
-The build process doesn't differ much for GNU/Linux, FreeBSD or Windows. 
+The build process doesn't differ much for GNU/Linux, FreeBSD or Windows.
 For a build on macOS and FreeBSD you should use `gmake` instead of `make`.
 Build of JACK standalone versions for Windows is yet not supported.
 
@@ -292,7 +292,7 @@ To perform toolchain setup for Windows, you may perform the following steps:
 
 > MacOS includes their own version of `make`, if you decide to install it from homebrew, replace all the commands with `gmake`.
 
-To build the project from archive with source code, the following sequence of commands 
+To build the project from archive with source code, the following sequence of commands
 should be performed:
 
 ```
@@ -317,7 +317,7 @@ For Windows, the `make install` command creates 'INSTALL' subdirectory and place
 plugin content into desired subfolders.
 
 By default, all supported formats of plugins for the target platform are built.
-The list of modules for build can be adjusted by specifying FEATURES variable 
+The list of modules for build can be adjusted by specifying FEATURES variable
 at the configuration stage:
 
 ```
@@ -331,7 +331,7 @@ Available options are:
   * jack - JACK plugin binaries (not available under Windows);
   * ladspa - LADSPA plugin binaries;
   * lv2 - LV2 plugin binaries;
-  * ui - build plugins wih UI support;
+  * ui - build plugins with UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
   * xdg - the X11 desktop integration icons (not necessary for Windows).
@@ -374,7 +374,7 @@ To build standalone source code package, the following commands can be issued:
   make distsrc
 ```
 
-After that, a stanalone archive with source code will be created in the `.build` directory.
+After that, a standalone archive with source code will be created in the `.build` directory.
 
 When cross compiling, the AS, AR, CC, CXX, LD, etc. variables should be set in the environment according to the target/cross compile toolchain. The build host machine versions of those variables- HOST_AS, HOST_AR, HOST_CC, HOST_CXX, etc. have defaults set in the makefiles but may need to be overridden. To troubleshoot, run `make configure` with the VERBOSE option.
 Additional variables should be configured:
@@ -447,7 +447,7 @@ There are several reasons why LSP Plugins don't support Wayland at this moment:
     plugin format that supports Wayland and the Presonus Studio for Linux is the only DAW
     that requires Wayland as a must.
 
-If you meet problems using LSP Plugins with Wayland, please consider switching back to X11. 
+If you meet problems using LSP Plugins with Wayland, please consider switching back to X11.
 
 ## 3D backend not working
 
@@ -485,7 +485,7 @@ specific input data. By default unit tests are launched in separate processes an
 all CPU cores for maximum performance. The status of each unit test is collected during
 execution and list of all failed tests are printed after completion.
 
-Performance tests measure performance of some function/module under different conditions, 
+Performance tests measure performance of some function/module under different conditions,
 gather final statistics and output them in a table format. These tests are very useful for
 measuring single-core performance of different modules and functions and performing code
 optimizations.
@@ -502,7 +502,7 @@ After build, we can launch the test binary by issuing command:
   .build/host/lsp-plugin-fw/lsp-plugins-test
 ```
 
-This binary provides simple command-line interface, so here's the full usage:  
+This binary provides simple command-line interface, so here's the full usage:
 ```
   USAGE: {utest|ptest|mtest} [args...] [test name...]
     First argument:
@@ -520,7 +520,7 @@ This binary provides simple command-line interface, so here's the full usage:
       -j, --jobs            Set number of job workers for unit tests
       -l, --list            List all available tests
       -mt, --mtrace         Enable mtrace log
-      -nf, --nofork         Do not fork child processes (for better 
+      -nf, --nofork         Do not fork child processes (for better
                             debugging capabilities)
       -nt, --nomtrace       Disable mtrace log
       -o, --outfile file    Output performance test statistics to specified file
@@ -616,4 +616,3 @@ You may contact us on the special feedback page:
   https://lsp-plug.in/?page=feedback
 
 Hope you have enjoyed our work!
-
