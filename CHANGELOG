@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.26 ===
+* Implemented Matcher plugin series.
 
 === 1.2.25 ===
 * Improved plugin metadata validation tool in plugin framework.
