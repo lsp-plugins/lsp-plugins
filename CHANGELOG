@@ -4,6 +4,14 @@
 
 === 1.2.26 ===
 * Implemented Matcher plugin series.
+* Implemented metadata revisioning to not to corrupt parameter automation in
+  DAWs like Ardour related to changing port indices when some new parameter is added.
+* Optimized spectrum analyzer module: reduced memory usage and memory copying.
+* Some optimizations related to plugin port mappings in the UI.
+* Removed duplicate and not working filter point thickness settings in UI behavior menu.
+* Fixed moduleinfo.json generation and validation for VST3.
+* Fixed possible garbage at the end of KVT BLOB serialization.
+* Fixed endianess-related bugs in VST3 headers.
 
 === 1.2.25 ===
 * Improved plugin metadata validation tool in plugin framework.
