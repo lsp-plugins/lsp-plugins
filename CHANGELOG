@@ -6,9 +6,13 @@
 * Implemented Matcher plugin series.
 * Implemented metadata revisioning to not to corrupt parameter automation in
   DAWs like Ardour related to changing port indices when some new parameter is added.
+* Added possibility to select between host-friendly and user-frienfly values when
+  exporting configuration to the file.
 * Optimized spectrum analyzer module: reduced memory usage and memory copying.
 * Some optimizations related to plugin port mappings in the UI.
 * Removed duplicate and not working filter point thickness settings in UI behavior menu.
+* Fixed out-of sync ALR attack and release timings for the Limiter module when
+  changing the sample rate.
 * Fixed moduleinfo.json generation and validation for VST3.
 * Fixed possible garbage at the end of KVT BLOB serialization.
 * Fixed endianess-related bugs in VST3 headers.
