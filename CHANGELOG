@@ -8,6 +8,8 @@
   DAWs like Ardour related to changing port indices when some new parameter is added.
 * Added possibility to select between host-friendly and user-frienfly values when
   exporting configuration to the file.
+* Added 'smooth' parameter in Limiter and Multiband Limiter plugins that allows to
+  adjust the smoothnes of the ALR knee.
 * Optimized spectrum analyzer module: reduced memory usage and memory copying.
 * Some optimizations related to plugin port mappings in the UI.
 * Removed duplicate and not working filter point thickness settings in UI behavior menu.
