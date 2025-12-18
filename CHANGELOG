@@ -18,6 +18,7 @@
 * Fixed moduleinfo.json generation and validation for VST3.
 * Fixed possible garbage at the end of KVT BLOB serialization.
 * Fixed endianess-related bugs in VST3 headers.
+* Fixed some bugs in VST3 plugin state deserialization.
 
 === 1.2.25 ===
 * Improved plugin metadata validation tool in plugin framework.
