@@ -3,6 +3,21 @@
 *******************************************************************************
 
 === 1.2.27 ===
+* Moved all code related to OpenGL rendering to a separate thread to prevent
+  freezing and stuttering of the main UI loop of the host application.
+* Implemented plugin launcher for standalone plugins to avoid icon flood in menus
+  of modern desktop environments.
+* Added support of visual schema selection via the command line argument for
+  standalone versions of plugins.
+* Added keyboard shortcuts for quickly closing some dialogs.
+* Added support of switching presets by scrolling of the mouse wheel.
+* Added better support of APO equalizer configuration files.
+* Fixed and optimized regression in plugin window sizing.
+* Fixed bug in waveform display for Multiband Clipper plugin series. 
+* Eliminated some unnecessary redrawing of widgets triggered by other widgets.
+* Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
+  github.com.
+* Some optimizations, bugfixes and improvements in core libraries.
 
 === 1.2.26 ===
 * Implemented Matcher plugin series.
