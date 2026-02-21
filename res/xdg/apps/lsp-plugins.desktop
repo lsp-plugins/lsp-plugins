@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=LSP Plugins
+GenericName=Audio processing
+GenericName[ru]=Обработка звука
+Comment=Launcher application for standalone collection of open source audio processing plugins
+Comment[ru]=Программа запуска для плагинов обработки звука с открытым исходным кодом
+Exec=lsp-plugins
+Icon=lsp-plugins
+Terminal=false
+StartupNotify=false
+Keywords=audio;sound;jackd;lsp-plugins;
+Categories=AudioVideo;Audio;AudioVideoEditing;
