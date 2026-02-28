@@ -17,6 +17,10 @@
 * Eliminated some unnecessary redrawing of widgets triggered by other widgets.
 * Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
   github.com.
+* Memory consumption optimizations in the Slap-back Delay plugin series:
+  memory is not allocated for non-used delay lines.
+* Fixed muting of delay line when delay is zero in Slap-back Delay plugin series.
+* Fixed bug of failing UI show when plugins's global configuration file is missing.
 * Some optimizations, bugfixes and improvements in core libraries.
 
 === 1.2.26 ===
