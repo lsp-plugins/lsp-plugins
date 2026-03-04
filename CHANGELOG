@@ -8,6 +8,8 @@
 * Added possibility to independently equalize left and right channels of wet signal
   for convolution-base plugins series:
   * Impulse Responses;
+  * Impulse Reverb;
+  * Room Builder.
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
   of modern desktop environments.
 * Added support of visual schema selection via the command line argument for
