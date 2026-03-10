@@ -3,30 +3,31 @@
 *******************************************************************************
 
 === 1.2.27 ===
-* Moved all code related to OpenGL rendering to a separate thread to prevent
+* Implemented plugin launcher for standalone plugins to avoid icon flood in menus
+  of modern desktop environments.
+* Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
+  github.com.
+* Moved all code related to OpenGL rendering into a separate thread to prevent
   freezing and stuttering of the main UI loop of the host application.
 * Added possibility to independently equalize left and right channels of wet signal
   for convolution-base plugins series:
   * Impulse Responses;
   * Impulse Reverb;
   * Room Builder.
-* Implemented plugin launcher for standalone plugins to avoid icon flood in menus
-  of modern desktop environments.
 * Added support of visual schema selection via the command line argument for
   standalone versions of plugins.
 * Added keyboard shortcuts for quickly closing some dialogs.
 * Added support of switching presets by scrolling of the mouse wheel.
 * Added better support of APO equalizer configuration files.
-* Fixed and optimized regression in plugin window sizing.
+* Some optimizations, bugfixes and improvements in core libraries.
+* Fixed bug in Artistic Delay plugin which could yield to crackling sound when using feedback.
+* Fixed and regressions in plugin window sizing and optimized window behaviour.
 * Fixed bug in waveform display for Multiband Clipper plugin series. 
 * Eliminated some unnecessary redrawing of widgets triggered by other widgets.
-* Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
-  github.com.
 * Memory consumption optimizations in the Slap-back Delay plugin series:
   memory is not allocated for non-used delay lines.
 * Fixed muting of delay line when delay is zero in Slap-back Delay plugin series.
-* Fixed bug of failing UI show when plugins's global configuration file is missing.
-* Some optimizations, bugfixes and improvements in core libraries.
+* Fixed bug of failing UI creation when plugins's global configuration file is missing.
 
 === 1.2.26 ===
 * Implemented Matcher plugin series.
