@@ -7,6 +7,7 @@
   of modern desktop environments.
 * Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
   github.com.
+* Added support of filter decramping for Parametric Equalizer and Filter plugin series.
 * Moved all code related to OpenGL rendering into a separate thread to prevent
   freezing and stuttering of the main UI loop of the host application.
 * Added possibility to independently equalize left and right channels of wet signal
@@ -19,6 +20,7 @@
 * Added keyboard shortcuts for quickly closing some dialogs.
 * Added support of switching presets by scrolling of the mouse wheel.
 * Added better support of APO equalizer configuration files.
+* Reorganized inputs and outputs of Noise Generator x2 and x4 into stereo groups.
 * Some optimizations, bugfixes and improvements in core libraries.
 * Fixed bug in Artistic Delay plugin which could yield to crackling sound when using feedback.
 * Fixed and regressions in plugin window sizing and optimized window behaviour.
