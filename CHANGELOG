@@ -2,6 +2,35 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.27 ===
+* Implemented plugin launcher for standalone plugins to avoid icon flood in menus
+  of modern desktop environments.
+* Added new experimental light UI schema 'Paper'. Contributed by suedwestlicht at
+  github.com.
+* Added support of filter decramping for Parametric Equalizer and Filter plugin series.
+* Moved all code related to OpenGL rendering into a separate thread to prevent
+  freezing and stuttering of the main UI loop of the host application.
+* Added possibility to independently equalize left and right channels of wet signal
+  for convolution-base plugins series:
+  * Impulse Responses;
+  * Impulse Reverb;
+  * Room Builder.
+* Added support of visual schema selection via the command line argument for
+  standalone versions of plugins.
+* Added keyboard shortcuts for quickly closing some dialogs.
+* Added support of switching presets by scrolling of the mouse wheel.
+* Added better support of APO equalizer configuration files.
+* Reorganized inputs and outputs of Noise Generator x2 and x4 into stereo groups.
+* Some optimizations, bugfixes and improvements in core libraries.
+* Fixed bug in Artistic Delay plugin which could yield to crackling sound when using feedback.
+* Fixed and regressions in plugin window sizing and optimized window behaviour.
+* Fixed bug in waveform display for Multiband Clipper plugin series. 
+* Eliminated some unnecessary redrawing of widgets triggered by other widgets.
+* Memory consumption optimizations in the Slap-back Delay plugin series:
+  memory is not allocated for non-used delay lines.
+* Fixed muting of delay line when delay is zero in Slap-back Delay plugin series.
+* Fixed bug of failing UI creation when plugins's global configuration file is missing.
+
 === 1.2.26 ===
 * Implemented Matcher plugin series.
 * Implemented metadata revisioning to not to corrupt parameter automation in
@@ -24,7 +53,7 @@
 * Improved plugin metadata validation tool in plugin framework.
 * VST3 data synchronization between DSP and UI is now performed in the UI thread if possible.
 * Fixed VST3 crash on JUCE-based hosts related to improper IRunLoop handling.
-* Fixed Room Builder plugin that could not render impulse responses for some built-in rooms. 
+* Fixed Room Builder plugin that could not render impulse responses for some built-in rooms.
 * Fixed possible SIGFPE crash on LADSPA descriptor generation related to division by zero error.
 * Fixed data transport for LV2 plugins that caused many annoying log messages in Ardour.
 
@@ -76,8 +105,8 @@
 * Some bugfixes and improvements in VST3 plugin format, now UI works for editorhost
   demo application from the Steinberg VST3 SDK.
 * Additional optimizations of 3D space mathematics with AVX instruction set.
-* Fixed improper AVX-512 optimization for lanczos kernel genration function which could cause
-  improper resampling of audio files and yield some plugins to not to work properly.
+* Fixed improper AVX-512 optimization for lanczos kernel generation function which could cause
+  improper resampling of audio files and yield some plugins to not work properly.
 * Fixed bug in frequency split editing for Mid/Side and Left/Right versions of Crossover plugin.
 * Fixed bug in Mid/Side conversion of stereo signal on 32-bit and 64-bit ARM processors.
   Contributed by Asahi Lina.
@@ -274,7 +303,7 @@
 * Added built-in presets for Compressor plugin series.
 * Fixed bug in smoothing mode of Parametric Equalizer and Filter plugins that could
   be caused when using large buffer sizes. Additional optimizations to reduce CPU
-  resources when processing in smoothing mode. 
+  resources when processing in smoothing mode.
 * Updated behaviour of band frequency splits in the UI for Multiband Compressor,
   Multiband Expander, Multiband Gate Multiband Dynamic Processor and Crossover plugin series.
 * Several bugfixes and improvements in implementations of VST2, LV2 and CLAP formats.
@@ -287,7 +316,7 @@
   Spectralizer mode.
 * Implemented Hold option for Compressor, Dynamics Processor, Expander and Gate plugin series.
 * Implemented Hold option for Multiband Compressor, Dynamics Processor, Expander and Gate plugin series.
-* Added Dry/Wet balance control for Compressor, Dynamics Processor, Expander, 
+* Added Dry/Wet balance control for Compressor, Dynamics Processor, Expander,
   Gate and Trigger plugin series.
 * Added Dry/Wet balance control for Multiband Compressor, Dynamics Processor, Expander,
   Gate and GOTT Compressor plugin series.
@@ -436,7 +465,7 @@
 * Added possibility to invert the behaviour of mouse scroll for all widgets or
   for graph dot widget.
 * Added frequency display and gain for each filter of Graphic Equalizer plugin series.
-* Added measure button and meter line on graph for Spectrum Analyzer plugin series. 
+* Added measure button and meter line on graph for Spectrum Analyzer plugin series.
 * Added display of filter number, filer channel and filter type near to the
   frequency and note.
 * Added possibility to change the thickness of lies on the spectrum graph for the
@@ -458,7 +487,7 @@
   slider which can be adjusted with mouse movements.
 * Added basic SFZ import support by the Multisampler plugin series.
 * Added shared objects related to 3D rendering to LV2, VST and CLAP packages.
-* Fixed buggy tether for the parameter popup window. 
+* Fixed buggy tether for the parameter popup window.
 * Fixed improper data stream synchronization using LV2:Atom protocol.
 * Implemented linear ramping lramp_* functions in the lsp-dsp-lib optimized for
   i686, x86_64, ARM32 and AArch64 architectures.
@@ -674,7 +703,7 @@
 * Added support of loading Hydrogen drumkits by the Multisampler plugin series.
 * Added 'Squared Cosine' and 'Cubic Hermite Spline' windows to Spectrum Analyzer.
 * Fixed bug that caused Spectrum Analyzer to ignore window selection.
-* Fixed bug in AVX-optimized sidechaining function that could cause invalid behaviour of plugins that 
+* Fixed bug in AVX-optimized sidechaining function that could cause invalid behaviour of plugins that
   use external/internal sidechain for processing.
 * Implemented back-buffering of the window surface, all UI controls now don't glitch on edit.
 * Refactored and simplified LV2 parameter transport between UI and plugin code.
@@ -705,7 +734,7 @@
 * Fixed UI synchronization issue on plugin state restore for VST plugin format.
 * Fixed improper work of default Attack and Release time parameters for
   Dynamic Processor plugin series.
-* Fixed build broken by recent LV2 header updates. 
+* Fixed build broken by recent LV2 header updates.
 * Some french translation fixes (contributed by Olivier Humbert).
 
 === 1.1.19 ===
@@ -732,11 +761,11 @@
 
 === 1.1.15 ===
 
-* Fixed improper TTL file generation for several plugins. 
+* Fixed improper TTL file generation for several plugins.
 * Restored missing SVG files, implemented proper icon installation.
 * Added better desktop entry categorization (contributed by Dennis Braun).
 * Added protection from NaNs, Inf's and denormal floating point values passed to plugins' audio
-  inputs, all considered to be invalid values are replaced with zeros. 
+  inputs, all considered to be invalid values are replaced with zeros.
 * Added '-fvisibility=hidden' compilation option to avoid conflict between builtin resources of
   shared objects that contain implementation of different plugin formats.
 
@@ -866,7 +895,7 @@
   not to be launched.
 * Improved build system to make source code possible to build for KXStudio repository.
   Distribution builders should ensure that the GNU C++ compiler is selected at the build
-  stage. 
+  stage.
 * Additional I/O improvements for better WindowsNT support.
 
 === 1.1.7 ===
@@ -914,7 +943,7 @@
 * Fixed system character set detection on certain systems that caused disappearing of text labels in the UI.
 * Fixed window decorating issue under the i3 window manager.
 * Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour
-  in certain circumstances. 
+  in certain circumstances.
 * Fixed serious memory corruption in SSE implementation of fast convolution routines that could cause
   spontaneous crashes of convolvers.
 * Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
@@ -1060,7 +1089,7 @@
 * Implemented Menu widget
 * Implemented File Save/Open dialog
 * Implemented Hyperlink widget
-* Implemented Fader widget 
+* Implemented Fader widget
 * Implemented File saving widget
 * Implemented basic clipboard support
 * Code clean up and project tree refactoring
@@ -1125,7 +1154,7 @@
 * Implemented dither core module.
 * Updated delay core module to become more safe while processing passed data to the input.
 * Optimized native implementation of FFT: sine and cosine calculation replaced by complex
-  vector rotating, fixed performance penalties relative to CPU caching issues. 
+  vector rotating, fixed performance penalties relative to CPU caching issues.
 * Optimized SSE implementation of FFT: sine and cosine calculation replaced by complex vector
   rotating, fixed performance penalties relative to CPU caching issues. Overall
   performance was raised about 4x times.
@@ -1138,7 +1167,7 @@
 === 1.0.18 ===
 
 * Implemented Begrenzer Mono, Stereo, Sidechain Mono, Sidechain Stereo (Limiter) plugin series.
-* Added KVRDC16 entry - Dynamikprozessor Mono, Stereo, LeftRight, MidSide plugin series. 
+* Added KVRDC16 entry - Dynamikprozessor Mono, Stereo, LeftRight, MidSide plugin series.
 * Added 2x/3x/4x oversampling support by DSP modules.
 * Small code refactoring.
 

@@ -37,7 +37,7 @@ DEPENDENCIES = \
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3
+DEFAULT_FEATURES = clap doc ladspa launcher lv2 ui vst2 vst3
 
 #------------------------------------------------------------------------------
 # Linux dependencies
@@ -111,6 +111,7 @@ WINDOWS_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Windows)
   DEPENDENCIES             += $(WINDOWS_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(WINDOWS_TEST_DEPENDENCIES)
+  DEFAULT_FEATURES         += 
 endif
 
 #------------------------------------------------------------------------------
@@ -130,6 +131,7 @@ MACOS_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),MacOS)
   DEPENDENCIES             += $(MACOS_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(MACOS_TEST_DEPENDENCIES)
+  DEFAULT_FEATURES         += 
 endif
 
 #------------------------------------------------------------------------------

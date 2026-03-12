@@ -6,7 +6,7 @@
 
 - Implemented dynamic equalizer plugin.
 - Implemented soundfont-based sampler.
-- Refactored and optimized filter transfer function calculation. 
+- Refactored and optimized filter transfer function calculation.
 - Migrated to CMake build system.
 
 === 1.2.1 ===
@@ -34,7 +34,7 @@
 * Ensure that lsp-plugins.menu contains reference to the new plugin
 * Ensure that plugin provides internal state dump.
 * Check that there are no additional warnings/errors for the following script after plugin installation:
-  
+
   export LV2_PATH=/usr/local/lib/lv2
   for uri in $(lv2ls |grep lsp-plug.in); do
     lv2lint -Mpack "$uri"
@@ -117,7 +117,7 @@
 - Dynamic Equalizer
 - Dynamic Panner
 - Distortion
-- Real sampler (with sample recording option) 
+- Real sampler (with sample recording option)
 
 
 *******************************************************************************
@@ -144,11 +144,11 @@ Organize plugin that can be used as a spatial placer and panner:
 
 rnbeatproducerextra
   Let's say you have an Instrumental in the Key of C Minor. You then can choose all the Notes
-  from the Scale in the EQ and everytime you boost a certain frequency it will be boosted in the
+  from the Scale in the EQ and every time you boost a certain frequency it will be boosted in the
   respective key. It would automatically snap to the right Note, for example you boost 280 hz which
   is the key of C#, but your Song is in C Minor so it would automatically boost 260 hz instead, the
-  key of C and so on. Also, everytime you cut it would just cut all the Notes that are out of key.
-  
+  key of C and so on. Also, every time you cut it would just cut all the Notes that are out of key.
+
   > The use case is not very clear for me. Should all notes be boosted immediately or just several notes?
   What with overtones? How the key should be selected and etc. This feature has to be explained in
   much more details.
@@ -159,19 +159,19 @@ rnbeatproducerextra
   to the nearest note. It wouldn't explicitly consider the fundamental or overtones,
   it would just jump to the next "right" note you selected. You could select the notes individually
   in the EQ (e.g. like MAutopitch by Melda Productions).
-  
+
   FL Studios' Stock EQ can do a similar thing, for example. You can select a note for the individual
   band and then when you boost or cut only that specific note will be affected. The only difference
-  here is, that it would snap automatically to the nearest note you've choosed in the frequency spectrum.
+  here is, that it would snap automatically to the nearest note you've chosen in the frequency spectrum.
 
 ==== Equalizer tilt filters ====
 
 rnbeatproducerextra
-  I would also like to see Tilt Filters such as Flat Tilt and Tilt shelf. 
-  
+  I would also like to see Tilt Filters such as Flat Tilt and Tilt shelf.
+
   > "What do you mean under `tilt filters`? The filters with the specific amount of
   the db/octave raising/falloff for the specific frequency range?"
-  
+
   Yes, that's what I meant!
 
 ==== OSC-Send Plugin ====
@@ -198,7 +198,7 @@ Cheers
 
 ==== FFT analysis of the Profiler and Convolver ====
 
-Could it be possible to add a frequency-domain display mode? 
+Could it be possible to add a frequency-domain display mode?
 It'd make it much easier to quickly identify room modes and such. Or if the
 plugin could play back the created IR sample - I could use another plugin to analyze that.﻿
 
@@ -220,7 +220,7 @@ Tobbe:
 
   I know about Carla, but that's get me a plugin to add another plugin (like all the Calf Suite)
   because Reaper only support linux vst for now. Maybe more in the future. Or else I might learn
-  more about Ardour...but I like Reaper alot so...
+  more about Ardour...but I like Reaper a lot so...
 
 ==== Sampler ====
   naught101:
@@ -230,12 +230,12 @@ Tobbe:
       - Allowing a single sample to be used across a range of midi notes (with pitch shifting away from a centre note).
       - looping (start/end, fade length)
 
-    I've also been considering a modification of Helm that might cover the same functionality, 
+    I've also been considering a modification of Helm that might cover the same functionality,
     and I'm not sure which is the better path to tackle. Helm has a lot of nice modulation options
     that are pretty attractive, but maybe also a bit overkill for a simple sampler.
 
-    Probably also a filter would be good, and velocity mappable the filter cut-off, 
-    and tail cut/fade-out. Some of these things might be easier to do in Helm, 
+    Probably also a filter would be good, and velocity mappable the filter cut-off,
+    and tail cut/fade-out. Some of these things might be easier to do in Helm,
     since the modulation and filter is already built in.
 
 ==== UI ====
@@ -248,7 +248,7 @@ Tobbe:
   lordbullingdon
 	Hey. Does anyone know of a native Linux tool for easy mix referencing in the likes of
 	https://www.producerspot.com/magic-ab-2-utility-plugin-by-sample-magic
-	
+
 	Sample Magic intros Magic AB 2, the second version of their plugin utility that can be used to
 	switch between the audio you are working on in your music software, and up to nine reference tracks.
 	Magic AB v2 is an entirely new plugin, rebuilt from the ground up into a new framework.
@@ -264,7 +264,7 @@ Tobbe:
 ==== Noise reduction ====
   <unknown>:
     I think noise reduction is the other big hole in LA currently.
-  
+
   Marcel:
     P.S. I hear there is also a great need for a good noise reduction similar
     to the Audacity one.
@@ -273,7 +273,7 @@ Tobbe:
   bhilmers:
     A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.
     Wish I could! Not my area of expertise.
-    
+
     https://www.kvraudio.com/product/bdm-broken-drum-machine-by-nusofting
     BDM is a plugin instrument designed for the musicians who love chaos and usually find the unpredictable behaviour of an
     uncontrollable sound machine stimulating and inspiring.
@@ -297,12 +297,12 @@ Tobbe:
 
 ==== Filters ====
   A filter collection where you could use bezier or pixel-pencil to draw filter sweeps.
-  
+
 ==== Extension of filter set ====
   unfa:
     I've stumbled upon these while trying to understand how Optimod works.
     The seem to have the steepest possible transition from the pass and to the stopband. Could sound pretty cutting edge I guess ;)
-    Do we have any implentations of these on the Linux audio world? I'm pretty sure SoX has something, but I never managed to use it.
+    Do we have any implementations of these on the Linux audio world? I'm pretty sure SoX has something, but I never managed to use it.
 
 ====
   Conor Mc Cormack:
@@ -330,13 +330,13 @@ Tobbe:
       Dynamic Processor Stereo - Dynamikprozessor Stereo
 
     It is great that you have so many output configurations but maybe bundling them together
-    would make for easier navigation? 
+    would make for easier navigation?
 
 ==== Saturator ====
   <unknown>:
     I'd say I think we're missing subtle saturation / distortion plugins. Stuff like
     VarietyOfSound used to put out -- FerricTDS, Tessla, the saturation stage in NastyVCS.
-  
+
   Braxton Salyer:
     Hey guys, LOVE YOUR WORK. Makes doing pro-audio in linux so much more viable.
     One thing we're definitely missing though is a good saturation plugin (a-la Decapitator,
@@ -393,7 +393,7 @@ Tobbe:
 ====
   unfa:
     Are you looking for an idea to code a cool LV2 plugin?
-    
+
     I guess we are all familiar with wavetable synthesis - a concept where an oscillator has a list (or a table)
     of looping waveforms and allows the user to alter the sound by picking different table indexes at any given moment.
     Mainstream exampls are NI Massive and Serum, an opensource one - Calf Wavetable.
@@ -403,12 +403,12 @@ Tobbe:
     What if we had a plugin that could load 128 short IR samples instead of one (like IR.lv2 or Klangfalter)
     and allowed the user to automate the table index for which sample is used at any given time? This could
     probably sound like morphing the physical environment of the room you're playing in. Maybe it'd be a boring
-    thing, like there's nothing too amazing about automating a standrd C* Plate 2x2 reverb's tail length, or maybe...
+    thing, like there's nothing too amazing about automating a standard C* Plate 2x2 reverb's tail length, or maybe...
 
     If we treated the IR table just like a wavetable synthesizer (think more Serum than Massive now), using
-    very short (a few miliseconds) loops extracted from recorded or syntesized sounds like explosions, human
-    speech, mechanical noises, randomly generated sequeces (creating short looped noise bursts - if you ever
-    looped radom 30 samples of a sound in Audacity and loved the tone you know what I mean. Now imagine shifting
+    very short (a few milliseconds) loops extracted from recorded or synthesized sounds like explosions, human
+    speech, mechanical noises, randomly generated sequences (creating short looped noise bursts - if you ever
+    looped random 30 samples of a sound in Audacity and loved the tone you know what I mean. Now imagine shifting
     the looped "selection" along a soundfile and using this as your virtual "stompbox emulation" for playing
     an instrument or a synth?
 
@@ -454,35 +454,35 @@ Tobbe:
   is a shame.
 
 ==== Spring reverb ====
-  Looking at scientific publications, an accurate physical model of a spring reverb in real time seems out of reach for a longtime. 
-  This one in 2013 present high "Computational cost": https://www.researchgate.net/publication/262731418_NUMERICAL_SIMULATION_OF_SPRING_REVERBERATION 
+  Looking at scientific publications, an accurate physical model of a spring reverb in real time seems out of reach for a long time.
+  This one in 2013 presents high "Computational cost": https://www.researchgate.net/publication/262731418_NUMERICAL_SIMULATION_OF_SPRING_REVERBERATION
   More recently, 2020 the accuracy could be improved, but no mention of better performance: https://www.researchgate.net/publication/354658314_MODAL_SPRING_REVERB_BASED_ON_DISCRETISATION_OF_THE_THIN_HELICAL_SPRING_MODEL
-  
-  Do we have any resonator plugins? I used to use the on in ableton live years ago to create some
+
+  Do we have any resonator plugins? I used to use the one in Ableton Live years ago to create some
   quite nice spring reverb sounding fx when combined with the autofilter before the input. I can't
-  think of any linux plugins that do anything similar.
+  think of any Linux plugins that do anything similar.
 
 ==== Mastering ====
   On topic: I'd like to see, for example, a decent saturator, a multiband compressor, and
   a maximizer, possibly combined into one big mastering plugin.
-  
+
 ==== Stereo image ====
   alexthebassist
     Oh, and one more. The thing we starve for really long is a good stereo image expander. Like the
     one you wrote for Calf project, but better.
 
 ==== Dynamic Equalizer ====
-  Feature request for creating a Dynamic EQ plugin. If you're not familiar with them,
-  it's basically an EQ, but it isn't applied until level passes the user defined threshold
-  level. Or the inverse version where it is applied when the level drops below the threshold.
-  
-  Each parametric band would have it's own threshold / attack / release settings.
-  Bonus points if a sidechain can be used for the dynamic triggering. Double bonus points if
-  the dynamic triggering can optionally be set up to also (or possibly even exclusively) expand
-  or contract the Q level. All the functionaly currently exist in the code base, it should mostly
-  just be a matter of re-wiring the components.
+    Feature request for creating a Dynamic EQ plugin. If you're not familiar with them,
+    it's basically an EQ, but it isn't applied until level passes the user defined threshold
+    level. Or the inverse version where it is applied when the level drops below the threshold.
 
-  There is no LV2 implementation of this plugin to my knowlege. Outside of LV2, the free
+    Each parametric band would have it's own threshold / attack / release settings.
+    Bonus points if a sidechain can be used for the dynamic triggering. Double bonus points if
+    the dynamic triggering can optionally be set up to also (or possibly even exclusively) expand
+    or contract the Q level. All the functionality currently exist in the code base, it should mostly
+    just be a matter of re-wiring the components.
+
+  There is no LV2 implementation of this plugin to my knowledge. Outside of LV2, the free
   Nova Dynamic EQ vst plugin is an example of this implemented elsewhere.
 
 ==== Music stuff ====
@@ -500,4 +500,3 @@ Tobbe:
   This is kinda random, but there are not ladspa, lv2 plugins anything like the spectral delay
   functionality found in freqtweak. And it is starting to suffer from some significant bit-rot.
   Would be nice to be able to use it as a plugin.
-

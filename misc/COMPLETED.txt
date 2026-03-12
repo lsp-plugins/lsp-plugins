@@ -18,7 +18,7 @@
 ==== Convolution Reverb ====
   cooltechno
     If it's possible, one feature request: to make a sound-preview in adding samples window in Klangerzeuger
-    
+
   ufug:
     LSP offers the most tweakable one, but it does not seem to have a browser for easily auditioning your
     collection of impulse responses (as far as I can see)
@@ -35,13 +35,13 @@
 
   KozmykJ
     Yes that's what I was wondering. Hi-Hat is just the most obvious case. Of course there are
-    other uses. 
+    other uses.
 
 ==== Bookmarks in File dialogs ====
   funkmuscle:
     Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
     how to do it with the version.
-  
+
   sadko4u:
     Currently because all dialogs were written from scratch, there are no bookmarks currently.
 
@@ -50,7 +50,7 @@
 Sciurius:
   Using the LSP multichannel (x2, x4, …) Spectrumanalyzer I can hold (freeze the graph) of each
   of the channels. But how can I hold all channels simultanesously?
-  
+
   https://discourse.ardour.org/t/spectrumanalyzer-hold-multiple-channels/88489
 
 ==== Equalizer ====
@@ -68,7 +68,7 @@ unfa:
     That would make life so much easier :D
     https://www.roomeqwizard.com/
     Thanks and keep up the great work!
-    
+
     The content of a text exported file looks like this:
     Filter Settings file
     Room EQ V5.18
@@ -91,14 +91,14 @@ unfa:
     Filter 13: ON  PK       Fc     258 Hz  Gain   9.0 dB  Q  5.00
     Filter 14: ON  PK       Fc    2073 Hz  Gain  -4.2 dB  Q  5.00
     Filter 15: ON  PK       Fc   10879 Hz  Gain  -3.8 dB  Q  5.00
-    Filter 16: ON  None  
-    Filter 17: ON  None  
-    Filter 18: ON  None  
-    Filter 19: ON  None  
-    Filter 20: ON  None  
+    Filter 16: ON  None
+    Filter 17: ON  None
+    Filter 18: ON  None
+    Filter 19: ON  None
+    Filter 20: ON  None
 
     I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
-    these are just peak filters. 
+    these are just peak filters.
 
 ==== Spectrum Analyzer ====
   Quirq:
@@ -120,14 +120,14 @@ unfa:
     If you are using it for balance of frequencies, rather than trying to surgically remove or boost this or that
     freq, then I think a "frequency smoothed" mode is a good idea. Really it makes sense to have some independent
     control over smoothing WRT time AND/OR frequency. Especially with a few good presets ("Mastering," "high-accuracy," etc.)
-    then it would be an even more useable and capable analyzer.
+    then it would be an even more usable and capable analyzer.
 
   Quirq:
     Thanks, you've very eloquently summarised what I was trying to say. The reason I got into using SPAN was because
     that's what the mastering engineer Ian Shepherd used in his Home Mastering EQ course (which I found incredibly useful).
     When I looked at all the native analysers to put things into practice, they all seem to be built more/just for precision,
-    which is fine for most purposes but not as helpful for the broader-brush approach of mastering. 
-  
+    which is fine for most purposes but not as helpful for the broader-brush approach of mastering.
+
     There are some analysers that are also scaled in a way that I don't find helpful – being marked 100, 200, 200, 400, 600, 800,
     1kHz, 2k etc with appropriate ticks in between is far more useful than 110, 220, 440, 880 etc. I understand why that's done,
     but it's harder to work out quickly where a feature of interest occurs in the spectrum unless it's centred around one of the
@@ -170,7 +170,7 @@ unfa:
 
   As for object files, most current compilers will search all libraries, regardless of order.
   However, since not all compilers do this it is best to follow the convention of ordering libraries
-  from left to right. 
+  from left to right.
 
 ==== Convolution Reverb ====
 
@@ -181,24 +181,24 @@ unfa:
   saving/loading parameters. For artificial reverb there are some good ones such as mverb but again
   I've never really felt very happy with them, none seem to offer the same kind of control that
   you can get with something like the Valhalla reverbs, epicVerb, or the new fabfilter reverb.
-  
+
   An impulse purchase price of $30-$40 would be fine!
-  
+
   The left input channel is convolved with the left and right impulse response file channels from IR1-A
   and the right input channel is convolved with the left and right impulse response file channel from IR1-B.
   The two output convolutions’ respective left and right components are then summed into a single stereo output.
   This configuration is necessary to take full advantage of true stereo impulse responses. True stereo impulse
   responses are required to be provided as two separate stereo files and loaded into IR1-A and IR1-B (or IR2-A and IR2-B).
-  This configuration is typically found in high-end algorithmic reverbs. 
+  This configuration is typically found in high-end algorithmic reverbs.
 
 ==== Support of ARM Architecture ====
-  Chase: 
+  Chase:
     was just wondering if LSP-PLUGINS, specifically your trigger-midi-mono, will have a version
     in the near future that will work on the raspberry pi arm7/arm8 ? as a jack standalone and lv2...
 
 ==== Compensation delay ====
   unfa:
-    I've recently used a-Delay to create a comb-filter effect in my session. 
+    I've recently used a-Delay to create a comb-filter effect in my session.
     It's really great for that kind of stuff, but one thing that could be improved is
     the resolution of the Time parameter.
 
@@ -221,16 +221,16 @@ unfa:
   Marcel:
     I have one question though. I don't see a multi-band compressor.
     It that something still in the pipeline? Would be great to have one.
-    Keep on the good work, and of course when I like the plugins I will make a donation. 
-    
+    Keep on the good work, and of course when I like the plugins I will make a donation.
+
   sadko4u:
     I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase
     distortion at split points. Instead of this multiband compressor could be implemented as N-band
     equalizer with dynamically changing gain for each band where the gain is controlled as compression gain.
-  
+
   sysrqer:
     That sounds excellent sadko4u, that's actually what I had in mind, I don't think there is anything like that for us.
-    
+
   sysrqer:
 	Being able to move the bars on the graph with the mouse would be fantastic.
 
@@ -238,8 +238,8 @@ unfa:
   robb:
     with your LSP Sampler, is it possible to have it obey note-off? Ie. If i release the key, the
     sample stops playing? Currently, it seems that a sample plays through to the end each time, no
-    matter how long the keypress is for... 
-    
+    matter how long the keypress is for...
+
   Julian:
     Is it possible to configure samples so that it stops playing when receiving a midi note off? So
     far I haven't been able to.
@@ -247,7 +247,7 @@ unfa:
 ==== Equalizer ====
   Norlick:
     Any way to make the EQ frequency display focus on a smaller range? Most of my EQing is
-    within 5dB of change so on the current spectrum it looks like very miniscule changes.
+    within 5dB of change so on the current spectrum it looks like very minuscule changes.
 
 ==== Convolvers ====
   Anton Stankevich
@@ -259,12 +259,12 @@ unfa:
     2. Oscillator, VST:
       The controls underneath the dropdown menu in "Oscillator Function" are missing. You can switch between waveforms in the menu.
       The  Oversampling function does not appear under "General."
-      Everthing else in the "General" section works well. So does the Waveform graph.
+      Everything else in the "General" section works well. So does the Waveform graph.
       Screenshot: https://www.tommoody.us/images/dec17/LSP_VST_oscillator.png
     3. Oscillator, LV2:
       The LV2 has similar issues to the VST but they can be corrected (somewhat) by closing and reopening the plugin interface.
       The main ones are: The controls underneath the dropdown menu in "Oscillator Function" freeze, and don't change when you
-      select a new waveform. Sometimes "Oversampling" appears, sometimes it's blank. 
+      select a new waveform. Sometimes "Oversampling" appears, sometimes it's blank.
 
   JohnR
     I just tried 1.1.0 JACK version of the plugins. In the trigger plugins the Instrument menu
@@ -282,7 +282,7 @@ unfa:
   sadko4u:
 	Your explanations helped me to understand what another plugin we are currently missing in linux audio. I think that
 	plugin that allows to simulate set of slap back delays combined with equalization will be very helpful while doing
-	spacial processing. What do you think about it?
+	spatial processing. What do you think about it?
 
 ==== Lookahead option ====
   Some dynamics plugins feature lookahead, some don't. As it is a very useful feature
@@ -290,7 +290,7 @@ unfa:
   effective) and the code is there already, I feel it would be a welcome addition.
 
   Seconding this request, lookahead would be incredible and make the dynamics plugins very hard to beat.
-  
+
 ==== Limiter issue ====
   Tom Moody:
     On the limiter issue:
