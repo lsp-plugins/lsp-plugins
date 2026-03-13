@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.28 ===
+* Fixed regression related to UI scaling and font scaling.
 
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
