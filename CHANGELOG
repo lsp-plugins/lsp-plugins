@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.29 ===
+* Added measured latency display in samples for the Latency Detector tool.
 * Fixed regression related to UI scaling and font scaling.
 * Fixed non-properly working 8th band of crossover in the Multiband Ring Modulated
   Sidechain.
