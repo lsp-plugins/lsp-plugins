@@ -4,6 +4,8 @@
 
 === 1.2.29 ===
 * Fixed regression related to UI scaling and font scaling.
+* Fixed non-properly working 8th band of crossover in the Multiband Ring Modulated
+  Sidechain.
 
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
