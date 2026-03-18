@@ -8,6 +8,8 @@
 * Fixed non-properly working 8th band of crossover in the Multiband Ring Modulated
   Sidechain.
 * Fixed widget redrawing atrifacts for some use cases.
+* Frequency knob now also is affected by note quantization switch in Parametric
+  Equalizer plugin series.
 
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
