@@ -330,6 +330,7 @@ Available options are:
   * gst - GStreamer plugin binaries;
   * jack - JACK plugin binaries (not available under Windows);
   * ladspa - LADSPA plugin binaries;
+  * launcher - Build launcher application for standalone JACK plugins;
   * lv2 - LV2 plugin binaries;
   * ui - build plugins with UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
