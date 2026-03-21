@@ -10,6 +10,7 @@
 * Fixed widget redrawing atrifacts for some use cases.
 * Frequency knob now also is affected by note quantization switch in Parametric
   Equalizer plugin series.
+* Additional DSP code optimizations for AVX-512 instruction set.
 
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
