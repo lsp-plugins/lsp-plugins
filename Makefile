@@ -144,6 +144,7 @@ help:
 	echo "  gst                       GStreamer plugins"
 	echo "  jack                      Standalone JACK plugins"
 	echo "  ladspa                    LADSPA plugins"
+	echo "  launcher                  Build launcher application for standalone JACK plugins"
 	echo "  lv2                       LV2 plugins"
 	echo "  vst2                      VST 2.x plugin binaries"
 	echo "  vst3                      VST 3.x plugin binaries"
