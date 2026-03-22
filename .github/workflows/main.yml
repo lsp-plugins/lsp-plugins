@@ -1,0 +1,337 @@
+---
+
+name: Build VST3 for Windows and macOS (Universal)
+
+on:
+  push:
+    branches: [main, master, devel]
+  pull_request:
+    branches: [main, master, devel]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Create release (yes/no)'
+        required: false
+        default: 'no'
+
+env:
+  BUILD_FEATURES: 'vst3 ui'
+
+jobs:
+  #===========================================================================
+  # Windows Builds
+  #===========================================================================
+  build_windows_x64:
+    name: Windows x64 VST3
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2 and install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          release: false
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            mingw-w64-x86_64-cairo
+            mingw-w64-x86_64-freetype
+            mingw-w64-x86_64-pkg-config
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure project
+        run: make config STRICT=1 VERBOSE=1 FEATURES='${{ env.BUILD_FEATURES }}'
+
+      - name: Fetch project dependencies
+        run: make fetch
+
+      - name: Build project
+        run: make VERBOSE=1 -j$(nproc)
+
+      - name: Install binaries
+        run: make install DESTDIR=./install
+
+      - name: Package VST3 binaries
+        run: |
+          mkdir -p artifacts
+          VERSION="${GITHUB_REF_NAME:-1.2.27}"
+          VERSION=$(echo "$VERSION" | sed 's/^v//')
+          tar -czf "artifacts/lsp-plugins-vst3-${VERSION}-windows-x86_64.tar.gz" -C install .
+          ls -la artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsp-plugins-vst3-windows-x86_64
+          path: artifacts/*.tar.gz
+          if-no-files-found: error
+
+  build_windows_x86:
+    name: Windows x86 VST3
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2 and install dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          release: false
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-i686-gcc
+            mingw-w64-i686-make
+            mingw-w64-i686-cairo
+            mingw-w64-i686-freetype
+            mingw-w64-i686-pkg-config
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure project
+        run: make config STRICT=1 VERBOSE=1 FEATURES='${{ env.BUILD_FEATURES }}' ARCHITECTURE=i686
+
+      - name: Fetch project dependencies
+        run: make fetch
+
+      - name: Build project
+        run: make VERBOSE=1 -j$(nproc)
+
+      - name: Install binaries
+        run: make install DESTDIR=./install
+
+      - name: Package VST3 binaries
+        run: |
+          mkdir -p artifacts
+          VERSION="${GITHUB_REF_NAME:-1.2.27}"
+          VERSION=$(echo "$VERSION" | sed 's/^v//')
+          tar -czf "artifacts/lsp-plugins-vst3-${VERSION}-windows-i686.tar.gz" -C install .
+          ls -la artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsp-plugins-vst3-windows-i686
+          path: artifacts/*.tar.gz
+          if-no-files-found: error
+
+  #===========================================================================
+  # macOS Builds
+  #===========================================================================
+  build_macos_intel:
+    name: macOS Intel (x86_64) VST3
+    runs-on: macos-13
+    steps:
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install make pkgconf cairo freetype
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure project
+        run: gmake config STRICT=1 VERBOSE=1 FEATURES='${{ env.BUILD_FEATURES }}' ARCHITECTURE=x86_64
+
+      - name: Fetch project dependencies
+        run: gmake fetch
+
+      - name: Build project
+        run: gmake VERBOSE=1 -j$(sysctl -n hw.ncpu)
+
+      - name: Install binaries
+        run: gmake install DESTDIR=./install_intel
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-intel-build
+          path: install_intel/
+          if-no-files-found: error
+
+  build_macos_arm64:
+    name: macOS ARM64 (Apple Silicon) VST3
+    runs-on: macos-14
+    steps:
+      - name: Install dependencies
+        run: |
+          brew update
+          brew install make pkgconf cairo freetype
+
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure project
+        run: gmake config STRICT=1 VERBOSE=1 FEATURES='${{ env.BUILD_FEATURES }}' ARCHITECTURE=arm64
+
+      - name: Fetch project dependencies
+        run: gmake fetch
+
+      - name: Build project
+        run: gmake VERBOSE=1 -j$(sysctl -n hw.ncpu)
+
+      - name: Install binaries
+        run: gmake install DESTDIR=./install_arm64
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64-build
+          path: install_arm64/
+          if-no-files-found: error
+
+  create_macos_universal:
+    name: Create macOS Universal Binary
+    needs: [build_macos_intel, build_macos_arm64]
+    runs-on: macos-14
+    steps:
+      - name: Download Intel build
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-intel-build
+          path: install_intel
+
+      - name: Download ARM64 build
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-arm64-build
+          path: install_arm64
+
+      - name: Create Universal VST3 Bundle
+        run: |
+          mkdir -p artifacts/lsp-plugins.vst3/Contents/MacOS
+          mkdir -p artifacts/lsp-plugins.vst3/Contents/Resources
+
+          cat > artifacts/lsp-plugins.vst3/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>English</string>
+            <key>CFBundleExecutable</key>
+            <string>lsp-plugins</string>
+            <key>CFBundleGetInfoString</key>
+            <string>LSP Plugins VST3</string>
+            <key>CFBundleIdentifier</key>
+            <string>in.lsp-plug.lsp-plugins.vst3</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundleName</key>
+            <string>LSP Plugins</string>
+            <key>CFBundlePackageType</key>
+            <string>BNDL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.2.27</string>
+            <key>CFBundleSignature</key>
+            <string>????</string>
+            <key>CFBundleVersion</key>
+            <string>1.2.27</string>
+            <key>CSResourcesFileMapped</key>
+            <true/>
+            <key>NSHumanReadableCopyright</key>
+            <string>Copyright (c) 2024 Linux Studio Plugins Project</string>
+          </dict>
+          </plist>
+          EOF
+
+          INTEL_VST3_DIR="install_intel/usr/local/lib/vst3"
+          [ ! -d "$INTEL_VST3_DIR" ] && INTEL_VST3_DIR="install_intel/lib/vst3"
+
+          ARM64_VST3_DIR="install_arm64/usr/local/lib/vst3"
+          [ ! -d "$ARM64_VST3_DIR" ] && ARM64_VST3_DIR="install_arm64/lib/vst3"
+
+          if [ -d "$INTEL_VST3_DIR" ] && [ -d "$ARM64_VST3_DIR" ]; then
+            for intel_file in "$INTEL_VST3_DIR"/lsp-plugins/*.so "$INTEL_VST3_DIR"/*.so; do
+              if [ -f "$intel_file" ]; then
+                filename=$(basename "$intel_file")
+                arm64_file="$ARM64_VST3_DIR/lsp-plugins/$filename"
+                [ ! -f "$arm64_file" ] && arm64_file="$ARM64_VST3_DIR/$filename"
+                
+                if [ -f "$arm64_file" ]; then
+                  echo "Creating universal binary for $filename"
+                  lipo -create "$intel_file" "$arm64_file" -output "artifacts/lsp-plugins.vst3/Contents/MacOS/${filename%.so}"
+                  lipo -info "artifacts/lsp-plugins.vst3/Contents/MacOS/${filename%.so}"
+                else
+                  echo "Warning: ARM64 version not found for $filename, using Intel version"
+                  cp "$intel_file" "artifacts/lsp-plugins.vst3/Contents/MacOS/${filename%.so}"
+                fi
+              fi
+            done
+          fi
+
+          if [ -z "$(ls -A artifacts/lsp-plugins.vst3/Contents/MacOS/)" ]; then
+            echo "Error: No VST3 binaries found"
+            exit 1
+          fi
+
+          VERSION="${GITHUB_REF_NAME:-1.2.27}"
+          VERSION=$(echo "$VERSION" | sed 's/^v//')
+          cd artifacts && tar -czf "lsp-plugins-vst3-${VERSION}-macos-universal.tar.gz" lsp-plugins.vst3
+          ls -la
+
+      - name: Upload universal binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: lsp-plugins-vst3-macos-universal
+          path: artifacts/*.tar.gz
+          if-no-files-found: error
+
+  #===========================================================================
+  # Release
+  #===========================================================================
+  release:
+    name: Create Release
+    needs: [build_windows_x64, build_windows_x86, create_macos_universal]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download Windows x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lsp-plugins-vst3-windows-x86_64
+          path: artifacts
+
+      - name: Download Windows x86 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lsp-plugins-vst3-windows-i686
+          path: artifacts
+
+      - name: Download macOS universal artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lsp-plugins-vst3-macos-universal
+          path: artifacts
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: artifacts/*.tar.gz
+          generate_release_notes: true
+          body: |
+            LSP Plugins VST3 builds for Windows and macOS (Universal).
+
+            ### Included Builds:
+            - **Windows x86_64** (64-bit)
+            - **Windows i686** (32-bit)
+            - **macOS Universal** (Intel x86_64 + Apple Silicon ARM64)
+
+            ### Installation:
+            - **Windows**: Extract to `C:\Program Files\Common Files\VST3`
+            - **macOS**: Extract to `/Library/Audio/Plug-Ins/VST3` or `~/Library/Audio/Plug-Ins/VST3`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
