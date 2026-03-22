@@ -11,6 +11,7 @@
 * Fixed widget redrawing atrifacts for some use cases.
 * Frequency knob now also is affected by note quantization switch in Parametric
   Equalizer plugin series.
+* Fixed possible read/write concurrency on the global configuration file.
 * Fixed recurse plugin window positioning bug which could yield memory
   leaks in the X11-emulated Wayland environment.
 * Fixed memory leaks when using Cairo library as a fallback to OpenGL.
