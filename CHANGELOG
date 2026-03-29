@@ -16,6 +16,8 @@
   leaks in the X11-emulated Wayland environment.
 * Fixed memory leaks when using Cairo library as a fallback to OpenGL.
 * Additional DSP code optimizations for AVX-512 instruction set.
+* Sidechain optimizations: Sidechain now uses ring buffer instead of shift buffer.
+  This allows to reduce the number of memory copies and memory consumption. 
 
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
