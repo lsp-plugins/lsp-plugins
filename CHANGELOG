@@ -2,6 +2,24 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.29 ===
+* Added multiple plugins launch option by Launcher tool.
+* Added measured latency display in samples for the Latency Detector tool.
+* Additional DSP code optimizations for AVX-512 instruction set.
+* Better support of Haiku by core libraries.
+* Sidechain optimizations: Sidechain now uses ring buffer instead of shift buffer.
+  This allows to reduce the number of memory copies and memory consumption.
+* Frequency knob now also is affected by note quantization switch in Parametric
+  Equalizer plugin series.
+* Fixed regression related to UI scaling and font scaling.
+* Fixed non-properly working 8th band of crossover in the Multiband Ring Modulated
+  Sidechain.
+* Fixed widget redrawing atrifacts for some use cases.
+* Fixed possible read/write concurrency on the global configuration file.
+* Fixed recurse plugin window positioning bug which could yield memory
+  leaks in the X11-emulated Wayland environment.
+* Fixed memory leaks when using Cairo library as a fallback to OpenGL.
+
 === 1.2.27 ===
 * Implemented plugin launcher for standalone plugins to avoid icon flood in menus
   of modern desktop environments.
