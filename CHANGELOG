@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.30 ===
+
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
 * Added measured latency display in samples for the Latency Detector tool.
