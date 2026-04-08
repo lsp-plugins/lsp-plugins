@@ -21,18 +21,19 @@
 #------------------------------------------------------------------------------
 # List of all dependencies
 DEPENDENCIES = \
+  LSP_3RD_PARTY \
   LSP_COMMON_LIB \
+  LSP_AUDIO_IFACE \
   LSP_DSP_LIB \
   LSP_DSP_UNITS \
   LSP_LLTL_LIB \
-  LSP_RUNTIME_LIB \
-  LSP_PLUGINS_SHARED \
-  LSP_3RD_PARTY \
   LSP_PLUGIN_FW \
+  LSP_PLUGINS_SHARED \
+  LSP_R3D_BASE_LIB \
   LSP_R3D_IFACE \
-  LSP_WS_LIB \
+  LSP_RUNTIME_LIB \
   LSP_TK_LIB \
-  LSP_R3D_BASE_LIB
+  LSP_WS_LIB
 
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
@@ -54,6 +55,7 @@ LINUX_DEPENDENCIES = \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
+  LSP_AUDIO_JACK_LIB \
   LSP_R3D_GLX_LIB
 
 LINUX_TEST_DEPENDENCIES =
@@ -80,6 +82,7 @@ BSD_DEPENDENCIES = \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
+  LSP_AUDIO_JACK_LIB \
   LSP_R3D_GLX_LIB
 
 BSD_TEST_DEPENDENCIES = 
@@ -93,17 +96,17 @@ endif
 #------------------------------------------------------------------------------
 # Windows dependencies
 WINDOWS_DEPENDENCIES = \
-  LIBSHLWAPI \
-  LIBWINMM \
-  LIBMSACM \
-  LIBMPR \
-  LIBGDI32 \
   LIBD2D1 \
-  LIBOLE \
-  LIBWINCODEC \
   LIBDWRITE \
-  LIBUUID \
+  LIBGDI32 \
+  LIBMPR \
+  LIBMSACM \
+  LIBOLE \
   LIBOPENGL32 \
+  LIBSHLWAPI \
+  LIBUUID \
+  LIBWINCODEC \
+  LIBWINMM \
   LSP_R3D_WGL_LIB
 
 WINDOWS_TEST_DEPENDENCIES = 

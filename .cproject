@@ -44,6 +44,8 @@
 									<listOptionValue builtIn="false" value="/usr/include/gstreamer-1.0"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -135,6 +137,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugin-fw}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -290,8 +294,11 @@
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1518977942" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.327552403" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-jack-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.395181430">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.395181430" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973"/>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="modules/lsp-audio-jack-lib/src/test/main.cpp|modules/lsp-audio-iface/src/test/main.cpp|modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -338,6 +345,8 @@
 									<listOptionValue builtIn="false" value="/usr/include/gstreamer-1.0"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -363,12 +372,14 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-latency-meter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-limiter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-loud-comp}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-matcher}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-clipper}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-compressor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-dyna-processor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-noise-generator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
@@ -379,6 +390,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
@@ -418,6 +430,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugin-fw}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -443,12 +457,14 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-latency-meter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-limiter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-loud-comp}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-matcher}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-clipper}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-compressor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-dyna-processor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscilloscope}/include&quot;"/>
@@ -458,6 +474,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
@@ -499,8 +516,11 @@
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1889957539" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.1986672855.1714524159" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-jack-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.1393687277">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.1393687277" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081"/>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="modules/lsp-audio-jack-lib/src/test/main.cpp|modules/lsp-audio-iface/src/test/main.cpp|modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -537,6 +557,8 @@
 									<listOptionValue builtIn="false" value="/usr/include/gstreamer-1.0"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -562,12 +584,14 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-latency-meter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-limiter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-loud-comp}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-matcher}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-clipper}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-compressor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-dyna-processor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-noise-generator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
@@ -578,6 +602,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
@@ -614,6 +639,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugin-fw}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-3rd-party}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-iface}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-audio-jack-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-common-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-lib}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-dsp-units}/include&quot;"/>
@@ -639,12 +666,14 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-latency-meter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-limiter}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-loud-comp}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-matcher}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-clipper}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-compressor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-dyna-processor}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-expander}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-gate}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-limiter}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mb-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-mixer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscillator}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-oscilloscope}/include&quot;"/>
@@ -654,6 +683,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-profiler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-referencer}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-return}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-ringmod-sc}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-room-builder}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-sampler}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/modules/lsp-plugins-send}/include&quot;"/>
@@ -776,8 +806,11 @@
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.482465854" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1808871640.1228144155" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-jack-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.52694499">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.52694499" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307"/>
+					</fileInfo>
 					<sourceEntries>
-						<entry excluding="modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="modules/lsp-audio-jack-lib/src/test/main.cpp|modules/lsp-audio-iface/src/test/main.cpp|modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
