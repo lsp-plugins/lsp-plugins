@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -63,7 +63,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst xdg
+  DEFAULT_FEATURES         += standalone gst xdg jack_back
 endif
 
 #------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst xdg
+  DEFAULT_FEATURES         += standalone gst xdg jack_back
 endif
 
 #------------------------------------------------------------------------------

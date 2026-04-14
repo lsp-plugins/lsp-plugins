@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 #
-# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-lltl-lib
 #
@@ -142,10 +142,11 @@ help:
 	echo "  clap                      CLAP plugins"
 	echo "  doc                       Generate standalone HTML documentation"
 	echo "  gst                       GStreamer plugins"
-	echo "  jack                      Standalone JACK plugins"
+	echo "  jack_back                 JACK backend for standalone plugins"
 	echo "  ladspa                    LADSPA plugins"
 	echo "  launcher                  Build launcher application for standalone JACK plugins"
 	echo "  lv2                       LV2 plugins"
+	echo "  standalone                Standalone plugins"
 	echo "  vst2                      VST 2.x plugin binaries"
 	echo "  vst3                      VST 3.x plugin binaries"
 	echo "  xdg                       Desktop integration icons"

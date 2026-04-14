@@ -34,7 +34,7 @@ LSP_AUDIO_IFACE_URL_RW     := git@github.com:lsp-plugins/$(LSP_AUDIO_IFACE_NAME)
 
 LSP_AUDIO_JACK_LIB_VERSION := 1.0.0
 LSP_AUDIO_JACK_LIB_NAME    := lsp-audio-jack-lib
-LSP_AUDIO_JACK_LIB_TYPE    := src
+LSP_AUDIO_JACK_LIB_TYPE    := bin
 LSP_AUDIO_JACK_LIB_URL_RO  := https://github.com/lsp-plugins/$(LSP_AUDIO_JACK_LIB_NAME).git
 LSP_AUDIO_JACK_LIB_URL_RW  := git@github.com:lsp-plugins/$(LSP_AUDIO_JACK_LIB_NAME).git
 
