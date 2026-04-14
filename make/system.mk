@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -20,6 +20,7 @@
 
 # Detect operating system
 $(info OS = $(OS))
+$(info BUILD_SYSTEM = $(OS))
 ifndef PLATFORM
   TMP_VAR = $(findstring Windows,$(OS))
   $(info TMP_VAR = $(TMP_VAR))
@@ -34,6 +35,12 @@ ifndef PLATFORM
   $(info BUILD_SYSTEM = $(BUILD_SYSTEM))
   PLATFORM       := Unknown
 
+  ifeq ($(findstring MINGW64_NT,$(OS)),MINGW64_NT)
+  	PLATFORM       := Windows
+  else ifeq ($(findstring MINGW32_NT,$(OS)),MINGW32_NT)
+    PLATFORM       := Windows
+  else ifeq ($(findstring MINGW_NT,$(OS)),MINGW_NT)
+    PLATFORM       := Windows
   ifeq ($(BUILD_SYSTEM),Windows)
     PLATFORM       := Windows
   else ifeq ($(findstring OpenBSD,$(BUILD_SYSTEM)),OpenBSD)
