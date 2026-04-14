@@ -19,13 +19,19 @@
 #
 
 # Detect operating system
+$(info OS = $(OS))
 ifndef PLATFORM
+  TMP_VAR = $(findstring Windows,$(OS))
+  $(info TMP_VAR = $(TMP_VAR))
   ifeq ($(findstring Windows,$(OS)),Windows)
+    BUILD_SYSTEM   := Windows
+  else ifeq ($(findstring Windows_NT,$(OS)),Windows_NT)
     BUILD_SYSTEM   := Windows
   else
     BUILD_SYSTEM   := $(shell uname -s 2>/dev/null || echo "Unknown")
   endif
   
+  $(info BUILD_SYSTEM = $(BUILD_SYSTEM))
   PLATFORM       := Unknown
 
   ifeq ($(BUILD_SYSTEM),Windows)
@@ -43,6 +49,8 @@ ifndef PLATFORM
   else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
     PLATFORM       := Haiku
   endif
+  
+  $(info PLATFORM = $(PLATFORM))
 endif
 
 # Detect system processor architecture
