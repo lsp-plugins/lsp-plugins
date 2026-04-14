@@ -41,7 +41,7 @@ ifndef PLATFORM
     PLATFORM       := Windows
   else ifeq ($(findstring MINGW_NT,$(OS)),MINGW_NT)
     PLATFORM       := Windows
-  ifeq ($(BUILD_SYSTEM),Windows)
+  else ifeq ($(BUILD_SYSTEM),Windows)
     PLATFORM       := Windows
   else ifeq ($(findstring OpenBSD,$(BUILD_SYSTEM)),OpenBSD)
     PLATFORM       := OpenBSD
