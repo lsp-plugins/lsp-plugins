@@ -35,11 +35,11 @@ ifndef PLATFORM
   $(info BUILD_SYSTEM = $(BUILD_SYSTEM))
   PLATFORM       := Unknown
 
-  ifeq ($(findstring MINGW64_NT,$(OS)),MINGW64_NT)
+  ifeq ($(findstring MINGW64_NT,$(BUILD_SYSTEM)),MINGW64_NT)
   	PLATFORM       := Windows
-  else ifeq ($(findstring MINGW32_NT,$(OS)),MINGW32_NT)
+  else ifeq ($(findstring MINGW32_NT,$(BUILD_SYSTEM)),MINGW32_NT)
     PLATFORM       := Windows
-  else ifeq ($(findstring MINGW_NT,$(OS)),MINGW_NT)
+  else ifeq ($(findstring MINGW_NT,$(BUILD_SYSTEM)),MINGW_NT)
     PLATFORM       := Windows
   else ifeq ($(BUILD_SYSTEM),Windows)
     PLATFORM       := Windows
