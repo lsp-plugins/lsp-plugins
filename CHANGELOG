@@ -3,6 +3,11 @@
 *******************************************************************************
 
 === 1.2.30 ===
+* Fixed improper handling of plugin factory initialization/finalization for
+  CLAP plugin format (added support of series of initializations and
+  finalizations as it is allowed by CLAP standard).
+* Fixed out-of-sync event handling for CLAP and VST2 extra UI run loop under
+  Linux when hiding and showing plugin window.
 
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
