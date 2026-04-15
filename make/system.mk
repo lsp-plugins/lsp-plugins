@@ -38,13 +38,13 @@ ifndef PLATFORM
 
   ifeq ($(findstring MINGW64_NT,$(BUILD_SYSTEM)),MINGW64_NT)
     PLATFORM                  := Windows
-    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
   else ifeq ($(findstring MINGW32_NT,$(BUILD_SYSTEM)),MINGW32_NT)
     PLATFORM                  := Windows
-    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
   else ifeq ($(findstring MINGW_NT,$(BUILD_SYSTEM)),MINGW_NT)
     PLATFORM                  := Windows
-    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
   else ifeq ($(BUILD_SYSTEM),Windows)
     PLATFORM                  := Windows
   else ifeq ($(findstring OpenBSD,$(BUILD_SYSTEM)),OpenBSD)
@@ -63,6 +63,8 @@ ifndef PLATFORM
   
   $(info PLATFORM = $(PLATFORM))
 endif
+
+$(info PLATFORM_PROCESSOR_ARCH = $(PLATFORM_PROCESSOR_ARCH))
 
 # Detect system processor architecture
 ifeq ($(PLATFORM),Windows)
