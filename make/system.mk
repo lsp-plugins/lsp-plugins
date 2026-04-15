@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2024 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2024 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -19,39 +19,52 @@
 #
 
 # Detect operating system
+PLATFORM_PROCESSOR_ARCH     := 
 ifndef PLATFORM
+  TMP_VAR = $(findstring Windows,$(OS))
   ifeq ($(findstring Windows,$(OS)),Windows)
-    BUILD_SYSTEM   := Windows
+    BUILD_SYSTEM                := Windows
+  else ifeq ($(findstring Windows_NT,$(OS)),Windows_NT)
+    BUILD_SYSTEM                := Windows
   else
-    BUILD_SYSTEM   := $(shell uname -s 2>/dev/null || echo "Unknown")
+    BUILD_SYSTEM                := $(shell uname -s 2>/dev/null || echo "Unknown")
   endif
   
-  PLATFORM       := Unknown
+  PLATFORM                    := Unknown
 
-  ifeq ($(BUILD_SYSTEM),Windows)
-    PLATFORM       := Windows
+  ifeq ($(findstring MINGW64_NT,$(BUILD_SYSTEM)),MINGW64_NT)
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
+  else ifeq ($(findstring MINGW32_NT,$(BUILD_SYSTEM)),MINGW32_NT)
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
+  else ifeq ($(findstring MINGW_NT,$(BUILD_SYSTEM)),MINGW_NT)
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(shell gcc -dumpmachine)
+  else ifeq ($(BUILD_SYSTEM),Windows)
+    PLATFORM                  := Windows
   else ifeq ($(findstring OpenBSD,$(BUILD_SYSTEM)),OpenBSD)
-    PLATFORM       := OpenBSD
+    PLATFORM                  := OpenBSD
   else ifeq ($(findstring BSD,$(BUILD_SYSTEM)),BSD)
-    PLATFORM       := BSD
+    PLATFORM                  := BSD
   else ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
-    PLATFORM       := Linux
+    PLATFORM                  := Linux
   else ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
-    PLATFORM       := Solaris
+    PLATFORM                  := Solaris
   else ifeq ($(findstring Darwin,$(BUILD_SYSTEM)),Darwin)
-    PLATFORM       := MacOS
+    PLATFORM                  := MacOS
   else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
-    PLATFORM       := Haiku
+    PLATFORM                  := Haiku
   endif
 endif
 
 # Detect system processor architecture
 ifeq ($(PLATFORM),Windows)
-  HOST_BUILD_ARCH        := $(PROCESSOR_ARCHITECTURE)
+  HOST_BUILD_ARCH             := $(if $(PLATFORM_PROCESSOR_ARCH),$(PLATFORM_PROCESSOR_ARCH),$(PROCESSOR_ARCHITECTURE))
 else
-  HOST_BUILD_ARCH        := $(shell uname -m)
+  HOST_BUILD_ARCH             := $(shell uname -m)
 endif
-BUILD_ARCH          := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
+BUILD_ARCH                  := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
 
 ifeq ($(PLATFORM),Linux)
   OBJ_LDFLAGS_X86       =  -m elf_i386
@@ -75,23 +88,23 @@ define detect_architecture =
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a+fp -marm
-  else ifeq ($(patsubst armv6%,armv6,$(1)),armv6)
+  else ifeq ($(findstring armv6,$(1)),armv6)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv6 -marm
-  else ifeq ($(patsubst armv7ve%,armv7ve,$(1)),armv7ve)
+  else ifeq ($(findstring armv7ve,$(1)),armv7ve)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7ve -marm
-  else ifeq ($(patsubst armv7%,armv7,$(1)),armv7)
+  else ifeq ($(findstring armv7,$(1)),armv7)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a -marm
-  else ifeq ($(patsubst armv8%,armv8,$(1)),armv8)
+  else ifeq ($(findstring armv8,$(1)),armv8)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a -marm
-  else ifeq ($(patsubst aarch64%,aarch64,$(1)),aarch64)
+  else ifeq ($(findstring aarch64,$(1)),aarch64)
     $(2)_NAME        = aarch64
     $(2)_FAMILY      = aarch64
     $(2)_CFLAGS     := -march=armv8-a
@@ -107,17 +120,17 @@ define detect_architecture =
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv6 -marm
-  else ifeq ($(patsubst %x86_64%,x86_64,$(1)),x86_64)
+  else ifeq ($(findstring x86_64,$(1)),x86_64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %amd64%,amd64,$(1)),amd64)
+  else ifeq ($(findstring amd64,$(1)),amd64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %AMD64%,AMD64,$(1)),AMD64)
+  else ifeq ($(findstring AMD64,$(1)),AMD64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
@@ -127,12 +140,22 @@ define detect_architecture =
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %i686%,i686,$(1)),i686)
+  else ifeq ($(findstring i686,$(1)),i686)
     $(2)_NAME        = i686
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i686 -m32
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
-  else ifeq ($(patsubst i%86,i586,$(1)),i586)
+  else ifeq ($(findstring i586,$(1)),i586)
+    $(2)_NAME        = i586
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i586 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
+  else ifeq ($(findstring i486,$(1)),i486)
+    $(2)_NAME        = i586
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i586 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
+  else ifeq ($(findstring i386,$(1)),i386)
     $(2)_NAME        = i586
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i586 -m32
