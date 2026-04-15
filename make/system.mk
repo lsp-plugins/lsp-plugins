@@ -21,7 +21,6 @@
 # Detect operating system
 PLATFORM_PROCESSOR_ARCH     := 
 ifndef PLATFORM
-  TMP_VAR = $(findstring Windows,$(OS))
   ifeq ($(findstring Windows,$(OS)),Windows)
     BUILD_SYSTEM                := Windows
   else ifeq ($(findstring Windows_NT,$(OS)),Windows_NT)
