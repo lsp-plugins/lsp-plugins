@@ -19,12 +19,9 @@
 #
 
 # Detect operating system
-$(info OS = $(OS))
-$(info BUILD_SYSTEM = $(OS))
 PLATFORM_PROCESSOR_ARCH     := 
 ifndef PLATFORM
   TMP_VAR = $(findstring Windows,$(OS))
-  $(info TMP_VAR = $(TMP_VAR))
   ifeq ($(findstring Windows,$(OS)),Windows)
     BUILD_SYSTEM                := Windows
   else ifeq ($(findstring Windows_NT,$(OS)),Windows_NT)
@@ -33,7 +30,6 @@ ifndef PLATFORM
     BUILD_SYSTEM                := $(shell uname -s 2>/dev/null || echo "Unknown")
   endif
   
-  $(info BUILD_SYSTEM = $(BUILD_SYSTEM))
   PLATFORM                    := Unknown
 
   ifeq ($(findstring MINGW64_NT,$(BUILD_SYSTEM)),MINGW64_NT)
@@ -60,11 +56,7 @@ ifndef PLATFORM
   else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
     PLATFORM                  := Haiku
   endif
-  
-  $(info PLATFORM = $(PLATFORM))
 endif
-
-$(info PLATFORM_PROCESSOR_ARCH = $(PLATFORM_PROCESSOR_ARCH))
 
 # Detect system processor architecture
 ifeq ($(PLATFORM),Windows)
@@ -73,9 +65,6 @@ else
   HOST_BUILD_ARCH             := $(shell uname -m)
 endif
 BUILD_ARCH                  := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
-
-$(info HOST_BUILD_ARCH = $(HOST_BUILD_ARCH))
-$(info BUILD_ARCH = $(BUILD_ARCH))
 
 ifeq ($(PLATFORM),Linux)
   OBJ_LDFLAGS_X86       =  -m elf_i386
@@ -193,9 +182,6 @@ endef
 
 $(eval $(call detect_architecture,$(BUILD_ARCH),ARCHITECTURE))
 $(eval $(call detect_architecture,$(HOST_BUILD_ARCH),HOST_ARCHITECTURE))
-
-$(info ARCHITECTURE_NAME = $(ARCHITECTURE_NAME))
-$(info ARCHITECTURE_FAMILY = $(ARCHITECTURE_FAMILY))
 
 override ARCHITECTURE          = $(ARCHITECTURE_NAME)
 override HOST_ARCHITECTURE     = $(HOST_ARCHITECTURE_NAME)
