@@ -21,40 +21,44 @@
 # Detect operating system
 $(info OS = $(OS))
 $(info BUILD_SYSTEM = $(OS))
+PLATFORM_PROCESSOR_ARCH     := 
 ifndef PLATFORM
   TMP_VAR = $(findstring Windows,$(OS))
   $(info TMP_VAR = $(TMP_VAR))
   ifeq ($(findstring Windows,$(OS)),Windows)
-    BUILD_SYSTEM   := Windows
+    BUILD_SYSTEM                := Windows
   else ifeq ($(findstring Windows_NT,$(OS)),Windows_NT)
-    BUILD_SYSTEM   := Windows
+    BUILD_SYSTEM                := Windows
   else
-    BUILD_SYSTEM   := $(shell uname -s 2>/dev/null || echo "Unknown")
+    BUILD_SYSTEM                := $(shell uname -s 2>/dev/null || echo "Unknown")
   endif
   
   $(info BUILD_SYSTEM = $(BUILD_SYSTEM))
-  PLATFORM       := Unknown
+  PLATFORM                    := Unknown
 
   ifeq ($(findstring MINGW64_NT,$(BUILD_SYSTEM)),MINGW64_NT)
-  	PLATFORM       := Windows
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
   else ifeq ($(findstring MINGW32_NT,$(BUILD_SYSTEM)),MINGW32_NT)
-    PLATFORM       := Windows
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
   else ifeq ($(findstring MINGW_NT,$(BUILD_SYSTEM)),MINGW_NT)
-    PLATFORM       := Windows
+    PLATFORM                  := Windows
+    PLATFORM_PROCESSOR_ARCH   := $(gcc -dumpmachine)
   else ifeq ($(BUILD_SYSTEM),Windows)
-    PLATFORM       := Windows
+    PLATFORM                  := Windows
   else ifeq ($(findstring OpenBSD,$(BUILD_SYSTEM)),OpenBSD)
-    PLATFORM       := OpenBSD
+    PLATFORM                  := OpenBSD
   else ifeq ($(findstring BSD,$(BUILD_SYSTEM)),BSD)
-    PLATFORM       := BSD
+    PLATFORM                  := BSD
   else ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
-    PLATFORM       := Linux
+    PLATFORM                  := Linux
   else ifeq ($(findstring SunOS,$(BUILD_SYSTEM)),SunOS)
-    PLATFORM       := Solaris
+    PLATFORM                  := Solaris
   else ifeq ($(findstring Darwin,$(BUILD_SYSTEM)),Darwin)
-    PLATFORM       := MacOS
+    PLATFORM                  := MacOS
   else ifeq ($(findstring Haiku,$(BUILD_SYSTEM)),Haiku)
-    PLATFORM       := Haiku
+    PLATFORM                  := Haiku
   endif
   
   $(info PLATFORM = $(PLATFORM))
@@ -62,11 +66,11 @@ endif
 
 # Detect system processor architecture
 ifeq ($(PLATFORM),Windows)
-  HOST_BUILD_ARCH        := $(PROCESSOR_ARCHITECTURE)
+  HOST_BUILD_ARCH             := $(if $(PLATFORM_PROCESSOR_ARCH),$(PLATFORM_PROCESSOR_ARCH),$(PROCESSOR_ARCHITECTURE))
 else
-  HOST_BUILD_ARCH        := $(shell uname -m)
+  HOST_BUILD_ARCH             := $(shell uname -m)
 endif
-BUILD_ARCH          := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
+BUILD_ARCH                  := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
 
 ifeq ($(PLATFORM),Linux)
   OBJ_LDFLAGS_X86       =  -m elf_i386
