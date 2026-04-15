@@ -74,6 +74,9 @@ else
 endif
 BUILD_ARCH                  := $(if $(ARCHITECTURE),$(ARCHITECTURE),$(HOST_BUILD_ARCH))
 
+$(info HOST_BUILD_ARCH = $(HOST_BUILD_ARCH))
+$(info BUILD_ARCH = $(BUILD_ARCH))
+
 ifeq ($(PLATFORM),Linux)
   OBJ_LDFLAGS_X86       =  -m elf_i386
   OBJ_LDFLAGS_X86_64    =  -m elf_x86_64
@@ -96,23 +99,23 @@ define detect_architecture =
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a+fp -marm
-  else ifeq ($(patsubst armv6%,armv6,$(1)),armv6)
+  else ifeq ($(findstring armv6,$(1)),armv6)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv6 -marm
-  else ifeq ($(patsubst armv7ve%,armv7ve,$(1)),armv7ve)
+  else ifeq ($(findstring armv7ve,$(1)),armv7ve)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7ve -marm
-  else ifeq ($(patsubst armv7%,armv7,$(1)),armv7)
+  else ifeq ($(findstring armv7,$(1)),armv7)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a -marm
-  else ifeq ($(patsubst armv8%,armv8,$(1)),armv8)
+  else ifeq ($(findstring armv8,$(1)),armv8)
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv7-a -marm
-  else ifeq ($(patsubst aarch64%,aarch64,$(1)),aarch64)
+  else ifeq ($(findstring aarch64,$(1)),aarch64)
     $(2)_NAME        = aarch64
     $(2)_FAMILY      = aarch64
     $(2)_CFLAGS     := -march=armv8-a
@@ -128,17 +131,17 @@ define detect_architecture =
     $(2)_NAME        = arm32
     $(2)_FAMILY      = arm32
     $(2)_CFLAGS     := -march=armv6 -marm
-  else ifeq ($(patsubst %x86_64%,x86_64,$(1)),x86_64)
+  else ifeq ($(findstring x86_64,$(1)),x86_64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %amd64%,amd64,$(1)),amd64)
+  else ifeq ($(findstring amd64,$(1)),amd64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %AMD64%,AMD64,$(1)),AMD64)
+  else ifeq ($(findstring AMD64,$(1)),AMD64)
     $(2)_NAME        = x86_64
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
@@ -148,12 +151,22 @@ define detect_architecture =
     $(2)_FAMILY      = x86_64
     $(2)_CFLAGS     := -march=x86-64 -m64
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86_64)
-  else ifeq ($(patsubst %i686%,i686,$(1)),i686)
+  else ifeq ($(findstring i686,$(1)),i686)
     $(2)_NAME        = i686
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i686 -m32
     $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
-  else ifeq ($(patsubst i%86,i586,$(1)),i586)
+  else ifeq ($(findstring i586,$(1)),i586)
+    $(2)_NAME        = i586
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i586 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
+  else ifeq ($(findstring i486,$(1)),i486)
+    $(2)_NAME        = i586
+    $(2)_FAMILY      = ia32
+    $(2)_CFLAGS     := -march=i586 -m32
+    $(2)_LDFLAGS    := $(OBJ_LDFLAGS_X86)
+  else ifeq ($(findstring i386,$(1)),i386)
     $(2)_NAME        = i586
     $(2)_FAMILY      = ia32
     $(2)_CFLAGS     := -march=i586 -m32
@@ -180,6 +193,9 @@ endef
 
 $(eval $(call detect_architecture,$(BUILD_ARCH),ARCHITECTURE))
 $(eval $(call detect_architecture,$(HOST_BUILD_ARCH),HOST_ARCHITECTURE))
+
+$(info ARCHITECTURE_NAME = $(ARCHITECTURE_NAME))
+$(info ARCHITECTURE_FAMILY = $(ARCHITECTURE_FAMILY))
 
 override ARCHITECTURE          = $(ARCHITECTURE_NAME)
 override HOST_ARCHITECTURE     = $(HOST_ARCHITECTURE_NAME)
