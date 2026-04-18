@@ -8,6 +8,10 @@
   finalizations as it is allowed by CLAP standard).
 * Fixed out-of-sync event handling for CLAP and VST2 extra UI run loop under
   Linux when hiding and showing plugin window.
+* Added new 'standalone' build feature which now replaces the 'jack' build feature
+  for launching standalone plugins.
+* The feature 'jack' is now responsible for building JACK audio backend for standalone
+  plugins.
 
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
