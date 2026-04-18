@@ -63,7 +63,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += standalone gst xdg jack_back
+  DEFAULT_FEATURES         += standalone gst xdg jack
 endif
 
 #------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += standalone gst xdg jack_back
+  DEFAULT_FEATURES         += standalone gst xdg jack
 endif
 
 #------------------------------------------------------------------------------
