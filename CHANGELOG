@@ -12,6 +12,7 @@
   for launching standalone plugins.
 * The feature 'jack' is now responsible for building JACK audio backend for standalone
   plugins.
+* Moved all JACK-related code into a separate lsp-audio-jack module.
 
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
