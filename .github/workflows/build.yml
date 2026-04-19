@@ -30,7 +30,7 @@ jobs:
         run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr lv2lint php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 ui vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -58,7 +58,7 @@ jobs:
         run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 DEBUG=1 VERBOSE=1 FEATURES='clap gst jack ladspa launcher lv2 ui vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 DEBUG=1 VERBOSE=1 FEATURES='clap gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -75,7 +75,7 @@ jobs:
         run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ glibc-locale git make php valgrind libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 ui vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -92,7 +92,7 @@ jobs:
         run: zypper --non-interactive --no-gpg-checks in tar gzip gcc gcc-c++ glibc-locale glibc-gconv-modules-extra clang lld git make php8-cli valgrind libstdc++-devel libX11-devel libXrandr-devel Mesa-libGL-devel libjack-devel cairo-devel freetype2-devel libsndfile-devel gstreamer-devel gstreamer-plugins-base-devel
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config CC=clang CXX=clang++ STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 ui vst2 vst3 xdg' PREFIX=/usr
+        run: make config CC=clang CXX=clang++ STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -111,7 +111,7 @@ jobs:
         run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 ui vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
@@ -130,7 +130,7 @@ jobs:
         run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 vst2 vst3 xdg' PREFIX=/usr
+        run: make config STRICT=1 VERBOSE=1 FEATURES='clap doc gst jack ladspa lv2 standalone vst2 vst3 xdg' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project

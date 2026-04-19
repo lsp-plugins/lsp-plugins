@@ -2,7 +2,7 @@
 
 LSP (Linux Studio Plugins) is a collection of open-source plugins
 currently compatible with CLAP, LADSPA, LV2, VST2/LinuxVST, VST3
-and JACK standalone formats.
+and standalone formats (supporting Dummy and JACK audio backends).
 
 The basic idea is to fill the lack of good and useful plugins under
 the GNU/Linux platform.
@@ -84,7 +84,9 @@ Note that minimum supported Windows version is Windows Vista.
 Supported plugin formats:
   * CLAP (full support);
   * GStreamer (experimental support);
-  * JACK standalone (full support)
+  * Standalone:
+    * Dummy audio backend;
+    * JACK audio backend.
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
   * VST2/LinuxVST (full support);
@@ -120,10 +122,10 @@ The property <format> is the format of plugins, currently available:
   * clap - plugins in [CLAP](https://github.com/free-audio/clap) format;
   * doc - documentation;
   * gst - plugins in [GStreamer](https://gstreamer.freedesktop.org/) format;
-  * jack - standalone version of plugins that require [JACK](https://jackaudio.org/) server for execution;
   * ladspa - plugins in [LADSPA](https://en.wikipedia.org/wiki/LADSPA) format (not all plugins due to format's restriction);
   * lv2 - plugins in [LV2](https://lv2plug.in/) format;
   * src - source code;
+  * standalone - standalone version of plugins (plugins that support [JACK](https://jackaudio.org/);
   * vst2 - plugins in [VST 2.4](https://www.steinberg.net/) format;
   * vst3 - plugins in [VST3](https://www.steinberg.net/) format.
 
@@ -157,7 +159,7 @@ The usual directories for CLAP are:
   * /usr/local/lib64/clap
   * ~/.clap
 
-The usual directories for JACK core library are:
+The usual directories for standalone core library are:
   * /usr/lib
   * /usr/local/lib
   * /lib
@@ -165,7 +167,7 @@ The usual directories for JACK core library are:
   * /usr/local/lib64
   * /lib64
 
-The usual directories for JACK binaries are:
+The usual directories for standalone binaries are:
   * /usr/bin
   * /usr/local/bin
   * /bin
@@ -248,7 +250,7 @@ You may build plugins from scratch.
 
 The build process doesn't differ much for GNU/Linux, FreeBSD or Windows.
 For a build on macOS and FreeBSD you should use `gmake` instead of `make`.
-Build of JACK standalone versions for Windows is yet not supported.
+Build of standalone versions for Windows is yet not supported.
 
 For successful build for Linux/FreeBSD you need the following packages to be installed:
   * gcc >= 4.7 OR clang >= 10.0.1
@@ -328,10 +330,11 @@ Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
   * gst - GStreamer plugin binaries;
-  * jack - JACK plugin binaries (not available under Windows);
+  * jack - JACK backend for standalone plugins (not available under Windows);
   * ladspa - LADSPA plugin binaries;
   * launcher - Build launcher application for standalone JACK plugins;
   * lv2 - LV2 plugin binaries;
+  * standalone - Standalone plugins applications (not available on Windows);
   * ui - build plugins with UI support;
   * vst2 - VST2/LinuxVST plugin binaries;
   * vst3 - VST2 plugin binaries;
