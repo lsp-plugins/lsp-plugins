@@ -23,6 +23,7 @@ endif
 
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
+PLUGINS                    := $(BASEDIR)/plugins.mk
 BUILD_FEATURES              = $(sort $(call subtraction,$(SUB_FEATURES),$(if $(FEATURES),$(FEATURES),$(DEFAULT_FEATURES)) $(ADD_FEATURES)))           
 
 # Configure system settings
