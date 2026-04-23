@@ -326,6 +326,16 @@ at the configuration stage:
   make config FEATURES='lv2 vst2 ui doc'
 ```
 
+Available compile options are:
+  * asan - build with address sanitizer enabled.
+  * crosscompile - build with additional debug information and debug logs enabled.
+  * debug - build with additional debug information and debug logs enabled.
+  * devel - use development (SSH) links for remote repositories instead of HTTPS.
+  * profile - build with gprof profiling options.
+  * strict - strict compilation: treat all compilation warning as errors.
+  * test - enable tests and build test binary.
+  * trace - enable output of additional trace logs.
+
 Available options are:
   * clap - CLAP plugin binaries;
   * doc - HTML documentation;
@@ -347,16 +357,16 @@ To override this path, the PREFIX variable can be overridden:
   make config PREFIX=/usr
 ```
 
-To build binaries for debugging, use the following commands:
+To build binaries for debugging, add `debug` feature to `FEATURES` variable:
 
 ```
-  make config DEBUG=1
+  make config ADD_FEATURES='debug'
 ```
 
-To build binaries for testing (developers only), use the following commands:
+To build binaries for testing (developers only), add `test` feature to `FEATURES` variable:
 
 ```
-  make config TEST=1
+  make config ADD_FEATURES='test'
 ```
 
 To install plugins at the desired root directory, the DESTDIR variable can be specified:
@@ -368,7 +378,7 @@ To install plugins at the desired root directory, the DESTDIR variable can be sp
 To install only specific formats, use INSTALL_FEATURES option:
 
 ```
-  make install FEATURES=lv2
+  make install FEATURES='lv2 ladspa'
 ```
 
 To build standalone source code package, the following commands can be issued:
@@ -380,15 +390,15 @@ To build standalone source code package, the following commands can be issued:
 
 After that, a standalone archive with source code will be created in the `.build` directory.
 
-When cross compiling, the AS, AR, CC, CXX, LD, etc. variables should be set in the environment according to the target/cross compile toolchain. The build host machine versions of those variables- HOST_AS, HOST_AR, HOST_CC, HOST_CXX, etc. have defaults set in the makefiles but may need to be overridden. To troubleshoot, run `make configure` with the VERBOSE option.
+When cross compiling, the AS, AR, CC, CXX, LD, etc. variables should be set in the environment according to the target/cross compile toolchain. The build host machine versions of those variables- HOST_AS, HOST_AR, HOST_CC, HOST_CXX, etc. have defaults set in the makefiles but may need to be overridden. To troubleshoot, run `make config` with the VERBOSE option.
 Additional variables should be configured:
-  * set the ARCHITECTURE option to the target architecture
-  * set the CROSS_COMPILE option to 1
+  * set the `ARCHITECTURE` option to the target architecture.
+  * add the `croccompile` feature to the `FEATURES` variable.
 
 Example cross compile procedure for aarch64 target on x86_64 build host:
 ```
   make clean
-  make config ARCHITECTURE="aarch64" CROSS_COMPILE="1"
+  make config ARCHITECTURE="aarch64" ADD_FEATURES="crosscompile"
   make fetch
   make
   make install
@@ -494,10 +504,11 @@ gather final statistics and output them in a table format. These tests are very 
 measuring single-core performance of different modules and functions and performing code
 optimizations.
 
-To build testing subsystem, issue the following commands:
+To build testing subsystem, issue the following commands and enable `test` feature in
+`FEATURES` parameter:
 ```
   make clean
-  make config TEST=1
+  make config ADD_FEATURES='test'
   make
 ```
 

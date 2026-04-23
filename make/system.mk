@@ -224,16 +224,12 @@ ifndef PKGCONFIG_EXT
   PKGCONFIG_EXT            := .pc
 endif
 
-TEST                       := 0
-
 # Set-up list of common variables
 COMMON_VARS = \
 	ARCHITECTURE \
 	ARCHITECTURE_FAMILY \
 	ARCHITECTURE_CFLAGS \
 	BUILD_FEATURES \
-	CROSS_COMPILE \
-	DEBUG \
 	EXECUTABLE_EXT \
 	EXPORT_SYMBOLS \
 	HOST_ARCHITECTURE \
@@ -245,11 +241,7 @@ COMMON_VARS = \
 	PKGCONFIG_EXT \
 	PLATFORM \
 	ROOT_ARTIFACT_ID \
-	PROFILE \
-	STATICLIB_EXT \
-	STRICT \
-	TEST \
-	TRACE
+	STATICLIB_EXT
 
 .PHONY: sysvars
 
@@ -260,9 +252,6 @@ sysvars:
 	echo "  ARCHITECTURE_CFLAGS       compiler flags to specify architecture"
 	echo "  ARCHITECTURE_FAMILY       compiler flags to specify architecture family"
 	echo "  ARCHITECTURE_LDFLAGS      linker flags to specify architecture"
-	echo "  CROSS_COMPILE             enable/disable cross-compilation"
-	echo "  DEBUG                     build with debug options"
-	echo "  DEVEL                     build with modules checked out for read/write URL"
 	echo "  EXECUTABLE_EXT            file extension for executable files"
 	echo "  EXPORT_SYMBOLS            make export symbols visible" 
 	echo "  FEATURES                  list of features enabled in the build"
@@ -271,10 +260,6 @@ sysvars:
 	echo "  LIBRARY_PREFIX            prefix used for library file"
 	echo "  PKGCONFIG_EXT             file extension for pkgconfig files"
 	echo "  PLATFORM                  target software platform to perform build"
-	echo "  PROFILE                   build with profile options"
 	echo "  STATICLIB_EXT             file extension for static library files"
-	echo "  STRICT                    strict compilation: treat compilation warnings as errors"
 	echo "  SUB_FEATURES              list of features disabled in the build as a subtraction of default"
-	echo "  TEST                      use test build"
-	echo "  TRACE                     compile with additional trace information output"
-
+	

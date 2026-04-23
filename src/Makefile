@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -36,7 +36,7 @@ include $(MODDIR)/make/functions.mk
 include $(ROOTDIR)/dependencies.mk
 include $(ROOTDIR)/plugins.mk
 
-ifeq ($(TEST),1)
+ifeq ($(call fcheck,test,$(BUILD_FEATURES),ON),ON)
   UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) $(ARTIFACT_ID) $(TEST_DEPENDENCIES))
 else
   UNIQ_DEPENDENCIES      := $(call uniq, $(DEPENDENCIES) $(ARTIFACT_ID))
@@ -89,7 +89,7 @@ DEP_FILE                = $(patsubst %.o,%.d, $(@))
 CFLAGS_DEPS             = $(foreach dep, $(call uniq, $(DEPENDENCIES)), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
 BUILD_ALL               = $(ARTIFACT_LIB) $(ARTIFACT_SLIB) $(ARTIFACT_PC)
 
-ifeq ($(TEST), 1)
+ifeq ($(call fcheck,test,$(BUILD_FEATURES),ON),ON)
   CXX_SRC                += $(CXX_SRC_TEST)
   ARTIFACT_OBJ           += $(ARTIFACT_OBJ_TEST)
   DEPENDENCIES           += $(TEST_DEPENDENCIES)
