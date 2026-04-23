@@ -3,20 +3,20 @@
 # Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
 #           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
-# This file is part of lsp-lltl-lib
+# This file is part of lsp-plugins
 #
-# lsp-lltl-lib is free software: you can redistribute it and/or modify
+# lsp-plugins is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # any later version.
 #
-# lsp-lltl-lib is distributed in the hope that it will be useful,
+# lsp-plugins is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
 #
 # You should have received a copy of the GNU Lesser General Public License
-# along with lsp-lltl-lib.  If not, see <https://www.gnu.org/licenses/>.
+# along with lsp-plugins.  If not, see <https://www.gnu.org/licenses/>.
 #
 
 # Command-line flag to silence nested $(MAKE).
@@ -100,18 +100,18 @@ testconfig: CONFIG_FLAGS=TEST=1
 devel: CONFIG_FLAGS=TEST=1 DEVEL=1
 
 config testconfig devel:
-	$(MAKE) -f "make/configure.mk" config VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" -$(MAKEFLAGS)
+	$(MAKE) -f "$(BASEDIR)/make/configure.mk" config VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" -$(MAKEFLAGS)
 
 # Release-related targets
 .PHONY: distsrc
 distsrc:
 	echo "Building source code archive"
 	mkdir -p "$(DISTSRC)/modules"
-	$(MAKE) -f "make/modules.mk" tree DEVEL=$(DEVEL) VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules" TREE="1"
+	$(MAKE) -f "make/modules.mk" tree TREE="1" BUILD_FEATURES="$(FEATURES)" VERBOSE="$(VERBOSE)" BASEDIR="$(BASEDIR)" MODULES="$(DISTSRC)/modules"
 	$(if $(DISTSRC_DIRS), cp -R $(DISTSRC_DIRS) "$(DISTSRC)/")
 	$(if $(DISTSRC_FILES), cp $(DISTSRC_FILES) "$(DISTSRC)/")
-	find "$(DISTSRC)" -iname '.git' | xargs rm -rf {}
-	find "$(DISTSRC)" -iname '.gitignore' | xargs rm -rf {}
+	find "$(DISTSRC)" -iname '.git' | xargs -exec rm -rf {}
+	find "$(DISTSRC)" -iname '.gitignore' | xargs -exec rm -rf {}
 	tar -C $(DISTSRC_PATH) -czf "$(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz" "$(ARTIFACT_NAME)"
 	echo "Created archive: $(BUILDDIR)/$(ARTIFACT_NAME)-src-$(ARTIFACT_VERSION).tar.gz"
 	rm -rf $(DISTSRC_PATH)
@@ -142,12 +142,13 @@ help:
 	echo "  clap                      CLAP plugins"
 	echo "  doc                       Generate standalone HTML documentation"
 	echo "  gst                       GStreamer plugins"
-	echo "  jack                      JACK backend for standalone plugins"
+	echo "  jack                      JACK audio backend for standalone plugins"
 	echo "  ladspa                    LADSPA plugins"
-	echo "  launcher                  Build launcher application for standalone JACK plugins"
+	echo "  launcher                  Build launcher application for standalone plugin applications"
 	echo "  lv2                       LV2 plugins"
-	echo "  standalone                Standalone plugins applications"
+	echo "  standalone                Standalone plugin applications"
 	echo "  vst2                      VST 2.x plugin binaries"
 	echo "  vst3                      VST 3.x plugin binaries"
 	echo "  xdg                       Desktop integration icons"
-	echo ""
+
+	

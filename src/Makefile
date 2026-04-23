@@ -51,14 +51,18 @@ endif
 
 DEPENDENCIES            = $(UNIQ_DEPENDENCIES)
 
-ARTIFACT_BIN            = $($(ARTIFACT_ID)_BIN)
+ARTIFACT_BIN            = $($(HOST)$(ARTIFACT_ID)_BIN)
 ARTIFACT_NAME           = $($(ARTIFACT_ID)_NAME)
 ARTIFACT_OBJ_META       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-meta.o
 ARTIFACT_OBJ_DSP        = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-dsp.o
 ARTIFACT_OBJ_SHARED     = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-shared.o
 ARTIFACT_OBJ_UI         = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-ui.o
 ARTIFACT_OBJ_TEST       = $(ARTIFACT_BIN)/$($(ARTIFACT_ID)_NAME)-test.o
-ARTIFACT_OBJ            = $(ARTIFACT_OBJ_META) $(ARTIFACT_OBJ_DSP) $(ARTIFACT_OBJ_SHARED) $(ARTIFACT_OBJ_UI)
+ARTIFACT_OBJ            = \
+  $(ARTIFACT_OBJ_META) \
+  $(ARTIFACT_OBJ_DSP) \
+  $(ARTIFACT_OBJ_SHARED) \
+  $(call fcheck,ui,$(BUILD_FEATURES),$(ARTIFACT_OBJ_UI))
 ARTIFACT_CFLAGS         = $(foreach dep, $(DEPENDENCIES), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
 
 CXX_SRC_STUB            = $(ARTIFACT_BIN)/stub.cpp
@@ -86,7 +90,7 @@ XOBJ_TEST               = $(if $(OBJ_TEST),$(OBJ_TEST),$(OBJ_STUB))
 CXX_FILE                = $(patsubst $(ARTIFACT_BIN)/%.o,%.cpp, $(@))
 DEP_FILE                = $(patsubst %.o,%.d, $(@))
 
-CFLAGS_DEPS             = $(foreach dep, $(call uniq, $(DEPENDENCIES)), $(if $($(dep)_CFLAGS), $($(dep)_CFLAGS)))
+CFLAGS_DEPS             = $(foreach dep, $(call uniq, $(DEPENDENCIES)), $(if $($(HOST)$(dep)_CFLAGS), $($(HOST)$(dep)_CFLAGS)))
 BUILD_ALL               = $(ARTIFACT_LIB) $(ARTIFACT_SLIB) $(ARTIFACT_PC)
 
 ifeq ($(call fcheck,test,$(BUILD_FEATURES),ON),ON)
@@ -110,14 +114,14 @@ $(CXX_SRC_STUB):
 	echo "#include <stdio.h>" > $(CXX_SRC_STUB)
 
 $(OBJ_STUB): $(CXX_SRC_STUB)
-	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
+	echo "  $($(HOST)CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
 	mkdir -p $(dir $@)
-	$(CXX) -o $(@) -c $(CXX_SRC_STUB) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
+	$($(HOST)CXX) -o $(@) -c $(CXX_SRC_STUB) -fPIC $($(HOST)CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
 
 $(OBJ):
-	echo "  $(CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
+	echo "  $($(HOST)CXX)  [$(ARTIFACT_NAME)] $(CXX_FILE)"
 	mkdir -p $(dir $@)
-	$(CXX) -o $(@) -c $(CXX_FILE) -fPIC $(CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
+	$($(HOST)CXX) -o $(@) -c $(CXX_FILE) -fPIC $($(HOST)CXXFLAGS) $(ARTIFACT_MFLAGS) $(EXT_FLAGS) $(INCLUDE) $(CFLAGS_DEPS) -MMD -MP -MF $(DEP_FILE) -MT $(@)
 
 # Linking targets
 $(ARTIFACT_OBJ_META): $(XOBJ_MAIN_META)

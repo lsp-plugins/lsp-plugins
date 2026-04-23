@@ -48,7 +48,7 @@ UNIQ_ALL_DEPENDENCIES      := $(filter-out $(ARTIFACT_ID),$(call uniq, $(ALL_DEP
 MODULES                    ?= $(BASEDIR)/modules
 GIT                        ?= git
 
-ifeq ($(DEVEL),1)
+ifeq ($(call fcheck,devel,$(BUILD_FEATURES),ON),ON)
   X_URL_SUFFIX                = _RW
 else
   X_URL_SUFFIX                = _RO
