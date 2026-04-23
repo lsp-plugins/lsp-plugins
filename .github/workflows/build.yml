@@ -27,7 +27,7 @@ jobs:
           printf "[core-debug]\nInclude = /etc/pacman.d/mirrorlist\n[extra-debug]\nInclude = /etc/pacman.d/mirrorlist\n[multilib-debug]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
-        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr lv2lint php valgrind gstreamer gst-plugins-base
+        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack2 jq libglvnd libsndfile libx11 libxrandr lv2lint php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config FEATURES='strict clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
@@ -55,7 +55,7 @@ jobs:
           printf "[core-debug]\nInclude = /etc/pacman.d/mirrorlist\n[extra-debug]\nInclude = /etc/pacman.d/mirrorlist\n[multilib-debug]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           printf 'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n%s\n' "$(cat /etc/pacman.d/mirrorlist)" > /etc/pacman.d/mirrorlist
       - name: Install dependencies
-        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack jq libglvnd libsndfile libx11 libxrandr php valgrind gstreamer gst-plugins-base
+        run: pacman --noconfirm -Syu alsa-lib base-devel cairo carla git glibc-debug hicolor-icon-theme jack2 jq libglvnd libsndfile libx11 libxrandr php valgrind gstreamer gst-plugins-base
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config FEATURES='strict debug clap gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
@@ -130,7 +130,7 @@ jobs:
         run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
-        run: make config FEATURES='strict clap doc gst jack ladspa lv2 standalone vst2 vst3 xdg' PREFIX=/usr
+        run: make config FEATURES='strict clap doc gst jack ladspa lv2 standalone vst2 vst3' PREFIX=/usr
       - name: Fetch project dependencies
         run: make fetch
       - name: Build project
