@@ -38,7 +38,7 @@ DEPENDENCIES = \
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = clap doc ladspa launcher lv2 ui vst2 vst3
+DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3
 
 #------------------------------------------------------------------------------
 # Linux dependencies
@@ -50,12 +50,14 @@ LINUX_DEPENDENCIES = \
   LIBGL \
   LIBGSTREAMER_AUDIO \
   LIBJACK \
+  LIBPIPEWIRE \
   LIBPTHREAD \
   LIBRT \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
   LSP_AUDIO_JACK_LIB \
+  LSP_AUDIO_PIPEWIRE_LIB \
   LSP_R3D_GLX_LIB
 
 LINUX_TEST_DEPENDENCIES =
@@ -63,7 +65,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += standalone gst xdg jack
+  DEFAULT_FEATURES         += launcher standalone gst xdg jack pipewire
 endif
 
 #------------------------------------------------------------------------------
@@ -77,12 +79,14 @@ BSD_DEPENDENCIES = \
   LIBGSTREAMER_AUDIO \
   LIBICONV \
   LIBJACK \
+  LIBPIPEWIRE \
   LIBPTHREAD \
   LIBRT \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
   LSP_AUDIO_JACK_LIB \
+  LSP_AUDIO_PIPEWIRE_LIB \
   LSP_R3D_GLX_LIB
 
 BSD_TEST_DEPENDENCIES = 
@@ -90,7 +94,7 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += standalone gst xdg jack
+  DEFAULT_FEATURES         += launcher standalone gst xdg jack pipewire
 endif
 
 #------------------------------------------------------------------------------
@@ -126,8 +130,7 @@ MACOS_DEPENDENCIES = \
   LIBCOREFOUNDATION \
   LIBFONTCONFIG \
   LIBFREETYPE \
-  LIBICONV \
-  LIBJACK
+  LIBICONV
 
 MACOS_TEST_DEPENDENCIES =
 
