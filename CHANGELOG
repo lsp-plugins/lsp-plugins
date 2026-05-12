@@ -12,7 +12,10 @@
   for launching standalone plugins.
 * The feature 'jack' is now responsible for building JACK audio backend for standalone
   plugins.
+* Added support of PipeWire audio backend using lsp-audio-pipewire module,
+  new build feature 'pipewire'.
 * Moved all JACK-related code into a separate lsp-audio-jack module.
+
 
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
