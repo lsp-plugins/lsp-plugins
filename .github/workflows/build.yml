@@ -108,7 +108,7 @@ jobs:
       - name: Update repositories
         run: apt-get update
       - name: Install dependencies
-        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libpipewire-0.3-dev pipewire-jack libspa-0.2-dev libspa-0.2-jack libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config FEATURES='strict clap doc gst jack ladspa launcher lv2 standalone ui vst2 vst3 xdg' PREFIX=/usr
@@ -127,7 +127,7 @@ jobs:
       - name: Update repositories
         run: apt-get update
       - name: Install dependencies
-        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libpipewire-0.3-dev pipewire-jack libspa-0.2-dev libspa-0.2-jack libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+        run: apt-get -y install gcc g++ git make php-cli pkg-config valgrind libx11-dev libxrandr-dev libpipewire-0.3-dev pipewire-jack libspa-0.2-dev libspa-0.2-jack libjack-dev libcairo2-dev libgl-dev libfreetype6-dev libsndfile1-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
       - uses: actions/checkout@v3
       - name: Configure project
         run: make config FEATURES='strict clap doc gst jack ladspa lv2 pipewire standalone vst2 vst3' PREFIX=/usr
