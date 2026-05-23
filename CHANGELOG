@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.30 ===
+* Added possibility to reveal played sample on 'Listen' button press for
+  Sampler, Multisampler and Trigger plugin series.
 * Fixed improper handling of plugin factory initialization/finalization for
   CLAP plugin format (added support of series of initializations and
   finalizations as it is allowed by CLAP standard).
