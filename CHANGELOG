@@ -24,6 +24,7 @@
   * Multiband Expander;
   * Multiband Gate;
   * Multiband RingMod Sidechain;
+  * Room Builder;
   * Slap-Back Delay.
 * Moved all JACK-related code into a separate lsp-audio-jack module.
 
