@@ -16,6 +16,15 @@
   plugins.
 * Added support of PipeWire audio backend using lsp-audio-pipewire module,
   new build feature 'pipewire'.
+* Re-numbered plugins' parameter labels to start counting parameters with 1 for the
+  following plugins:
+  * Dynamics Processor;
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate;
+  * Multiband RingMod Sidechain;
+  * Slap-Back Delay.
 * Moved all JACK-related code into a separate lsp-audio-jack module.
 
 
