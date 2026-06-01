@@ -70,10 +70,10 @@ define pkgconfig =
   
   $(if $($(name)_NAME), \
     $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := $(shell $(PKG_CONFIG)      --cflags "$($(name)_NAME)"))) \
-    $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      := $(shell $(PKG_CONFIG)      --libs "$($(name)_NAME)"))) \
+    $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      := $(shell $(PKG_CONFIG)      --libs "$($(name)_NAME)"))) \
     \
     $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := $(shell $(HOST_PKG_CONFIG) --cflags "$($(name)_NAME)"))) \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := $(shell $(HOST_PKG_CONFIG) --libs "$($(name)_NAME)"))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := $(shell $(HOST_PKG_CONFIG) --libs "$($(name)_NAME)"))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -84,9 +84,9 @@ define libconfig =
   $(eval name=$(1))
   
   $(if $($(name)_NAME), \
-    $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      := -l$($(name)_NAME))) \
+    $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      := -l$($(name)_NAME))) \
     \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := -l$($(name)_NAME))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := -l$($(name)_NAME))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -97,7 +97,7 @@ define optconfig =
   $(eval name=$(1))
   
   $(if $($(name)_NAME), \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := $($(name)_LDFLAGS))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := $($(name)_LDFLAGS))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -118,7 +118,7 @@ define _modconfig =
   $(if $($(name)_TESTING),,      $(eval $(name)_TESTING      := 0))
   $(if $($(name)_BIN),,          $(eval $(name)_BIN          := $(TARGET_BUILDDIR)/$($(name)_NAME)))
   $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      :=))
+  $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      :=))
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ          := "$($(name)_BIN)/$($(name)_NAME).o"))
   $(if $($(name)_OBJ_TEST),,     $(eval $(name)_OBJ_TEST     := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
@@ -134,7 +134,7 @@ define _modconfig =
   $(if $(HOST_$(name)_TESTING),, $(eval HOST_$(name)_TESTING := 0))
   $(if $(HOST_$(name)_BIN),,     $(eval HOST_$(name)_BIN     := $(HOST_BUILDDIR)/$($(name)_NAME)))
   $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS :=))
+  $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS :=))
   $(if $(HOST_$(name)_OBJ),,     $(eval HOST_$(name)_OBJ     := "$(HOST_$(name)_BIN)/$($(name)_NAME).o"))
   $(if $(HOST_$(name)_OBJ_TEST),,$(eval HOST_$(name)_OBJ_TEST:= "$(HOST_$(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $(HOST_$(name)_MFLAGS),,  $(eval HOST_$(name)_MFLAGS  := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
@@ -190,7 +190,7 @@ define plugconfig =
   $(if $($(name)_TEST),,            $(eval $(name)_TEST             := $($(name)_PATH)/test))
   $(if $($(name)_BIN),,             $(eval $(name)_BIN              := $(TARGET_BUILDDIR)/$($(name)_NAME)))
   $(if $($(name)_CFLAGS),,          $(eval $(name)_CFLAGS           := "-I\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $($(name)_LDLAGS),,          $(eval $(name)_LDFLAGS          :=))
+  $(if $($(name)_LDFLAGS),,         $(eval $(name)_LDFLAGS          :=))
   $(if $($(name)_OBJ_META),,        $(eval $(name)_OBJ_META         := "$($(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $($(name)_OBJ_DSP),,         $(eval $(name)_OBJ_DSP          := "$($(name)_BIN)/$($(name)_NAME)-dsp.o"))
   $(if $($(name)_OBJ_UI),,          $(eval $(name)_OBJ_UI           := "$($(name)_BIN)/$($(name)_NAME)-ui.o"))
@@ -206,7 +206,7 @@ define plugconfig =
   $(if $(HOST_$(name)_TEST),,       $(eval HOST_$(name)_TEST        := $(HOST_$(name)_PATH)/test))
   $(if $(HOST_$(name)_BIN),,        $(eval HOST_$(name)_BIN         := $(HOST_BUILDDIR)/$($(name)_NAME)))
   $(if $(HOST_$(name)_CFLAGS),,     $(eval HOST_$(name)_CFLAGS      := "-I\"$(HOST_$(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $(HOST_$(name)_LDLAGS),,     $(eval HOST_$(name)_LDFLAGS     :=))
+  $(if $(HOST_$(name)_LDFLAGS),,    $(eval HOST_$(name)_LDFLAGS     :=))
   $(if $(HOST_$(name)_OBJ_META),,   $(eval HOST_$(name)_OBJ_META    := "$(HOST_$(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $(HOST_$(name)_OBJ_DSP),,    $(eval HOST_$(name)_OBJ_DSP     := "$(HOST_$(name)_BIN)/$($(name)_NAME)-dsp.o"))
   $(if $(HOST_$(name)_OBJ_UI),,     $(eval HOST_$(name)_OBJ_UI      := "$(HOST_$(name)_BIN)/$($(name)_NAME)-ui.o"))
