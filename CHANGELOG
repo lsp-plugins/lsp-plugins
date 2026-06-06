@@ -26,6 +26,8 @@
   * Multiband RingMod Sidechain;
   * Room Builder;
   * Slap-Back Delay.
+* The auto-play and auto-load features in file navigator have been moved into separate
+  'UI Behavior' options for Impulse Responses and Impulse Reverb Plugin series.
 * Moved all JACK-related code into a separate lsp-audio-jack module.
 
 
