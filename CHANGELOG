@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.30 ===
+* Fixed generic UI failure for CLAP: removed normalization for discrete parameters.
 * Added possibility to reveal played sample on 'Listen' button press for
   Sampler, Multisampler and Trigger plugin series.
 * Fixed improper handling of plugin factory initialization/finalization for
