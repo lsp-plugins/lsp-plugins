@@ -40,6 +40,7 @@
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="gnu.cpp.compiler.option.include.paths.1577883535" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/include/glib-2.0"/>
+									<listOptionValue builtIn="false" value="/usr/include/freetype2"/>
 									<listOptionValue builtIn="false" value="/usr/lib64/glib-2.0/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/gstreamer-1.0"/>
 									<listOptionValue builtIn="false" value="/usr/include/pipewire-0.3"/>
@@ -226,9 +227,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1375660582" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-pipewire-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1290417443">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1290417443" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973"/>
-					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.184571155" name="avx.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.273370169">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.273370169" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
 							<option id="gnu.cpp.compiler.option.other.other.1638984162" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -mavx -mvzeroupper" valueType="string"/>
@@ -514,9 +512,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.1986672855.986534054" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-pipewire-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.1113827844">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.1113827844" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081"/>
-					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.1986672855.1341374267" name="avx512.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx512.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.470607548">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.470607548" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081">
 							<option id="gnu.cpp.compiler.option.other.other.1292838976" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -mavx512f -mavx512vl" valueType="string"/>
@@ -738,9 +733,6 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
-					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1808871640.590231185" name="main.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-audio-pipewire-lib/src/test/main.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.556604540">
-						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.556604540" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307"/>
-					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1808871640.modules/lsp-dsp-lib/src/main/x86/avx.cpp" name="avx.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1878182389">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1878182389" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307">
 							<option id="gnu.cpp.compiler.option.other.other.376177217" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -mavx -mvzeroupper" valueType="string"/>
