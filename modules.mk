@@ -19,7 +19,7 @@
 #
 
 # Variables that describe dependencies
-LSP_3RD_PARTY_VERSION                   := 1.0.27
+LSP_3RD_PARTY_VERSION                   := 1.0.28
 LSP_3RD_PARTY_NAME                      := lsp-3rd-party
 LSP_3RD_PARTY_TYPE                      := hdr
 LSP_3RD_PARTY_INC_OPT                   := -idirafter
@@ -44,86 +44,86 @@ LSP_AUDIO_PIPEWIRE_LIB_TYPE    			:= bin
 LSP_AUDIO_PIPEWIRE_LIB_URL_RO  			:= https://github.com/lsp-plugins/$(LSP_AUDIO_PIPEWIRE_LIB_NAME).git
 LSP_AUDIO_PIPEWIRE_LIB_URL_RW  			:= git@github.com:lsp-plugins/$(LSP_AUDIO_PIPEWIRE_LIB_NAME).git
 
-LSP_COMMON_LIB_VERSION                  := 1.0.46
+LSP_COMMON_LIB_VERSION                  := 1.0.47
 LSP_COMMON_LIB_NAME                     := lsp-common-lib
 LSP_COMMON_LIB_TYPE                     := src
 LSP_COMMON_LIB_URL_RO                   := https://github.com/lsp-plugins/$(LSP_COMMON_LIB_NAME).git
 LSP_COMMON_LIB_URL_RW                   := git@github.com:lsp-plugins/$(LSP_COMMON_LIB_NAME).git
 
-LSP_DSP_LIB_VERSION                     := 1.0.35
+LSP_DSP_LIB_VERSION                     := 1.0.36
 LSP_DSP_LIB_NAME                        := lsp-dsp-lib
 LSP_DSP_LIB_TYPE                        := src
 LSP_DSP_LIB_URL_RO                      := https://github.com/lsp-plugins/$(LSP_DSP_LIB_NAME).git
 LSP_DSP_LIB_URL_RW                      := git@github.com:lsp-plugins/$(LSP_DSP_LIB_NAME).git
 
-LSP_DSP_UNITS_VERSION                   := 1.0.35
+LSP_DSP_UNITS_VERSION                   := 1.0.36
 LSP_DSP_UNITS_NAME                      := lsp-dsp-units
 LSP_DSP_UNITS_TYPE                      := src
 LSP_DSP_UNITS_URL_RO                    := https://github.com/lsp-plugins/$(LSP_DSP_UNITS_NAME).git
 LSP_DSP_UNITS_URL_RW                    := git@github.com:lsp-plugins/$(LSP_DSP_UNITS_NAME).git
 
-LSP_LLTL_LIB_VERSION                    := 1.0.30
+LSP_LLTL_LIB_VERSION                    := 1.0.31
 LSP_LLTL_LIB_NAME                       := lsp-lltl-lib
 LSP_LLTL_LIB_TYPE                       := src
 LSP_LLTL_LIB_URL_RO                     := https://github.com/lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 LSP_LLTL_LIB_URL_RW                     := git@github.com:lsp-plugins/$(LSP_LLTL_LIB_NAME).git
 
-LSP_R3D_BASE_LIB_VERSION                := 1.0.28
+LSP_R3D_BASE_LIB_VERSION                := 1.0.29
 LSP_R3D_BASE_LIB_NAME                   := lsp-r3d-base-lib
 LSP_R3D_BASE_LIB_TYPE                   := src
 LSP_R3D_BASE_LIB_URL_RO                 := https://github.com/lsp-plugins/$(LSP_R3D_BASE_LIB_NAME).git
 LSP_R3D_BASE_LIB_URL_RW             	:= git@github.com:lsp-plugins/$(LSP_R3D_BASE_LIB_NAME).git
 
-LSP_R3D_IFACE_VERSION                   := 1.0.28
+LSP_R3D_IFACE_VERSION                   := 1.0.29
 LSP_R3D_IFACE_NAME                      := lsp-r3d-iface
 LSP_R3D_IFACE_TYPE                      := src
 LSP_R3D_IFACE_URL_RO                    := https://github.com/lsp-plugins/$(LSP_R3D_IFACE_NAME).git
 LSP_R3D_IFACE_URL_RW                    := git@github.com:lsp-plugins/$(LSP_R3D_IFACE_NAME).git
 
-LSP_R3D_GLX_LIB_VERSION                 := 1.0.28
+LSP_R3D_GLX_LIB_VERSION                 := 1.0.29
 LSP_R3D_GLX_LIB_NAME                    := lsp-r3d-glx-lib
 LSP_R3D_GLX_LIB_TYPE                    := bin
 LSP_R3D_GLX_LIB_URL_RO                  := https://github.com/lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 LSP_R3D_GLX_LIB_URL_RW                  := git@github.com:lsp-plugins/$(LSP_R3D_GLX_LIB_NAME).git
 
-LSP_R3D_WGL_LIB_VERSION                 := 1.0.23
+LSP_R3D_WGL_LIB_VERSION                 := 1.0.24
 LSP_R3D_WGL_LIB_NAME                    := lsp-r3d-wgl-lib
 LSP_R3D_WGL_LIB_TYPE                    := bin
 LSP_R3D_WGL_LIB_URL_RO                  := https://github.com/lsp-plugins/$(LSP_R3D_WGL_LIB_NAME).git
 LSP_R3D_WGL_LIB_URL_RW                  := git@github.com:lsp-plugins/$(LSP_R3D_WGL_LIB_NAME).git
 
-LSP_RUNTIME_LIB_VERSION                 := 1.0.33
+LSP_RUNTIME_LIB_VERSION                 := 1.0.34
 LSP_RUNTIME_LIB_NAME                    := lsp-runtime-lib
 LSP_RUNTIME_LIB_TYPE                    := src
 LSP_RUNTIME_LIB_URL_RO                  := https://github.com/lsp-plugins/$(LSP_RUNTIME_LIB_NAME).git
 LSP_RUNTIME_LIB_URL_RW                  := git@github.com:lsp-plugins/$(LSP_RUNTIME_LIB_NAME).git
 
-LSP_TEST_FW_VERSION                     := 1.0.32
+LSP_TEST_FW_VERSION                     := 1.0.33
 LSP_TEST_FW_NAME                        := lsp-test-fw
 LSP_TEST_FW_TYPE                        := src
 LSP_TEST_FW_URL_RO                      := https://github.com/lsp-plugins/$(LSP_TEST_FW_NAME).git
 LSP_TEST_FW_URL_RW                      := git@github.com:lsp-plugins/$(LSP_TEST_FW_NAME).git
 
-LSP_TK_LIB_VERSION                      := 1.0.33
+LSP_TK_LIB_VERSION                      := 1.0.34
 LSP_TK_LIB_NAME                         := lsp-tk-lib
 LSP_TK_LIB_TYPE                         := src
 LSP_TK_LIB_URL_RO                       := https://github.com/lsp-plugins/$(LSP_TK_LIB_NAME).git
 LSP_TK_LIB_URL_RW                       := git@github.com:lsp-plugins/$(LSP_TK_LIB_NAME).git
 
-LSP_WS_LIB_VERSION                      := 1.0.33
+LSP_WS_LIB_VERSION                      := 1.0.34
 LSP_WS_LIB_NAME                         := lsp-ws-lib
 LSP_WS_LIB_TYPE                         := src
 LSP_WS_LIB_URL_RO                       := https://github.com/lsp-plugins/$(LSP_WS_LIB_NAME).git
 LSP_WS_LIB_URL_RW                       := git@github.com:lsp-plugins/$(LSP_WS_LIB_NAME).git
 
 # Plugin-related module dependencies
-LSP_PLUGIN_FW_VERSION                   := 1.0.36
+LSP_PLUGIN_FW_VERSION                   := 1.0.37
 LSP_PLUGIN_FW_NAME                      := lsp-plugin-fw
 LSP_PLUGIN_FW_TYPE                      := src
 LSP_PLUGIN_FW_URL_RO                    := https://github.com/lsp-plugins/$(LSP_PLUGIN_FW_NAME).git
 LSP_PLUGIN_FW_URL_RW                    := git@github.com:lsp-plugins/$(LSP_PLUGIN_FW_NAME).git
 
-LSP_PLUGINS_SHARED_VERSION              := 1.0.35
+LSP_PLUGINS_SHARED_VERSION              := 1.0.36
 LSP_PLUGINS_SHARED_NAME                 := lsp-plugins-shared
 LSP_PLUGINS_SHARED_TYPE                 := src
 LSP_PLUGINS_SHARED_URL_RO               := https://github.com/lsp-plugins/$(LSP_PLUGINS_SHARED_NAME).git
@@ -502,17 +502,13 @@ LIBOPENGL32_NAME                        := libopengl32
 LIBOPENGL32_TYPE                        := opt
 LIBOPENGL32_LDFLAGS                     := -lopengl32
 
-LIBPIPEWIRE_VERSION                     := system
-LIBPIPEWIRE_NAME                        := libpipewire-0.3
-LIBPIPEWIRE_TYPE                        := pkg
-
 LIBPTHREAD_VERSION                      := system
 LIBPTHREAD_NAME                         := libpthread
 LIBPTHREAD_TYPE                         := opt
 LIBPTHREAD_LDFLAGS                      := -lpthread
 
 LIBRT_VERSION                           := system
-LIBRT_NAME                              := librt
+LIBRT_NAME                             := librt
 LIBRT_TYPE                              := opt
 LIBRT_LDFLAGS                           := -lrt
 
