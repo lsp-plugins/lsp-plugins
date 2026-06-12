@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -22,7 +22,7 @@
 ifndef PREFIX
   ifeq ($(PLATFORM),Windows)
     PREFIX                     := $(BASEDIR)/INSTALL
-  else ifeq ($(CROSS_COMPILE),1)
+  else ifeq ($(call fcheck,crosscompile,$(BUILD_FEATURES),ON),ON)
     PREFIX                     := $(BASEDIR)/INSTALL
   else
     PREFIX                     := /usr/local
@@ -40,11 +40,10 @@ endif
 
 LIBDIR                     := $(PREFIX)/lib
 BINDIR                     := $(PREFIX)/bin
-SHAREDDIR                  := $(PREFIX)/share
 INCDIR                     := $(PREFIX)/include
 BUILDDIR                   := $(BASEDIR)/.build
 TARGET_BUILDDIR            := $(BUILDDIR)/target
-ifeq ($(CROSS_COMPILE),1)
+ifeq ($(call fcheck,crosscompile,$(BUILD_FEATURES),ON),ON)
   HOST_BUILDDIR              := $(BUILDDIR)/host
 else
   HOST_BUILDDIR              := $(TARGET_BUILDDIR)

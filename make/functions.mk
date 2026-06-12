@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -45,11 +45,11 @@ cquery                  = $(foreach d,$(call uniq, $3),$(if $($(d)_$(strip $1)),
 
 # Find intersection between two sets
 # $(call intersection, list1, list2)
-intersection            = $(sort $(foreach v,$1,$(if $(findstring $(v),$2),$(v))))
+intersection            = $(sort $(foreach v,$1,$(if $(filter $(v),$2),$(v))))
 
 # Subtract the first set from second set
 # $(call subtraction, list1, list2)
-subtraction             = $(sort $(foreach v,$2,$(if $(findstring $(v),$1),,$(v))))
+subtraction             = $(sort $(foreach v,$2,$(if $(filter $(v),$1),,$(v))))
 
 # Check feature presence in list
 # $(call fcheck, features-to-check, all-feature-list, action-if-enabled, action-if-disabled)

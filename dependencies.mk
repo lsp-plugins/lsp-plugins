@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2025 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2025 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -21,23 +21,24 @@
 #------------------------------------------------------------------------------
 # List of all dependencies
 DEPENDENCIES = \
+  LSP_3RD_PARTY \
   LSP_COMMON_LIB \
+  LSP_AUDIO_IFACE \
   LSP_DSP_LIB \
   LSP_DSP_UNITS \
   LSP_LLTL_LIB \
-  LSP_RUNTIME_LIB \
-  LSP_PLUGINS_SHARED \
-  LSP_3RD_PARTY \
   LSP_PLUGIN_FW \
+  LSP_PLUGINS_SHARED \
+  LSP_R3D_BASE_LIB \
   LSP_R3D_IFACE \
-  LSP_WS_LIB \
+  LSP_RUNTIME_LIB \
   LSP_TK_LIB \
-  LSP_R3D_BASE_LIB
+  LSP_WS_LIB
 
 TEST_DEPENDENCIES = \
   LSP_TEST_FW
 
-DEFAULT_FEATURES = clap doc ladspa launcher lv2 ui vst2 vst3
+DEFAULT_FEATURES = clap doc ladspa lv2 ui vst2 vst3
 
 #------------------------------------------------------------------------------
 # Linux dependencies
@@ -49,11 +50,14 @@ LINUX_DEPENDENCIES = \
   LIBGL \
   LIBGSTREAMER_AUDIO \
   LIBJACK \
+  LIBPIPEWIRE \
   LIBPTHREAD \
   LIBRT \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
+  LSP_AUDIO_JACK_LIB \
+  LSP_AUDIO_PIPEWIRE_LIB \
   LSP_R3D_GLX_LIB
 
 LINUX_TEST_DEPENDENCIES =
@@ -61,7 +65,7 @@ LINUX_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),Linux)
   DEPENDENCIES             += $(LINUX_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(LINUX_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst xdg
+  DEFAULT_FEATURES         += launcher standalone gst xdg jack pipewire
 endif
 
 #------------------------------------------------------------------------------
@@ -75,11 +79,14 @@ BSD_DEPENDENCIES = \
   LIBGSTREAMER_AUDIO \
   LIBICONV \
   LIBJACK \
+  LIBPIPEWIRE \
   LIBPTHREAD \
   LIBRT \
   LIBSNDFILE \
   LIBX11 \
   LIBXRANDR \
+  LSP_AUDIO_JACK_LIB \
+  LSP_AUDIO_PIPEWIRE_LIB \
   LSP_R3D_GLX_LIB
 
 BSD_TEST_DEPENDENCIES = 
@@ -87,23 +94,23 @@ BSD_TEST_DEPENDENCIES =
 ifeq ($(PLATFORM),BSD)
   DEPENDENCIES             += $(BSD_DEPENDENCIES)
   TEST_DEPENDENCIES        += $(BSD_TEST_DEPENDENCIES)
-  DEFAULT_FEATURES         += jack gst xdg
+  DEFAULT_FEATURES         += launcher standalone gst xdg jack pipewire
 endif
 
 #------------------------------------------------------------------------------
 # Windows dependencies
 WINDOWS_DEPENDENCIES = \
-  LIBSHLWAPI \
-  LIBWINMM \
-  LIBMSACM \
-  LIBMPR \
-  LIBGDI32 \
   LIBD2D1 \
-  LIBOLE \
-  LIBWINCODEC \
   LIBDWRITE \
-  LIBUUID \
+  LIBGDI32 \
+  LIBMPR \
+  LIBMSACM \
+  LIBOLE \
   LIBOPENGL32 \
+  LIBSHLWAPI \
+  LIBUUID \
+  LIBWINCODEC \
+  LIBWINMM \
   LSP_R3D_WGL_LIB
 
 WINDOWS_TEST_DEPENDENCIES = 
@@ -123,8 +130,7 @@ MACOS_DEPENDENCIES = \
   LIBCOREFOUNDATION \
   LIBFONTCONFIG \
   LIBFREETYPE \
-  LIBICONV \
-  LIBJACK
+  LIBICONV
 
 MACOS_TEST_DEPENDENCIES =
 

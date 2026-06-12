@@ -1,6 +1,6 @@
 #
-# Copyright (C) 2020 Linux Studio Plugins Project <https://lsp-plug.in/>
-#           (C) 2020 Vladimir Sadovnikov <sadko4u@gmail.com>
+# Copyright (C) 2026 Linux Studio Plugins Project <https://lsp-plug.in/>
+#           (C) 2026 Vladimir Sadovnikov <sadko4u@gmail.com>
 #
 # This file is part of lsp-plugins
 #
@@ -24,10 +24,7 @@ endif
 BASEDIR                    := $(CURDIR)
 ROOTDIR                    := $(CURDIR)
 PLUGINS                    := $(BASEDIR)/plugins.mk
-TEST                       := 0
-DEBUG                      := 0
-PROFILE                    := 0
-TRACE                      := 0
+BUILD_FEATURES              = $(sort $(call subtraction,$(SUB_FEATURES),$(if $(FEATURES),$(FEATURES),$(DEFAULT_FEATURES)) $(ADD_FEATURES)))           
 
 # Configure system settings
 include $(BASEDIR)/project.mk
@@ -39,7 +36,7 @@ include $(BASEDIR)/modules.mk
 include $(BASEDIR)/dependencies.mk
 include $(PLUGINS)
 
-ifeq ($(DEVEL),1)
+ifeq ($(call fcheck,devel,$(BUILD_FEATURES),ON),ON)
   X_URL_SUFFIX                = _RW
 else
   X_URL_SUFFIX                = _RO
@@ -53,7 +50,6 @@ MERGED_DEPENDENCIES        := \
   $(PLUGIN_SHARED)
 UNIQ_MERGED_DEPENDENCIES   := $(call uniq, $(MERGED_DEPENDENCIES))
 DEPENDENCIES                = $(UNIQ_MERGED_DEPENDENCIES)
-BUILD_FEATURES             := $(sort $(call subtraction,$(SUB_FEATURES),$(if $(FEATURES),$(FEATURES),$(DEFAULT_FEATURES)) $(ADD_FEATURES)))
 
 # Determine versions
 ifeq ($(findstring -devel,$(ARTIFACT_VERSION)),-devel)
@@ -74,10 +70,10 @@ define pkgconfig =
   
   $(if $($(name)_NAME), \
     $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := $(shell $(PKG_CONFIG)      --cflags "$($(name)_NAME)"))) \
-    $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      := $(shell $(PKG_CONFIG)      --libs "$($(name)_NAME)"))) \
+    $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      := $(shell $(PKG_CONFIG)      --libs "$($(name)_NAME)"))) \
     \
     $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := $(shell $(HOST_PKG_CONFIG) --cflags "$($(name)_NAME)"))) \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := $(shell $(HOST_PKG_CONFIG) --libs "$($(name)_NAME)"))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := $(shell $(HOST_PKG_CONFIG) --libs "$($(name)_NAME)"))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -88,9 +84,9 @@ define libconfig =
   $(eval name=$(1))
   
   $(if $($(name)_NAME), \
-    $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      := -l$($(name)_NAME))) \
+    $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      := -l$($(name)_NAME))) \
     \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := -l$($(name)_NAME))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := -l$($(name)_NAME))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -101,7 +97,7 @@ define optconfig =
   $(eval name=$(1))
   
   $(if $($(name)_NAME), \
-    $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS := $($(name)_LDFLAGS))) \
+    $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS := $($(name)_LDFLAGS))) \
   )
   
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ      :=))
@@ -122,7 +118,7 @@ define _modconfig =
   $(if $($(name)_TESTING),,      $(eval $(name)_TESTING      := 0))
   $(if $($(name)_BIN),,          $(eval $(name)_BIN          := $(TARGET_BUILDDIR)/$($(name)_NAME)))
   $(if $($(name)_CFLAGS),,       $(eval $(name)_CFLAGS       := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $($(name)_LDLAGS),,       $(eval $(name)_LDFLAGS      :=))
+  $(if $($(name)_LDFLAGS),,      $(eval $(name)_LDFLAGS      :=))
   $(if $($(name)_OBJ),,          $(eval $(name)_OBJ          := "$($(name)_BIN)/$($(name)_NAME).o"))
   $(if $($(name)_OBJ_TEST),,     $(eval $(name)_OBJ_TEST     := "$($(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $($(name)_MFLAGS),,       $(eval $(name)_MFLAGS       := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
@@ -138,7 +134,7 @@ define _modconfig =
   $(if $(HOST_$(name)_TESTING),, $(eval HOST_$(name)_TESTING := 0))
   $(if $(HOST_$(name)_BIN),,     $(eval HOST_$(name)_BIN     := $(HOST_BUILDDIR)/$($(name)_NAME)))
   $(if $(HOST_$(name)_CFLAGS),,  $(eval HOST_$(name)_CFLAGS  := "$(if $($(name)_INC_OPT),$($(name)_INC_OPT) ,-I )\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $(HOST_$(name)_LDLAGS),,  $(eval HOST_$(name)_LDFLAGS :=))
+  $(if $(HOST_$(name)_LDFLAGS),, $(eval HOST_$(name)_LDFLAGS :=))
   $(if $(HOST_$(name)_OBJ),,     $(eval HOST_$(name)_OBJ     := "$(HOST_$(name)_BIN)/$($(name)_NAME).o"))
   $(if $(HOST_$(name)_OBJ_TEST),,$(eval HOST_$(name)_OBJ_TEST:= "$(HOST_$(name)_BIN)/$($(name)_NAME)-test.o"))
   $(if $(HOST_$(name)_MFLAGS),,  $(eval HOST_$(name)_MFLAGS  := $(if $(publisher),,"-D$(name)_BUILTIN -fvisibility=hidden")))
@@ -194,7 +190,7 @@ define plugconfig =
   $(if $($(name)_TEST),,            $(eval $(name)_TEST             := $($(name)_PATH)/test))
   $(if $($(name)_BIN),,             $(eval $(name)_BIN              := $(TARGET_BUILDDIR)/$($(name)_NAME)))
   $(if $($(name)_CFLAGS),,          $(eval $(name)_CFLAGS           := "-I\"$($(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $($(name)_LDLAGS),,          $(eval $(name)_LDFLAGS          :=))
+  $(if $($(name)_LDFLAGS),,         $(eval $(name)_LDFLAGS          :=))
   $(if $($(name)_OBJ_META),,        $(eval $(name)_OBJ_META         := "$($(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $($(name)_OBJ_DSP),,         $(eval $(name)_OBJ_DSP          := "$($(name)_BIN)/$($(name)_NAME)-dsp.o"))
   $(if $($(name)_OBJ_UI),,          $(eval $(name)_OBJ_UI           := "$($(name)_BIN)/$($(name)_NAME)-ui.o"))
@@ -210,7 +206,7 @@ define plugconfig =
   $(if $(HOST_$(name)_TEST),,       $(eval HOST_$(name)_TEST        := $(HOST_$(name)_PATH)/test))
   $(if $(HOST_$(name)_BIN),,        $(eval HOST_$(name)_BIN         := $(HOST_BUILDDIR)/$($(name)_NAME)))
   $(if $(HOST_$(name)_CFLAGS),,     $(eval HOST_$(name)_CFLAGS      := "-I\"$(HOST_$(name)_INC)\"" -D$(name)_BUILTIN$(if $(publisher), -D$(name)_PUBLISHER)))
-  $(if $(HOST_$(name)_LDLAGS),,     $(eval HOST_$(name)_LDFLAGS     :=))
+  $(if $(HOST_$(name)_LDFLAGS),,    $(eval HOST_$(name)_LDFLAGS     :=))
   $(if $(HOST_$(name)_OBJ_META),,   $(eval HOST_$(name)_OBJ_META    := "$(HOST_$(name)_BIN)/$($(name)_NAME)-meta.o"))
   $(if $(HOST_$(name)_OBJ_DSP),,    $(eval HOST_$(name)_OBJ_DSP     := "$(HOST_$(name)_BIN)/$($(name)_NAME)-dsp.o"))
   $(if $(HOST_$(name)_OBJ_UI),,     $(eval HOST_$(name)_OBJ_UI      := "$(HOST_$(name)_BIN)/$($(name)_NAME)-ui.o"))
@@ -256,10 +252,10 @@ ifndef HOST_$(ARTIFACT_ID)_PATH
 endif
 
 ROOT_ARTIFACT_ID           := $(ARTIFACT_ID)
-$(ARTIFACT_ID)_TESTING      = $(TEST)
+$(ARTIFACT_ID)_TESTING      = $(call fcheck,test,$(BUILD_FEATURES),1,0)
 
 OVERALL_DEPS := $(call uniq,$(DEPENDENCIES) $(ARTIFACT_ID))
-__tmp := $(foreach dep,$(OVERALL_DEPS),$(call vardef, $(dep)))
+override __tmp := $(foreach dep,$(OVERALL_DEPS),$(call vardef, $(dep)))
 
 CONFIG_VARS = \
   $(PATH_VARS) \
@@ -318,6 +314,7 @@ $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
 config: $(CONFIG_VARS)
+	echo "Platform:          $(PLATFORM)"
 	echo "Host architecture: $(HOST_ARCHITECTURE_FAMILY)/$(HOST_ARCHITECTURE) ($(HOST_ARCHITECTURE_CFLAGS))"
 	echo "Architecture:      $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
 	echo "Features:          $(BUILD_FEATURES)"
@@ -354,4 +351,4 @@ help: | pathvars toolvars sysvars
 	echo ""
 	echo "Plugins used for build:"
 	echo "  $(PLUGINS_DEPENDENCIES)"
-
+	echo ""
