@@ -2,37 +2,59 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.2.30 ===
-* Added previous and next preset selection in the preset window.
-* Extended dynamics range for Gate and Multiband Gate plugin series.
-* Fixed generic UI failure for CLAP: removed normalization for discrete parameters.
-* Added possibility to reveal played sample on 'Listen' button press for
-  Sampler, Multisampler and Trigger plugin series.
-* Fixed improper handling of plugin factory initialization/finalization for
-  CLAP plugin format (added support of series of initializations and
-  finalizations as it is allowed by CLAP standard).
-* Fixed out-of-sync event handling for CLAP and VST2 extra UI run loop under
-  Linux when hiding and showing plugin window.
+=== 1.2.31 ===
 * Added new 'standalone' build feature which now replaces the 'jack' build feature
   for launching standalone plugins.
 * The feature 'jack' is now responsible for building JACK audio backend for standalone
   plugins.
+* Moved all JACK-related code into a separate lsp-audio-jack module.
 * Added support of PipeWire audio backend using lsp-audio-pipewire module,
   new build feature 'pipewire'.
+* Updated build system: ASAN, CROSS_COMPILE, DEBUG, DEVEL, PROFILE, STRICT,
+  TEST, TRACE makefile flags replaced with 'asan', 'crosscompile', 'debug',
+  'devel', 'profile', 'strict', 'test' and 'trace' FEATURE flags.
+* Updated makefiles to not to clash with launcher tool on MacOS.
+* Some fixes arount CLAP plugin format for better support of MacOS (contributed
+  by Benjamin Zeiss @ GitHub).
+* Added previous and next preset selection in the preset window.
+* Added possibility to reveal played sample on 'Listen' button press for
+  Sampler, Multisampler and Trigger plugin series.
+* Updated behaviour of the AudioSample controller when displaying load status to prevent
+  the UI blinking when switching between samples in the file navigator.
+* Extended dynamics range for Gate and Multiband Gate plugin series.
+* Improved text rendering in hosts that provide their own implementation of FreeType
+  library (like Ardour) by loading the system version of FreeType library if it is
+  available and has greater version number.
+* Some costmetic changes in text lables of the UI for several plugins.
 * Re-numbered plugins' parameter labels to start counting parameters with 1 for the
   following plugins:
+  * Artistic Delay;
+  * Crossover;
   * Dynamics Processor;
+  * Impulse Responses;
+  * Impulse Reverb;
   * Multiband Compressor;
   * Multiband Dynamics Processor;
   * Multiband Expander;
   * Multiband Gate;
   * Multiband RingMod Sidechain;
   * Room Builder;
-  * Slap-Back Delay.
+  * Slap-Back Delay;
+  * Spectrum Analyzer.
 * The auto-play and auto-load features in file navigator have been moved into separate
   'UI Behavior' options for Impulse Responses and Impulse Reverb Plugin series.
-* Moved all JACK-related code into a separate lsp-audio-jack module.
-
+* The ComboBox and ComboGroup widgets now properly react on the 'ESC' key pressure and
+  hide the dropdown list when it is open.
+* Fixed Drag & Drop issue under X11 (contributed by Justin Frankel).
+* Fixed endless vertical flip of the image on MacOS (contributed by Hoshino Lina).
+* Fixed some bugs in the AudioEnvelope controller that did not allow to fully reset
+  the envelope to defaults.
+* Fixed out-of-sync event handling for CLAP and VST2 extra UI run loop under
+  Linux when hiding and showing plugin window.
+* Fixed generic UI failure for CLAP: removed normalization for discrete parameters.
+* Fixed improper handling of plugin factory initialization/finalization for
+  CLAP plugin format (added support of series of initializations and
+  finalizations as it is allowed by CLAP standard).
 
 === 1.2.29 ===
 * Added multiple plugins launch option by Launcher tool.
