@@ -502,13 +502,17 @@ LIBOPENGL32_NAME                        := libopengl32
 LIBOPENGL32_TYPE                        := opt
 LIBOPENGL32_LDFLAGS                     := -lopengl32
 
+LIBPIPEWIRE_VERSION                     := system
+LIBPIPEWIRE_NAME                        := libpipewire-0.3
+LIBPIPEWIRE_TYPE                        := pkg
+
 LIBPTHREAD_VERSION                      := system
 LIBPTHREAD_NAME                         := libpthread
 LIBPTHREAD_TYPE                         := opt
 LIBPTHREAD_LDFLAGS                      := -lpthread
 
 LIBRT_VERSION                           := system
-LIBRT_NAME                             := librt
+LIBRT_NAME                              := librt
 LIBRT_TYPE                              := opt
 LIBRT_LDFLAGS                           := -lrt
 
