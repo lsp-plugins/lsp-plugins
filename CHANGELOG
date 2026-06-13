@@ -3,6 +3,7 @@
 *******************************************************************************
 
 === 1.2.33 ===
+* Fixed PipeWire driver linkage error.
 
 === 1.2.31 ===
 * Added new 'standalone' build feature which now replaces the 'jack' build feature
