@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* Fixed regression that caused a crash when launching standalone plugins
+  in headless mode.
 
 === 1.2.33 ===
 * Fixed PipeWire driver linkage error.
