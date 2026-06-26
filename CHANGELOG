@@ -7,6 +7,7 @@
   in headless mode.
 * Bugfixes in PipeWire driver: fixed registry synchronization code that could
   yield to hangup or crashes.
+* Fixed VST3 paths for 32-bit and 64-bit ARM architectures.
 
 === 1.2.33 ===
 * Fixed PipeWire driver linkage error.
