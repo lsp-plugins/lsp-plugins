@@ -47,7 +47,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ┌───────────┬───────────┬─────────┬─────────┬─────────┐
   │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │  macOS  |
   ╞═══════════╪═══════════╪═════════╪═════════╪═════════╡
-  │aarch64    │     F     │    E    │    U    │    E    │
+  │aarch64    │     F     │    E    │    U    │    F    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │armv5t     │     C     │    C    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
@@ -67,7 +67,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │s390x      │     C     │    U    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
-  │x86_64     │     F     │    F    │    E    │    U    │
+  │x86_64     │     F     │    F    │    E    │    E    │
   └───────────┴───────────┴─────────┴─────────┴─────────┘
 ```
 
@@ -100,6 +100,7 @@ The Linux distribution requirements:
   * libGL
 
 Known list of supported plugin hosts:
+  * Ableton Live (macOS, VST3)
   * Ardour
   * Bitwig Studio
   * Carla
@@ -244,6 +245,18 @@ The usual directory for CLAP binaries is:
 The usual directory for LV2 binaries is:
   * /usr/local/lib/lv2
 
+The usual directory for VST 2.x binaries is:
+  * /Library/Audio/Plug-Ins/VST
+  * ~/Library/Audio/Plug-Ins/VST (current user only)
+
+The usual directory for VST 3.x binaries is:
+  * /Library/Audio/Plug-Ins/VST3
+  * ~/Library/Audio/Plug-Ins/VST3 (current user only)
+
+The usual directory for CLAP binaries is:
+  * /Library/Audio/Plug-Ins/CLAP
+  * ~/Library/Audio/Plug-Ins/CLAP (current user only)
+
 # BUILDING
 
 You may build plugins from scratch.
@@ -270,8 +283,17 @@ For macOS build, the following software needs to be installed:
   * make >= 4.4.1
   * cairo >= 1.18.4
   * freetype >= 2.13.3
+  * libsndfile >= 1.0.25
+  * expat (used by VST3 metadata parsing)
   * pkgconf >= 2.5.1
   * php >= 5.5.14 (for the docs)
+
+Apple's Command Line Tools 16.x install the libc++ headers inside the
+SDK rather than the usual `/Library/Developer/CommandLineTools/usr/include/c++/v1`
+location, so `#include <thread>` and friends fail to resolve. Export
+`-isystem $(xcrun --show-sdk-path)/usr/include/c++/v1` in `CXXFLAGS`
+(and `CFLAGS`) if you see "'thread' file not found" while compiling
+`*.mm` translation units.
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -414,12 +436,23 @@ For more build options, issue:
 
 Build example for macOS:
 ```
-  brew install make pkgconf cairo freetype
+  brew install make pkgconf cairo freetype libsndfile expat
   gmake clean
-  gmake config FEATURES="lv2 ui"
+  gmake config FEATURES="vst3 ui"
   gmake fetch
   gmake
   sudo gmake install
+```
+
+After a `gmake install` produces a `.vst3` bundle, or after any post-build
+modification of the bundle (e.g. `lipo`-merging an arm64 and x86_64 build
+into a universal binary), the bundle must be re-signed ad-hoc — otherwise
+hosts that enforce code signature integrity will reject it with
+"code has no resources but signature indicates they must be present":
+```
+  codesign --remove-signature lsp-plugins.vst3
+  codesign --force --deep --sign - lsp-plugins.vst3
+  codesign --verify --verbose=2 lsp-plugins.vst3
 ```
 
 
@@ -434,6 +467,18 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
     to the bug report.
 
 # KNOWN PROBLEMS
+
+## macOS: bundle rejected by host with "code has no resources but signature indicates they must be present"
+
+After any post-build modification of the bundle (`lipo` merge, manual
+file swap, etc.) the `_CodeSignature/CodeResources` manifest is stale
+and `codesign --verify` will reject the bundle. Hosts such as Ableton
+Live drop the bundle silently during plug-in scan and the plug-in
+never appears in the browser. Re-sign ad-hoc:
+```
+  codesign --remove-signature lsp-plugins.vst3
+  codesign --force --deep --sign - lsp-plugins.vst3
+```
 
 ## unclutter
 
