@@ -8,6 +8,8 @@
 * Bugfixes in PipeWire driver: fixed registry synchronization code that could
   yield to hangup or crashes.
 * Fixed VST3 paths for 32-bit and 64-bit ARM architectures.
+* Fixed bug related to failures of saving global configuration file when user's
+  configuration directory of LSP Plugins does not exist.
 
 === 1.2.33 ===
 * Fixed PipeWire driver linkage error.
