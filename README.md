@@ -67,7 +67,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │s390x      │     C     │    U    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
-  │x86_64     │     F     │    F    │    E    │    U    │
+  │x86_64     │     F     │    F    │    E    │    E    │
   └───────────┴───────────┴─────────┴─────────┴─────────┘
 ```
 
@@ -100,6 +100,7 @@ The Linux distribution requirements:
   * libGL
 
 Known list of supported plugin hosts:
+  * Ableton Live (macOS, VST3)
   * Ardour
   * Bitwig Studio
   * Carla
@@ -244,6 +245,18 @@ The usual directory for CLAP binaries is:
 The usual directory for LV2 binaries is:
   * /usr/local/lib/lv2
 
+The usual directory for VST 2.x binaries is:
+  * /Library/Audio/Plug-Ins/VST
+  * ~/Library/Audio/Plug-Ins/VST (current user only)
+
+The usual directory for VST 3.x binaries is:
+  * /Library/Audio/Plug-Ins/VST3
+  * ~/Library/Audio/Plug-Ins/VST3 (current user only)
+
+The usual directory for CLAP binaries is:
+  * /Library/Audio/Plug-Ins/CLAP
+  * ~/Library/Audio/Plug-Ins/CLAP (current user only)
+
 # BUILDING
 
 You may build plugins from scratch.
@@ -272,6 +285,16 @@ For macOS build, the following software needs to be installed:
   * freetype >= 2.13.3
   * pkgconf >= 2.5.1
   * php >= 5.5.14 (for the docs)
+
+On some Command Line Tools 16.x installations the libc++ headers live
+inside the SDK (`$(xcrun --show-sdk-path)/usr/include/c++/v1`) instead
+of the expected `/Library/Developer/CommandLineTools/usr/include/c++/v1`,
+so `#include <thread>` and other standard headers fail to resolve. If
+the build fails with `'thread' file not found` while compiling `*.mm`
+translation units, export
+`-isystem $(xcrun --show-sdk-path)/usr/include/c++/v1` in `CXXFLAGS`
+(and `CFLAGS`). This is unrelated to architecture; it depends on which
+CLT release is installed.
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -416,10 +439,24 @@ Build example for macOS:
 ```
   brew install make pkgconf cairo freetype
   gmake clean
-  gmake config FEATURES="lv2 ui"
+  gmake config FEATURES="vst3 ui"
   gmake fetch
   gmake
   sudo gmake install
+```
+
+The bundle produced by `gmake install` is unsigned and works as-is in
+most hosts. However, if the bundle is **modified after build** — for
+example by `lipo`-merging an arm64 and an x86_64 slice into a universal
+binary, or by manually swapping a file inside it — the existing
+`_CodeSignature/CodeResources` manifest no longer matches the contents,
+and hosts that verify signatures (Ableton Live among them) reject the
+bundle with `code has no resources but signature indicates they must be
+present`. The fix is to refresh the ad-hoc signature:
+```
+  codesign --remove-signature lsp-plugins.vst3
+  codesign --force --deep --sign - lsp-plugins.vst3
+  codesign --verify --verbose=2 lsp-plugins.vst3
 ```
 
 
@@ -434,6 +471,18 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
     to the bug report.
 
 # KNOWN PROBLEMS
+
+## macOS: bundle rejected by host with "code has no resources but signature indicates they must be present"
+
+After any post-build modification of the bundle (`lipo` merge, manual
+file swap, etc.) the `_CodeSignature/CodeResources` manifest is stale
+and `codesign --verify` will reject the bundle. Hosts such as Ableton
+Live drop the bundle silently during plug-in scan and the plug-in
+never appears in the browser. Re-sign ad-hoc:
+```
+  codesign --remove-signature lsp-plugins.vst3
+  codesign --force --deep --sign - lsp-plugins.vst3
+```
 
 ## unclutter
 
