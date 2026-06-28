@@ -10,6 +10,8 @@
 * Fixed VST3 paths for 32-bit and 64-bit ARM architectures.
 * Fixed bug related to failures of saving global configuration file when user's
   configuration directory of LSP Plugins does not exist.
+* Added possibility to selecte audio driver by clicking current Audio driver's
+  name at the bottom-right part of the window.
 
 === 1.2.33 ===
 * Fixed PipeWire driver linkage error.
