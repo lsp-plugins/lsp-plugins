@@ -47,7 +47,7 @@ Current matrix of hardware architecture and platform (OS) support is:
   ┌───────────┬───────────┬─────────┬─────────┬─────────┐
   │Arch / OS  │ GNU/Linux │ FreeBSD │ Windows │  macOS  |
   ╞═══════════╪═══════════╪═════════╪═════════╪═════════╡
-  │aarch64    │     F     │    E    │    U    │    F    │
+  │aarch64    │     F     │    E    │    U    │    E    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
   │armv5t     │     C     │    C    │    U    │    N    │
   ├───────────┼───────────┼─────────┼─────────┼─────────┤
@@ -283,17 +283,18 @@ For macOS build, the following software needs to be installed:
   * make >= 4.4.1
   * cairo >= 1.18.4
   * freetype >= 2.13.3
-  * libsndfile >= 1.0.25
-  * expat (used by VST3 metadata parsing)
   * pkgconf >= 2.5.1
   * php >= 5.5.14 (for the docs)
 
-Apple's Command Line Tools 16.x install the libc++ headers inside the
-SDK rather than the usual `/Library/Developer/CommandLineTools/usr/include/c++/v1`
-location, so `#include <thread>` and friends fail to resolve. Export
+On some Command Line Tools 16.x installations the libc++ headers live
+inside the SDK (`$(xcrun --show-sdk-path)/usr/include/c++/v1`) instead
+of the expected `/Library/Developer/CommandLineTools/usr/include/c++/v1`,
+so `#include <thread>` and other standard headers fail to resolve. If
+the build fails with `'thread' file not found` while compiling `*.mm`
+translation units, export
 `-isystem $(xcrun --show-sdk-path)/usr/include/c++/v1` in `CXXFLAGS`
-(and `CFLAGS`) if you see "'thread' file not found" while compiling
-`*.mm` translation units.
+(and `CFLAGS`). This is unrelated to architecture; it depends on which
+CLT release is installed.
 
 For Windows build, the following software needs to be installed:
   * MinGW/MinGW-W64 >= 7.0
@@ -436,7 +437,7 @@ For more build options, issue:
 
 Build example for macOS:
 ```
-  brew install make pkgconf cairo freetype libsndfile expat
+  brew install make pkgconf cairo freetype
   gmake clean
   gmake config FEATURES="vst3 ui"
   gmake fetch
@@ -444,11 +445,14 @@ Build example for macOS:
   sudo gmake install
 ```
 
-After a `gmake install` produces a `.vst3` bundle, or after any post-build
-modification of the bundle (e.g. `lipo`-merging an arm64 and x86_64 build
-into a universal binary), the bundle must be re-signed ad-hoc — otherwise
-hosts that enforce code signature integrity will reject it with
-"code has no resources but signature indicates they must be present":
+The bundle produced by `gmake install` is unsigned and works as-is in
+most hosts. However, if the bundle is **modified after build** — for
+example by `lipo`-merging an arm64 and an x86_64 slice into a universal
+binary, or by manually swapping a file inside it — the existing
+`_CodeSignature/CodeResources` manifest no longer matches the contents,
+and hosts that verify signatures (Ableton Live among them) reject the
+bundle with `code has no resources but signature indicates they must be
+present`. The fix is to refresh the ad-hoc signature:
 ```
   codesign --remove-signature lsp-plugins.vst3
   codesign --force --deep --sign - lsp-plugins.vst3
