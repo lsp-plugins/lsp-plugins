@@ -242,8 +242,13 @@ The usual directory for CLAP binaries is:
 
 ## For macOS
 
+The usual directory for LADSPA binaries is:
+  * /Library/Audio/Plug-Ins/LADSPA
+  * ~/Library/Audio/Plug-Ins/LADSPA (current user only)
+
 The usual directory for LV2 binaries is:
-  * /usr/local/lib/lv2
+  * /Library/Audio/Plug-Ins/LV2
+  * ~/Library/Audio/Plug-Ins/LV2 (current user only)
 
 The usual directory for VST 2.x binaries is:
   * /Library/Audio/Plug-Ins/VST
