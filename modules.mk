@@ -184,6 +184,12 @@ LSP_PLUGINS_CROSSOVER_TYPE              := plug
 LSP_PLUGINS_CROSSOVER_URL_RO            := https://github.com/lsp-plugins/$(LSP_PLUGINS_CROSSOVER_NAME).git
 LSP_PLUGINS_CROSSOVER_URL_RW            := git@github.com:lsp-plugins/$(LSP_PLUGINS_CROSSOVER_NAME).git
 
+LSP_PLUGINS_DEESSER_VERSION      		:= 1.0.37
+LSP_PLUGINS_DEESSER_NAME         		:= lsp-plugins-deesser
+LSP_PLUGINS_DEESSER_TYPE         		:= plug
+LSP_PLUGINS_DEESSER_URL_RO       		:= https://github.com/lsp-plugins/$(LSP_PLUGINS_DEESSER_NAME).git
+LSP_PLUGINS_DEESSER_URL_RW       		:= git@github.com:lsp-plugins/$(LSP_PLUGINS_DEESSER_NAME).git
+
 LSP_PLUGINS_DYNA_PROCESSOR_VERSION      := 1.0.37
 LSP_PLUGINS_DYNA_PROCESSOR_NAME         := lsp-plugins-dyna-processor
 LSP_PLUGINS_DYNA_PROCESSOR_TYPE         := plug
