@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* Usage of system FreeType library for hosts that provide it's own built-in
+  FreeType library now is turned off by default and can be turned on by
+  setting the LSP_WS_FORCE_SYSTEM_FREETYPE=on environment variable.
+* Fixed VST3 scaling issues on MacOS (contributed by lltwist @ github.com)
 * Fixed regression that caused a crash when launching standalone plugins
   in headless mode.
 * Fixed out of sync parameters for the ctl::Envelope controller.
