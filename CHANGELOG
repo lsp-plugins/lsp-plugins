@@ -3,6 +3,9 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* Fixed regression in filter transfer function calculation functions that could
+  yield to improper display of filter characteristics for the highest frequency
+  band on some crossovers.
 * Usage of system FreeType library for hosts that provide it's own built-in
   FreeType library now is turned off by default and can be turned on by
   setting the LSP_WS_FORCE_SYSTEM_FREETYPE=on environment variable.
