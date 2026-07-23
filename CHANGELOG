@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* VST2 plugins now are packaged into shell plugin which makes faster scanning of
+  plugins and requires less shared object files to provide.
 * Fixed regression in filter transfer function calculation functions that could
   yield to improper display of filter characteristics for the highest frequency
   band on some crossovers.

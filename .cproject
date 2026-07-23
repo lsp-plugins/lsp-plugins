@@ -255,7 +255,7 @@
 					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1471974649" name="sse.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-common-lib/src/arch/x86/sse.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.651008826">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.651008826" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
-							<option id="gnu.cpp.compiler.option.other.other.147256199" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -msse" valueType="string"/>
+							<option id="gnu.cpp.compiler.option.other.other.147256199" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -msse" valueType="string"/>
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1057521361" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 						<tool customBuildStep="true" id="org.eclipse.cdt.managedbuilder.ui.rcbs.797613121" name="Resource Custom Build Step">
