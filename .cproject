@@ -295,6 +295,12 @@
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1252879572" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.668425456" name="avx_nz.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx_nz.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.61260769">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.61260769" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
+							<option id="gnu.cpp.compiler.option.other.other.1089498847" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -mavx -mno-vzeroupper" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.728583297" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.954913345" name="sse4.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse4.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1397466079">
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973.1397466079" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1547316973">
 							<option id="gnu.cpp.compiler.option.other.other.738844938" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0 -msse4 -msse4a" valueType="string"/>
@@ -556,6 +562,12 @@
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1889957539" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.release.1986672855.1057234089" name="avx_nz.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx_nz.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.555774322">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081.555774322" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.806157081">
+							<option id="gnu.cpp.compiler.option.other.other.772318546" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -mavx -mno-vzeroupper" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.278402459" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
 						<entry excluding="modules/lsp-audio-pipewire-lib/src/test/main.cpp|modules/lsp-dsp-lib/src/test/main.cpp|modules/lsp-audio-iface/src/test/main.cpp|modules/lsp-test-fw/src/test/main.cpp|modules/lsp-test-fw/src/test|modules/lsp-r3d-base-lib/src/test/main.cpp|modules/lsp-runtime-lib/src/test/main.cpp|modules/lsp-ws-lib/src/test/main.cpp|modules/lsp-tk-lib/src/test/main.cpp|modules/lsp-dsp-units/src/test/main.cpp|modules/lsp-r3d-glx-lib/src/test/main.cpp|modules/lsp-common-lib/src/test/main.cpp|modules/lsp-plugins-shared/src/test/main.cpp|modules/lsp-lltl-lib/src/test/main.cpp|modules/lsp-3rd-party/src/test/main.cpp|modules/lsp-r3d-iface/src/test/main.cpp|modules/lsp-audio-jack-lib/src/test/main.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
@@ -799,6 +811,12 @@
 						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.1909295494" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307">
 							<option id="gnu.cpp.compiler.option.other.other.1502037437" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -mavx512f -mavx512vl" valueType="string"/>
 							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1456773234" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1808871640.1940735807" name="avx_nz.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/avx_nz.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.454298916">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307.454298916" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.280060307">
+							<option id="gnu.cpp.compiler.option.other.other.1168663125" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -mavx -mno-vzeroupper" valueType="string"/>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.930643441" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 						</tool>
 					</fileInfo>
 					<fileInfo id="cdt.managedbuild.config.gnu.exe.debug.105793153.1808871640.modules/lsp-dsp-lib/src/main/x86/sse4.cpp" name="sse4.cpp" rcbsApplicability="disable" resourcePath="modules/lsp-dsp-lib/src/main/x86/sse4.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.317794429">
