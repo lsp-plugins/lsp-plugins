@@ -3,6 +3,8 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* Added hard clipping of the input signal to the maximum peak value of 120 dBFS
+  to avoid mathematic failures which may yield to NaN and Inf values.
 * Added delayed display of the 'Loading' status for the AudioSample widget to
   avoid flickering of the sample widget when quickly navigating samples on the
   sample navigation panel.
