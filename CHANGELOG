@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.34 ===
+* Significant refactoring of static and dynamic filter functions, eliminated some
+  bugs in mathematics for ARM32 and AArch64 archtectures that were hard to catch.
+* Added support of biquad filter cascades that contain 16 filters at one time,
+  optimized filter cascades for AVX-512 support.
 * Added hard clipping of the input signal to the maximum peak value of 120 dBFS
   to avoid mathematic failures which may yield to NaN and Inf values.
 * Added delayed display of the 'Loading' status for the AudioSample widget to
