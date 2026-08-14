@@ -2,6 +2,48 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.34 ===
+* Implemented Deesser Plugin series.
+* VST2 plugins now are packaged into shell plugin which makes faster scanning of
+  plugins and requires less shared object files to provide.
+* Significant refactoring of static and dynamic filter functions, eliminated some
+  bugs in mathematics for ARM32 and AArch64 archtectures that were hard to catch.
+* Added support of biquad filter cascades that contain 16 filters at one time,
+  optimized filter cascades for AVX-512 support.
+* Added hard clipping of the input signal to the maximum peak value of 120 dBFS
+  to avoid mathematic failures which may yield to NaN and Inf values.
+* Added delayed display of the 'Loading' status for the AudioSample widget to
+  avoid flickering of the sample widget when quickly navigating samples on the
+  sample navigation panel.
+* Added possibility to select audio driver by clicking current Audio driver's
+  name at the bottom-right part of the window.
+* The Input Gain knob now controls the gain of input signal only and does not
+  affect the level of external sidechain or shared memory link for the list of
+  following plugins:
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate;
+  * Multiband Limiter;
+  * Multiband Ring-Modulated Sidechain.
+* Usage of system FreeType library for hosts that provide it's own built-in
+  FreeType library now is turned off by default and can be turned on by
+  setting the LSP_WS_FORCE_SYSTEM_FREETYPE=on environment variable.
+* Fixed regression in filter transfer function calculation functions that could
+  yield to improper display of filter characteristics for the highest frequency
+  band on some crossovers.
+* Fixed VST3 scaling issues on MacOS (contributed by lltwist @ github.com)
+* Fixed regression that caused a crash when launching standalone plugins
+  in headless mode.
+* Fixed out of sync parameters for the ctl::Envelope controller which fixes
+  behaviour of audio envelope in Sampler plugin series.
+* Bugfixes in PipeWire driver: fixed registry synchronization code that could
+  yield to hangup or crashes.
+* Fixed VST3 paths for 32-bit and 64-bit ARM architectures.
+* Fixed bug related to failures of saving global configuration file when user's
+  configuration directory of LSP Plugins does not exist (for example, on first
+  installation).
+
 === 1.2.33 ===
 * Fixed PipeWire driver linkage error.
 

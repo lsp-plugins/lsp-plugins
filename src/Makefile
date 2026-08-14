@@ -104,7 +104,7 @@ CXX_DEPFILE             = $(patsubst $(ARTIFACT_BIN)/%.d,%.cpp,$(@))
 CXX_DEPTARGET           = $(patsubst $(ARTIFACT_BIN)/%.d,%.o,$(@))
 
 .DEFAULT_GOAL = all
-.PHONY: compile all install uninstall package
+.PHONY: all compile bundle install uninstall package
 
 # Compilation targets
 compile: $(ARTIFACT_OBJ)
@@ -145,7 +145,7 @@ $(ARTIFACT_OBJ_TEST): $(XOBJ_TEST)
 	$($(HOST)LD) -o $(ARTIFACT_OBJ_TEST) $($(HOST)LDFLAGS) $(XOBJ_TEST)
 
 # Deletaged targets
-all install uninstall package:
+all bundle install uninstall package:
 	$(MAKE) -C "$(LSP_PLUGIN_FW_PATH)" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)"
 
 # Dependencies
