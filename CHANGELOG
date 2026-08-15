@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.35 ===
+
 === 1.2.34 ===
 * Implemented Deesser Plugin series.
 * VST2 plugins now are packaged into shell plugin which makes faster scanning of
