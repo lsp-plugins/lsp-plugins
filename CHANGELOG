@@ -3,6 +3,10 @@
 *******************************************************************************
 
 === 1.2.35 ===
+* Bugfix in JACK driver that could cause connection estimation problem on the
+  libjack library that could not be detected under PipeWire.
+* Updated build scripts that could crash on binary dependencies when issuing
+  multithreaded build.
 
 === 1.2.34 ===
 * Implemented Deesser Plugin series.
