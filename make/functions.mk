@@ -55,6 +55,14 @@ subtraction             = $(sort $(foreach v,$2,$(if $(filter $(v),$1),,$(v))))
 # $(call fcheck, features-to-check, all-feature-list, action-if-enabled, action-if-disabled)
 fcheck                  = $(if $(call intersection,$1,$2),$3,$4)
 
+# Check for equality
+# $(call eq, first-value, second-value)
+eq 						= $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
+
+# Check for equality and return some result
+# $(call if_eq, first-value, second-value, action-if-true, action-if-false)
+if_eq                   = $(if $(call eq,$(1),$(2)),$(3),$(4))
+
 # Fetch different versions from version string
 # $(call vmajor, <version-string>)
 vmajor                  = $(shell echo "$(strip $1)" | sed -E 's/([0-9]+)\.([0-9]+)\.([0-9]+)(-(.*))?/\1/')
