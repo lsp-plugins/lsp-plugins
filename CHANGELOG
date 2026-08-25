@@ -2,6 +2,8 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.37 ===
+
 === 1.2.35 ===
 * Bugfix in JACK driver that could cause connection estimation problem on the
   libjack library that could not be detected under PipeWire.
