@@ -3,6 +3,28 @@
 *******************************************************************************
 
 === 1.2.37 ===
+- Verify crossover characteristics output for Multiband Limiter.
+- Fix 24 dB/oct classic crossover response in the Deesser plugin series.
+- Add 6 dB/octave and 18 dB/octave crossover filters to Deesser plugin series.
+- Replace FFTCrossover by LPCrossover where possible.
+* Added 6 dB/octave and 18 dB/octave filters support by Crossover plugin series.
+* Optimized CPU consumption: FFT analysis is not performed when UI is not active
+  for the list of following plugin series:
+  * Beat Breather;
+  * Crossover;
+  * Deesser;
+  * Filter;
+  * GOTT Compressor;
+  * Graphic Equalizer;
+  * Multiband Clipper;
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate;
+  * Multiband Limiter;
+  * Multiband Ring-Modulated Sidechain;
+  * Noise Generator;
+  * Parametric Equalizer.
 
 === 1.2.35 ===
 * Bugfix in JACK driver that could cause connection estimation problem on the
