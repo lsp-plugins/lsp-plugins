@@ -4,6 +4,7 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+- Change crossover characteristics output for Multiband RingMod Sidechain.
 - Replace FFTCrossover by LPCrossover where possible.
 * Added 6 dB/octave and 18 dB/octave filters support by Crossover plugin series.
 * Added 6 dB/octave and 18 dB/octave crossover filters for Deesser plugin series.
