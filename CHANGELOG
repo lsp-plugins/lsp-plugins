@@ -12,6 +12,9 @@
 * Fixed implementation of LR2 filters in the crossover which caused some kind of
   phase distortion. The previous implementation (special PD2 mode) has been kept
   for backwared compatibility.
+* Fixed bug in DSP code that could cause a crash of Clipper and Multiband Clipper
+  plugin series on processors with AVX-512 instruction set support when setting
+  any of DC Offset parameters to the non-default value.
 * Replaced linear phase crossover implementation by more accurate one for Deesser
   plugin series.
 * Fixed behavior of the Input signal gain knob with the Bypass switch in the
