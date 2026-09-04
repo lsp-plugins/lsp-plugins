@@ -5,6 +5,18 @@
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
 - Replace FFTCrossover by LPCrossover where possible.
+- Move multiband plugins to dspu::Crossover usage:
+  - GOTT Compressor;
+  - Multiband Compressor;
+  - Multiband Dynamics Processor;
+  - Multiband Expander;
+  - Multiband Gate;
+  - Multiband Limiter.
+* Added Minimum Phase filter support by following plugins:
+  * Filter;
+  * Graphic Equalizer;
+  * Referecer;
+  * Parametric Equalizer.
 * Added 6 dB/octave and 18 dB/octave filters support by following plugin series:
   * Crossover;
   * Deesser;
