@@ -4,6 +4,11 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Reduced latency for IIR filter modes by using zero-latency convolver module in
+  the following list of plugin series:
+  * Graphic equalizer;
+  * Filter;
+  * Parametric Equalizer.
 * Updated behavior of A/B preset switch in the UI: A and B presets are swapped
   when switching between them. That makes the UI usage more comfortable: no need
   to move mouse pointer to perform the A -> B -> A switch order.
