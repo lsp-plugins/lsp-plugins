@@ -4,6 +4,10 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Added Kaiser and Kaiser-Bessel Derived windows to Spectrum Analyzer and
+  Referencer plugin series.
+* Improved Spectrum processing modules in the DSP libraries by utilizing
+  Kaiser-Bessel Derived windows instead of Cosine windows. 
 * Reduced latency for IIR filter modes by using zero-latency convolver module in
   the following list of plugin series:
   * Graphic equalizer;
