@@ -4,6 +4,8 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Fixed bugs in 3D rendering OpenGL backends for Linux/FreeBSD (lsp-r3d-glx-lib)
+  and Windows (lsp-r3d-wgl-lib). 
 * Added built-in presets for Multiband Compressor plugin serites (contributed
   by mene311 @ github.com).
 * Added Kaiser and Kaiser-Bessel Derived windows to Spectrum Analyzer and
