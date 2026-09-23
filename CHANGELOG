@@ -4,6 +4,8 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Added built-in presets for Multiband Compressor plugin serites (contributed
+  by mene311 @ github.com).
 * Added Kaiser and Kaiser-Bessel Derived windows to Spectrum Analyzer and
   Referencer plugin series.
 * Improved Spectrum processing modules in the DSP libraries by utilizing
