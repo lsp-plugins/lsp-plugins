@@ -4,6 +4,10 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Implemented profile smoothing in the Matcher plugin series that allows to reduce
+  extra peaks and sparks in the spectrum.
+* Fixed regression in sliders that set-up the matching profile limits in the Matcher
+  plugin series.
 * Fixed bugs in 3D rendering OpenGL backends for Linux/FreeBSD (lsp-r3d-glx-lib)
   and Windows (lsp-r3d-wgl-lib). 
 * Added built-in presets for Multiband Compressor plugin serites (contributed
