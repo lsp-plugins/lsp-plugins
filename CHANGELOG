@@ -4,6 +4,12 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Fixed recent VST3 sizing issues in new Ardour 8.9 version.
+* Polling interval of shared memory catalog state beacme dynamic and varies from
+  10 milliseconds when there is some load on catalog up to 320 milliseconds, when
+  there is no additional load.
+* Bugfix in shared memory catalog initialization for standalone plugin format that
+  could yield shared memory sends working improperly.
 * Changed numbering of dynamic points in the UI to start with 1 in Dynamics Processor
   and Multiband Dynamics Processor plugin series.
 * Added ability to reset parameter to it's default value in combo boxes by
