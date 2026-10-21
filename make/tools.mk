@@ -86,6 +86,7 @@ GIT                ?= $(X_GIT_TOOL)
 INSTALL            ?= $(X_INSTALL_TOOL)
 
 # Patch flags and tools for (cross) build
+FLAG_DEBUG         := -g3
 FLAG_RELRO         := -Wl,-z,relro,-z,now
 FLAG_STDLIB        := 
 FLAG_GC_SECTIONS   := -Wl,--gc-sections
@@ -102,6 +103,7 @@ ifeq ($(PLATFORM),Solaris)
 else ifeq ($(PLATFORM),Windows)
   FLAG_RELRO          =
   FLAG_STDLIB         =
+  FLAG_DEBUG          = -g3 -gdwarf-4
   NOARCH_CFLAGS      += -DWINVER=0x600 -D_WIN32_WINNT=0x600
   NOARCH_CXXFLAGS    += -DWINVER=0x600 -D_WIN32_WINNT=0x600
   NOARCH_EXE_FLAGS   += -static-libgcc -static-libstdc++
@@ -119,8 +121,8 @@ else ifeq ($(PLATFORM),BSD)
 endif
 
 ifeq ($(call fcheck,debug,$(BUILD_FEATURES),ON),ON)
-  NOARCH_CFLAGS      += -Og -g3 -DLSP_DEBUG -falign-functions=16
-  NOARCH_CXXFLAGS    += -Og -g3 -DLSP_DEBUG -falign-functions=16
+  NOARCH_CFLAGS      += -Og $(FLAG_DEBUG) -DLSP_DEBUG -falign-functions=16
+  NOARCH_CXXFLAGS    += -Og $(FLAG_DEBUG) -DLSP_DEBUG -falign-functions=16
 else
   NOARCH_CFLAGS      += -O2
   NOARCH_CXXFLAGS    += -O2
