@@ -8,7 +8,7 @@ SECTIONS
 {
   .text  :
   {
-    *(.text)
+    *(.text .text.*)
     /* ??? Why is .gcc_exc here?  */
   }
   /* The Cygwin32 library uses a section to avoid copying certain data
@@ -18,12 +18,12 @@ SECTIONS
      ".data_cygwin_nocopy" and explicitly include it after __data_end__. */
   .data  :
   {
-    *(.data)
+    *(.data .data.*)
     KEEP(*(.jcr))
   }
   .rdata  :
   {
-    *(.rdata)
+    *(.rdata .rdata.*)
   }
   .eh_frame  :
   {
@@ -31,16 +31,19 @@ SECTIONS
   }
   .pdata  :
   {
-    KEEP(*(.pdata))
+    KEEP(*(.pdata .pdata.*))
+  }
+  .xdata  :
+  {
+    KEEP(*(.xdata .xdata.*))
   }
   .bss  :
   {
-    *(.bss)
-    *(COMMON)
+    *(.bss .bss.* COMMON)
   }
   .edata  :
   {
-    *(.edata)
+    *(.edata .edata.*)
   }
   .drectve  :
   {
@@ -67,7 +70,7 @@ SECTIONS
      data.  */
   .tls  :
   {
-    *(.tls)
+    *(.tls .tls.*)
   }
   .endjunk  :
   {
