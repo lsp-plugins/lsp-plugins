@@ -4,7 +4,12 @@
 
 === 1.2.37 ===
 - Verify crossover characteristics output for Multiband Limiter.
+* Several non-critical fixes and improvements in low-level DSP library of plugin.
 * Fixed recent VST3 sizing issues in new Ardour 8.9 version.
+* Fixed VST3 getBusArrangement and setBusArrangements call contract. Added less strict
+  VST3 bus arrangement for some hosts.
+* Added delay (default 200 ms) before changing file status to 'Loading' in File widget
+  to avoid flickering when quickly navigating over file list. 
 * Polling interval of shared memory catalog state beacme dynamic and varies from
   10 milliseconds when there is some load on catalog up to 320 milliseconds, when
   there is no additional load.
