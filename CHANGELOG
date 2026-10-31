@@ -2,6 +2,90 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.2.37 ===
+* Added Minimum Phase filter support by following plugins:
+  * Filter;
+  * Graphic Equalizer;
+  * Referecer;
+  * Parametric Equalizer.
+* Added 6 dB/octave and 18 dB/octave filters support by following plugin series:
+  * Crossover;
+  * Deesser;
+  * Multiband Ring-Modulated Sidechain.
+* Implemented profile smoothing in the Matcher plugin series that allows to reduce
+  extra peaks and sparks in the spectrum.
+* Added ability to configure Loudness Compensator plugin for more efficient use
+  of the dynamics headroom when the PCM stream with integral sample format is used.
+  With the 'compensate' button turned on the measured gain should be applied on an
+  analog output of the device.
+* Improved Spectrum processing modules in the DSP libraries by utilizing
+  Kaiser-Bessel Derived windows instead of Cosine windows.
+* Added Kaiser and Kaiser-Bessel Derived windows to Spectrum Analyzer and
+  Referencer plugin series.
+* Added built-in presets for Multiband Compressor plugin serites (contributed
+  by mene311 @ github.com).
+* Updated behavior of A/B preset switch in the UI: A and B presets are swapped
+  when switching between them. That makes the UI usage more comfortable: no need
+  to move mouse pointer to perform the A -> B -> A switch order.
+* Reduced latency for IIR filter modes by using zero-latency convolver module in
+  the following list of plugin series:
+  * Graphic equalizer;
+  * Filter;
+  * Parametric Equalizer.
+* Added ability to change the crossover slope for Multiband plugin series:
+  * Compressor;
+  * Dynamics Processor;
+  * Expander;
+  * Gate.
+* Replaced linear phase crossover implementation by more accurate one for Deesser
+  plugin series.
+* Optimized CPU consumption: FFT analysis is not performed when UI is not active
+  for the list of following plugin series:
+  * Beat Breather;
+  * Crossover;
+  * Deesser;
+  * Filter;
+  * GOTT Compressor;
+  * Graphic Equalizer;
+  * Multiband Clipper;
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Expander;
+  * Multiband Gate;
+  * Multiband Limiter;
+  * Multiband Ring-Modulated Sidechain;
+  * Noise Generator;
+  * Parametric Equalizer.
+* Changed numbering of dynamic points in the UI to start with 1 in Dynamics Processor
+  and Multiband Dynamics Processor plugin series.
+* Added ability to reset parameter to it's default value in combo boxes by
+  double-clicking with the right mouse button.
+* Polling interval of shared memory catalog state became dynamic and varies from
+  10 milliseconds when there is some load on catalog up to 320 milliseconds, when
+  there is no additional load.
+* Added delay (default 200 ms) before changing file status to 'Loading' in File widget
+  to avoid flickering when quickly navigating over file list. 
+* Several non-critical fixes and improvements in low-level DSP library of plugin.
+* Fixed recent VST3 sizing issues in new Ardour 8.9 version.
+* Fixed VST3 getBusArrangement and setBusArrangements call contract. Added less strict
+  VST3 bus arrangement for some hosts.
+* Bugfix in shared memory catalog initialization for standalone plugin format that
+  could yield shared memory sends working improperly.
+* Fixed regression in sliders that set-up the matching profile limits in the Matcher
+  plugin series.
+* Fixed bugs in 3D rendering OpenGL backends for Linux/FreeBSD (lsp-r3d-glx-lib)
+  and Windows (lsp-r3d-wgl-lib). 
+* Fixed regression in the Dynamics Processor module which could produce
+  NaN (not-a-number) values.
+* Fixed implementation of LR2 filters in the crossover which caused some kind of
+  phase distortion. The previous implementation (special PD2 mode) has been kept
+  for backwared compatibility.
+* Fixed bug in DSP code that could cause a crash of Clipper and Multiband Clipper
+  plugin series on processors with AVX-512 instruction set support when setting
+  any of DC Offset parameters to the non-default value.
+* Fixed behavior of the Input signal gain knob with the Bypass switch in the
+  Deesser plugin series.
+
 === 1.2.35 ===
 * Bugfix in JACK driver that could cause connection estimation problem on the
   libjack library that could not be detected under PipeWire.
