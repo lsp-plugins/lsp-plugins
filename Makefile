@@ -22,6 +22,7 @@
 # Command-line flag to silence nested $(MAKE).
 ifneq ($(VERBOSE),1)
 .SILENT:
+MAKEFLAGS += --no-print-directory
 endif
 
 # Location
@@ -93,14 +94,10 @@ prune: clean
 	echo "Prune OK"
 
 # Configuration-related targets
-.PHONY: config testconfig devel help chkconfig
+.PHONY: config info help
 
-config: CONFIG_FLAGS=
-testconfig: CONFIG_FLAGS=TEST=1
-devel: CONFIG_FLAGS=TEST=1 DEVEL=1
-
-config testconfig devel:
-	$(MAKE) -f "$(BASEDIR)/make/configure.mk" config VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" -$(MAKEFLAGS)
+config info:
+	$(MAKE) -f "$(BASEDIR)/make/configure.mk" $(@) VERBOSE="$(VERBOSE)" CONFIG="$(CONFIG)" -$(MAKEFLAGS)
 
 # Release-related targets
 .PHONY: distsrc
@@ -124,7 +121,6 @@ help:
 	echo "  bundle                    Install only necessary binaries for bundling"
 	echo "  clean                     Clean all build files and configuration file"
 	echo "  config                    Configure build"
-	echo "  devel                     Configure build as development build"
 	echo "  distsrc                   Make tarball with source code for packagers"
 	echo "  fetch                     Fetch all desired source code dependencies from git"
 	echo "  help                      Print this help message"
@@ -132,7 +128,6 @@ help:
 	echo "  install                   Install all binaries into the system"
 	echo "  package                   Create archive files with binaries"
 	echo "  prune                     Cleanup build and all fetched dependencies from git"
-	echo "  testconfig                Configure test build"
 	echo "  tree                      Fetch all possible source code dependencies from git"
 	echo "                            to make source code portable between machines"
 	echo "  uninstall                 Uninstall binaries"

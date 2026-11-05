@@ -19,6 +19,7 @@
 #
 ifneq ($(VERBOSE),1)
 .SILENT:
+MAKEFLAGS += --no-print-directory
 endif
 
 BASEDIR                    := $(CURDIR)
@@ -303,7 +304,7 @@ CONFIG_VARS = \
   )
 
 .DEFAULT_GOAL      := config
-.PHONY: config prepare help
+.PHONY: config info prepare help
 .PHONY: $(CONFIG_VARS)
 
 prepare:
@@ -313,11 +314,13 @@ prepare:
 $(CONFIG_VARS): prepare
 	echo "$(@)=$($(@))" >> "$(CONFIG)"
 
-config: $(CONFIG_VARS)
+info:
 	echo "Platform:          $(PLATFORM)"
 	echo "Host architecture: $(HOST_ARCHITECTURE_FAMILY)/$(HOST_ARCHITECTURE) ($(HOST_ARCHITECTURE_CFLAGS))"
 	echo "Architecture:      $(ARCHITECTURE_FAMILY)/$(ARCHITECTURE) ($(ARCHITECTURE_CFLAGS))"
 	echo "Features:          $(BUILD_FEATURES)"
+	
+config: $(CONFIG_VARS) | info
 	echo "Configured OK"
 
 help: | pathvars toolvars sysvars

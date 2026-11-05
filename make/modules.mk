@@ -19,6 +19,7 @@
 #
 ifneq ($(VERBOSE),1)
 .SILENT:
+MAKEFLAGS += --no-print-directory
 endif
 
 BASEDIR                := $(CURDIR)
