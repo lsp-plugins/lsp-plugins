@@ -3,6 +3,14 @@
 *******************************************************************************
 
 === 1.2.38 ===
+* Implemented Stereo Hammer plugin for controlling stereo image of audio track.
+* Small optimization of dynamic processing units to avoid extra memory copies.
+* Small optimizations of the Clipper and Multiband Clipper plugin series.
+* Several optimizations of Multiband plugin series to avoid extra memory copies:
+  * Multiband Compressor;
+  * Multiband Dynamics Processor;
+  * Multiband Gate;
+  * Multiband Expander.
 
 === 1.2.37 ===
 * Added Minimum Phase filter support by following plugins:
